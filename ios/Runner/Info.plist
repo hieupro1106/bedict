@@ -38,8 +38,8 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<key>NSSpeechRecognitionUsageDescription</key>
     <key>NSMicrophoneUsageDescription</key>
+    <key>GADApplicationIdentifier</key>
+        <string>ca-app-pub-3940256099942544~3986624511</string>
 	<false/>
-	<key>GADApplicationIdentifier</key>
-    <string>ca-app-pub-3940256099942544/3986624511</string>
 </dict>
 </plist>
