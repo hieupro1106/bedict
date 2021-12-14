@@ -34,7 +34,7 @@ dependencies:
   glassmorphism: ^3.0.0
   glassmorphism_ui: ^0.2.0
   flutter_tts: ^3.2.2
-  speech_to_text: ^5.2.0
+  speech_to_text: ^5.3.0
   percent_indicator: ^3.4.0
   group_button: ^3.2.0
   intl: ^0.17.0
