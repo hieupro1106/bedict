@@ -41,7 +41,7 @@ dependencies:
   keyboard_dismisser: ^2.0.0
   flutter_native_timezone: ^2.0.0
   path_provider: ^2.0.5
-  awesome_notifications: ^0.0.6+10
+#  awesome_notifications: ^0.6.19
   dots_indicator: ^2.0.0
   toggle_switch: ^1.2.0
   font_awesome_flutter: ^9.1.0
