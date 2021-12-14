@@ -34,7 +34,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:introduction_screen/introduction_screen.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+// import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 // import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:hive/hive.dart';
@@ -124,71 +124,71 @@ ScrollController scrollController = ScrollController();
 
 final searchField = TextEditingController();
 
-class NativeAdWidget extends StatefulWidget {
-  const NativeAdWidget({Key? key}) : super(key: key);
-
-  @override
-  State<StatefulWidget> createState() => NativeAdState();
-}
-
-class NativeAdState extends State<NativeAdWidget> {
-  late NativeAd _nativeAd;
-  final Completer<NativeAd> nativeAdCompleter = Completer<NativeAd>();
-
-  @override
-  void initState() {
-    super.initState();
-
-    _nativeAd = NativeAd(
-      adUnitId: Platform.isAndroid ? 'ca-app-pub-3940256099942544/2247696110' : 'ca-app-pub-3940256099942544/3986624511',
-      request: const AdRequest(nonPersonalizedAds: true),
-      factoryId: 'listTile',
-      listener: NativeAdListener(
-        onAdLoaded: (Ad ad) {
-          nativeAdCompleter.complete(ad as NativeAd);
-        },
-        onAdFailedToLoad: (Ad ad, LoadAdError err) {
-          ad.dispose();
-        },
-        onAdOpened: (Ad ad) => {},
-        onAdClosed: (Ad ad) => {},
-      ),
-    );
-
-    _nativeAd.load();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _nativeAd.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<NativeAd>(
-      future: nativeAdCompleter.future,
-      builder: (BuildContext context, AsyncSnapshot<NativeAd> snapshot) {
-        Widget child;
-
-        switch (snapshot.connectionState) {
-          case ConnectionState.none:
-          case ConnectionState.waiting:
-          case ConnectionState.active:
-            child = Container();
-            break;
-          case ConnectionState.done:
-            if (snapshot.hasData) {
-              child = AdWidget(ad: _nativeAd);
-            } else {
-              child = const Text('Error loading ad');
-            }
-        }
-        return child;
-      },
-    );
-  }
-}
+// class NativeAdWidget extends StatefulWidget {
+//   const NativeAdWidget({Key? key}) : super(key: key);
+//
+//   @override
+//   State<StatefulWidget> createState() => NativeAdState();
+// }
+//
+// class NativeAdState extends State<NativeAdWidget> {
+//   late NativeAd _nativeAd;
+//   final Completer<NativeAd> nativeAdCompleter = Completer<NativeAd>();
+//
+//   @override
+//   void initState() {
+//     super.initState();
+//
+//     _nativeAd = NativeAd(
+//       adUnitId: Platform.isAndroid ? 'ca-app-pub-3940256099942544/2247696110' : 'ca-app-pub-3940256099942544/3986624511',
+//       request: const AdRequest(nonPersonalizedAds: true),
+//       factoryId: 'listTile',
+//       listener: NativeAdListener(
+//         onAdLoaded: (Ad ad) {
+//           nativeAdCompleter.complete(ad as NativeAd);
+//         },
+//         onAdFailedToLoad: (Ad ad, LoadAdError err) {
+//           ad.dispose();
+//         },
+//         onAdOpened: (Ad ad) => {},
+//         onAdClosed: (Ad ad) => {},
+//       ),
+//     );
+//
+//     _nativeAd.load();
+//   }
+//
+//   @override
+//   void dispose() {
+//     super.dispose();
+//     _nativeAd.dispose();
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return FutureBuilder<NativeAd>(
+//       future: nativeAdCompleter.future,
+//       builder: (BuildContext context, AsyncSnapshot<NativeAd> snapshot) {
+//         Widget child;
+//
+//         switch (snapshot.connectionState) {
+//           case ConnectionState.none:
+//           case ConnectionState.waiting:
+//           case ConnectionState.active:
+//             child = Container();
+//             break;
+//           case ConnectionState.done:
+//             if (snapshot.hasData) {
+//               child = AdWidget(ad: _nativeAd);
+//             } else {
+//               child = const Text('Error loading ad');
+//             }
+//         }
+//         return child;
+//       },
+//     );
+//   }
+// }
 
 Future<void> main() async {
   // AwesomeNotifications().initialize(
@@ -259,7 +259,7 @@ Future<void> main() async {
     c.listLevel = listLevelEN;
   }
 
-  MobileAds.instance.initialize();
+  // MobileAds.instance.initialize();
 
   bool isIntroduce = await box.get('isIntroduce') ?? true;
   await box.close();
@@ -894,7 +894,7 @@ class Home extends StatelessWidget {
                       ):
                       Container(
                         alignment: Alignment.center,
-                        child: const NativeAdWidget(),
+                        child: const SizedBox(),//NativeAdWidget(),
                         width: c.imageWidth.value - 10,
                         height: c.imageWidth.value - 10,
                       ),
@@ -2572,7 +2572,7 @@ class WriteWidget extends StatelessWidget {
                       // alignment: Alignment.center,
                       width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
                       height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
-                      child: const NativeAdWidget()
+                      child: const SizedBox()//NativeAdWidget()
                   ),
                   for (int index=1; index<c.mean.length; index++)
                     Container(
@@ -2988,7 +2988,7 @@ class PronunWidget extends StatelessWidget {
                         // alignment: Alignment.center,
                         width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
                         height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
-                        child: const NativeAdWidget()
+                        child: const SizedBox()//NativeAdWidget()
                     ),
                     for (int index=1; index<c.mean.length; index++)
                       Container(
@@ -3678,7 +3678,7 @@ class SpeakWidget extends StatelessWidget {
                         // alignment: Alignment.center,
                         width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
                         height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
-                        child: const NativeAdWidget()
+                        child: const SizedBox()//NativeAdWidget()
                     ),
                     for (int index=1; index<c.mean.length; index++)
                       Container(
@@ -4357,7 +4357,7 @@ class MeanWidget extends StatelessWidget {
                           // alignment: Alignment.center,
                           width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
                           height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
-                          child: const NativeAdWidget()
+                          child: const SizedBox()//NativeAdWidget()
                         )
                     ]
                   ),
