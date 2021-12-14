@@ -41,14 +41,14 @@ dependencies:
   keyboard_dismisser: ^2.0.0
   flutter_native_timezone: ^2.0.0
   path_provider: ^2.0.5
-#  awesome_notifications: ^0.6.19
+  awesome_notifications: ^0.6.19
   dots_indicator: ^2.0.0
   toggle_switch: ^1.2.0
   font_awesome_flutter: ^9.1.0
   screenshot: ^1.2.3
   share_plus: ^3.0.4
   introduction_screen: ^2.1.0
-#  google_mobile_ads: ^1.0.1
+  google_mobile_ads: ^1.0.1
   in_app_purchase: ^2.0.0
   hive: ^2.0.4
   hive_flutter: ^1.1.0
