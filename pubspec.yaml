@@ -27,38 +27,38 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  get: ^4.3.8
-  http: ^0.13.3
-  scroll_snap_list: ^0.8.2
-  flutter_typeahead: ^3.2.1
-  glassmorphism: ^3.0.0
-  glassmorphism_ui: ^0.2.0
-  flutter_tts: ^3.2.2
-  speech_to_text: ^5.2.0
-  percent_indicator: ^3.4.0
-  group_button: ^3.2.0
-  intl: ^0.17.0
-  keyboard_dismisser: ^2.0.0
-  flutter_native_timezone: ^2.0.0
-  path_provider: ^2.0.5
-  awesome_notifications: ^0.0.6+10
-  dots_indicator: ^2.0.0
-  toggle_switch: ^1.2.0
-  font_awesome_flutter: ^9.1.0
-  screenshot: ^1.2.3
-  share_plus: ^3.0.4
-  introduction_screen: ^2.1.0
-  google_mobile_ads: ^1.0.1
-  in_app_purchase: ^2.0.0
-  hive: ^2.0.4
-  hive_flutter: ^1.1.0
-  soundpool: ^2.2.0
-  sqflite:
-  path:
-  flutter_neumorphic:
-    git:
-      url: "https://github.com/alionour/Flutter-Neumorphic"
-  animations: ^2.0.1
+#  get: ^4.3.8
+#  http: ^0.13.3
+#  scroll_snap_list: ^0.8.2
+#  flutter_typeahead: ^3.2.1
+#  glassmorphism: ^3.0.0
+#  glassmorphism_ui: ^0.2.0
+#  flutter_tts: ^3.2.2
+#  speech_to_text: ^5.2.0
+#  percent_indicator: ^3.4.0
+#  group_button: ^3.2.0
+#  intl: ^0.17.0
+#  keyboard_dismisser: ^2.0.0
+#  flutter_native_timezone: ^2.0.0
+#  path_provider: ^2.0.5
+#  awesome_notifications: ^0.0.6+10
+#  dots_indicator: ^2.0.0
+#  toggle_switch: ^1.2.0
+#  font_awesome_flutter: ^9.1.0
+#  screenshot: ^1.2.3
+#  share_plus: ^3.0.4
+#  introduction_screen: ^2.1.0
+#  google_mobile_ads: ^1.0.1
+#  in_app_purchase: ^2.0.0
+#  hive: ^2.0.4
+#  hive_flutter: ^1.1.0
+#  soundpool: ^2.2.0
+#  sqflite:
+#  path:
+#  flutter_neumorphic:
+#    git:
+#      url: "https://github.com/alionour/Flutter-Neumorphic"
+#  animations: ^2.0.1
   flutter:
     sdk: flutter
 
