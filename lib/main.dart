@@ -25,7 +25,7 @@ import 'package:group_button/group_button.dart';
 import 'package:intl/intl.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'dart:io';
-import 'package:awesome_notifications/awesome_notifications.dart';
+// import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/services.dart';
 import 'package:toggle_switch/toggle_switch.dart';
@@ -191,31 +191,31 @@ class NativeAdState extends State<NativeAdWidget> {
 }
 
 Future<void> main() async {
-  AwesomeNotifications().initialize(
-    'resource://drawable/app_icon',
-    [
-      NotificationChannel(
-        channelKey: 'daily',
-        channelName: 'daily',
-        channelDescription: 'remind to learn',
-        defaultColor: const Color(0xFF9D50DD),
-        ledColor: Colors.white,
-        playSound: true,
-        soundSource: 'resource://raw/slow_spring_board',
-      ),
-      NotificationChannel(
-        channelKey: 'word',
-        channelName: 'word',
-        channelDescription: 'learn by notification',
-        defaultColor: const Color(0xFF9D50DD),
-        ledColor: Colors.white,
-        playSound: false,
-      )
-    ]
-  );
-  AwesomeNotifications().actionStream.listen((receivedNotification){
-    showWord(receivedNotification.title??'');
-  });
+  // AwesomeNotifications().initialize(
+  //   'resource://drawable/app_icon',
+  //   [
+  //     NotificationChannel(
+  //       channelKey: 'daily',
+  //       channelName: 'daily',
+  //       channelDescription: 'remind to learn',
+  //       defaultColor: const Color(0xFF9D50DD),
+  //       ledColor: Colors.white,
+  //       playSound: true,
+  //       soundSource: 'resource://raw/slow_spring_board',
+  //     ),
+  //     NotificationChannel(
+  //       channelKey: 'word',
+  //       channelName: 'word',
+  //       channelDescription: 'learn by notification',
+  //       defaultColor: const Color(0xFF9D50DD),
+  //       ledColor: Colors.white,
+  //       playSound: false,
+  //     )
+  //   ]
+  // );
+  // AwesomeNotifications().actionStream.listen((receivedNotification){
+  //   showWord(receivedNotification.title??'');
+  // });
 
   final Controller c = Get.put(Controller());
   await Hive.initFlutter();
@@ -231,13 +231,13 @@ Future<void> main() async {
   c.notifyDaily = RxBool(await box.get('notifyDaily') ?? false);
   c.selectedTime = RxString(await box.get('timeDaily') ?? '20:00');
   c.notifyWord = RxBool(await box.get('notifyWord') ?? false);
-  if (c.notifyWord.value){
-    for (var i=1;i<18;i++){
-      await AwesomeNotifications().dismiss(i);
-      await AwesomeNotifications().cancelSchedule(i);
-    }
-    showNotificationWord();
-  }
+  // if (c.notifyWord.value){
+  //   for (var i=1;i<18;i++){
+  //     await AwesomeNotifications().dismiss(i);
+  //     await AwesomeNotifications().cancelSchedule(i);
+  //   }
+  //   showNotificationWord();
+  // }
   c.listWordsToday = jsonDecode(await box.get("listWordsToday")?? '[]').cast<String>();
   c.category = RxString(listCategoryEN[await box.get('category') ?? 0]);
   c.type = RxString(listTypeEN[await box.get('type') ?? 0]);
@@ -1050,7 +1050,7 @@ class Home extends StatelessWidget {
       if (result != null) {
         c.selectedTime = RxString(result.format(context));
         c.update();
-        showNotification();
+        // showNotification();
         var box = await Hive.openBox('setting');
         await box.put('timeDaily',c.selectedTime.string);
         await box.close();
@@ -1181,12 +1181,12 @@ class Home extends StatelessWidget {
                           var box = await Hive.openBox('setting');
                           await box.put('notifyDaily',value);
                           await box.close();
-                          if (value) {
-                            showNotification();
-                          }else{
-                            await AwesomeNotifications().dismiss(0);
-                            await AwesomeNotifications().cancelSchedule(0);
-                          }
+                          // if (value) {
+                          //   showNotification();
+                          // }else{
+                          //   await AwesomeNotifications().dismiss(0);
+                          //   await AwesomeNotifications().cancelSchedule(0);
+                          // }
                         },
                         activeTrackColor: themeColor,
                         activeColor: backgroundColor,
@@ -1304,12 +1304,12 @@ class Home extends StatelessWidget {
                           await box.put('notifyWord',value);
                           await box.close();
                           if (value) {
-                            showNotificationWord();
+                            // showNotificationWord();
                           }else{
-                            for (var i=1;i<18;i++){
-                              await AwesomeNotifications().dismiss(i);
-                              await AwesomeNotifications().cancelSchedule(i);
-                            }
+                            // for (var i=1;i<18;i++){
+                            //   await AwesomeNotifications().dismiss(i);
+                            //   await AwesomeNotifications().cancelSchedule(i);
+                            // }
                           }
                         },
                         activeTrackColor: themeColor,
@@ -6096,208 +6096,208 @@ class History {
   }
 }
 
-Future showNotification() async {
-  final Controller c = Get.put(Controller());
-  AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
-    if (!isAllowed) {
-      // Insert here your friendly dialog box before call the request method
-      // This is very important to not harm the user experience
-      AwesomeNotifications().requestPermissionToSendNotifications();
-    }
-  });
-  String localTimeZone = await AwesomeNotifications().getLocalTimeZoneIdentifier();
-  await AwesomeNotifications().createNotification(
-    content: NotificationContent(
-      id: 0,
-      channelKey: 'daily',
-      title: 'Daily',
-      body: 'Time to learn',
-    ),
-    schedule: NotificationCalendar(
-      second: 0, millisecond: 0,
-      minute: int.parse(c.selectedTime.string.split(":")[1]),
-      hour: int.parse(c.selectedTime.string.split(":")[0]),
-      timeZone: localTimeZone, repeats: true,
-      allowWhileIdle: true,
-    )
-  );
-}
+// Future showNotification() async {
+//   final Controller c = Get.put(Controller());
+//   AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
+//     if (!isAllowed) {
+//       // Insert here your friendly dialog box before call the request method
+//       // This is very important to not harm the user experience
+//       AwesomeNotifications().requestPermissionToSendNotifications();
+//     }
+//   });
+//   String localTimeZone = await AwesomeNotifications().getLocalTimeZoneIdentifier();
+//   await AwesomeNotifications().createNotification(
+//     content: NotificationContent(
+//       id: 0,
+//       channelKey: 'daily',
+//       title: 'Daily',
+//       body: 'Time to learn',
+//     ),
+//     schedule: NotificationCalendar(
+//       second: 0, millisecond: 0,
+//       minute: int.parse(c.selectedTime.string.split(":")[1]),
+//       hour: int.parse(c.selectedTime.string.split(":")[0]),
+//       timeZone: localTimeZone, repeats: true,
+//       allowWhileIdle: true,
+//     )
+//   );
+// }
 
-Future<List<String>> getScoreScore() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // Open the database and store the reference.
-  final database = openDatabase(
-    join(await getDatabasesPath(), 'data.db'),
-    // When the database is first created, create a table to store dogs.
-    onCreate: (db, version) {
-      // Run the CREATE TABLE statement on the database.
-      db.execute(
-        'CREATE TABLE scores(wordId TEXT PRIMARY KEY, word INTEGER, pronun INTEGER, speak INTEGER, mean INTEGER, total INTEGER, time INTEGER)',
-      );
-      db.execute(
-        'CREATE TABLE history(time INTEGER PRIMARY KEY, word TEXT)',
-      );
-    },
-    version: 1,
-  );
-  final db = await database;
-  List<Map> maps = await db.query (
-    'scores',
-    columns: ['wordId'],
-    orderBy: 'total ASC',
-    limit: 10,
-  );
-  return List.generate(maps.length, (i) {
-    return maps[i]['wordId'];
-  });
-}
-Future<List<String>> getScoreTime() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // Open the database and store the reference.
-  final database = openDatabase(
-    join(await getDatabasesPath(), 'data.db'),
-    // When the database is first created, create a table to store dogs.
-    onCreate: (db, version) {
-      // Run the CREATE TABLE statement on the database.
-      db.execute(
-        'CREATE TABLE scores(wordId TEXT PRIMARY KEY, word INTEGER, pronun INTEGER, speak INTEGER, mean INTEGER, total INTEGER, time INTEGER)',
-      );
-      db.execute(
-        'CREATE TABLE history(time INTEGER PRIMARY KEY, word TEXT)',
-      );
-    },
-    version: 1,
-  );
-  final db = await database;
-  List<Map> maps = await db.query (
-    'scores',
-    columns: ['wordId'],
-    orderBy: 'time DESC',
-    limit: 10,
-  );
-  return List.generate(maps.length, (i) {
-    return maps[i]['wordId'];
-  });
-}
-
-Future showNotificationWord() async {
-  var box = await Hive.openBox('data');
-  final Controller c = Get.put(Controller());
-  AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
-    if (!isAllowed) {
-      // Insert here your friendly dialog box before call the request method
-      // This is very important to not harm the user experience
-      AwesomeNotifications().requestPermissionToSendNotifications();
-    }
-  });
-
-  List<String> listWord = <String>[];
-  List<String> listScoreScore = await getScoreScore();
-  for (var i=0;i< listScoreScore.length;i++){
-    if (!listWord.contains(listScoreScore[i])){
-      listWord.add(listScoreScore[i]);
-    }
-  }
-  List<String> listScoreTime = await getScoreTime();
-  for (var i=0;i< listScoreTime.length;i++){
-    if (!listWord.contains(listScoreTime[i])){
-      listWord.add(listScoreTime[i]);
-    }
-  }
-
-  String localTimeZone = await AwesomeNotifications().getLocalTimeZoneIdentifier();
-  for (var i=1;i<18;i++){
-    var dataRaw = box.get(listWord[Random().nextInt(listWord.length)]);
-    var randomMean = Random().nextInt(jsonDecode(dataRaw['mean']).length);
-    List listMean = jsonDecode(dataRaw['mean'])[randomMean];
-    List meanENAdd = [];
-    List meanVNAdd = [];
-    for(var j = 0; j< listMean.length; j++) {
-      String meanENElement = '';
-      if(listMean[j].contains('#')){
-        meanENElement = listMean[j].split('#')[1];
-      }else{
-        meanENElement = listMean[j];
-      }
-      meanENAdd.add(meanENElement);
-      String meanVNElement = jsonDecode(dataRaw['meanVN'])[randomMean][j];
-      meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
-      meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
-      meanVNAdd.add(meanVNElement);
-    }
-    String meanEN = '';
-    String meanVN = '';
-    String mean = '';
-    for(var j = 0; j< meanENAdd.length; j++) {
-      if (j==0){
-        meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
-        meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
-      }else{
-        meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
-        meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
-      }
-    }
-    if (c.language.string == 'VN'){
-      mean = meanVN;
-    }else{
-      mean = meanEN;
-    }
-    String image = '';
-    if (randomMean>=jsonDecode(dataRaw['imageURL']).length){
-      image = 'https://bedict.com/bedict.png';
-    }else{
-      image = 'https://bedict.com/' + jsonDecode(dataRaw['imageURL'])[randomMean];
-    }
-    await AwesomeNotifications().createNotification(
-      content: NotificationContent(
-        id: i,
-        channelKey: 'word',
-        title: dataRaw['word'],
-        body: mean,
-        bigPicture: image,
-        largeIcon: image,
-        hideLargeIconOnExpand: true,
-        notificationLayout: NotificationLayout.BigPicture,
-      ),
-      // schedule: NotificationInterval(interval: i*5, timeZone: localTimeZone),
-      schedule: NotificationCalendar(
-        second: 0, millisecond: 0,
-        minute: 0,
-        hour: 5 + i,
-        timeZone: localTimeZone, repeats: true,
-        allowWhileIdle: true,
-      )
-    );
-  }
-}
-
-Future showWord(String wordShow) async {
-  if (wordShow != 'Daily'){
-    var box = await Hive.openBox('setting');
-
-    final Controller c = Get.put(Controller());
-
-    c.category = RxString('category');
-    await box.put('category',0);
-
-    c.type = RxString('type');
-    await box.put('type',0);
-
-    c.categoryIndex = 0.obs;
-    c.typeIndex = 0.obs;
-    c.levelIndex = 0.obs;
-
-    c.level = RxString('all words');
-    await box.put('level',0);
-    await box.close();
-
-    final String response = await rootBundle.loadString('assets/allWords.json');
-    final data = await json.decode(response);
-    c.wordArray = data.cast<String>();
-
-    c.word = RxString(wordShow);
-
-    await c.layWord(c.word.string);
-  }
-  Get.to(()=>Home());
-}
+// Future<List<String>> getScoreScore() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   // Open the database and store the reference.
+//   final database = openDatabase(
+//     join(await getDatabasesPath(), 'data.db'),
+//     // When the database is first created, create a table to store dogs.
+//     onCreate: (db, version) {
+//       // Run the CREATE TABLE statement on the database.
+//       db.execute(
+//         'CREATE TABLE scores(wordId TEXT PRIMARY KEY, word INTEGER, pronun INTEGER, speak INTEGER, mean INTEGER, total INTEGER, time INTEGER)',
+//       );
+//       db.execute(
+//         'CREATE TABLE history(time INTEGER PRIMARY KEY, word TEXT)',
+//       );
+//     },
+//     version: 1,
+//   );
+//   final db = await database;
+//   List<Map> maps = await db.query (
+//     'scores',
+//     columns: ['wordId'],
+//     orderBy: 'total ASC',
+//     limit: 10,
+//   );
+//   return List.generate(maps.length, (i) {
+//     return maps[i]['wordId'];
+//   });
+// }
+// Future<List<String>> getScoreTime() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+//   // Open the database and store the reference.
+//   final database = openDatabase(
+//     join(await getDatabasesPath(), 'data.db'),
+//     // When the database is first created, create a table to store dogs.
+//     onCreate: (db, version) {
+//       // Run the CREATE TABLE statement on the database.
+//       db.execute(
+//         'CREATE TABLE scores(wordId TEXT PRIMARY KEY, word INTEGER, pronun INTEGER, speak INTEGER, mean INTEGER, total INTEGER, time INTEGER)',
+//       );
+//       db.execute(
+//         'CREATE TABLE history(time INTEGER PRIMARY KEY, word TEXT)',
+//       );
+//     },
+//     version: 1,
+//   );
+//   final db = await database;
+//   List<Map> maps = await db.query (
+//     'scores',
+//     columns: ['wordId'],
+//     orderBy: 'time DESC',
+//     limit: 10,
+//   );
+//   return List.generate(maps.length, (i) {
+//     return maps[i]['wordId'];
+//   });
+// }
+//
+// Future showNotificationWord() async {
+//   var box = await Hive.openBox('data');
+//   final Controller c = Get.put(Controller());
+//   AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
+//     if (!isAllowed) {
+//       // Insert here your friendly dialog box before call the request method
+//       // This is very important to not harm the user experience
+//       AwesomeNotifications().requestPermissionToSendNotifications();
+//     }
+//   });
+//
+//   List<String> listWord = <String>[];
+//   List<String> listScoreScore = await getScoreScore();
+//   for (var i=0;i< listScoreScore.length;i++){
+//     if (!listWord.contains(listScoreScore[i])){
+//       listWord.add(listScoreScore[i]);
+//     }
+//   }
+//   List<String> listScoreTime = await getScoreTime();
+//   for (var i=0;i< listScoreTime.length;i++){
+//     if (!listWord.contains(listScoreTime[i])){
+//       listWord.add(listScoreTime[i]);
+//     }
+//   }
+//
+//   String localTimeZone = await AwesomeNotifications().getLocalTimeZoneIdentifier();
+//   for (var i=1;i<18;i++){
+//     var dataRaw = box.get(listWord[Random().nextInt(listWord.length)]);
+//     var randomMean = Random().nextInt(jsonDecode(dataRaw['mean']).length);
+//     List listMean = jsonDecode(dataRaw['mean'])[randomMean];
+//     List meanENAdd = [];
+//     List meanVNAdd = [];
+//     for(var j = 0; j< listMean.length; j++) {
+//       String meanENElement = '';
+//       if(listMean[j].contains('#')){
+//         meanENElement = listMean[j].split('#')[1];
+//       }else{
+//         meanENElement = listMean[j];
+//       }
+//       meanENAdd.add(meanENElement);
+//       String meanVNElement = jsonDecode(dataRaw['meanVN'])[randomMean][j];
+//       meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
+//       meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
+//       meanVNAdd.add(meanVNElement);
+//     }
+//     String meanEN = '';
+//     String meanVN = '';
+//     String mean = '';
+//     for(var j = 0; j< meanENAdd.length; j++) {
+//       if (j==0){
+//         meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+//         meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+//       }else{
+//         meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+//         meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+//       }
+//     }
+//     if (c.language.string == 'VN'){
+//       mean = meanVN;
+//     }else{
+//       mean = meanEN;
+//     }
+//     String image = '';
+//     if (randomMean>=jsonDecode(dataRaw['imageURL']).length){
+//       image = 'https://bedict.com/bedict.png';
+//     }else{
+//       image = 'https://bedict.com/' + jsonDecode(dataRaw['imageURL'])[randomMean];
+//     }
+//     await AwesomeNotifications().createNotification(
+//       content: NotificationContent(
+//         id: i,
+//         channelKey: 'word',
+//         title: dataRaw['word'],
+//         body: mean,
+//         bigPicture: image,
+//         largeIcon: image,
+//         hideLargeIconOnExpand: true,
+//         notificationLayout: NotificationLayout.BigPicture,
+//       ),
+//       // schedule: NotificationInterval(interval: i*5, timeZone: localTimeZone),
+//       schedule: NotificationCalendar(
+//         second: 0, millisecond: 0,
+//         minute: 0,
+//         hour: 5 + i,
+//         timeZone: localTimeZone, repeats: true,
+//         allowWhileIdle: true,
+//       )
+//     );
+//   }
+// }
+//
+// Future showWord(String wordShow) async {
+//   if (wordShow != 'Daily'){
+//     var box = await Hive.openBox('setting');
+//
+//     final Controller c = Get.put(Controller());
+//
+//     c.category = RxString('category');
+//     await box.put('category',0);
+//
+//     c.type = RxString('type');
+//     await box.put('type',0);
+//
+//     c.categoryIndex = 0.obs;
+//     c.typeIndex = 0.obs;
+//     c.levelIndex = 0.obs;
+//
+//     c.level = RxString('all words');
+//     await box.put('level',0);
+//     await box.close();
+//
+//     final String response = await rootBundle.loadString('assets/allWords.json');
+//     final data = await json.decode(response);
+//     c.wordArray = data.cast<String>();
+//
+//     c.word = RxString(wordShow);
+//
+//     await c.layWord(c.word.string);
+//   }
+//   Get.to(()=>Home());
+// }

@@ -48,7 +48,7 @@ dependencies:
   screenshot: ^1.2.3
   share_plus: ^3.0.4
   introduction_screen: ^2.1.0
-  google_mobile_ads: ^1.0.0
+  google_mobile_ads: ^1.0.1
   in_app_purchase: ^2.0.0
   hive: ^2.0.4
   hive_flutter: ^1.1.0
