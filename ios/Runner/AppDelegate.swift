@@ -29,7 +29,7 @@ import Flutter
 // explained by https://developers.google.com/admob/ios/native/advanced.
 class NativeAdFactoryExample : NSObject, FLTNativeAdFactory {
 
-    func createNativeAd(_ nativeAd:GADUnifiedNativeAd, customOptions:[AnyHashable : Any]? = nil) -> GADNativeAdView? {
+    func createNativeAd(_ nativeAd:GADNativeAd, customOptions:[AnyHashable : Any]? = nil) -> GADNativeAdView? {
       // Create and place ad in view hierarchy.
       let nibView = Bundle.main.loadNibNamed("NativeAdView", owner: nil, options: nil)?.first
       guard let nativeAdView = nibView as? GADNativeAdView else {
