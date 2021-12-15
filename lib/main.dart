@@ -193,6 +193,10 @@ class NativeAdState extends State<NativeAdWidget> {
 }
 
 Future<void> main() async {
+
+  WidgetsFlutterBinding.ensureInitialized();
+  MobileAds.instance.initialize();
+
   AwesomeNotifications().initialize(
     'resource://drawable/app_icon',
     [
@@ -260,8 +264,6 @@ Future<void> main() async {
     c.listType = listTypeEN;
     c.listLevel = listLevelEN;
   }
-
-  MobileAds.instance.initialize();
 
   bool isIntroduce = await box.get('isIntroduce') ?? true;
   await box.close();
