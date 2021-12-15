@@ -133,25 +133,25 @@ class NativeAdWidget extends StatefulWidget {
 
 class NativeAdState extends State<NativeAdWidget> {
   late NativeAd _nativeAd;
-  // final Completer<NativeAd> nativeAdCompleter = Completer<NativeAd>();
+  final Completer<NativeAd> nativeAdCompleter = Completer<NativeAd>();
 
   @override
   void initState() {
     super.initState();
 
     _nativeAd = NativeAd(
-      adUnitId: Platform.isAndroid ? 'ca-app-pub-3940256099942544/2247696110' : 'ca-app-pub-3940256099942544/3986624511',
+      adUnitId: Platform.isAndroid ? 'ca-app-pub-3940256099942544/2247696110' : 'ca-app-pub-9467993129762242/8935005562',
       request: const AdRequest(),
       factoryId: 'listTile',
       listener: NativeAdListener(
-        // onAdLoaded: (Ad ad) {
-        //   nativeAdCompleter.complete(ad as NativeAd);
-        // },
-        // onAdFailedToLoad: (Ad ad, LoadAdError err) {
-        //   ad.dispose();
-        // },
-        // onAdOpened: (Ad ad) => {},
-        // onAdClosed: (Ad ad) => {},
+        onAdLoaded: (Ad ad) {
+          nativeAdCompleter.complete(ad as NativeAd);
+        },
+        onAdFailedToLoad: (Ad ad, LoadAdError err) {
+          ad.dispose();
+        },
+        onAdOpened: (Ad ad) => {},
+        onAdClosed: (Ad ad) => {},
       ),
     );
 
@@ -165,30 +165,28 @@ class NativeAdState extends State<NativeAdWidget> {
   }
 
   @override
-  // Widget build(BuildContext context) {
-  //   return FutureBuilder<NativeAd>(
-  //     future: nativeAdCompleter.future,
-  //     builder: (BuildContext context, AsyncSnapshot<NativeAd> snapshot) {
-  //       Widget child;
-  //
-  //       switch (snapshot.connectionState) {
-  //         case ConnectionState.none:
-  //         case ConnectionState.waiting:
-  //         case ConnectionState.active:
-  //           child = Container();
-  //           break;
-  //         case ConnectionState.done:
-  //           if (snapshot.hasData) {
-  //             child = AdWidget(ad: _nativeAd);
-  //           } else {
-  //             child = const Text('Error loading ad');
-  //           }
-  //       }
-  //       return child;
-  //     },
-  //   );
   Widget build(BuildContext context) {
-    return AdWidget(ad: _nativeAd);
+    return FutureBuilder<NativeAd>(
+      future: nativeAdCompleter.future,
+      builder: (BuildContext context, AsyncSnapshot<NativeAd> snapshot) {
+        Widget child;
+
+        switch (snapshot.connectionState) {
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+          case ConnectionState.active:
+            child = Container();
+            break;
+          case ConnectionState.done:
+            if (snapshot.hasData) {
+              child = AdWidget(ad: _nativeAd);
+            } else {
+              child = const Text('Error loading ad');
+            }
+        }
+        return child;
+      },
+    );
   }
 }
 
