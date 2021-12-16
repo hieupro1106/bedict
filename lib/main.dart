@@ -146,9 +146,11 @@ class NativeAdState extends State<NativeAdWidget> {
       listener: NativeAdListener(
         onAdLoaded: (Ad ad) {
           nativeAdCompleter.complete(ad as NativeAd);
+          Get.snackbar('ok','7');
         },
         onAdFailedToLoad: (Ad ad, LoadAdError err) {
           ad.dispose();
+          Get.snackbar('ok','8');
         },
         onAdOpened: (Ad ad) => {},
         onAdClosed: (Ad ad) => {},
@@ -174,15 +176,25 @@ class NativeAdState extends State<NativeAdWidget> {
 
         switch (snapshot.connectionState) {
           case ConnectionState.none:
+            Get.snackbar('ok','1');
+            child = Container();
+            break;
           case ConnectionState.waiting:
+            Get.snackbar('ok','2');
+            child = Container();
+            break;
           case ConnectionState.active:
+            Get.snackbar('ok','3');
             child = Container();
             break;
           case ConnectionState.done:
+            Get.snackbar('ok','4');
             if (snapshot.hasData) {
               child = AdWidget(ad: _nativeAd);
+              Get.snackbar('ok','5');
             } else {
               child = const Text('Error loading ad');
+              Get.snackbar('ok','6');
             }
         }
         return child;
