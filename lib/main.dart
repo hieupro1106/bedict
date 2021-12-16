@@ -140,7 +140,7 @@ class NativeAdState extends State<NativeAdWidget> {
     super.initState();
 
     _nativeAd = NativeAd(
-      adUnitId: Platform.isAndroid ? 'ca-app-pub-3940256099942544/2247696110' : 'ca-app-pub-3940256099942544/3986624511',
+      adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/9482250181' : 'ca-app-pub-9467993129762242/8935005562',
       request: const AdRequest(),
       factoryId: 'listTile',
       listener: NativeAdListener(
