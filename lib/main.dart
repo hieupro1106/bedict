@@ -153,7 +153,7 @@ class NativeAdState extends State<NativeAdWidget> {
         onAdOpened: (Ad ad) => {},
         onAdClosed: (Ad ad) => {},
       ),
-      customOptions: <String, Object>{},
+      // customOptions: <String, Object>{},
     );
 
     _nativeAd.load();
