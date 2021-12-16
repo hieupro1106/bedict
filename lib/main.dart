@@ -150,7 +150,10 @@ class NativeAdState extends State<NativeAdWidget> {
         },
         onAdFailedToLoad: (Ad ad, LoadAdError err) {
           ad.dispose();
-          Get.snackbar('ok','8');
+          Get.snackbar(err.message,err.toString());
+          Get.defaultDialog(
+              middleText:err.toString()
+          );
         },
         onAdOpened: (Ad ad) => {},
         onAdClosed: (Ad ad) => {},
