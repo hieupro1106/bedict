@@ -140,20 +140,15 @@ class NativeAdState extends State<NativeAdWidget> {
     super.initState();
 
     _nativeAd = NativeAd(
-      adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/9482250181' : 'ca-app-pub-3940256099942544/3986624511',
+      adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/9482250181' : 'ca-app-pub-9467993129762242/8935005562',
       request: const AdRequest(),
       factoryId: 'listTile',
       listener: NativeAdListener(
         onAdLoaded: (Ad ad) {
           nativeAdCompleter.complete(ad as NativeAd);
-          Get.snackbar('ok','7');
         },
         onAdFailedToLoad: (Ad ad, LoadAdError err) {
           ad.dispose();
-          Get.snackbar(err.message,err.toString());
-          Get.defaultDialog(
-              middleText:err.toString()
-          );
         },
         onAdOpened: (Ad ad) => {},
         onAdClosed: (Ad ad) => {},
@@ -179,25 +174,15 @@ class NativeAdState extends State<NativeAdWidget> {
 
         switch (snapshot.connectionState) {
           case ConnectionState.none:
-            Get.snackbar('ok','1');
-            child = Container();
-            break;
           case ConnectionState.waiting:
-            Get.snackbar('ok','2');
-            child = Container();
-            break;
           case ConnectionState.active:
-            Get.snackbar('ok','3');
             child = Container();
             break;
           case ConnectionState.done:
-            Get.snackbar('ok','4');
             if (snapshot.hasData) {
               child = AdWidget(ad: _nativeAd);
-              Get.snackbar('ok','5');
             } else {
               child = const Text('Error loading ad');
-              Get.snackbar('ok','6');
             }
         }
         return child;
@@ -3336,7 +3321,7 @@ class SpeakWidget extends StatelessWidget {
     void onSpeechResult(SpeechRecognitionResult result) async {
       c.listenString = RxString(result.recognizedWords);
       c.update();
-      if (stt.isNotListening) {
+      if (result.finalResult) {
         bool kt = false;
         if (c.word.string.contains(' ')){
           if (c.listenString.string.toLowerCase().contains(c.word.string.toLowerCase())){
