@@ -180,7 +180,10 @@ class NativeAdState extends State<NativeAdWidget> {
             break;
           case ConnectionState.done:
             if (snapshot.hasData) {
-              child = AdWidget(ad: _nativeAd);
+              child = ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: AdWidget(ad: _nativeAd),
+              );
             } else {
               child = const Text('Error loading ad');
             }
