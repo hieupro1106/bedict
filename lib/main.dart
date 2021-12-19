@@ -119,33 +119,40 @@ final Soundpool pool = Soundpool.fromOptions();
 late int soundId;
 
 int initLanguageIndex = 0;
-double statusBarHeight = 0.0;
 ScrollController scrollController = ScrollController();
 
 final searchField = TextEditingController();
 
-class NativeAdWidget extends StatefulWidget {
-  const NativeAdWidget({Key? key}) : super(key: key);
+class BannerAdWidget extends StatefulWidget {
+  // const BannerAdWidget({Key? key}) : super(key: key);
+
+  final double adWidth;
+
+  const BannerAdWidget({Key? key,
+    required this.adWidth
+  }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => NativeAdState();
+  State<StatefulWidget> createState() => BannerAdState();
 }
 
-class NativeAdState extends State<NativeAdWidget> {
-  late NativeAd _nativeAd;
-  final Completer<NativeAd> nativeAdCompleter = Completer<NativeAd>();
-
+class BannerAdState extends State<BannerAdWidget> {
+  late BannerAd bannerAd;
+  final Completer<BannerAd> nativeAdCompleter = Completer<BannerAd>();
+  final Controller c = Get.put(Controller());
   @override
   void initState() {
     super.initState();
-
-    _nativeAd = NativeAd(
-      adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/9482250181' : 'ca-app-pub-3940256099942544/3986624511',
+    bannerAd = BannerAd(
+      adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/5194909402' : 'ca-app-pub-9467993129762242/4031685759',
       request: const AdRequest(),
-      factoryId: 'listTile',
-      listener: NativeAdListener(
+      size: AdSize(
+        width: widget.adWidth.toInt()+1,
+        height: widget.adWidth*250~/320+1,
+      ),
+      listener: BannerAdListener(
         onAdLoaded: (Ad ad) {
-          nativeAdCompleter.complete(ad as NativeAd);
+          nativeAdCompleter.complete(ad as BannerAd);
         },
         onAdFailedToLoad: (Ad ad, LoadAdError err) {
           ad.dispose();
@@ -156,25 +163,29 @@ class NativeAdState extends State<NativeAdWidget> {
       // customOptions: <String, Object>{},
     );
 
-    _nativeAd.load();
+    bannerAd.load();
   }
 
   @override
   void dispose() {
     super.dispose();
-    _nativeAd.dispose();
+    bannerAd.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<NativeAd>(
+    return FutureBuilder<BannerAd>(
       future: nativeAdCompleter.future,
-      builder: (BuildContext context, AsyncSnapshot<NativeAd> snapshot) {
+      builder: (BuildContext context, AsyncSnapshot<BannerAd> snapshot) {
         Widget child;
 
         switch (snapshot.connectionState) {
           case ConnectionState.none:
+            child = Container();
+            break;
           case ConnectionState.waiting:
+            child = Container();
+            break;
           case ConnectionState.active:
             child = Container();
             break;
@@ -182,7 +193,7 @@ class NativeAdState extends State<NativeAdWidget> {
             if (snapshot.hasData) {
               child = ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: AdWidget(ad: _nativeAd),
+                child: AdWidget(ad: bannerAd),
               );
             } else {
               child = const Text('Error loading ad');
@@ -234,6 +245,11 @@ Future<void> main() async {
     initLanguageIndex = 0;
   }else{
     initLanguageIndex = 1;
+  }
+
+  String vipToken = await box.get('vipToken') ?? '';
+  if (vipToken != ''){
+    c.isVip = RxBool(await checkExpire(vipToken));
   }
 
   c.notifyDaily = RxBool(await box.get('notifyDaily') ?? false);
@@ -289,6 +305,7 @@ class Controller extends GetxController{
   List<String> listArrange = <String>[].obs;
   List<String> listRandomPronun = <String>[].obs;
   List<String> listArrangePronun = <String>[].obs;
+  var isVip = false.obs;
   var enableSound = true.obs;
   var speechEnabled = false.obs;
   var initSpeak = true.obs;
@@ -409,7 +426,7 @@ class Controller extends GetxController{
   var loadingBody = 'Đang tải từ điển, vui lòng đợi trong giây lát'.obs;
   var loadingFailTitle = 'Tải lỗi'.obs;
   var loadingFailBody = 'Đảm bảo có kết nối Internet, vui lòng tải lại sau'.obs;
-  var welcomeBody = 'Chào mừng bạn đến với BeDict - từ điển thú vị nhất trên thế giới'.obs;
+  var welcomeBody = 'Chào mừng bạn đến với BeDict - từ điển thú vị chờ bạn khám phá'.obs;
   var introduce0Title = 'Giao diện chính'.obs;
   var introduce0Body = 'Dễ dàng hiểu nghĩa với hình ảnh minh họa sinh động'.obs;
   var introduce1Title = 'Phân loại'.obs;
@@ -490,7 +507,7 @@ class Controller extends GetxController{
       loadingBody = 'Đang tải từ điển, vui lòng đợi trong giây lát'.obs;
       loadingFailTitle = 'Tải lỗi'.obs;
       loadingFailBody = 'Đảm bảo có kết nối Internet, vui lòng tải lại sau'.obs;
-      welcomeBody = 'Chào mừng bạn đến với BeDict - từ điển thú vị nhất trên thế giới'.obs;
+      welcomeBody = 'Chào mừng bạn đến với BeDict - từ điển thú vị chờ bạn khám phá'.obs;
       introduce0Title = 'Giao diện chính'.obs;
       introduce0Body = 'Dễ dàng hiểu nghĩa với hình ảnh minh họa sinh động'.obs;
       introduce1Title = 'Phân loại'.obs;
@@ -567,7 +584,7 @@ class Controller extends GetxController{
       loadingBody = 'Loading dictionary data, please wait a moment'.obs;
       loadingFailTitle = 'Fail'.obs;
       loadingFailBody = 'Make sure you have Internet connect, please try again later'.obs;
-      welcomeBody = 'Welcome you to BeDict - most interesting dictionary in the world'.obs;
+      welcomeBody = 'Welcome you to BeDict - interesting dictionary is waiting for you to discover'.obs;
       introduce0Title = 'Main Screen'.obs;
       introduce0Body = 'Easy to learn meaning with our lively images'.obs;
       introduce1Title = 'Sort words'.obs;
@@ -585,6 +602,7 @@ class Controller extends GetxController{
   changeLevel(int index) async{
     bool check = await getListWords(listLevel[index],category.string,type.string);
     if (!check){
+      if (Get.isSnackbarOpen) Get.closeAllSnackbars();
       Get.snackbar(learnWrongTitle.string,notFound.string);
     }else{
       var box = await Hive.openBox('setting');
@@ -603,6 +621,7 @@ class Controller extends GetxController{
     await box.put('type',0);
     bool check = await getListWords(level.string,listCategoryEN[index],type.string);
     if (!check){
+      if (Get.isSnackbarOpen) Get.closeAllSnackbars();
       Get.snackbar(learnWrongTitle.string,notFound.string);
       update();
     }else{
@@ -621,6 +640,7 @@ class Controller extends GetxController{
     await box.put('category',0);
     bool check = await getListWords(level.string,category.string,listTypeEN[index]);
     if (!check){
+      if (Get.isSnackbarOpen) Get.closeAllSnackbars();
       Get.snackbar(learnWrongTitle.string,notFound.string);
       update();
     }else{
@@ -728,6 +748,7 @@ class Controller extends GetxController{
     }
     if (!kt){
       searchField.text = word.string;
+      if (Get.isSnackbarOpen) Get.closeAllSnackbars();
       Get.snackbar(learnWrongTitle.string, notFound.string);
     }else{
       if (initSpeak.value) await _speak(word.string);
@@ -847,7 +868,8 @@ class Home extends StatelessWidget {
     Widget buildListItem(BuildContext context, int index) {
       return KeyboardDismisser(
         child: Opacity(
-          opacity: index<c.adIndex.value? c.listCheckMean[index]? 1:0.3
+          opacity: c.isVip.value? c.listCheckMean[index]? 1:0.3:
+            index<c.adIndex.value? c.listCheckMean[index]? 1:0.3
             : index>c.adIndex.value? c.listCheckMean[index-1]? 1:0.3
             : 1,
           child: Container(
@@ -875,7 +897,19 @@ class Home extends StatelessWidget {
                       ],
                     ),
                     width: c.imageWidth.value - 10,
-                    child: index<c.adIndex.value?
+                    child: c.isVip.value?
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image(
+                          image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
+                          fit: BoxFit.fill,
+                          width: c.imageWidth.value - 10,
+                          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                            return const SizedBox();
+                          },
+                        ),
+                      )
+                      :index<c.adIndex.value?
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image(
@@ -900,16 +934,62 @@ class Home extends StatelessWidget {
                       ):
                       Container(
                         alignment: Alignment.center,
-                        child: const NativeAdWidget(),
+                        child: BannerAdWidget(adWidth: c.imageWidth.value - 10),
                         width: c.imageWidth.value - 10,
-                        height: c.imageWidth.value - 10,
+                        height: (c.imageWidth.value - 10)*0.78125,
                       ),
                   ),
                   const SizedBox(height:5),
                   Container(
                     width: c.imageWidth.value - 10,
                     margin: const EdgeInsets.fromLTRB(0, 0, 10, 0),
-                    child: index<c.adIndex.value?
+                    child: c.isVip.value?
+                      Column(
+                        children: c.mean[index].map<Widget>((subMean) =>
+                            Container(
+                              margin: const EdgeInsets.fromLTRB(0, 0, 0, 5),
+                              padding: const EdgeInsets.all(3),
+                              decoration: const BoxDecoration(
+                                color: Color.fromRGBO(245, 245, 245, 1),
+                                borderRadius: BorderRadius.all(
+                                    Radius.circular(6)
+                                ),
+                              ),
+                              width: c.imageWidth.value - 10,
+                              child: Column(
+                                children: [
+                                  const SizedBox(height: 3,),
+                                  Opacity(
+                                    opacity: 0.3,
+                                    child: Text(
+                                      laytuloai(subMean.substring(subMean.length - 1))[c.typeState.value],
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: textColor,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    height: 2,
+                                  ),
+                                  Text(
+                                    subMean.substring(0,subMean.length-1),
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      color: textColor,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(
+                                    height: 3,
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ).toList(),
+                      )
+                      :index<c.adIndex.value?
                       Column(
                         children: c.mean[index].map<Widget>((subMean) =>
                           Container(
@@ -1074,10 +1154,10 @@ class Home extends StatelessWidget {
         soundId = await rootBundle.load("assets/tap.mp3").then((ByteData soundData) {
           return pool.load(soundData);
         });
-        statusBarHeight = MediaQuery.of(context).padding.top;
         c.initState = false.obs;
         bool check = await getListWords(c.level.string,c.category.string,c.type.string);
         if (!check){
+          if (Get.isSnackbarOpen) Get.closeAllSnackbars();
           Get.snackbar(c.learnWrongTitle.string,c.notFound.string);
         }else{
           await c.layWord(c.word.string);
@@ -1137,6 +1217,21 @@ class Home extends StatelessWidget {
                 ),
                 ListTile(
                   title: GetBuilder<Controller>(
+                    builder: (_) =>  Text(
+                      c.isVip.value? 'VIP' : c.drawerUpgrade.string,
+                      style: const TextStyle(
+                        color: textColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Get.to(()=>const MyUpgradePage());
+                  },
+                ),
+                const Divider(height:1),
+                ListTile(
+                  title: GetBuilder<Controller>(
                     builder: (_) => Text(
                     c.drawerHistory.string,
                     style: const TextStyle(
@@ -1145,7 +1240,7 @@ class Home extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),),
                   onTap: () {
-                    Get.back();
+                    Navigator.pop(context);
                     Get.to(()=>const HistoryPage());
                   },
                 ),
@@ -1160,7 +1255,7 @@ class Home extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),),
                   onTap: () {
-                    Get.back();
+                    Navigator.pop(context);
                     Get.to(()=>const ScorePage());
                   },
                 ),
@@ -1470,22 +1565,8 @@ class Home extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),),
                   onTap: () {
-                    Get.back();
-                  },
-                ),
-                const Divider(height:1),
-                ListTile(
-                  title: GetBuilder<Controller>(
-                    builder: (_) =>  Text(
-                      c.drawerUpgrade.string,
-                      style: const TextStyle(
-                        color: textColor,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),),
-                  onTap: () {
-                    Get.back();
-                    Get.to(()=>const MyUpgradePage());
+                    Navigator.pop(context);
+                    Get.to(()=>const PolicyPage());
                   },
                 ),
                 const Divider(height:1),
@@ -1499,7 +1580,7 @@ class Home extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),),
                   onTap: () {
-                    Get.back();
+                    Navigator.pop(context);
                     Get.to(()=>const ContactPage());
                   },
                 ),
@@ -1518,7 +1599,7 @@ class Home extends StatelessWidget {
           child: Stack(
             children: [
               CustomPaint(
-                painter: ShapePainter(),
+                painter: ShapePainter(statusBarHeight: MediaQuery.of(context).padding.top),
                 child: Container(),
               ),
               Column (
@@ -1533,6 +1614,7 @@ class Home extends StatelessWidget {
                           await setDefault();
                           bool check = await getListWords(c.level.string,c.category.string,c.type.string);
                           if (!check){
+                            if (Get.isSnackbarOpen) Get.closeAllSnackbars();
                             Get.snackbar(c.learnWrongTitle.string,c.notFound.string);
                           }else{
                             await c.layWord('hello');
@@ -2076,6 +2158,7 @@ class Home extends StatelessWidget {
                                 }
                                 Get.to(()=>const LearnWord());
                               }else{
+                                if (Get.isSnackbarOpen) Get.closeAllSnackbars();
                                 Get.snackbar(c.snackbarFindTitle.string,c.snackbarFindBody.string);
                               }
                             },
@@ -2207,8 +2290,7 @@ class Home extends StatelessWidget {
                                   listController: scrollController,
                                   itemSize: c.imageWidth.value,
                                   itemBuilder: buildListItem,
-                                  itemCount: c.mean.length + 1,
-                                  // key: ListGlobalKeys.scrollKey,
+                                  itemCount: c.isVip.value? c.mean.length: c.mean.length + 1,
                                   key: sslKey,
                                   duration: 10,
                                   dynamicItemSize: true,
@@ -2341,6 +2423,7 @@ class Home extends StatelessWidget {
                               }
                             }
                             if (check && listRandom.length == c.wordArray.length){
+                              if (Get.isSnackbarOpen) Get.closeAllSnackbars();
                               Get.snackbar(c.learnRightTitle.string,c.all.string);
                             }else{
                               c.word = RxString(newRandomWord);
@@ -2455,6 +2538,10 @@ class Home extends StatelessWidget {
 }
 
 class ShapePainter extends CustomPainter {
+  final double statusBarHeight;
+  const ShapePainter({
+    required this.statusBarHeight
+  });
   @override
   void paint(Canvas canvas, Size size) {
     Paint paint = Paint()
@@ -2507,59 +2594,61 @@ class WriteWidget extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                      margin: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: const BorderRadius.all(
-                            Radius.circular(8)
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.6),
-                            spreadRadius: 0,
-                            blurRadius: 5,
-                            offset: const Offset(5, 5), // changes position of shadow
-                          ),
-                        ],
+                    margin: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: const BorderRadius.all(
+                          Radius.circular(8)
                       ),
-                      width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                      height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
-                      child: Stack(
-                          children:[
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: ImageFiltered(
-                                imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                                child: Opacity(
-                                  opacity: 0.8,
-                                  child: Image(
-                                    image: NetworkImage('https://bedict.com/' + c.imageURL[0].replaceAll('\\','')),
-                                    fit: BoxFit.fill,
-                                    width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                    height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
-                                    errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                      return const SizedBox();
-                                    },
-                                  ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.6),
+                          spreadRadius: 0,
+                          blurRadius: 5,
+                          offset: const Offset(5, 5), // changes position of shadow
+                        ),
+                      ],
+                    ),
+                    width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                    height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                    child: Stack(
+                        children:[
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: ImageFiltered(
+                              imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                              child: Opacity(
+                                opacity: 0.8,
+                                child: Image(
+                                  image: NetworkImage('https://bedict.com/' + c.imageURL[0].replaceAll('\\','')),
+                                  fit: BoxFit.fill,
+                                  width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                                  height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                  errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                    return const SizedBox();
+                                  },
                                 ),
                               ),
                             ),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image(
-                                image: NetworkImage('https://bedict.com/' + c.imageURL[0].replaceAll('\\','')),
-                                fit: BoxFit.contain,
-                                width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
-                                errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                  return const SizedBox();
-                                },
-                              ),
+                          ),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image(
+                              image: NetworkImage('https://bedict.com/' + c.imageURL[0].replaceAll('\\','')),
+                              fit: BoxFit.contain,
+                              width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                              height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                return const SizedBox();
+                              },
                             ),
-                          ]
-                      )
+                          ),
+                        ]
+                    )
                   ),
-                  Container(
+                  c.isVip.value?
+                    const SizedBox():
+                    Container(
                       margin: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -2577,9 +2666,9 @@ class WriteWidget extends StatelessWidget {
                       ),
                       // alignment: Alignment.center,
                       width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                      height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
-                      child: const NativeAdWidget()
-                  ),
+                      height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                      child: BannerAdWidget(adWidth: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2)
+                    ),
                   for (int index=1; index<c.mean.length; index++)
                     Container(
                       margin: const EdgeInsets.all(10),
@@ -2598,7 +2687,7 @@ class WriteWidget extends StatelessWidget {
                         ],
                       ),
                       width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                      height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
+                      height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
                       child: Stack(
                           children:[
                             ClipRRect(
@@ -2611,7 +2700,7 @@ class WriteWidget extends StatelessWidget {
                                     image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
                                     fit: BoxFit.fill,
                                     width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                    height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
+                                    height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
                                     errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                       return const SizedBox();
                                     },
@@ -2625,7 +2714,7 @@ class WriteWidget extends StatelessWidget {
                                 image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
                                 fit: BoxFit.contain,
                                 width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
+                                height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
                                 errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                   return const SizedBox();
                                 },
@@ -2766,7 +2855,7 @@ class WriteWidget extends StatelessWidget {
                                         onConfirm: () async {
                                           reset();
                                           await updateToday();
-                                          Get.back();
+                                          Navigator.pop(context);
                                           c.currentTab = RxInt(1);
                                         },
                                         onCancel: () async {
@@ -2790,7 +2879,7 @@ class WriteWidget extends StatelessWidget {
                                         onConfirm: () async{
                                           reset();
                                           await updateToday();
-                                          Get.back();
+                                          Navigator.pop(context);
                                           c.currentTab = RxInt(1);
                                           c.update();
                                         },
@@ -2831,7 +2920,7 @@ class WriteWidget extends StatelessWidget {
                                     onConfirm: () async {
                                       reset();
                                       await updateToday();
-                                      Get.back();
+                                      Navigator.pop(context);
                                     },
                                     onCancel: () async {
                                       await updateToday();
@@ -2939,7 +3028,7 @@ class PronunWidget extends StatelessWidget {
                           ],
                         ),
                         width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                        height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
+                        height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
                         child: Stack(
                             children:[
                               ClipRRect(
@@ -2952,7 +3041,7 @@ class PronunWidget extends StatelessWidget {
                                       image: NetworkImage('https://bedict.com/' + c.imageURL[0].replaceAll('\\','')),
                                       fit: BoxFit.fill,
                                       width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                      height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
+                                      height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
                                       errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                         return const SizedBox();
                                       },
@@ -2966,7 +3055,7 @@ class PronunWidget extends StatelessWidget {
                                   image: NetworkImage('https://bedict.com/' + c.imageURL[0].replaceAll('\\','')),
                                   fit: BoxFit.contain,
                                   width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                  height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
+                                  height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
                                   errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                     return const SizedBox();
                                   },
@@ -2975,27 +3064,29 @@ class PronunWidget extends StatelessWidget {
                             ]
                         )
                     ),
-                    Container(
-                        margin: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: const BorderRadius.all(
-                              Radius.circular(8)
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.6),
-                              spreadRadius: 0,
-                              blurRadius: 5,
-                              offset: const Offset(5, 5), // changes position of shadow
+                    c.isVip.value?
+                      const SizedBox():
+                      Container(
+                          margin: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: const BorderRadius.all(
+                                Radius.circular(8)
                             ),
-                          ],
-                        ),
-                        // alignment: Alignment.center,
-                        width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                        height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
-                        child: const NativeAdWidget()
-                    ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.6),
+                                spreadRadius: 0,
+                                blurRadius: 5,
+                                offset: const Offset(5, 5), // changes position of shadow
+                              ),
+                            ],
+                          ),
+                          // alignment: Alignment.center,
+                          width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                          height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                          child: BannerAdWidget(adWidth: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2)
+                      ),
                     for (int index=1; index<c.mean.length; index++)
                       Container(
                           margin: const EdgeInsets.all(10),
@@ -3014,7 +3105,7 @@ class PronunWidget extends StatelessWidget {
                             ],
                           ),
                           width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                          height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
+                          height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
                           child: Stack(
                               children:[
                                 ClipRRect(
@@ -3027,7 +3118,7 @@ class PronunWidget extends StatelessWidget {
                                         image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
                                         fit: BoxFit.fill,
                                         width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                        height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
+                                        height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
                                         errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                           return const SizedBox();
                                         },
@@ -3041,7 +3132,7 @@ class PronunWidget extends StatelessWidget {
                                     image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
                                     fit: BoxFit.contain,
                                     width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                    height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
+                                    height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
                                     errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                       return const SizedBox();
                                     },
@@ -3182,7 +3273,7 @@ class PronunWidget extends StatelessWidget {
                                         onConfirm: () async {
                                           reset();
                                           await updateToday();
-                                          Get.back();
+                                          Navigator.pop(context);
                                           c.currentTab = RxInt(2);
                                           c.update();
                                         },
@@ -3207,7 +3298,7 @@ class PronunWidget extends StatelessWidget {
                                         onConfirm: () async {
                                           reset();
                                           await updateToday();
-                                          Get.back();
+                                          Navigator.pop(context);
                                           c.currentTab = RxInt(2);
                                           c.update();
                                         },
@@ -3248,7 +3339,7 @@ class PronunWidget extends StatelessWidget {
                                     onConfirm: () async {
                                       reset();
                                       await updateToday();
-                                      Get.back();
+                                      Navigator.pop(context);
                                     },
                                     onCancel: () async {
                                       await updateToday();
@@ -3366,7 +3457,7 @@ class SpeakWidget extends StatelessWidget {
                   onConfirm: () async{
                     c.listenString = ''.obs;
                     await updateToday();
-                    Get.back();
+                    Navigator.pop(context);
                     c.nowIndex = 0.obs;
                     c.currentTab = RxInt(3);
                     c.update();
@@ -3392,7 +3483,7 @@ class SpeakWidget extends StatelessWidget {
                   onConfirm: () async {
                     c.listenString = ''.obs;
                     await updateToday();
-                    Get.back();
+                    Navigator.pop(context);
                     c.nowIndex = 0.obs;
                     c.currentTab = RxInt(3);
                     c.update();
@@ -3434,7 +3525,7 @@ class SpeakWidget extends StatelessWidget {
               onConfirm: () async {
                 c.listenString = ''.obs;
                 await updateToday();
-                Get.back();
+                Navigator.pop(context);
               },
               onCancel: () async {
                 await updateToday();
@@ -3610,61 +3701,63 @@ class SpeakWidget extends StatelessWidget {
             builder: (_) => SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                        margin: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: const BorderRadius.all(
-                              Radius.circular(8)
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.6),
-                              spreadRadius: 0,
-                              blurRadius: 5,
-                              offset: const Offset(5, 5), // changes position of shadow
-                            ),
-                          ],
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                      margin: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: const BorderRadius.all(
+                            Radius.circular(8)
                         ),
-                        width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                        height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
-                        child: Stack(
-                            children:[
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: ImageFiltered(
-                                  imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                                  child: Opacity(
-                                    opacity: 0.8,
-                                    child: Image(
-                                      image: NetworkImage('https://bedict.com/' + c.imageURL[0].replaceAll('\\','')),
-                                      fit: BoxFit.fill,
-                                      width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                      height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
-                                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                        return const SizedBox();
-                                      },
-                                    ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.6),
+                            spreadRadius: 0,
+                            blurRadius: 5,
+                            offset: const Offset(5, 5), // changes position of shadow
+                          ),
+                        ],
+                      ),
+                      width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                      height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                      child: Stack(
+                          children:[
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: ImageFiltered(
+                                imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                child: Opacity(
+                                  opacity: 0.8,
+                                  child: Image(
+                                    image: NetworkImage('https://bedict.com/' + c.imageURL[0].replaceAll('\\','')),
+                                    fit: BoxFit.fill,
+                                    width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                                    height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                    errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                      return const SizedBox();
+                                    },
                                   ),
                                 ),
                               ),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image(
-                                  image: NetworkImage('https://bedict.com/' + c.imageURL[0].replaceAll('\\','')),
-                                  fit: BoxFit.contain,
-                                  width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                  height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
-                                  errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                    return const SizedBox();
-                                  },
-                                ),
+                            ),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image(
+                                image: NetworkImage('https://bedict.com/' + c.imageURL[0].replaceAll('\\','')),
+                                fit: BoxFit.contain,
+                                width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                                height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                  return const SizedBox();
+                                },
                               ),
-                            ]
-                        )
-                    ),
+                            ),
+                          ]
+                      )
+                  ),
+                  c.isVip.value?
+                    const SizedBox():
                     Container(
                         margin: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
@@ -3683,64 +3776,64 @@ class SpeakWidget extends StatelessWidget {
                         ),
                         // alignment: Alignment.center,
                         width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                        height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
-                        child: const NativeAdWidget()
+                        height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                        child: BannerAdWidget(adWidth: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2)
                     ),
-                    for (int index=1; index<c.mean.length; index++)
-                      Container(
-                          margin: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: const BorderRadius.all(
-                                Radius.circular(8)
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.6),
-                                spreadRadius: 0,
-                                blurRadius: 5,
-                                offset: const Offset(5, 5), // changes position of shadow
-                              ),
-                            ],
+                  for (int index=1; index<c.mean.length; index++)
+                    Container(
+                        margin: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: const BorderRadius.all(
+                              Radius.circular(8)
                           ),
-                          width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                          height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
-                          child: Stack(
-                              children:[
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: ImageFiltered(
-                                    imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                                    child: Opacity(
-                                      opacity: 0.8,
-                                      child: Image(
-                                        image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
-                                        fit: BoxFit.fill,
-                                        width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                        height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
-                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                          return const SizedBox();
-                                        },
-                                      ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.6),
+                              spreadRadius: 0,
+                              blurRadius: 5,
+                              offset: const Offset(5, 5), // changes position of shadow
+                            ),
+                          ],
+                        ),
+                        width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                        height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                        child: Stack(
+                            children:[
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: ImageFiltered(
+                                  imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                  child: Opacity(
+                                    opacity: 0.8,
+                                    child: Image(
+                                      image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
+                                      fit: BoxFit.fill,
+                                      width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                                      height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                        return const SizedBox();
+                                      },
                                     ),
                                   ),
                                 ),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image(
-                                    image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
-                                    fit: BoxFit.contain,
-                                    width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                    height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
-                                    errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                      return const SizedBox();
-                                    },
-                                  ),
+                              ),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image(
+                                  image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
+                                  fit: BoxFit.contain,
+                                  width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                                  height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                  errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                    return const SizedBox();
+                                  },
                                 ),
-                              ]
-                          )
-                      ),
-                  ]
+                              ),
+                            ]
+                        )
+                    ),
+                ]
               ),
             ),
           ),
@@ -3845,95 +3938,95 @@ class MeanWidget extends StatelessWidget {
         children: [
           const SizedBox(height: 20),
           Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(width: 5),
-                OutlinedButton(
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                        Colors.white
-                    ),
-                    foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                    padding: MaterialStateProperty.all<EdgeInsets>(
-                        const EdgeInsets.all(0)
-                    ),
-                    shape: MaterialStateProperty.all<OutlinedBorder?>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30.0),
-                        )
-                    ),
-                    fixedSize: MaterialStateProperty.all<Size>(
-                        const Size.fromHeight(40)
-                    ),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(width: 5),
+              OutlinedButton(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all<Color>(
+                      Colors.white
                   ),
-                  onPressed: () async {
-                    if (c.nowIndex.value > 0){
-                      c.nowIndex = RxInt(c.nowIndex.value - 1);
-                      c.update();
-                    }else{
-                      c.nowIndex = RxInt(c.mean.length - 1);
-                      c.update();
-                    }
-                  },
-                  child: const Icon(Icons.arrow_left_sharp, size: 20),
+                  foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                  padding: MaterialStateProperty.all<EdgeInsets>(
+                      const EdgeInsets.all(0)
+                  ),
+                  shape: MaterialStateProperty.all<OutlinedBorder?>(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                      )
+                  ),
+                  fixedSize: MaterialStateProperty.all<Size>(
+                      const Size.fromHeight(40)
+                  ),
                 ),
-                const SizedBox(width: 5),
-                Expanded(
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              c.word.string,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 40,
-                                color: textColor,
-                                shadows: [
-                                  Shadow(
-                                    blurRadius: 5,
-                                    color: Colors.grey,
-                                    offset: Offset(2, 2),
-                                  ),
-                                ],
-                              ),
+                onPressed: () async {
+                  if (c.nowIndex.value > 0){
+                    c.nowIndex = RxInt(c.nowIndex.value - 1);
+                    c.update();
+                  }else{
+                    c.nowIndex = RxInt(c.mean.length - 1);
+                    c.update();
+                  }
+                },
+                child: const Icon(Icons.arrow_left_sharp, size: 20),
+              ),
+              const SizedBox(width: 5),
+              Expanded(
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            c.word.string,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 40,
+                              color: textColor,
+                              shadows: [
+                                Shadow(
+                                  blurRadius: 5,
+                                  color: Colors.grey,
+                                  offset: Offset(2, 2),
+                                ),
+                              ],
                             ),
                           ),
-                        ]
-                    )
-                ),
-                const SizedBox(width: 5),
-                OutlinedButton(
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                        Colors.white
-                    ),
-                    foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                    padding: MaterialStateProperty.all<EdgeInsets>(
-                        const EdgeInsets.all(0)
-                    ),
-                    shape: MaterialStateProperty.all<OutlinedBorder?>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30.0),
-                        )
-                    ),
-                    fixedSize: MaterialStateProperty.all<Size>(
-                        const Size.fromHeight(40)
-                    ),
+                        ),
+                      ]
+                  )
+              ),
+              const SizedBox(width: 5),
+              OutlinedButton(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all<Color>(
+                      Colors.white
                   ),
-                  onPressed: () async {
-                    if (c.nowIndex.value < c.mean.length - 1){
-                      c.nowIndex = RxInt(c.nowIndex.value + 1);
-                      c.update();
-                    }else{
-                      c.nowIndex = RxInt(0);
-                      c.update();
-                    }
-                  },
-                  child: const Icon(Icons.arrow_right_sharp, size: 20),
+                  foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                  padding: MaterialStateProperty.all<EdgeInsets>(
+                      const EdgeInsets.all(0)
+                  ),
+                  shape: MaterialStateProperty.all<OutlinedBorder?>(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                      )
+                  ),
+                  fixedSize: MaterialStateProperty.all<Size>(
+                      const Size.fromHeight(40)
+                  ),
                 ),
-                const SizedBox(width: 5),
-              ]
+                onPressed: () async {
+                  if (c.nowIndex.value < c.mean.length - 1){
+                    c.nowIndex = RxInt(c.nowIndex.value + 1);
+                    c.update();
+                  }else{
+                    c.nowIndex = RxInt(0);
+                    c.update();
+                  }
+                },
+                child: const Icon(Icons.arrow_right_sharp, size: 20),
+              ),
+              const SizedBox(width: 5),
+            ]
           ),
           const SizedBox(height: 20),
           GetBuilder<Controller>(
@@ -4008,8 +4101,8 @@ class MeanWidget extends StatelessWidget {
                     direction: Axis.horizontal,
                     alignment: WrapAlignment.center,
                     children: [
-                      for (int index=0; index<((c.mean.length+1<4)?c.mean.length+1:4); index++)
-                        index<randomPosition[c.nowIndex.value]?
+                      for (int index=0; index<(c.isVip.value?(c.mean.length<4)?c.mean.length:4:(c.mean.length+1<4)?c.mean.length+1:4); index++)
+                        c.isVip.value?
                         GestureDetector(
                           onTap: () async {
                             if (c.listImage[c.nowIndex.value][index] == c.imageURL[c.listIndex[c.nowIndex.value]]){
@@ -4045,7 +4138,7 @@ class MeanWidget extends StatelessWidget {
                                       onConfirm: () async {
                                         c.nowIndex = 0.obs;
                                         await updateToday();
-                                        Get.back();
+                                        Navigator.pop(context);
                                         c.currentTab = RxInt(0);
                                         c.update();
                                       },
@@ -4071,7 +4164,7 @@ class MeanWidget extends StatelessWidget {
                                         onConfirm: () async {
                                           c.nowIndex = 0.obs;
                                           await updateToday();
-                                          Get.back();
+                                          Navigator.pop(context);
                                           c.currentTab = RxInt(0);
                                           c.update();
                                         },
@@ -4100,22 +4193,190 @@ class MeanWidget extends StatelessWidget {
                                     cancelTextColor: textColor,
                                     barrierDismissible: false,
                                     radius: 8,
-                                    onConfirm: () async {
+                                    onConfirm: () {
                                       if (c.nowIndex.value < c.mean.length - 1){
                                         c.nowIndex = RxInt(c.nowIndex.value + 1);
-                                        Get.back();
                                       }else{
                                         c.nowIndex = 0.obs;
-                                        Get.back();
                                       }
                                       c.update();
+                                      Navigator.pop(context);
                                     },
-                                    onCancel: () async {
+                                    onCancel: () {
                                     }
                                 );
                               }
                             }else{
                               ktMean[c.nowIndex.value] = false;
+                              if (Get.isSnackbarOpen) Get.closeAllSnackbars();
+                              Get.snackbar(c.learnWrongTitle.string,c.learnWrongBodyMean.string);
+                            }
+                            if (c.enableSound.value){
+                              await pool.play(soundId);
+                            }
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: const BorderRadius.all(
+                                  Radius.circular(8)
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.6),
+                                  spreadRadius: 0,
+                                  blurRadius: 5,
+                                  offset: const Offset(5, 5), // changes position of shadow
+                                ),
+                              ],
+                            ),
+                            // alignment: Alignment.center,
+                            width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                            height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                            child: Stack(
+                              children:[
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: ImageFiltered(
+                                    imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                    child: Opacity(
+                                      opacity: 0.8,
+                                      child: Image(
+                                        image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index].replaceAll('\\','')),
+                                        fit: BoxFit.fill,
+                                        width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                                        height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                          return const SizedBox();
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image(
+                                    image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index].replaceAll('\\','')),
+                                    fit: BoxFit.contain,
+                                    width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                                    height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                    errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                      return const SizedBox();
+                                    },
+                                  ),
+                                ),
+                              ]
+                            )
+                          ),
+                        )
+                        :index<randomPosition[c.nowIndex.value]?
+                        GestureDetector(
+                          onTap: () async {
+                            if (c.listImage[c.nowIndex.value][index] == c.imageURL[c.listIndex[c.nowIndex.value]]){
+                              ktMean[c.nowIndex.value] = true;
+                              if (!ktMean.contains(false)){
+                                if (c.meanScore.value<25){
+                                  c.meanScore = RxInt(c.meanScore.value + 1);
+                                  c.update();
+                                  var newScore = Score(
+                                    wordId: c.word.value,
+                                    word: c.wordScore.value,
+                                    pronun: c.pronunScore.value,
+                                    speak: c.speakScore.value,
+                                    mean: c.meanScore.value,
+                                    total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
+                                    time: DateTime.now().millisecondsSinceEpoch,
+                                  );
+                                  await updateScore(newScore);
+                                  if (c.meanScore.value==25){
+                                    Get.defaultDialog(
+                                      title: c.learnRightTitle.string,
+                                      middleText: c.learnRightBodyAllMeanDone.string,
+                                      backgroundColor: themeColor,
+                                      titleStyle: const TextStyle(color: textColor,),
+                                      middleTextStyle: const TextStyle(color: textColor,),
+                                      textConfirm: c.learnNext.string,
+                                      confirmTextColor: textColor,
+                                      buttonColor: Colors.white,
+                                      textCancel: "ok",
+                                      cancelTextColor: textColor,
+                                      barrierDismissible: false,
+                                      radius: 8,
+                                      onConfirm: () async {
+                                        c.nowIndex = 0.obs;
+                                        await updateToday();
+                                        Navigator.pop(context);
+                                        c.currentTab = RxInt(0);
+                                        c.update();
+                                      },
+                                      onCancel: () async {
+                                        c.nowIndex = 0.obs;
+                                        await updateToday();
+                                      },
+                                    );
+                                  }else{
+                                    Get.defaultDialog(
+                                        title: c.learnRightTitle.string,
+                                        middleText: c.learnRightBodyAllMean.string,
+                                        backgroundColor: themeColor,
+                                        titleStyle: const TextStyle(color: textColor,),
+                                        middleTextStyle: const TextStyle(color: textColor,),
+                                        textConfirm: c.learnNext.string,
+                                        confirmTextColor: textColor,
+                                        buttonColor: Colors.white,
+                                        textCancel: "ok",
+                                        cancelTextColor: textColor,
+                                        barrierDismissible: false,
+                                        radius: 8,
+                                        onConfirm: () async {
+                                          c.nowIndex = 0.obs;
+                                          await updateToday();
+                                          Navigator.pop(context);
+                                          c.currentTab = RxInt(0);
+                                          c.update();
+                                        },
+                                        onCancel: () async {
+                                          c.nowIndex = 0.obs;
+                                          await updateToday();
+                                        }
+                                    );
+                                  }
+                                }
+                                ktMean.clear();
+                                for (var i=0;i<c.mean.length;i++){
+                                  ktMean.add(false);
+                                }
+                              }else{
+                                Get.defaultDialog(
+                                    title: c.learnRightTitle.string,
+                                    middleText: c.learnRightBodyMean.string,
+                                    backgroundColor: themeColor,
+                                    titleStyle: const TextStyle(color: textColor,),
+                                    middleTextStyle: const TextStyle(color: textColor,),
+                                    textConfirm: c.learnNext.string,
+                                    confirmTextColor: textColor,
+                                    buttonColor: Colors.white,
+                                    textCancel: "ok",
+                                    cancelTextColor: textColor,
+                                    barrierDismissible: false,
+                                    radius: 8,
+                                    onConfirm: () {
+                                      if (c.nowIndex.value < c.mean.length - 1){
+                                        c.nowIndex = RxInt(c.nowIndex.value + 1);
+                                      }else{
+                                        c.nowIndex = 0.obs;
+                                      }
+                                      c.update();
+                                      Navigator.pop(context);
+                                    },
+                                    onCancel: () {
+                                    }
+                                );
+                              }
+                            }else{
+                              ktMean[c.nowIndex.value] = false;
+                              if (Get.isSnackbarOpen) Get.closeAllSnackbars();
                               Get.snackbar(c.learnWrongTitle.string,c.learnWrongBodyMean.string);
                             }
                             if (c.enableSound.value){
@@ -4140,7 +4401,7 @@ class MeanWidget extends StatelessWidget {
                               ),
                               // alignment: Alignment.center,
                               width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                              height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
+                              height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
                               child: Stack(
                                   children:[
                                     ClipRRect(
@@ -4153,7 +4414,7 @@ class MeanWidget extends StatelessWidget {
                                             image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index].replaceAll('\\','')),
                                             fit: BoxFit.fill,
                                             width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                            height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
+                                            height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
                                             errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                               return const SizedBox();
                                             },
@@ -4167,7 +4428,7 @@ class MeanWidget extends StatelessWidget {
                                         image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index].replaceAll('\\','')),
                                         fit: BoxFit.contain,
                                         width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                        height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
+                                        height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
                                         errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                           return const SizedBox();
                                         },
@@ -4212,7 +4473,7 @@ class MeanWidget extends StatelessWidget {
                                       onConfirm: () async {
                                         c.nowIndex = 0.obs;
                                         await updateToday();
-                                        Get.back();
+                                        Navigator.pop(context);
                                         c.currentTab = RxInt(0);
                                         c.update();
                                       },
@@ -4238,7 +4499,7 @@ class MeanWidget extends StatelessWidget {
                                         onConfirm: () async {
                                           c.nowIndex = 0.obs;
                                           await updateToday();
-                                          Get.back();
+                                          Navigator.pop(context);
                                           c.currentTab = RxInt(0);
                                           c.update();
                                         },
@@ -4267,22 +4528,22 @@ class MeanWidget extends StatelessWidget {
                                     cancelTextColor: textColor,
                                     barrierDismissible: false,
                                     radius: 8,
-                                    onConfirm: () async {
+                                    onConfirm: () {
                                       if (c.nowIndex.value < c.mean.length - 1){
                                         c.nowIndex = RxInt(c.nowIndex.value + 1);
-                                        Get.back();
                                       }else{
                                         c.nowIndex = 0.obs;
-                                        Get.back();
                                       }
                                       c.update();
+                                      Navigator.pop(context);
                                     },
-                                    onCancel: () async {
+                                    onCancel: () {
                                     }
                                 );
                               }
                             }else{
                               ktMean[c.nowIndex.value] = false;
+                              if (Get.isSnackbarOpen) Get.closeAllSnackbars();
                               Get.snackbar(c.learnWrongTitle.string,c.learnWrongBodyMean.string);
                             }
                             if (c.enableSound.value){
@@ -4307,7 +4568,7 @@ class MeanWidget extends StatelessWidget {
                               ),
                               // alignment: Alignment.center,
                               width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                              height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
+                              height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
                               child: Stack(
                                   children:[
                                     ClipRRect(
@@ -4320,7 +4581,7 @@ class MeanWidget extends StatelessWidget {
                                             image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index-1].replaceAll('\\','')),
                                             fit: BoxFit.fill,
                                             width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                            height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
+                                            height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
                                             errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                               return const SizedBox();
                                             },
@@ -4334,7 +4595,7 @@ class MeanWidget extends StatelessWidget {
                                         image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index-1].replaceAll('\\','')),
                                         fit: BoxFit.contain,
                                         width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                        height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
+                                        height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
                                         errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                           return const SizedBox();
                                         },
@@ -4362,8 +4623,8 @@ class MeanWidget extends StatelessWidget {
                           ),
                           // alignment: Alignment.center,
                           width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                          height: MediaQuery.of(context).size.width > 420? 180*0.7: (MediaQuery.of(context).size.width-60)*0.7/2,
-                          child: const NativeAdWidget()
+                          height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                          child: BannerAdWidget(adWidth: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2)
                         )
                     ]
                   ),
@@ -4449,49 +4710,6 @@ class LearnWord extends StatelessWidget {
       ),
       body: Column(
           children: [
-            // Container(
-            //   color: backgroundColor,
-            //   height: 50,
-            //   child: Row(
-            //     children: [
-            //       const SizedBox(width: 10),
-            //       SizedBox(
-            //         width: 50,
-            //         child: IconButton(
-            //           icon: const Icon(
-            //             Icons.arrow_back,
-            //             size: 20,
-            //             color: Colors.white,
-            //           ),
-            //           onPressed: () async {
-            //             Get.back();
-            //           },
-            //         ),
-            //       ),
-            //       const SizedBox(width: 10),
-            //       Expanded(
-            //         child: GetBuilder<Controller>(
-            //           builder: (_) => Text(
-            //           c.currentTab.value == 0?
-            //           c.learnWordGuide.string:
-            //           c.currentTab.value == 1?
-            //           c.learnPronunGuide.string:
-            //           c.currentTab.value == 2?
-            //           c.learnSpeakGuide.string + c.word.string:
-            //           c.learnMeanGuide.string,
-            //           textAlign: TextAlign.center,
-            //           style: const TextStyle(
-            //             fontSize: 14,
-            //             color: textColor,
-            //           ),
-            //           overflow: TextOverflow.ellipsis,
-            //         ),
-            //         ),
-            //       ),
-            //       const SizedBox(width: 70),
-            //     ]
-            //   ),
-            // ),
             Expanded(
               child: GetBuilder<Controller>(
                 builder: (_) => Center(
@@ -4712,6 +4930,7 @@ class HistoryPage extends StatelessWidget {
               Get.to(()=>Home());
             }else{
               Get.to(()=>Home());
+              Get.closeAllSnackbars();
               Get.snackbar(c.learnWrongTitle.string,c.snackbarRelearn.string);
             }
           }
@@ -4975,6 +5194,7 @@ class ScorePage extends StatelessWidget {
               Get.to(()=>Home());
             }else{
               Get.to(()=>Home());
+              if (Get.isSnackbarOpen) Get.closeAllSnackbars();
               Get.snackbar(c.learnWrongTitle.string,c.snackbarRelearn.string);
             }
           }
@@ -4991,59 +5211,78 @@ class MyUpgradePage extends StatefulWidget {
 }
 
 class UpgradePage extends State<MyUpgradePage> {
-  var _purchasePending = false;
-  late StreamSubscription _subscription;
+  bool purchasePending = false;
+  late StreamSubscription subscription;
+  bool available = false;
   final Controller c = Get.put(Controller());
 
   @override
   void initState() { // called immediately after the widget is allocated memory
     final Stream purchaseUpdated = InAppPurchase.instance.purchaseStream;
-    _subscription = purchaseUpdated.listen((purchaseDetailsList) {
+    subscription = purchaseUpdated.listen((purchaseDetailsList) {
       c.purchases = purchaseDetailsList;
-      _listenToPurchaseUpdated(purchaseDetailsList);
+      listenToPurchaseUpdated(purchaseDetailsList);
     }, onDone: () {
-      _subscription.cancel();
+      subscription.cancel();
     }, onError: (error) {
-      Get.snackbar('fail','miss');
+      Get.snackbar('fail',error.toString());
     });
     initStore();
     super.initState();
   }
 
   Future<void> initStore() async {
-    final bool available = await InAppPurchase.instance.isAvailable();
+    final bool _available = await InAppPurchase.instance.isAvailable();
+    setState(() {
+      purchasePending = false;
+      available = _available;
+    });
     if (!available) {
       return;
     }
-    const Set<String> _kIds = <String>{'month', 'year'};
+    const Set<String> _kIds = <String>{'year'};
     final ProductDetailsResponse response = await InAppPurchase.instance.queryProductDetails(_kIds);
     if (response.notFoundIDs.isNotEmpty) {
-      Get.snackbar('fail','miss');
+      Get.snackbar('fail','not found product');
       return;
     }
     c.products = response.productDetails;
-    Get.snackbar(c.products[0].id,c.products[1].id);
   }
 
   @override
   void dispose() { // called just before the Controller is deleted from memory
-    _subscription.cancel();
+    subscription.cancel();
     super.dispose();
   }
-  void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) {
+
+  void listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) {
     purchaseDetailsList.forEach((PurchaseDetails purchaseDetails) async {
       if (purchaseDetails.status == PurchaseStatus.pending) {
-        showPendingUI();
+        setState(() {
+          purchasePending = true;
+        });
       } else {
         if (purchaseDetails.status == PurchaseStatus.error) {
-          handleError(purchaseDetails.error!);
+          setState(() {
+            purchasePending = false;
+          });
+          Get.snackbar('error',PurchaseStatus.error.name);
         } else if (purchaseDetails.status == PurchaseStatus.purchased ||
             purchaseDetails.status == PurchaseStatus.restored) {
-          bool valid = await _verifyPurchase(purchaseDetails);
+          bool valid = await _verifyPurchase(purchaseDetails.verificationData.serverVerificationData);
           if (valid) {
-            deliverProduct(purchaseDetails);
+            var box = await Hive.openBox('setting');
+            await box.put('vipToken',purchaseDetails.verificationData.serverVerificationData);
+            await box.close();
+            c.purchases.add(purchaseDetails);
+            c.isVip = RxBool(valid);
+            c.update();
+            setState(() {
+              purchasePending = false;
+            });
           } else {
-            _handleInvalidPurchase(purchaseDetails);
+            Get.snackbar('fail','can not register');
+            return;
           }
         }
         if (purchaseDetails.pendingCompletePurchase) {
@@ -5053,65 +5292,15 @@ class UpgradePage extends State<MyUpgradePage> {
       }
     });
   }
-  void showPendingUI() {
-    _purchasePending = true;
-  }
-  Future<bool> _verifyPurchase(PurchaseDetails purchaseDetails) async {
-    // IMPORTANT!! Always verify a purchase before delivering the product.
-    // For the purpose of an example, we directly return true.
-    final response = await http.post(
-      Uri.parse('https://bedict.com/checkPay.php'),
-      body: <String, String>{
-        'token': purchaseDetails.verificationData.serverVerificationData,
-      },
-    );
-    if (response.statusCode == 200) {
-      if (jsonDecode(response.body) != 'error'){
-        if (int.parse(jsonDecode(response.body)) > DateTime.now().millisecondsSinceEpoch){
-          return true;
-        }else{
-          return false;
-        }
-      }else{
-        return false;
-      }
-    } else {
-      return false;
-    }
-    // return Future<bool>.value(true);
-  }
-  void deliverProduct(PurchaseDetails purchaseDetails) async {
-    // IMPORTANT!! Always verify purchase details before delivering the product.
-    if (purchaseDetails.productID == 'month') {
-      _purchasePending = false;
-      c.purchases.add(purchaseDetails);
-      Get.snackbar('bought',purchaseDetails.productID);
-    }
-    if (purchaseDetails.productID == 'year') {
-      _purchasePending = false;
-      c.purchases.add(purchaseDetails);
-    }
-  }
-  void handleError(IAPError error) {
-    _purchasePending = false;
-    Get.snackbar('error','miss');
-  }
-  void _handleInvalidPurchase(PurchaseDetails purchaseDetails) {
-    // handle invalid purchase here if  _verifyPurchase` failed.
-  }
-
 
   @override
   Widget build(BuildContext context) {
-    const textColor = Color.fromRGBO(3, 64, 24, 1);
-    const backgroundColor = Color.fromRGBO(147, 219, 172, 1);
-    const themeColor = Color.fromRGBO(230, 255, 240, 1);
 
     return Scaffold(
       appBar: AppBar(
         title: GetBuilder<Controller>(
           builder: (_) => Text(
-            c.drawerScore.string.toUpperCase(),
+            c.drawerUpgrade.string.toUpperCase(),
             style: const TextStyle(
               color: Color.fromRGBO(255, 255, 255, 1),
             ),
@@ -5121,62 +5310,196 @@ class UpgradePage extends State<MyUpgradePage> {
       ),
       body: Column(
         children:[
+          const SizedBox(height:7),
           Row(
             children:[
+              const SizedBox(width:15),
               Expanded(
-                child: TextButton(
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                        themeColor
+                child: Container(
+                  margin: const EdgeInsets.fromLTRB(0, 10, 10, 10),
+                  decoration: BoxDecoration(
+                    color: themeColor,
+                    borderRadius: const BorderRadius.all(
+                        Radius.circular(8)
                     ),
-                    foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                    padding: MaterialStateProperty.all<EdgeInsets>(
-                        const EdgeInsets.all(0)
-                    ),
-                    shape: MaterialStateProperty.all<OutlinedBorder?>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30.0),
-                        )
-                    ),
-                    fixedSize: MaterialStateProperty.all<Size>(
-                        const Size.fromHeight(40)
-                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.6),
+                        spreadRadius: 0,
+                        blurRadius: 1,
+                        offset: const Offset(1, 1), // changes position of shadow
+                      ),
+                    ],
                   ),
+                  height: 50,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      const SizedBox(width: 3),
-                      const Icon(
-                        Icons.volume_up_outlined,
+                      const SizedBox(width: 20),
+                      Icon(
+                        available? Icons.check: Icons.highlight_off_rounded,
                         size: 25,
                         color: textColor,
                       ),
+                      const SizedBox(width: 10),
                       Expanded(
-                        child: GetBuilder<Controller>(
-                          builder: (_) => Text(
-                            c.pronun.string,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              overflow: TextOverflow.ellipsis,
-                              color: textColor,
+                        child: Container(
+                          alignment: Alignment.center,
+                          child: GetBuilder<Controller>(
+                            builder: (_) => Text(
+                              available? c.language.value == 'VN'? 'cửa hàng có sẵn': 'the store is available'
+                              : c.language.value == 'VN'? 'cửa hàng không có sẵn': 'the store is not available',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                overflow: TextOverflow.ellipsis,
+                                color: textColor,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ],
                   ),
-                  onPressed: () {
-                    final ProductDetails productDetails = c.products[0];
-                    final PurchaseParam purchaseParam = PurchaseParam(productDetails: productDetails);
-                    InAppPurchase.instance.buyNonConsumable(purchaseParam: purchaseParam);
-                  },
                 ),
               ),
+              const SizedBox(width:5),
+            ]
+          ),
+          const SizedBox(height:10),
+          Row(
+            children:[
+              const SizedBox(width:15),
+              Expanded(
+                child: GetBuilder<Controller>(
+                  builder: (_) => Opacity(
+                    opacity: c.isVip.value? 0.6:1,
+                    child: ElevatedButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            themeColor
+                        ),
+                        foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                        padding: MaterialStateProperty.all<EdgeInsets>(
+                            const EdgeInsets.all(0)
+                        ),
+                        shape: MaterialStateProperty.all<OutlinedBorder?>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            )
+                        ),
+                        fixedSize: MaterialStateProperty.all<Size>(
+                            const Size.fromHeight(50)
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          const SizedBox(width: 20),
+                          Icon(
+                            c.isVip.value? Icons.check: Icons.highlight_off_rounded,
+                            size: 25,
+                            color: textColor,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Container(
+                              alignment: Alignment.center,
+                              child: Text(
+                                c.isVip.value? c.language.value == 'VN'? 'VIP (bạn đã đăng kí)': 'VIP (you registered)'
+                                    : c.language.value == 'VN'? 'đăng kí 01 năm (120k)': 'register for 1 year (5\$)',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  overflow: TextOverflow.ellipsis,
+                                  color: textColor,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      onPressed: () {
+                        if (!c.isVip.value){
+                          final ProductDetails productDetails = c.products[0];
+                          final PurchaseParam purchaseParam = PurchaseParam(productDetails: productDetails);
+                          InAppPurchase.instance.buyNonConsumable(purchaseParam: purchaseParam);
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width:15),
+            ]
+          ),
+          const SizedBox(height:15),
+          Row(
+            children:[
+              const SizedBox(width:15),
+              Flexible(
+                child: GetBuilder<Controller>(
+                  builder: (_) => Text(
+                    c.language.value == 'VN'?
+                    'đăng kí 1 năm sử dụng ứng dụng không bị làm phiền bởi quảng cáo,'
+                        ' giúp chúng tôi duy trì ứng dụng này tới mọi người':
+                    'register 1 year using this app without advertisement,'
+                        ' helping us distribute this app to people',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      // overflow: TextOverflow.ellipsis,
+                      color: textColor,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+              const SizedBox(width:15),
             ]
           ),
         ],
       ),
     );
+  }
+}
+
+Future<bool> _verifyPurchase(String token) async {
+  // IMPORTANT!! Always verify a purchase before delivering the product.
+  // For the purpose of an example, we directly return true.
+  String url = Platform.isAndroid? 'https://bedict.com/checkPay.php':'https://bedict.com/checkPayIos.php';
+  final response = await http.post(
+    Uri.parse(url),
+    body: <String, String>{
+      'token': token,
+    },
+  );
+  if (response.statusCode == 200) {
+    if (response.body != 'error'){
+      return true;
+    }else{
+      return false;
+    }
+  } else {
+    return false;
+  }
+}
+
+Future<bool> checkExpire(String token) async {
+  // IMPORTANT!! Always verify a purchase before delivering the product.
+  // For the purpose of an example, we directly return true.
+  String url = Platform.isAndroid? 'https://bedict.com/checkExpire.php':'https://bedict.com/checkExpireIos.php';
+  final response = await http.post(
+    Uri.parse(url),
+    body: <String, String>{
+      'token': token,
+    },
+  );
+  if (response.statusCode == 200) {
+    if (response.body != 'error'){
+      return true;
+    }else{
+      return false;
+    }
+  } else {
+    return false;
   }
 }
 
@@ -5186,9 +5509,6 @@ class ContactPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
-    Future.delayed(Duration.zero, () async {
-
-    });
 
     return Scaffold(
       appBar: AppBar(
@@ -5204,7 +5524,7 @@ class ContactPage extends StatelessWidget {
       ),
       body: Container(
         alignment: Alignment.center,
-        // color: Colors.red,
+        color: Colors.white,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -5278,6 +5598,428 @@ class ContactPage extends StatelessWidget {
   }
 }
 
+class PolicyPage extends StatelessWidget {
+  const PolicyPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final Controller c = Get.put(Controller());
+
+    return Scaffold(
+      appBar: AppBar(
+        title: GetBuilder<Controller>(
+          builder: (_) => Text(
+            c.drawerPolicy.string.toUpperCase(),
+            style: const TextStyle(
+              color: Color.fromRGBO(255, 255, 255, 1),
+            ),
+          ),),
+        centerTitle: true,
+        backgroundColor: backgroundColor,
+      ),
+      body: Container(
+        alignment: Alignment.center,
+        color: Colors.white,
+        child: ListView(
+          // mainAxisAlignment: MainAxisAlignment.center,
+          padding: const EdgeInsets.all(8),
+          children: [
+            const SizedBox(height: 20),
+            const Text(
+              'Privacy Policy',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: const [
+                Flexible(
+                  child: Text(
+                    'Trần Trung Hiếu built the BeDict app as a Free app. This SERVICE is provided by'
+                        ' Trần Trung Hiếu at no cost and is intended for use as is.',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: textColor,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ]
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: const [
+                Flexible(
+                  child: Text(
+                    'This page is used to inform visitors regarding my policies with the collection, use, and'
+                      ' disclosure of Personal Information if anyone decided to use my Service.',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: textColor,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ]
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: const [
+                Flexible(
+                  child: Text(
+                    'If you choose to use my Service, then you agree'
+                    ' to the collection and use of information in relation to this'
+                    ' policy. The Personal Information that I collect is'
+                    ' used for providing and improving the Service.'
+                    ' I will not use or share your'
+                    ' information with anyone except as described in this Privacy Policy.',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: textColor,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ]
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: const [
+                Flexible(
+                  child: Text(
+                    'The terms used in this Privacy Policy have the same meanings'
+                      ' as in our Terms and Conditions, which is accessible at'
+                      ' BeDict unless otherwise defined in this Privacy Policy.',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: textColor,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ]
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Information Collection and Use',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: const [
+                Flexible(
+                  child: Text(
+                    'For a better experience, while using our Service,'
+                      ' I may require you to provide us with certain'
+                      ' personally identifiable information, including but not limited to (RECORD_AUDIO). The'
+                      ' information that I request will be'
+                      ' retained on your device and is not collected by me in any way.',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: textColor,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ]
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'The app does use third party services that may collect'
+                        'information used to identify you.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ]
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'Link to privacy policy of third party service providers'
+                        ' used by the app\nGoogle Play Services: https://www.google.com/policies/privacy/'
+                        '\nAdMob https://support.google.com/admob/answer/6128543?hl=en'
+                        '\nI want to inform you that whenever'
+                        ' you use my Service, in a case of an error in the'
+                        ' app I collect data and information (through third'
+                        ' party products) on your phone called Log Data. This Log Data'
+                        ' may include information such as your device Internet'
+                        ' Protocol (“IP”) address, device name, operating system'
+                        ' version, the configuration of the app when utilizing'
+                        ' my Service, the time and date of your use of the'
+                        ' Service, and other statistics.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ]
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Cookies',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: const [
+                Flexible(
+                  child: Text(
+                    'Cookies are files with a small amount of data that are'
+                    ' commonly used as anonymous unique identifiers. These are'
+                    ' sent to your browser from the websites that you visit and'
+                    ' are stored on your device\'s internal memory.',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: textColor,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ]
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'This Service does not use these “cookies” explicitly.'
+                        ' However, the app may use third party code and libraries that'
+                        ' use “cookies” to collect information and improve their'
+                        ' services. You have the option to either accept or refuse'
+                        ' these cookies and know when a cookie is being sent to your'
+                        ' device. If you choose to refuse our cookies, you may not be'
+                        ' able to use some portions of this Service.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ]
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Service Providers',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: const [
+                Flexible(
+                  child: Text(
+                    'I may employ third-party companies'
+                      ' and individuals due to the following reasons:\n'
+                    ' To facilitate our Service;\n'
+                    ' To provide the Service on our behalf;\n'
+                    ' To perform Service-related services; or\n'
+                    ' To assist us in analyzing how our Service is used.',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: textColor,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ]
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: const [
+                Flexible(
+                  child: Text(
+                    'I want to inform users of this'
+                      ' Service that these third parties have access to your'
+                      ' Personal Information. The reason is to perform the tasks'
+                      ' assigned to them on our behalf. However, they are obligated'
+                      ' not to disclose or use the information for any other purpose.',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: textColor,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ]
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Security',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: const [
+                Flexible(
+                  child: Text(
+                    'I value your trust in providing us'
+                      ' your Personal Information, thus we are striving to use'
+                      ' commercially acceptable means of protecting it. But remember'
+                      ' that no method of transmission over the internet, or method'
+                      ' of electronic storage is 100% secure and reliable, and'
+                      ' I cannot guarantee its absolute security.',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: textColor,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ]
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Links to Other Sites',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: const [
+                Flexible(
+                  child: Text(
+                    'This Service may contain links to other sites. If you click'
+                      ' on a third-party link, you will be directed to that site.'
+                      ' Note that these external sites are not operated by'
+                      ' me. Therefore, I strongly advise you to'
+                      ' review the Privacy Policy of these websites.'
+                      ' I have no control over and assume no'
+                      ' responsibility for the content, privacy policies, or'
+                      ' practices of any third-party sites or services.',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: textColor,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ]
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Children’s Privacy',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: const [
+                Flexible(
+                  child: Text(
+                    'These Services do not address anyone under the age of 13.'
+                      ' I do not knowingly collect personally'
+                      ' identifiable information from children under 13. In the case'
+                      ' I discover that a child under 13 has provided'
+                      ' me with personal information,'
+                      ' I immediately delete this from our servers. If you'
+                      ' are a parent or guardian and you are aware that your child'
+                      ' has provided us with personal information, please contact'
+                      ' me so that I will be able to do necessary actions.',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: textColor,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ]
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Changes to This Privacy Policy',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: const [
+                Flexible(
+                  child: Text(
+                    'I may update our Privacy Policy from'
+                      'time to time. Thus, you are advised to review this page'
+                      'periodically for any changes. I will'
+                      'notify you of any changes by posting the new Privacy Policy'
+                      'on this page. These changes are effective immediately after'
+                      'they are posted on this page.',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: textColor,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ]
+            ),
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class LoadingPage extends StatelessWidget {
   const LoadingPage({Key? key}) : super(key: key);
 
@@ -5312,10 +6054,10 @@ class LoadingPage extends StatelessWidget {
           barrierDismissible: false,
           radius: 8,
           onConfirm: () async {
-            Get.back();
+            Navigator.pop(context);
           },
           onCancel: () async {
-            Get.back();
+            Navigator.pop(context);
           },
         );
       }
@@ -5725,11 +6467,11 @@ void arrangeLearnMean() {
   c.listIndex.shuffle();
   for (var i=0; i<c.mean.length; i++){
     List<String> subListImage = <String>[];
-    if (c.mean.length<3){
+    if (c.mean.length<(c.isVip.value?4:3)){
       subListImage = List<String>.from(c.imageURL.toList());
     }else{
       subListImage.add(c.imageURL[c.listIndex[i]]);
-      for (var j=0;j<2;j++){
+      for (var j=0;j<(c.isVip.value?3:2);j++){
         int newRandomIndex = 0;
         while (subListImage.contains(c.imageURL[newRandomIndex])){
           newRandomIndex = Random().nextInt(c.mean.length);
