@@ -144,7 +144,7 @@ class BannerAdState extends State<BannerAdWidget> {
   void initState() {
     super.initState();
     bannerAd = BannerAd(
-      adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/5194909402' : 'ca-app-pub-9467993129762242/4031685759',
+      adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/5194909402' : 'ca-app-pub-3940256099942544/2934735716',
       request: const AdRequest(),
       size: AdSize(
         width: widget.adWidth.toInt()+1,
