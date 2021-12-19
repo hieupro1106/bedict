@@ -5284,10 +5284,10 @@ class UpgradePage extends State<MyUpgradePage> {
             Get.snackbar('fail','can not register');
             return;
           }
-        }
-        if (purchaseDetails.pendingCompletePurchase) {
-          await InAppPurchase.instance.completePurchase(purchaseDetails);
-          Get.snackbar('congratulation','success');
+          if (purchaseDetails.pendingCompletePurchase) {
+            await InAppPurchase.instance.completePurchase(purchaseDetails);
+            Get.snackbar('congratulation','success');
+          }
         }
       }
     });
