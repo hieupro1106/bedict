@@ -144,7 +144,7 @@ class BannerAdState extends State<BannerAdWidget> {
   void initState() {
     super.initState();
     bannerAd = BannerAd(
-      adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/5194909402' : 'ca-app-pub-3940256099942544/2934735716',
+      adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/5194909402' : 'ca-app-pub-9467993129762242/4031685759',
       request: const AdRequest(),
       size: AdSize(
         width: widget.adWidth.toInt()+1,
@@ -5403,7 +5403,7 @@ class MyUpgradePage extends StatelessWidget {
                                 alignment: Alignment.center,
                                 child: Text(
                                   c.isVip.value? c.language.value == 'VN'? 'VIP (bạn đã đăng kí)': 'VIP (you registered)'
-                                      : c.language.value == 'VN'? 'đăng kí 01 năm (120k)': 'register for 1 year (5\$)',
+                                      : c.language.value == 'VN'? 'đăng kí 01 năm (119k)': 'register for 1 year (4.9\$)',
                                   style: const TextStyle(
                                     fontSize: 16,
                                     overflow: TextOverflow.ellipsis,
