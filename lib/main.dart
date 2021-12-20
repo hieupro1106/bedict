@@ -148,7 +148,7 @@ class BannerAdState extends State<BannerAdWidget> {
       request: const AdRequest(),
       size: AdSize(
         width: widget.adWidth.toInt()+1,
-        height: widget.adWidth*250~/320+1,
+        height: widget.adWidth*250~/300+1,
       ),
       listener: BannerAdListener(
         onAdLoaded: (Ad ad) {
@@ -1003,10 +1003,10 @@ class Home extends StatelessWidget {
                       ):
                       Container(
                         alignment: Alignment.center,
-                        child: BannerAdWidget(adWidth: c.imageWidth.value - 10),
+                        child: BannerAdWidget(adWidth: c.imageWidth.value),
                         // child: const SizedBox(),
                         width: c.imageWidth.value - 10,
-                        height: (c.imageWidth.value - 10)*0.78125,
+                        height: (c.imageWidth.value - 10)*250/300,
                       ),
                   ),
                   const SizedBox(height:5),
@@ -2669,26 +2669,6 @@ class WriteWidget extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(
-                    height: 160,
-                    width: 185,
-                    child: BannerAdWidget(adWidth: 185.0),
-                  ),
-                  const SizedBox(
-                    height: 160,
-                    width: 188,
-                    child: BannerAdWidget(adWidth: 188.0),
-                  ),
-                  const SizedBox(
-                    height: 180,
-                    width: 192,
-                    child: BannerAdWidget(adWidth: 192.0),
-                  ),
-                  const SizedBox(
-                    height: 200,
-                    width: 195,
-                    child: BannerAdWidget(adWidth: 195.0),
-                  ),
                   Container(
                     margin: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
@@ -2706,7 +2686,7 @@ class WriteWidget extends StatelessWidget {
                       ],
                     ),
                     width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                    height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                    height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                     child: Stack(
                         children:[
                           ClipRRect(
@@ -2719,7 +2699,7 @@ class WriteWidget extends StatelessWidget {
                                   image: NetworkImage('https://bedict.com/' + c.imageURL[0].replaceAll('\\','')),
                                   fit: BoxFit.fill,
                                   width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                  height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                  height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                                   errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                     return const SizedBox();
                                   },
@@ -2733,7 +2713,7 @@ class WriteWidget extends StatelessWidget {
                               image: NetworkImage('https://bedict.com/' + c.imageURL[0].replaceAll('\\','')),
                               fit: BoxFit.contain,
                               width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                              height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                              height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                               errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                 return const SizedBox();
                               },
@@ -2762,7 +2742,7 @@ class WriteWidget extends StatelessWidget {
                       ),
                       // alignment: Alignment.center,
                       width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                      height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                      height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                       // child: const BannerAdWidget(adWidth: 150.0)
                       child: BannerAdWidget(adWidth: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2)
                     ),
@@ -2784,7 +2764,7 @@ class WriteWidget extends StatelessWidget {
                         ],
                       ),
                       width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                      height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                      height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                       child: Stack(
                           children:[
                             ClipRRect(
@@ -2797,7 +2777,7 @@ class WriteWidget extends StatelessWidget {
                                     image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
                                     fit: BoxFit.fill,
                                     width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                    height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                    height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                                     errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                       return const SizedBox();
                                     },
@@ -2811,7 +2791,7 @@ class WriteWidget extends StatelessWidget {
                                 image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
                                 fit: BoxFit.contain,
                                 width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                                 errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                   return const SizedBox();
                                 },
@@ -3125,7 +3105,7 @@ class PronunWidget extends StatelessWidget {
                           ],
                         ),
                         width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                        height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                        height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                         child: Stack(
                             children:[
                               ClipRRect(
@@ -3138,7 +3118,7 @@ class PronunWidget extends StatelessWidget {
                                       image: NetworkImage('https://bedict.com/' + c.imageURL[0].replaceAll('\\','')),
                                       fit: BoxFit.fill,
                                       width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                      height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                      height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                                       errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                         return const SizedBox();
                                       },
@@ -3152,7 +3132,7 @@ class PronunWidget extends StatelessWidget {
                                   image: NetworkImage('https://bedict.com/' + c.imageURL[0].replaceAll('\\','')),
                                   fit: BoxFit.contain,
                                   width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                  height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                  height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                                   errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                     return const SizedBox();
                                   },
@@ -3181,7 +3161,7 @@ class PronunWidget extends StatelessWidget {
                           ),
                           // alignment: Alignment.center,
                           width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                          height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                          height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                           child: BannerAdWidget(adWidth: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2)
                       ),
                     for (int index=1; index<c.mean.length; index++)
@@ -3202,7 +3182,7 @@ class PronunWidget extends StatelessWidget {
                             ],
                           ),
                           width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                          height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                          height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                           child: Stack(
                               children:[
                                 ClipRRect(
@@ -3215,7 +3195,7 @@ class PronunWidget extends StatelessWidget {
                                         image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
                                         fit: BoxFit.fill,
                                         width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                        height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                        height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                                         errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                           return const SizedBox();
                                         },
@@ -3229,7 +3209,7 @@ class PronunWidget extends StatelessWidget {
                                     image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
                                     fit: BoxFit.contain,
                                     width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                    height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                    height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                                     errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                       return const SizedBox();
                                     },
@@ -3817,7 +3797,7 @@ class SpeakWidget extends StatelessWidget {
                         ],
                       ),
                       width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                      height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                      height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                       child: Stack(
                           children:[
                             ClipRRect(
@@ -3830,7 +3810,7 @@ class SpeakWidget extends StatelessWidget {
                                     image: NetworkImage('https://bedict.com/' + c.imageURL[0].replaceAll('\\','')),
                                     fit: BoxFit.fill,
                                     width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                    height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                    height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                                     errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                       return const SizedBox();
                                     },
@@ -3844,7 +3824,7 @@ class SpeakWidget extends StatelessWidget {
                                 image: NetworkImage('https://bedict.com/' + c.imageURL[0].replaceAll('\\','')),
                                 fit: BoxFit.contain,
                                 width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                                 errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                   return const SizedBox();
                                 },
@@ -3873,7 +3853,7 @@ class SpeakWidget extends StatelessWidget {
                         ),
                         // alignment: Alignment.center,
                         width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                        height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                        height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                         child: BannerAdWidget(adWidth: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2)
                     ),
                   for (int index=1; index<c.mean.length; index++)
@@ -3894,7 +3874,7 @@ class SpeakWidget extends StatelessWidget {
                           ],
                         ),
                         width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                        height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                        height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                         child: Stack(
                             children:[
                               ClipRRect(
@@ -3907,7 +3887,7 @@ class SpeakWidget extends StatelessWidget {
                                       image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
                                       fit: BoxFit.fill,
                                       width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                      height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                      height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                                       errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                         return const SizedBox();
                                       },
@@ -3921,7 +3901,7 @@ class SpeakWidget extends StatelessWidget {
                                   image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
                                   fit: BoxFit.contain,
                                   width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                  height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                  height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                                   errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                     return const SizedBox();
                                   },
@@ -4330,7 +4310,7 @@ class MeanWidget extends StatelessWidget {
                             ),
                             // alignment: Alignment.center,
                             width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                            height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                            height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                             child: Stack(
                               children:[
                                 ClipRRect(
@@ -4343,7 +4323,7 @@ class MeanWidget extends StatelessWidget {
                                         image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index].replaceAll('\\','')),
                                         fit: BoxFit.fill,
                                         width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                        height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                        height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                                         errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                           return const SizedBox();
                                         },
@@ -4357,7 +4337,7 @@ class MeanWidget extends StatelessWidget {
                                     image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index].replaceAll('\\','')),
                                     fit: BoxFit.contain,
                                     width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                    height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                    height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                                     errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                       return const SizedBox();
                                     },
@@ -4498,7 +4478,7 @@ class MeanWidget extends StatelessWidget {
                               ),
                               // alignment: Alignment.center,
                               width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                              height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                              height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                               child: Stack(
                                   children:[
                                     ClipRRect(
@@ -4511,7 +4491,7 @@ class MeanWidget extends StatelessWidget {
                                             image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index].replaceAll('\\','')),
                                             fit: BoxFit.fill,
                                             width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                            height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                            height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                                             errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                               return const SizedBox();
                                             },
@@ -4525,7 +4505,7 @@ class MeanWidget extends StatelessWidget {
                                         image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index].replaceAll('\\','')),
                                         fit: BoxFit.contain,
                                         width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                        height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                        height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                                         errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                           return const SizedBox();
                                         },
@@ -4665,7 +4645,7 @@ class MeanWidget extends StatelessWidget {
                               ),
                               // alignment: Alignment.center,
                               width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                              height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                              height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                               child: Stack(
                                   children:[
                                     ClipRRect(
@@ -4678,7 +4658,7 @@ class MeanWidget extends StatelessWidget {
                                             image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index-1].replaceAll('\\','')),
                                             fit: BoxFit.fill,
                                             width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                            height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                            height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                                             errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                               return const SizedBox();
                                             },
@@ -4692,7 +4672,7 @@ class MeanWidget extends StatelessWidget {
                                         image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index-1].replaceAll('\\','')),
                                         fit: BoxFit.contain,
                                         width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                        height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                                        height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                                         errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                           return const SizedBox();
                                         },
@@ -4720,7 +4700,7 @@ class MeanWidget extends StatelessWidget {
                           ),
                           // alignment: Alignment.center,
                           width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                          height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
+                          height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
                           child: BannerAdWidget(adWidth: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2)
                         )
                     ]
