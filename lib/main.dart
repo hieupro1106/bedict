@@ -2669,8 +2669,28 @@ class WriteWidget extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  const SizedBox(
+                    height: 160,
+                    width: 180,
+                    child: BannerAdWidget(adWidth: 160.0),
+                  ),
+                  const SizedBox(
+                    height: 160,
+                    width: 180,
+                    child: BannerAdWidget(adWidth: 180.0),
+                  ),
+                  const SizedBox(
+                    height: 180,
+                    width: 200,
+                    child: BannerAdWidget(adWidth: 200.0),
+                  ),
+                  const SizedBox(
+                    height: 200,
+                    width: 220,
+                    child: BannerAdWidget(adWidth: 220.0),
+                  ),
                   Container(
-                    margin: const EdgeInsets.all(5),
+                    margin: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: const BorderRadius.all(
@@ -2725,7 +2745,7 @@ class WriteWidget extends StatelessWidget {
                   c.isVip.value?
                     const SizedBox():
                     Container(
-                      margin: const EdgeInsets.all(5),
+                      margin: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: const BorderRadius.all(
@@ -2743,12 +2763,12 @@ class WriteWidget extends StatelessWidget {
                       // alignment: Alignment.center,
                       width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
                       height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
-                      // child: const BannerAdWidget(adWidth: 180.0)
+                      // child: const BannerAdWidget(adWidth: 150.0)
                       child: BannerAdWidget(adWidth: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2)
                     ),
                   for (int index=1; index<c.mean.length; index++)
                     Container(
-                      margin: const EdgeInsets.all(5),
+                      margin: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: const BorderRadius.all(
@@ -3089,7 +3109,7 @@ class PronunWidget extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                        margin: const EdgeInsets.all(0),
+                        margin: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: const BorderRadius.all(
@@ -3144,7 +3164,7 @@ class PronunWidget extends StatelessWidget {
                     c.isVip.value?
                       const SizedBox():
                       Container(
-                          margin: const EdgeInsets.all(0),
+                          margin: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: const BorderRadius.all(
@@ -3166,7 +3186,7 @@ class PronunWidget extends StatelessWidget {
                       ),
                     for (int index=1; index<c.mean.length; index++)
                       Container(
-                          margin: const EdgeInsets.all(0),
+                          margin: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: const BorderRadius.all(
