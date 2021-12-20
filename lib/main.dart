@@ -162,7 +162,6 @@ class BannerAdState extends State<BannerAdWidget> {
       ),
       // customOptions: <String, Object>{},
     );
-
     bannerAd.load();
   }
 
@@ -255,13 +254,8 @@ Future<void> main() async {
   c.notifyDaily = RxBool(await box.get('notifyDaily') ?? false);
   c.selectedTime = RxString(await box.get('timeDaily') ?? '20:00');
   c.notifyWord = RxBool(await box.get('notifyWord') ?? false);
-  if (c.notifyWord.value){
-    for (var i=1;i<18;i++){
-      await AwesomeNotifications().dismiss(i);
-      await AwesomeNotifications().cancelSchedule(i);
-    }
-    showNotificationWord();
-  }
+  c.enableSound = RxBool(await box.get('enableSound') ?? true);
+  c.initSpeak = RxBool(await box.get('initSpeak') ?? true);
   c.listWordsToday = jsonDecode(await box.get("listWordsToday")?? '[]').cast<String>();
   c.category = RxString(listCategoryEN[await box.get('category') ?? 0]);
   c.type = RxString(listTypeEN[await box.get('type') ?? 0]);
@@ -285,6 +279,15 @@ Future<void> main() async {
 
   bool isIntroduce = await box.get('isIntroduce') ?? true;
   await box.close();
+
+  if (c.notifyWord.value){
+    for (var i=1;i<18;i++){
+      await AwesomeNotifications().dismiss(i);
+      await AwesomeNotifications().cancelSchedule(i);
+    }
+    await showNotificationWord();
+  }
+
   runApp(
     GetMaterialApp(
       title: "BeDict",
@@ -295,11 +298,77 @@ Future<void> main() async {
 }
 
 class Controller extends GetxController{
+
+  late StreamSubscription subscription;
+  var available = false.obs;
+
+  @override
+  void onInit() {
+    final Stream purchaseUpdated = InAppPurchase.instance.purchaseStream;
+    subscription = purchaseUpdated.listen((purchaseDetailsList) {
+      purchases = purchaseDetailsList;
+      listenToPurchaseUpdated(purchaseDetailsList);
+    }, onDone: () {
+      subscription.cancel();
+    }, onError: (error) {
+      Get.snackbar('fail',error.toString());
+    });
+    initStore();
+    super.onInit();
+  }
+
   @override
   void onClose() {
     pool.dispose();
+    subscription.cancel();
     super.onClose();
   }
+
+
+  Future<void> initStore() async {
+    final bool _available = await InAppPurchase.instance.isAvailable();
+    available = RxBool(_available);
+    if (!available.value) {
+      return;
+    }
+    const Set<String> _kIds = <String>{'year'};
+    final ProductDetailsResponse response = await InAppPurchase.instance.queryProductDetails(_kIds);
+    if (response.notFoundIDs.isNotEmpty) {
+      Get.snackbar('fail','not found product');
+      return;
+    }
+    products = response.productDetails;
+  }
+
+  void listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) {
+    purchaseDetailsList.forEach((PurchaseDetails purchaseDetails) async {
+      if (purchaseDetails.status == PurchaseStatus.pending) {
+      } else {
+        if (purchaseDetails.status == PurchaseStatus.error) {
+          Get.snackbar('error',PurchaseStatus.error.name);
+        } else if (purchaseDetails.status == PurchaseStatus.purchased ||
+            purchaseDetails.status == PurchaseStatus.restored) {
+          bool valid = await _verifyPurchase(purchaseDetails.verificationData.serverVerificationData);
+          if (valid) {
+            var box = await Hive.openBox('setting');
+            await box.put('vipToken',purchaseDetails.verificationData.serverVerificationData);
+            await box.close();
+            purchases.add(purchaseDetails);
+            isVip = RxBool(valid);
+            update();
+          } else {
+            Get.snackbar('fail','can not register');
+            return;
+          }
+          if (purchaseDetails.pendingCompletePurchase) {
+            await InAppPurchase.instance.completePurchase(purchaseDetails);
+            Get.snackbar('congratulation','success');
+          }
+        }
+      }
+    });
+  }
+
   var imageShow = 1.obs;
   List<String> listRandom = <String>[].obs;
   List<String> listArrange = <String>[].obs;
@@ -934,7 +1003,8 @@ class Home extends StatelessWidget {
                       ):
                       Container(
                         alignment: Alignment.center,
-                        child: BannerAdWidget(adWidth: c.imageWidth.value - 10),
+                        // child: BannerAdWidget(adWidth: c.imageWidth.value - 10),
+                        child: const SizedBox(),
                         width: c.imageWidth.value - 10,
                         height: (c.imageWidth.value - 10)*0.78125,
                       ),
@@ -1405,7 +1475,7 @@ class Home extends StatelessWidget {
                           await box.put('notifyWord',value);
                           await box.close();
                           if (value) {
-                            showNotificationWord();
+                            await showNotificationWord();
                           }else{
                             for (var i=1;i<18;i++){
                               await AwesomeNotifications().dismiss(i);
@@ -1476,9 +1546,12 @@ class Home extends StatelessWidget {
                         activeColor: backgroundColor,
                         activeTrackColor: themeColor,
                         value: c.initSpeak.value,
-                        onChanged: (value) {
+                        onChanged: (value) async {
                           c.initSpeak = value.obs;
                           c.update();
+                          var box = await Hive.openBox('setting');
+                          await box.put('initSpeak',value);
+                          await box.close();
                         },
                       ),
                     ),
@@ -1506,9 +1579,12 @@ class Home extends StatelessWidget {
                         activeColor: backgroundColor,
                         activeTrackColor: themeColor,
                         value: c.enableSound.value,
-                        onChanged: (value) {
+                        onChanged: (value) async {
                           c.enableSound = value.obs;
                           c.update();
+                          var box = await Hive.openBox('setting');
+                          await box.put('enableSound',value);
+                          await box.close();
                         },
                       ),
                     ),
@@ -5203,98 +5279,13 @@ class ScorePage extends StatelessWidget {
   }
 }
 
-class MyUpgradePage extends StatefulWidget {
+class MyUpgradePage extends StatelessWidget {
   const MyUpgradePage({Key? key}) : super(key: key);
 
   @override
-  UpgradePage createState() => UpgradePage();
-}
-
-class UpgradePage extends State<MyUpgradePage> {
-  bool purchasePending = false;
-  late StreamSubscription subscription;
-  bool available = false;
-  final Controller c = Get.put(Controller());
-
-  @override
-  void initState() { // called immediately after the widget is allocated memory
-    final Stream purchaseUpdated = InAppPurchase.instance.purchaseStream;
-    subscription = purchaseUpdated.listen((purchaseDetailsList) {
-      c.purchases = purchaseDetailsList;
-      listenToPurchaseUpdated(purchaseDetailsList);
-    }, onDone: () {
-      subscription.cancel();
-    }, onError: (error) {
-      Get.snackbar('fail',error.toString());
-    });
-    initStore();
-    super.initState();
-  }
-
-  Future<void> initStore() async {
-    final bool _available = await InAppPurchase.instance.isAvailable();
-    setState(() {
-      purchasePending = false;
-      available = _available;
-    });
-    if (!available) {
-      return;
-    }
-    const Set<String> _kIds = <String>{'year'};
-    final ProductDetailsResponse response = await InAppPurchase.instance.queryProductDetails(_kIds);
-    if (response.notFoundIDs.isNotEmpty) {
-      Get.snackbar('fail','not found product');
-      return;
-    }
-    c.products = response.productDetails;
-  }
-
-  @override
-  void dispose() { // called just before the Controller is deleted from memory
-    subscription.cancel();
-    super.dispose();
-  }
-
-  void listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) {
-    purchaseDetailsList.forEach((PurchaseDetails purchaseDetails) async {
-      if (purchaseDetails.status == PurchaseStatus.pending) {
-        setState(() {
-          purchasePending = true;
-        });
-      } else {
-        if (purchaseDetails.status == PurchaseStatus.error) {
-          setState(() {
-            purchasePending = false;
-          });
-          Get.snackbar('error',PurchaseStatus.error.name);
-        } else if (purchaseDetails.status == PurchaseStatus.purchased ||
-            purchaseDetails.status == PurchaseStatus.restored) {
-          bool valid = await _verifyPurchase(purchaseDetails.verificationData.serverVerificationData);
-          if (valid) {
-            var box = await Hive.openBox('setting');
-            await box.put('vipToken',purchaseDetails.verificationData.serverVerificationData);
-            await box.close();
-            c.purchases.add(purchaseDetails);
-            c.isVip = RxBool(valid);
-            c.update();
-            setState(() {
-              purchasePending = false;
-            });
-          } else {
-            Get.snackbar('fail','can not register');
-            return;
-          }
-          if (purchaseDetails.pendingCompletePurchase) {
-            await InAppPurchase.instance.completePurchase(purchaseDetails);
-            Get.snackbar('congratulation','success');
-          }
-        }
-      }
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
+
+    final Controller c = Get.put(Controller());
 
     return Scaffold(
       appBar: AppBar(
@@ -5312,101 +5303,45 @@ class UpgradePage extends State<MyUpgradePage> {
         children:[
           const SizedBox(height:7),
           Row(
-            children:[
-              const SizedBox(width:15),
-              Expanded(
-                child: Container(
-                  margin: const EdgeInsets.fromLTRB(0, 10, 10, 10),
-                  decoration: BoxDecoration(
-                    color: themeColor,
-                    borderRadius: const BorderRadius.all(
-                        Radius.circular(8)
+              children:[
+                const SizedBox(width:15),
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.fromLTRB(0, 10, 10, 10),
+                    decoration: BoxDecoration(
+                      color: themeColor,
+                      borderRadius: const BorderRadius.all(
+                          Radius.circular(8)
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.6),
+                          spreadRadius: 0,
+                          blurRadius: 1,
+                          offset: const Offset(1, 1), // changes position of shadow
+                        ),
+                      ],
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.6),
-                        spreadRadius: 0,
-                        blurRadius: 1,
-                        offset: const Offset(1, 1), // changes position of shadow
-                      ),
-                    ],
-                  ),
-                  height: 50,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      const SizedBox(width: 20),
-                      Icon(
-                        available? Icons.check: Icons.highlight_off_rounded,
-                        size: 25,
-                        color: textColor,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Container(
-                          alignment: Alignment.center,
-                          child: GetBuilder<Controller>(
-                            builder: (_) => Text(
-                              available? c.language.value == 'VN'? 'cửa hàng có sẵn': 'the store is available'
-                              : c.language.value == 'VN'? 'cửa hàng không có sẵn': 'the store is not available',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                overflow: TextOverflow.ellipsis,
-                                color: textColor,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width:5),
-            ]
-          ),
-          const SizedBox(height:10),
-          Row(
-            children:[
-              const SizedBox(width:15),
-              Expanded(
-                child: GetBuilder<Controller>(
-                  builder: (_) => Opacity(
-                    opacity: c.isVip.value? 0.6:1,
-                    child: ElevatedButton(
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            themeColor
-                        ),
-                        foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                        padding: MaterialStateProperty.all<EdgeInsets>(
-                            const EdgeInsets.all(0)
-                        ),
-                        shape: MaterialStateProperty.all<OutlinedBorder?>(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                            )
-                        ),
-                        fixedSize: MaterialStateProperty.all<Size>(
-                            const Size.fromHeight(50)
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          const SizedBox(width: 20),
-                          Icon(
-                            c.isVip.value? Icons.check: Icons.highlight_off_rounded,
+                    height: 50,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        const SizedBox(width: 20),
+                        GetBuilder<Controller>(
+                          builder: (_) => Icon(
+                            c.available.value? Icons.check: Icons.highlight_off_rounded,
                             size: 25,
                             color: textColor,
                           ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Container(
-                              alignment: Alignment.center,
-                              child: Text(
-                                c.isVip.value? c.language.value == 'VN'? 'VIP (bạn đã đăng kí)': 'VIP (you registered)'
-                                    : c.language.value == 'VN'? 'đăng kí 01 năm (120k)': 'register for 1 year (5\$)',
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Container(
+                            alignment: Alignment.center,
+                            child: GetBuilder<Controller>(
+                              builder: (_) => Text(
+                                c.available.value? c.language.value == 'VN'? 'cửa hàng có sẵn': 'the store is available'
+                                    : c.language.value == 'VN'? 'cửa hàng không có sẵn': 'the store is not available',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   overflow: TextOverflow.ellipsis,
@@ -5415,45 +5350,103 @@ class UpgradePage extends State<MyUpgradePage> {
                               ),
                             ),
                           ),
-                        ],
-                      ),
-                      onPressed: () {
-                        if (!c.isVip.value){
-                          final ProductDetails productDetails = c.products[0];
-                          final PurchaseParam purchaseParam = PurchaseParam(productDetails: productDetails);
-                          InAppPurchase.instance.buyNonConsumable(purchaseParam: purchaseParam);
-                        }
-                      },
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width:15),
-            ]
+                const SizedBox(width:5),
+              ]
+          ),
+          const SizedBox(height:10),
+          Row(
+              children:[
+                const SizedBox(width:15),
+                Expanded(
+                  child: GetBuilder<Controller>(
+                    builder: (_) => Opacity(
+                      opacity: c.isVip.value? 0.6:1,
+                      child: ElevatedButton(
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              themeColor
+                          ),
+                          foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                          padding: MaterialStateProperty.all<EdgeInsets>(
+                              const EdgeInsets.all(0)
+                          ),
+                          shape: MaterialStateProperty.all<OutlinedBorder?>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                              )
+                          ),
+                          fixedSize: MaterialStateProperty.all<Size>(
+                              const Size.fromHeight(50)
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            const SizedBox(width: 20),
+                            Icon(
+                              c.isVip.value? Icons.check: Icons.highlight_off_rounded,
+                              size: 25,
+                              color: textColor,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Container(
+                                alignment: Alignment.center,
+                                child: Text(
+                                  c.isVip.value? c.language.value == 'VN'? 'VIP (bạn đã đăng kí)': 'VIP (you registered)'
+                                      : c.language.value == 'VN'? 'đăng kí 01 năm (120k)': 'register for 1 year (5\$)',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    overflow: TextOverflow.ellipsis,
+                                    color: textColor,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        onPressed: () {
+                          if (!c.isVip.value){
+                            final ProductDetails productDetails = c.products[0];
+                            final PurchaseParam purchaseParam = PurchaseParam(productDetails: productDetails);
+                            InAppPurchase.instance.buyNonConsumable(purchaseParam: purchaseParam);
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width:15),
+              ]
           ),
           const SizedBox(height:15),
           Row(
-            children:[
-              const SizedBox(width:15),
-              Flexible(
-                child: GetBuilder<Controller>(
-                  builder: (_) => Text(
-                    c.language.value == 'VN'?
-                    'đăng kí 1 năm sử dụng ứng dụng không bị làm phiền bởi quảng cáo,'
-                        ' giúp chúng tôi duy trì ứng dụng này tới mọi người':
-                    'register 1 year using this app without advertisement,'
-                        ' helping us distribute this app to people',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      // overflow: TextOverflow.ellipsis,
-                      color: textColor,
+              children:[
+                const SizedBox(width:15),
+                Flexible(
+                  child: GetBuilder<Controller>(
+                    builder: (_) => Text(
+                      c.language.value == 'VN'?
+                      'đăng kí 1 năm sử dụng ứng dụng không bị làm phiền bởi quảng cáo,'
+                          ' giúp chúng tôi duy trì ứng dụng này tới mọi người':
+                      'register 1 year using this app without advertisement,'
+                          ' helping us distribute this app to people',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        // overflow: TextOverflow.ellipsis,
+                        color: textColor,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
                   ),
                 ),
-              ),
-              const SizedBox(width:15),
-            ]
+                const SizedBox(width:15),
+              ]
           ),
         ],
       ),
@@ -6027,10 +6020,10 @@ class LoadingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
     Future.delayed(Duration.zero, () async {
-      var box = await Hive.openBox('data');
       final response = await http.get(Uri.parse('https://drive.google.com/uc?export=download&id=1vUu4qZjTS5tpndNEHTBHaE51rr6y0sP_'),headers: {'Content-Type': 'application/json'});
       if (response.statusCode == 200) {
         List data = json.decode(utf8.decode(response.bodyBytes));
+        var box = await Hive.openBox('data');
         for (var i=0;i<data.length;i++){
           await box.put(data[i]['word'],data[i]);
         }
@@ -6929,7 +6922,6 @@ Future<List<String>> getScoreTime() async {
 }
 
 Future showNotificationWord() async {
-  var box = await Hive.openBox('data');
   final Controller c = Get.put(Controller());
   AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
     if (!isAllowed) {
@@ -6952,10 +6944,10 @@ Future showNotificationWord() async {
       listWord.add(listScoreTime[i]);
     }
   }
-
+  var box = await Hive.openBox('data');
   String localTimeZone = await AwesomeNotifications().getLocalTimeZoneIdentifier();
   for (var i=1;i<18;i++){
-    var dataRaw = box.get(listWord[Random().nextInt(listWord.length)]);
+    var dataRaw = await box.get(listWord[Random().nextInt(listWord.length)]);
     var randomMean = Random().nextInt(jsonDecode(dataRaw['mean']).length);
     List listMean = jsonDecode(dataRaw['mean'])[randomMean];
     List meanENAdd = [];
@@ -7017,6 +7009,7 @@ Future showNotificationWord() async {
       )
     );
   }
+  await box.close();
 }
 
 Future showWord(String wordShow) async {
