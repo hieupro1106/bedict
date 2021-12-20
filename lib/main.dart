@@ -2671,23 +2671,23 @@ class WriteWidget extends StatelessWidget {
                 children: [
                   const SizedBox(
                     height: 160,
-                    width: 180,
-                    child: BannerAdWidget(adWidth: 160.0),
+                    width: 185,
+                    child: BannerAdWidget(adWidth: 185.0),
                   ),
                   const SizedBox(
                     height: 160,
-                    width: 180,
-                    child: BannerAdWidget(adWidth: 180.0),
+                    width: 188,
+                    child: BannerAdWidget(adWidth: 188.0),
                   ),
                   const SizedBox(
                     height: 180,
-                    width: 200,
-                    child: BannerAdWidget(adWidth: 200.0),
+                    width: 192,
+                    child: BannerAdWidget(adWidth: 192.0),
                   ),
                   const SizedBox(
                     height: 200,
-                    width: 220,
-                    child: BannerAdWidget(adWidth: 220.0),
+                    width: 195,
+                    child: BannerAdWidget(adWidth: 195.0),
                   ),
                   Container(
                     margin: const EdgeInsets.all(10),
