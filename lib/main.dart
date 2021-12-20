@@ -1010,11 +1010,6 @@ class Home extends StatelessWidget {
                       ),
                   ),
                   const SizedBox(height:5),
-                  const SizedBox(
-                    height: 150,
-                    width: 150,
-                    child: BannerAdWidget(adWidth: 150.0),
-                  ),
                   Container(
                     width: c.imageWidth.value - 10,
                     margin: const EdgeInsets.fromLTRB(0, 0, 10, 0),
@@ -2674,11 +2669,6 @@ class WriteWidget extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(
-                    height: 320,
-                    width: 250,
-                    child: BannerAdWidget(adWidth: 320.0),
-                  ),
                   Container(
                     margin: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
@@ -2753,7 +2743,7 @@ class WriteWidget extends StatelessWidget {
                       // alignment: Alignment.center,
                       width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
                       height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
-                      child: const BannerAdWidget(adWidth: 150.0)
+                      child: const BannerAdWidget(adWidth: 180.0)
                       // child: BannerAdWidget(adWidth: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2)
                     ),
                   for (int index=1; index<c.mean.length; index++)
