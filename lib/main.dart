@@ -306,7 +306,7 @@ class Controller extends GetxController{
   void onInit() {
     final Stream purchaseUpdated = InAppPurchase.instance.purchaseStream;
     subscription = purchaseUpdated.listen((purchaseDetailsList) {
-      purchases = purchaseDetailsList;
+      purchases = RxList(purchaseDetailsList);
       listenToPurchaseUpdated(purchaseDetailsList);
     }, onDone: () {
       subscription.cancel();
@@ -1003,8 +1003,8 @@ class Home extends StatelessWidget {
                       ):
                       Container(
                         alignment: Alignment.center,
-                        // child: BannerAdWidget(adWidth: c.imageWidth.value - 10),
-                        child: const SizedBox(),
+                        child: BannerAdWidget(adWidth: c.imageWidth.value - 10),
+                        // child: const SizedBox(),
                         width: c.imageWidth.value - 10,
                         height: (c.imageWidth.value - 10)*0.78125,
                       ),
@@ -2743,7 +2743,8 @@ class WriteWidget extends StatelessWidget {
                       // alignment: Alignment.center,
                       width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
                       height: MediaQuery.of(context).size.width > 420? 180*0.78125: (MediaQuery.of(context).size.width-60)*0.78125/2,
-                      child: BannerAdWidget(adWidth: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2)
+                      child: BannerAdWidget(adWidth: 320)
+                      // child: BannerAdWidget(adWidth: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2)
                     ),
                   for (int index=1; index<c.mean.length; index++)
                     Container(
