@@ -837,7 +837,10 @@ class Introduce extends StatelessWidget {
   }
 
   Widget _buildImage(String assetName, [double width = 350]) {
-    return Image.asset('assets/$assetName', width: width);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Image.asset('assets/$assetName', width: width)
+    );
   }
 
   @override
@@ -950,7 +953,7 @@ class Home extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   Container(
-                    margin: const EdgeInsets.fromLTRB(0, 10, 10, 10),
+                    margin: const EdgeInsets.fromLTRB(0, 0, 10, 10),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: const BorderRadius.all(
@@ -1003,7 +1006,7 @@ class Home extends StatelessWidget {
                       ):
                       Container(
                         alignment: Alignment.center,
-                        child: BannerAdWidget(adWidth: c.imageWidth.value),
+                        child: BannerAdWidget(adWidth: c.imageWidth.value-10),
                         // child: const SizedBox(),
                         width: c.imageWidth.value - 10,
                         height: (c.imageWidth.value - 10)*250/300,
