@@ -369,6 +369,7 @@ class Controller extends GetxController{
     });
   }
 
+  var expire = 0.obs;
   var imageShow = 1.obs;
   List<String> listRandom = <String>[].obs;
   List<String> listArrange = <String>[].obs;
@@ -5402,7 +5403,9 @@ class MyUpgradePage extends StatelessWidget {
                               child: Container(
                                 alignment: Alignment.center,
                                 child: Text(
-                                  c.isVip.value? c.language.value == 'VN'? 'VIP (bạn đã đăng kí)': 'VIP (you registered)'
+                                  c.isVip.value? c.language.value == 'VN'?
+                                  'VIP (hạn đến ' + DateTime.fromMillisecondsSinceEpoch(c.expire.value).toString() + ')':
+                                  'VIP (valid until ' + DateTime.fromMillisecondsSinceEpoch(c.expire.value).toString() + ')'
                                       : c.language.value == 'VN'? 'đăng kí 01 năm (119k)': 'register for 1 year (4.9\$)',
                                   style: const TextStyle(
                                     fontSize: 16,
@@ -5437,9 +5440,10 @@ class MyUpgradePage extends StatelessWidget {
                     builder: (_) => Text(
                       c.language.value == 'VN'?
                       'đăng kí 1 năm sử dụng ứng dụng không bị làm phiền bởi quảng cáo,'
-                          ' giúp chúng tôi duy trì ứng dụng này tới mọi người':
+                          ' giúp chúng tôi duy trì ứng dụng này tới mọi người,'
+                          ' hết thời gian ứng dụng sẽ được gia hạn tự động':
                       'register 1 year using this app without advertisement,'
-                          ' helping us distribute this app to people',
+                          ' helping us distribute this app to people, this app auto renews',
                       style: const TextStyle(
                         fontSize: 16,
                         // overflow: TextOverflow.ellipsis,
@@ -5461,6 +5465,7 @@ class MyUpgradePage extends StatelessWidget {
 Future<bool> _verifyPurchase(String token) async {
   // IMPORTANT!! Always verify a purchase before delivering the product.
   // For the purpose of an example, we directly return true.
+  final Controller c = Get.put(Controller());
   String url = Platform.isAndroid? 'https://bedict.com/checkPay.php':'https://bedict.com/checkPayIos.php';
   final response = await http.post(
     Uri.parse(url),
@@ -5470,6 +5475,7 @@ Future<bool> _verifyPurchase(String token) async {
   );
   if (response.statusCode == 200) {
     if (response.body != 'error'){
+      c.expire = RxInt(int.parse(response.body));
       return true;
     }else{
       return false;
@@ -5482,6 +5488,7 @@ Future<bool> _verifyPurchase(String token) async {
 Future<bool> checkExpire(String token) async {
   // IMPORTANT!! Always verify a purchase before delivering the product.
   // For the purpose of an example, we directly return true.
+  final Controller c = Get.put(Controller());
   String url = Platform.isAndroid? 'https://bedict.com/checkExpire.php':'https://bedict.com/checkExpireIos.php';
   final response = await http.post(
     Uri.parse(url),
@@ -5491,6 +5498,7 @@ Future<bool> checkExpire(String token) async {
   );
   if (response.statusCode == 200) {
     if (response.body != 'error'){
+      c.expire = RxInt(int.parse(response.body));
       return true;
     }else{
       return false;
