@@ -1,5 +1,5 @@
 // import 'package:flutter/material.dart';
-// import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart';
 // import 'package:flutter/painting.dart';
 // import 'package:flutter/widgets.dart';
 import 'dart:async';
@@ -18,10 +18,9 @@ import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 // import 'package:flutter/rendering.dart';
 import 'package:flutter/foundation.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
-import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
+// import 'package:path/path.dart';
+// import 'package:sqflite/sqflite.dart';
 import 'package:percent_indicator/percent_indicator.dart';
-import 'package:group_button/group_button.dart';
 import 'package:intl/intl.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'dart:io';
@@ -41,7 +40,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:soundpool/soundpool.dart';
 
-List<String> listCategoryVN = ["chủ đề","khả năng","trừu tượng","thành tích","hành động","tuổi tác","nông nghiệp",
+List<String> listCategoryVN = ["tất cả chủ đề","khả năng","trừu tượng","thành tích","hành động","tuổi tác","nông nghiệp",
 "trợ giúp","số lượng","giải phẫu","động vật","vẻ ngoài","khảo cổ học","kiến trúc","khu vực",
 "nghệ thuật","khía cạnh","tài sản","chiêm tinh học","thiên văn học","thái độ","thực thể",
 "rung chuông","cá cược","hoá sinh học","sinh học","chim","cơ thể","nhà cửa","việc làm ăn",
@@ -49,8 +48,8 @@ List<String> listCategoryVN = ["chủ đề","khả năng","trừu tượng","th
 "châu lục","văn hoá","chửi thề","nhảy","mức độ","nhu cầu","thiết bị","hướng","thảm hoạ",
 "bệnh tật","học thuyết","uống","sinh thái học","kinh tế","giáo dục","điện","điện tử",
 "nguyên tố","cảm xúc","năng lượng","giải trí","môi trường","sự kiện","câu cảm thán",
-"gia đình","lễ hội","hình khối","tài chính","cá","đồ ăn","frequency","fruit","fuel",
-"function","future","trò chơi","khoảng trống","địa lý","địa chất","nhà nước","ngữ pháp",
+"gia đình","lễ hội","hình khối","tài chính","cá","đồ ăn","tần suất","hoa quả","nhiên liệu",
+"chức năng","future","trò chơi","khoảng trống","địa lý","địa chất","nhà nước","ngữ pháp",
 "nhóm","vi phạm","huy hiệu","lịch sử","kỳ nghỉ","công nghiệp","thông tin","thực thể khác người",
 "côn trùng","bảo hiểm","mạng internet","vật thể","nghề nghiệp","ngôn ngữ","luật pháp",
 "ngôn ngữ học","danh sách","văn học","logic","máy móc","dấu, dấu vết","đống","vật liệu",
@@ -67,7 +66,7 @@ List<String> listCategoryVN = ["chủ đề","khả năng","trừu tượng","th
 "sự vật","thời gian","tiêu đề","truyền thống","giao thông","loại, kiểu","đơn vị","đồ dùng",
 "tiện ích","giá trị","rau củ","phương tiện","vi rút","chiến tranh","cách thức","vũ khí",
 "trang phục","thời tiết","từ","công việc","thế giới","viết lách"];
-List<String> listCategoryEN = ["category","ability","abstract","achievement",
+List<String> listCategoryEN = ["all category","ability","abstract","achievement",
 "action","age","agriculture","aid","amount","anatomy","animal",
 "appearance","archaeology","architecture","area","art",
 "aspect","asset","astrology","astronomy","attitude","being","bell-ringing",
@@ -100,12 +99,12 @@ List<String> listCategoryEN = ["category","ability","abstract","achievement",
 List<String> listLevelVN = ['tất cả từ', '8.000 từ','5.000 từ','3.000 từ'];
 List<String> listLevelEN = ['all words', '8.000 words','5.000 words','3.000 words'];
 
-List<String> listTypeVN = ["từ loại","danh từ","động từ","tính từ","trạng từ","đại từ","từ viết tắt", "từ cảm thán",
+List<String> listTypeVN = ["tất cả từ loại","danh từ","động từ","tính từ","trạng từ","đại từ","từ viết tắt", "từ cảm thán",
   "giới từ","liên từ", "từ hạn định sở hữu","đại từ sở hữu","cụm từ","từ rút gọn",
   "động từ khiếm khuyết","từ hạn định","số đếm","số thứ tự",
   "tiểu từ nguyên mẫu", "từ chỉ định","trợ động từ","trạng từ nghi vấn",
   "đại từ nghi vấn","đại từ quan hệ","trạng từ quan hệ"];
-List<String> listTypeEN = ["type","noun","verb","adjective","adverb","pronoun","abbreviation","exclamation",
+List<String> listTypeEN = ["all type","noun","verb","adjective","adverb","pronoun","abbreviation","exclamation",
   "preposition","conjunction", "possessive determiner","possessive pronoun","phrase","contraction",
   "modal verb","determiner","cardinal number","ordinal number",
   "infinitive particle","predeterminer","auxiliary verb","interrogative adverb",
@@ -114,12 +113,23 @@ List<String> listTypeEN = ["type","noun","verb","adjective","adverb","pronoun","
 const textColor = Color.fromRGBO(3, 64, 24, 1);
 const backgroundColor = Color.fromRGBO(147, 219, 172, 1);
 const themeColor = Color.fromRGBO(230, 255, 240, 1);
+final Shader linearGradient = const LinearGradient(
+  colors: <Color>[Color(0xff879c03), Color(0xff353d01)],
+).createShader(const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0));
 
 final Soundpool pool = Soundpool.fromOptions();
 late int soundId;
+late int soundIdRight;
+late int soundIdWrong;
 
 int initLanguageIndex = 0;
 ScrollController scrollController = ScrollController();
+late SpeechToText stt;
+late FlutterTts flutterTts;
+late var box;
+late var boxSetting;
+late var boxScore;
+late var boxHistory;
 
 final searchField = TextEditingController();
 
@@ -237,36 +247,38 @@ Future<void> main() async {
 
   final Controller c = Get.put(Controller());
   await Hive.initFlutter();
-  var box = await Hive.openBox('setting');
-
-  var initLanguage = await box.get('language') ?? 'VN';
+  boxSetting = await Hive.openBox('setting');
+  box = await Hive.openBox('data');
+  boxScore = await Hive.openBox('score');
+  boxHistory = await Hive.openBox('history');
+  var initLanguage = await boxSetting.get('language') ?? 'VN';
   if (initLanguage == 'VN'){
     initLanguageIndex = 0;
   }else{
     initLanguageIndex = 1;
   }
 
-  String vipToken = await box.get('vipToken') ?? '';
+  String vipToken = await boxSetting.get('vipToken') ?? '';
   if (vipToken != ''){
     c.isVip = RxBool(await checkExpire(vipToken));
   }
 
-  c.notifyDaily = RxBool(await box.get('notifyDaily') ?? false);
-  c.selectedTime = RxString(await box.get('timeDaily') ?? '20:00');
-  c.notifyWord = RxBool(await box.get('notifyWord') ?? false);
-  c.enableSound = RxBool(await box.get('enableSound') ?? true);
-  c.initSpeak = RxBool(await box.get('initSpeak') ?? true);
-  c.listWordsToday = jsonDecode(await box.get("listWordsToday")?? '[]').cast<String>();
-  c.category = RxString(listCategoryEN[await box.get('category') ?? 0]);
-  c.type = RxString(listTypeEN[await box.get('type') ?? 0]);
-  c.level = RxString(listLevelEN[await box.get('level') ?? 0]);
-  c.word = RxString(await box.get('word') ?? c.word.string);
-  c.speakSpeed = RxDouble(await box.get('speakSpeed') ?? 0.3);
-  c.target = RxInt(await box.get('target') ?? 10);
-  c.language = RxString(await box.get('language') ?? c.language.string);
-  c.categoryIndex = RxInt(await box.get('category') ?? 0);
-  c.typeIndex = RxInt(await box.get('type') ?? 0);
-  c.levelIndex = RxInt(await box.get('level') ?? 0);
+  c.notifyDaily = RxBool(await boxSetting.get('notifyDaily') ?? false);
+  c.selectedTime = RxString(await boxSetting.get('timeDaily') ?? '20:00');
+  c.notifyWord = RxBool(await boxSetting.get('notifyWord') ?? false);
+  c.enableSound = RxBool(await boxSetting.get('enableSound') ?? true);
+  c.initSpeak = RxBool(await boxSetting.get('initSpeak') ?? false);
+  c.category = RxString(listCategoryEN[await boxSetting.get('category') ?? 0]);
+  c.type = RxString(listTypeEN[await boxSetting.get('type') ?? 0]);
+  c.level = RxString(listLevelEN[await boxSetting.get('level') ?? 0]);
+  c.word = RxString(await boxSetting.get('word') ?? 'hello');
+  c.speakSpeed = RxDouble(await boxSetting.get('speakSpeed') ?? 0.3);
+  c.target = RxInt(await boxSetting.get('target') ?? 10);
+  c.notificationInterval = RxInt(await boxSetting.get('notificationInterval') ?? 60);
+  c.language = RxString(await boxSetting.get('language') ?? c.language.string);
+  c.categoryIndex = RxInt(await boxSetting.get('category') ?? 0);
+  c.typeIndex = RxInt(await boxSetting.get('type') ?? 0);
+  c.levelIndex = RxInt(await boxSetting.get('level') ?? 0);
   if (c.language.string == 'VN'){
     c.listCategory = listCategoryVN;
     c.listType = listTypeVN;
@@ -276,16 +288,12 @@ Future<void> main() async {
     c.listType = listTypeEN;
     c.listLevel = listLevelEN;
   }
-
-  bool isIntroduce = await box.get('isIntroduce') ?? true;
-  await box.close();
+  bool isIntroduce = await boxSetting.get('isIntroduce') ?? true;
 
   if (c.notifyWord.value){
-    for (var i=1;i<18;i++){
-      await AwesomeNotifications().dismiss(i);
-      await AwesomeNotifications().cancelSchedule(i);
-    }
-    await showNotificationWord();
+    await AwesomeNotifications().dismissNotificationsByChannelKey('word');
+    await AwesomeNotifications().cancelSchedulesByChannelKey('word');
+    showNotificationWord();
   }
 
   runApp(
@@ -303,7 +311,24 @@ class Controller extends GetxController{
   var available = false.obs;
 
   @override
-  void onInit() {
+  void onInit() async {
+    stt = SpeechToText();
+    speechEnabled = RxBool(await stt.initialize(
+      onError: (err)  {
+        Get.snackbar('voice recognize error',err.errorMsg.replaceAll('_', ' '));
+      },
+      onStatus: (status){
+        if (stt.isNotListening){
+          isListening = false.obs;
+          update();
+        }
+        if (stt.isListening){
+          isListening = true.obs;
+          update();
+        }
+      },
+    ));
+    flutterTts = FlutterTts();
     final Stream purchaseUpdated = InAppPurchase.instance.purchaseStream;
     subscription = purchaseUpdated.listen((purchaseDetailsList) {
       purchases = RxList(purchaseDetailsList);
@@ -320,10 +345,15 @@ class Controller extends GetxController{
   @override
   void onClose() {
     pool.dispose();
+    box.close();
+    boxScore.close();
+    boxHistory.close();
+    boxSetting.close();
     subscription.cancel();
+    flutterTts.stop();
+    stt.cancel();
     super.onClose();
   }
-
 
   Future<void> initStore() async {
     final bool _available = await InAppPurchase.instance.isAvailable();
@@ -345,14 +375,12 @@ class Controller extends GetxController{
       if (purchaseDetails.status == PurchaseStatus.pending) {
       } else {
         if (purchaseDetails.status == PurchaseStatus.error) {
-          Get.snackbar('error',PurchaseStatus.error.name);
+          Get.snackbar('error',PurchaseStatus.error.toString());
         } else if (purchaseDetails.status == PurchaseStatus.purchased ||
             purchaseDetails.status == PurchaseStatus.restored) {
           bool valid = await _verifyPurchase(purchaseDetails.verificationData.serverVerificationData);
           if (valid) {
-            var box = await Hive.openBox('setting');
-            await box.put('vipToken',purchaseDetails.verificationData.serverVerificationData);
-            await box.close();
+            await boxSetting.put('vipToken',purchaseDetails.verificationData.serverVerificationData);
             purchases.add(purchaseDetails);
             isVip = RxBool(valid);
             update();
@@ -369,16 +397,39 @@ class Controller extends GetxController{
     });
   }
 
+  var learnRight = false.obs;
+  var right = false.obs;
   var expire = 0.obs;
   var imageShow = 1.obs;
   List<String> listRandom = <String>[].obs;
   List<String> listArrange = <String>[].obs;
   List<String> listRandomPronun = <String>[].obs;
   List<String> listArrangePronun = <String>[].obs;
+  List<bool> isSelectedBundle = [true,false,false,false].obs;
+  List<bool> isSelectedSort = [true,false].obs;
+  List<bool> isSelectedSortScore = [true,false].obs;
+  List<bool> isSortScore = [true,false].obs;
+  var typeIndexScore = 0.obs;
+  var categoryIndexScore = 0.obs;
+  var levelIndexScore = 0.obs;
+  var indexScorePage = 0.obs;
+  var indexHistoryPage = 0.obs;
+  List<String> listWordScore = <String>[].obs;
+  var startDay = (DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day).millisecondsSinceEpoch).obs;
+  var endDay = (DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day).millisecondsSinceEpoch+86400000).obs;
+  var startDayHistory = (DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day).millisecondsSinceEpoch).obs;
+  var endDayHistory = (DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day).millisecondsSinceEpoch+86400000).obs;
+  var isStartDayOpen = false.obs;
+  var isEndDayOpen = false.obs;
+  var isStartDayHistory = false.obs;
+  var isEndDayHistory = false.obs;
+  var isSortScoreOpen = false.obs;
+  var notificationInterval = 60.obs;
+  var isListening = false.obs;
   var isVip = false.obs;
   var enableSound = true.obs;
   var speechEnabled = false.obs;
-  var initSpeak = true.obs;
+  var initSpeak = false.obs;
   var imageWidth = 150.0.obs;
   var initState = true.obs;
   var language = 'VN'.obs;
@@ -393,15 +444,17 @@ class Controller extends GetxController{
   List<bool> listCheckMean = <bool>[].obs;
   List<List> listImage = <List>[].obs;
   List<int> listIndex = <int>[].obs;
-  var word = 'hello'.obs;
+  var word = ''.obs;
+  var wordPrevious = ''.obs;
+  var wordNext = ''.obs;
   var typeState = 0.obs;
   var pronun = ''.obs;
 
-  var category = 'category'.obs;
+  var category = 'all category'.obs;
   var categoryIndex = 0.obs;
   List<String> listCategory = listCategoryVN.obs;
 
-  var type = 'type'.obs;
+  var type = 'all type'.obs;
   var typeIndex = 0.obs;
   List<String> listType = listTypeVN.obs;
 
@@ -411,8 +464,6 @@ class Controller extends GetxController{
 
   var focusedIndex = 0.obs;
   List<String> wordArray = <String>[].obs;
-  List<String> wordsPrevious = <String>[].obs;
-  List<String> wordsNext = <String>[].obs;
   var currentTab = 0.obs;
 
   var wordScore = 0.obs;
@@ -424,7 +475,6 @@ class Controller extends GetxController{
   List<History> listHistory = <History> [].obs;
   List<Score> listLearned = <Score> [].obs;
   List<Score> listLearnedToday = <Score> [].obs;
-  List<String> listWordsToday = <String> [].obs;
 
   var notifyDaily = false.obs;
   var notifyWord = false.obs;
@@ -455,27 +505,8 @@ class Controller extends GetxController{
   var learnWordGuide = 'sắp xếp ký tự để được từ đúng'.obs;
   var learnPronunGuide = 'sắp xếp ký tự để được phát âm đúng'.obs;
   var learnSpeakGuide = 'gõ vào Micro, nói từ chứa '.obs;
-  var learnRightTitle = 'Chúc mừng!'.obs;
-  var learnRightBody = 'Bạn đã nhập đúng'.obs;
-  var learnRightBodySpeak = 'Bạn đã phát âm đúng'.obs;
   var learnWrongTitle = 'Rất tiếc!'.obs;
-  var learnWrongBody = 'Bạn đã nhập sai'.obs;
-  var learnWrongBodySpeak = 'Bạn chưa phát âm đúng'.obs;
-  var learnWrongBodyMean = 'Bạn chưa chọn đúng'.obs;
-  var learnReset = 'đặt lại'.obs;
-  var learnPrevious = 'trước'.obs;
   var learnMeanGuide = 'gõ vào ảnh tương ứng với nghĩa'.obs;
-  var learnNext = 'tiếp'.obs;
-  var learnRightBodyMean = 'Bạn đã chọn đúng'.obs;
-  var learnRightBodyAllMean = 'Bạn đã chọn đúng tất cả các nghĩa'.obs;
-  var learnRightBodyAllMeanDone = 'Bạn đã hoàn toàn nắm rõ nghĩa'.obs;
-  var learnRightBodyAllWord = 'Bạn đã hoàn toàn thuộc từ'.obs;
-  var learnRightBodyAllPronun = 'Bạn đã hoàn toàn thuộc phát âm'.obs;
-  var learnRightBodyAllSpeak = 'Bạn đã hoàn toàn phát âm chuẩn'.obs;
-  var day = 'Ngày'.obs;
-  var week = 'Tuần'.obs;
-  var month = 'Tháng'.obs;
-  var year = 'Năm'.obs;
   var all = 'Tất cả'.obs;
   var relearnButton = 'ôn tập'.obs;
   var scoreId = 'Từ'.obs;
@@ -490,7 +521,7 @@ class Controller extends GetxController{
   var snackbarFindBody = 'Bạn cần chọn từ để học trước'.obs;
   var snackbarRelearn = 'Không có từ để ôn tập'.obs;
   var learnedWordsTodayTitle = 'mục tiêu:'.obs;
-  var newRandomWordTitle = 'từ khác'.obs;
+  var newRandomWordTitle = 'từ mới'.obs;
   var adTitle = 'QUẢNG CÁO'.obs;
   var adBody = 'Quảng cáo giúp ứng dụng miễn phí'.obs;
   var loadingBody = 'Đang tải từ điển, vui lòng đợi trong giây lát'.obs;
@@ -509,11 +540,10 @@ class Controller extends GetxController{
   var introduce3Body = 'Bạn không cần phải vào ứng dụng, thông báo với hình ảnh đầy đủ sẽ giúp bạn'.obs;
 
   changeLanguage(String newLanguage) async {
-    var box = await Hive.openBox('setting');
     language = RxString(newLanguage);
     if (language.string == 'VN'){
       initLanguageIndex = 0;
-      await box.put('language','VN');
+      await boxSetting.put('language','VN');
       listCategory = listCategoryVN.obs;
       listType = listTypeVN.obs;
       listLevel = listLevelVN.obs;
@@ -536,29 +566,10 @@ class Controller extends GetxController{
       learnWordGuide = 'sắp xếp ký tự để được từ đúng'.obs;
       learnPronunGuide = 'sắp xếp ký tự để được phát âm đúng'.obs;
       learnSpeakGuide = 'gõ vào Micro, nói từ chứa '.obs;
-      learnRightTitle = 'Chúc mừng!'.obs;
-      learnRightBody = 'Bạn đã nhập đúng'.obs;
-      learnRightBodySpeak = 'Bạn đã phát âm đúng'.obs;
       learnWrongTitle = 'Rất tiếc!'.obs;
-      learnWrongBody = 'Bạn đã nhập sai'.obs;
-      learnWrongBodySpeak = 'Bạn chưa phát âm đúng'.obs;
-      learnWrongBodyMean = 'Bạn chưa chọn đúng'.obs;
-      learnReset = 'đặt lại'.obs;
-      learnPrevious = 'trước'.obs;
       learnMeanGuide = 'gõ vào ảnh tương ứng với nghĩa'.obs;
-      learnNext = 'tiếp'.obs;
-      learnRightBodyMean = 'Bạn đã chọn đúng'.obs;
-      learnRightBodyAllMean = 'Bạn đã chọn đúng tất cả các nghĩa'.obs;
-      learnRightBodyAllMeanDone = 'Bạn đã hoàn toàn nắm rõ nghĩa'.obs;
-      learnRightBodyAllWord = 'Bạn đã hoàn toàn thuộc từ'.obs;
-      learnRightBodyAllPronun = 'Bạn đã hoàn toàn thuộc phát âm'.obs;
-      learnRightBodyAllSpeak = 'Bạn đã hoàn toàn phát âm chuẩn'.obs;
       learnedWordsTodayTitle = 'mục tiêu:'.obs;
-      newRandomWordTitle = 'từ khác'.obs;
-      day = 'Ngày'.obs;
-      week = 'Tuần'.obs;
-      month = 'Tháng'.obs;
-      year = 'Năm'.obs;
+      newRandomWordTitle = 'từ mới'.obs;
       all = 'Tất cả'.obs;
       relearnButton = 'ôn tập'.obs;
       scoreId = 'Từ'.obs;
@@ -590,7 +601,7 @@ class Controller extends GetxController{
       introduce3Body = 'Bạn không cần phải vào ứng dụng, thông báo với hình ảnh đầy đủ sẽ giúp bạn'.obs;
     }else{
       initLanguageIndex = 1;
-      await box.put('language','EN');
+      await boxSetting.put('language','EN');
       listCategory = listCategoryEN.obs;
       listType = listTypeEN.obs;
       listLevel = listLevelEN.obs;
@@ -613,29 +624,10 @@ class Controller extends GetxController{
       learnWordGuide = 'arrange characters to make right word'.obs;
       learnPronunGuide = 'arrange characters to make right pronun'.obs;
       learnSpeakGuide = 'tap Micro, say word(s) contains '.obs;
-      learnRightTitle = 'Congratulation!'.obs;
-      learnRightBody = 'You arranged right'.obs;
-      learnRightBodySpeak = 'You spoke right'.obs;
-      learnWrongBodyMean = 'You are not pick right'.obs;
       learnWrongTitle = 'Sorry!'.obs;
-      learnWrongBody = 'You arranged wrong'.obs;
-      learnWrongBodySpeak = 'You did not speak right'.obs;
-      learnReset = 'reset'.obs;
-      learnPrevious = 'previous'.obs;
       learnMeanGuide = 'tap the image fit following mean'.obs;
-      learnNext = 'next'.obs;
-      learnRightBodyMean = 'You picked the right one'.obs;
-      learnRightBodyAllMean = 'You learned all meanings'.obs;
-      learnRightBodyAllMeanDone = 'You all done learn meanings'.obs;
-      learnRightBodyAllWord = 'You all done learn word'.obs;
-      learnRightBodyAllPronun = 'You all done learn pronun'.obs;
-      learnRightBodyAllSpeak = 'You all done learn speak'.obs;
       learnedWordsTodayTitle = 'target:'.obs;
       newRandomWordTitle = 'other word'.obs;
-      day = 'Day'.obs;
-      week = 'Week'.obs;
-      month = 'Month'.obs;
-      year = 'Year'.obs;
       all = 'All'.obs;
       relearnButton = 'relearn'.obs;
       scoreId = 'Word'.obs;
@@ -666,163 +658,132 @@ class Controller extends GetxController{
       introduce3Title = 'Learning through notification'.obs;
       introduce3Body = 'You don\'t need to go into app, notification with image will help you'.obs;
     }
-    await box.close();
     update();
   }
   changeLevel(int index) async{
-    bool check = await getListWords(listLevel[index],category.string,type.string);
-    if (!check){
+    List<String> listWord = await getListWords(listLevel[index],category.string,type.string);
+    if (listWord.isEmpty){
       if (Get.isSnackbarOpen) Get.closeAllSnackbars();
       Get.snackbar(learnWrongTitle.string,notFound.string);
     }else{
-      var box = await Hive.openBox('setting');
+      wordArray = RxList(listWord);
       levelIndex = RxInt(index);
       level = RxString(listLevel[index]);
-      await box.put('level',index);
-      await box.close();
-      word = ''.obs;
+      await boxSetting.put('level',index);
+      word = RxString(listWord[0]);
       await layWord(word.string);
     }
   }
   changeCategory(int index) async {
-    var box = await Hive.openBox('setting');
     typeIndex = 0.obs;
-    type = 'type'.obs;
-    await box.put('type',0);
-    bool check = await getListWords(level.string,listCategoryEN[index],type.string);
-    if (!check){
+    type = 'all type'.obs;
+    await boxSetting.put('type',0);
+    List<String> listWord = await getListWords(level.string,listCategoryEN[index],type.string);
+    if (listWord.isEmpty){
       if (Get.isSnackbarOpen) Get.closeAllSnackbars();
       Get.snackbar(learnWrongTitle.string,notFound.string);
       update();
     }else{
+      wordArray = RxList(listWord);
       categoryIndex = RxInt(index);
       category = RxString(listCategoryEN[index]);
-      await box.put('category',index);
-      word = ''.obs;
+      await boxSetting.put('category',index);
+      word = RxString(listWord[0]);
       await layWord(word.string);
     }
-    await box.close();
   }
   changeType(int index) async {
-    var box = await Hive.openBox('setting');
     categoryIndex = 0.obs;
-    category = 'category'.obs;
-    await box.put('category',0);
-    bool check = await getListWords(level.string,category.string,listTypeEN[index]);
-    if (!check){
+    category = 'all category'.obs;
+    await boxSetting.put('category',0);
+    List<String> listWord = await getListWords(level.string,category.string,listTypeEN[index]);
+    if (listWord.isEmpty){
       if (Get.isSnackbarOpen) Get.closeAllSnackbars();
       Get.snackbar(learnWrongTitle.string,notFound.string);
       update();
     }else{
+      wordArray = RxList(listWord);
       typeIndex = RxInt(index);
       type = RxString(listTypeEN[index]);
-      await box.put('type',index);
-      word = ''.obs;
+      await boxSetting.put('type',index);
+      word = RxString(listWord[0]);
       await layWord(word.string);
     }
-    await box.close();
   }
   Future layWord(String newWord) async {
     focusedIndex = 0.obs;
-    var kt = false;
-    for(var h = 0; h < wordArray.length; h++){
-      if (wordArray[h].startsWith(newWord)){
-        kt = true;
-        word = RxString(wordArray[h]);
-        var box = await Hive.openBox('setting');
-        await box.put('word',word.string);
-        await box.close();
-        searchField.text = word.string;
-        if (await checkScore(word.string)){
-          Score currentScore = await getScore(word.string);
-          wordScore = RxInt(currentScore.word);
-          pronunScore = RxInt(currentScore.pronun);
-          speakScore = RxInt(currentScore.speak);
-          meanScore = RxInt(currentScore.mean);
+    int h = wordArray.indexOf(newWord);
+    word = RxString(wordArray[h]);
+    await boxSetting.put('word',word.string);
+    searchField.text = word.string;
+    Score currentScore = await getScore(word.string);
+    wordScore = RxInt(currentScore.word);
+    pronunScore = RxInt(currentScore.pronun);
+    speakScore = RxInt(currentScore.speak);
+    meanScore = RxInt(currentScore.mean);
+    await insertHistory(word.string);
+    if (h>0){
+      wordPrevious = RxString(wordArray[h-1]);
+    }else{
+      wordPrevious = RxString(wordArray[wordArray.length-1]);
+    }
+    if (h<(wordArray.length-1)){
+      wordNext = RxString(wordArray[h+1]);
+    }else{
+      wordNext = RxString(wordArray[0]);
+    }
+    var dataRaw = await getWord(word.string);
+    word = RxString(dataRaw['word']);
+    adIndex = 0.obs;
+    if (dataRaw['pronun'] != ''){
+      pronun = RxString(dataRaw['pronun'].split('/')[1]);
+    }else{
+      pronun = ''.obs;
+    }
+    meanEN.clear();
+    meanVN.clear();
+    imageURL.clear();
+    listCheckMean.clear();
+    List listMean = jsonDecode(dataRaw['mean']).toList();
+    for(var i = 0; i<listMean.length; i++) {
+      listCheckMean.add(checkSubMean(listMean[i].cast<String>()));
+      List meanENAdd = [];
+      List meanVNAdd = [];
+      for(var j = 0; j< listMean[i].length; j++) {
+        String meanENElement = '';
+        if (listMean[i][j].contains('#')){
+          meanENElement = listMean[i][j].split('#')[1];
         }else{
-          wordScore = RxInt(0);
-          pronunScore = RxInt(0);
-          speakScore = RxInt(0);
-          meanScore = RxInt(0);
+          meanENElement = listMean[i][j];
         }
-        await insertHistory(word.string);
-        wordsNext.clear();
-        for (var j=1;j<11;j++){
-          if (h+j>=wordArray.length){
-            break;
-          }else{
-            wordsNext.add(wordArray[h+j]);
-          }
-        }
-        wordsPrevious.clear();
-        for (var j=1;j<11;j++){
-          if (h-j<0){
-            break;
-          }else{
-            wordsPrevious.add(wordArray[h-j]);
-          }
-        }
-        var dataRaw = await getWord(word.string);
-        word = RxString(dataRaw['word']);
-        adIndex = 0.obs;
-        if (dataRaw['pronun'] != ''){
-          pronun = RxString(dataRaw['pronun'].split('/')[1]);
-        }else{
-          pronun = ''.obs;
-        }
-        meanEN.clear();
-        meanVN.clear();
-        imageURL.clear();
-        listCheckMean.clear();
-        List listMean = jsonDecode(dataRaw['mean']).toList();
-        for(var i = 0; i<listMean.length; i++) {
-          listCheckMean.add(checkSubMean(listMean[i].cast<String>()));
-          List meanENAdd = [];
-          List meanVNAdd = [];
-          for(var j = 0; j< listMean[i].length; j++) {
-            String meanENElement = '';
-            if (listMean[i][j].contains('#')){
-              meanENElement = listMean[i][j].split('#')[1];
-            }else{
-              meanENElement = listMean[i][j];
-            }
-            meanENAdd.add(meanENElement);
-            String meanVNElement = jsonDecode(dataRaw['meanVN'])[i][j];
-            meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
-            meanVNElement = meanVNElement + listMean[i][j].substring(listMean[i][j].length-1);
-            meanVNAdd.add(meanVNElement);
-          }
-          meanEN.add(meanENAdd);
-          meanVN.add(meanVNAdd);
-          listImage.add([]);
-          if (i>=jsonDecode(dataRaw['imageURL']).length){
-            imageURL.add('bedict.png');
-          }else{
-            imageURL.add(jsonDecode(dataRaw['imageURL'])[i]);
-          }
-        }
-        for (var i=0;i<listCheckMean.length;i++){
-          if (listCheckMean[i]){
-            firstMean = i.obs;
-            break;
-          }
-        }
-        await changeLanguage(language.string);
-        adIndex = RxInt(Random().nextInt(mean.length)+1);
-        if (firstMean.value >= adIndex.value){
-          firstMean = RxInt(firstMean.value+1);
-        }
-        scrollController.animateTo(firstMean.value*imageWidth.value, duration: const Duration(milliseconds: 500), curve: Curves.ease);
+        meanENAdd.add(meanENElement);
+        String meanVNElement = jsonDecode(dataRaw['meanVN'])[i][j];
+        meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
+        meanVNElement = meanVNElement + listMean[i][j].substring(listMean[i][j].length-1);
+        meanVNAdd.add(meanVNElement);
+      }
+      meanEN.add(meanENAdd);
+      meanVN.add(meanVNAdd);
+      listImage.add([]);
+      if (i>=jsonDecode(dataRaw['imageURL']).length){
+        imageURL.add('bedict.png');
+      }else{
+        imageURL.add(jsonDecode(dataRaw['imageURL'])[i]);
+      }
+    }
+    for (var i=0;i<listCheckMean.length;i++){
+      if (listCheckMean[i]){
+        firstMean = i.obs;
         break;
       }
     }
-    if (!kt){
-      searchField.text = word.string;
-      if (Get.isSnackbarOpen) Get.closeAllSnackbars();
-      Get.snackbar(learnWrongTitle.string, notFound.string);
-    }else{
-      if (initSpeak.value) await _speak(word.string);
+    await changeLanguage(language.string);
+    adIndex = RxInt(Random().nextInt(mean.length)+1);
+    if (firstMean.value >= adIndex.value){
+      firstMean = RxInt(firstMean.value+1);
     }
+    scrollController.animateTo(firstMean.value*imageWidth.value, duration: const Duration(milliseconds: 500), curve: Curves.ease);
+    if (initSpeak.value) await _speak(word.string);
   }
 
   List<ProductDetails> products = <ProductDetails>[].obs;
@@ -837,7 +798,7 @@ class Introduce extends StatelessWidget {
     Get.to(()=>const LoadingPage());
   }
 
-  Widget _buildImage(String assetName, [double width = 350]) {
+  Widget _buildImage(String assetName, [double width = 300]) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: Image.asset('assets/$assetName', width: width)
@@ -869,13 +830,13 @@ class Introduce extends StatelessWidget {
         PageViewModel(
           title: c.introduce0Title.string,
           body: c.introduce0Body.string,
-          image: _buildImage('img0.jpg'),
+          image: _buildImage(c.language.string == 'VN'?'img0.jpg':'img0EN.jpg'),
           decoration: pageDecoration,
         ),
         PageViewModel(
           title: c.introduce1Title.string,
           body: c.introduce1Body.string,
-          image: _buildImage('img1.jpg',300),
+          image: _buildImage(c.language.string == 'VN'?'img1.jpg':'img1EN.jpg'),
           decoration: pageDecoration,
         ),
         PageViewModel(
@@ -887,7 +848,7 @@ class Introduce extends StatelessWidget {
         PageViewModel(
           title: c.introduce3Title.string,
           body: c.introduce3Body.string,
-          image: _buildImage('img3.jpg',300),
+          image: _buildImage(c.language.string == 'VN'?'img3.jpg':'img3EN.jpg'),
           decoration: pageDecoration,
         ),
       ],
@@ -897,9 +858,19 @@ class Introduce extends StatelessWidget {
       skipFlex: 0,
       nextFlex: 0,
       //rtl: true, // Display as right-to-left
-      skip: const Text('Skip',style: TextStyle(color:backgroundColor)),
+      skip: GetBuilder<Controller>(
+        builder: (_) => Text(
+          c.language.string=='VN'?'Bỏ qua':'Skip',
+          style: const TextStyle(color:backgroundColor)
+        ),
+      ),
       next: const Icon(Icons.arrow_forward,color:backgroundColor),
-      done: const Text('Done', style: TextStyle(fontWeight: FontWeight.w600,color:backgroundColor)),
+      done: GetBuilder<Controller>(
+        builder: (_) => Text(
+          c.language.string=='VN'?'Xong':'Done',
+          style: const TextStyle(fontWeight: FontWeight.w600,color:backgroundColor)
+        ),
+      ),
       curve: Curves.fastLinearToSlowEaseIn,
       controlsMargin: const EdgeInsets.all(16),
       controlsPadding: kIsWeb
@@ -933,10 +904,7 @@ class Home extends StatelessWidget {
   @override
   Widget build(context) {
     final Controller c = Get.put(Controller());
-
-    final Shader linearGradient = const LinearGradient(
-      colors: <Color>[Color(0xff879c03), Color(0xff353d01)],
-    ).createShader(const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0));
+    List<String> suggestArray = [];
 
     Widget buildListItem(BuildContext context, int index) {
       return KeyboardDismisser(
@@ -1211,9 +1179,7 @@ class Home extends StatelessWidget {
         c.selectedTime = RxString(result.format(context));
         c.update();
         showNotification();
-        var box = await Hive.openBox('setting');
-        await box.put('timeDaily',c.selectedTime.string);
-        await box.close();
+        await boxSetting.put('timeDaily',c.selectedTime.string);
       }
     }
 
@@ -1228,21 +1194,22 @@ class Home extends StatelessWidget {
         soundId = await rootBundle.load("assets/tap.mp3").then((ByteData soundData) {
           return pool.load(soundData);
         });
+        soundIdRight = await rootBundle.load("assets/right.mp3").then((ByteData soundData) {
+          return pool.load(soundData);
+        });
+        soundIdWrong = await rootBundle.load("assets/wrong.mp3").then((ByteData soundData) {
+          return pool.load(soundData);
+        });
         c.initState = false.obs;
-        bool check = await getListWords(c.level.string,c.category.string,c.type.string);
-        if (!check){
+        List<String> listWord = await getListWords(c.level.string,c.category.string,c.type.string);
+        if (listWord.isEmpty){
           if (Get.isSnackbarOpen) Get.closeAllSnackbars();
           Get.snackbar(c.learnWrongTitle.string,c.notFound.string);
         }else{
+          c.wordArray = RxList(listWord);
           await c.layWord(c.word.string);
         }
         await updateToday();
-        if (c.listLearnedToday.isEmpty){
-          c.listWordsToday.clear();
-          var box = await Hive.openBox('setting');
-          await box.put('listWordsToday','[]');
-          await box.close();
-        }
       }
     });
 
@@ -1251,13 +1218,12 @@ class Home extends StatelessWidget {
         key: _key,
         resizeToAvoidBottomInset: false,
         backgroundColor: Colors.white,
-        endDrawer: Container(
+        drawer: Container(
           color: Colors.white,
           width: MediaQuery.of(context).size.width*0.7,
           child: Drawer(
-            child: ListView(
-              // Important: Remove any padding from the ListView.
-              padding: EdgeInsets.zero,
+            // backgroundColor: Colors.white,
+            child: Column(
               children: [
                 DrawerHeader(
                   margin: const EdgeInsets.all(0),
@@ -1281,391 +1247,629 @@ class Home extends StatelessWidget {
                         Text(
                           'Pictorial Dictionary',
                           style: TextStyle(
-                            fontSize: 16.7,
-                            foreground: Paint()..shader = linearGradient
+                              fontSize: 16.7,
+                              foreground: Paint()..shader = linearGradient
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                ListTile(
-                  title: GetBuilder<Controller>(
-                    builder: (_) =>  Text(
-                      c.isVip.value? 'VIP' : c.drawerUpgrade.string,
-                      style: const TextStyle(
-                        color: textColor,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Get.to(()=>const MyUpgradePage());
-                  },
-                ),
-                const Divider(height:1),
-                ListTile(
-                  title: GetBuilder<Controller>(
-                    builder: (_) => Text(
-                    c.drawerHistory.string,
-                    style: const TextStyle(
-                      color: textColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Get.to(()=>const HistoryPage());
-                  },
-                ),
-                const Divider(height:1,),
-                ListTile(
-                  title: GetBuilder<Controller>(
-                    builder: (_) => Text(
-                    c.drawerScore.string,
-                    style: const TextStyle(
-                      color: textColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Get.to(()=>const ScorePage());
-                  },
-                ),
-                const Divider(height:1,),
+                const SizedBox(height: 15),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    GetBuilder<Controller>(
-                      builder: (_) => Text(
-                      c.drawerDaily.string,
-                      style: const TextStyle(
-                        color: textColor,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),),
-                    GetBuilder<Controller>(
-                      builder: (_) => Switch(
-                        value: c.notifyDaily.value,
-                        onChanged: (value) async {
-                          c.notifyDaily = RxBool(value);
-                          c.update();
-                          var box = await Hive.openBox('setting');
-                          await box.put('notifyDaily',value);
-                          await box.close();
-                          if (value) {
-                            showNotification();
-                          }else{
-                            await AwesomeNotifications().dismiss(0);
-                            await AwesomeNotifications().cancelSchedule(0);
-                          }
-                        },
-                        activeTrackColor: themeColor,
-                        activeColor: backgroundColor,
-                      ),
-                    ),
-                  ],
-                ),
-                GetBuilder<Controller>(
-                  builder: (_) => Visibility(
-                      visible: c.notifyDaily.value,
-                      child: Column(
-                          children:[
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children:[
-                                Text(
-                                  c.drawerTime.string,
-                                  textAlign: TextAlign.center,
+                    Expanded(
+                      child: Container(
+                        alignment: Alignment.center,
+                        height: 45,
+                        child: GetBuilder<Controller>(
+                          builder: (_) => ToggleButtons(
+                            fillColor: backgroundColor,
+                            borderRadius: const BorderRadius.all(
+                                Radius.circular(30)
+                            ),
+                            disabledColor: themeColor,
+                            children: <Widget>[
+                              SizedBox(
+                                width: (MediaQuery.of(context).size.width*0.7-25)*3/9,
+                                child: Text(
+                                  c.language.string == 'VN'? 'tất cả từ': 'all words',
                                   style: const TextStyle(
-                                    fontSize: 14,
                                     color: textColor,
-                                    fontWeight: FontWeight.w600,
                                   ),
+                                  textAlign: TextAlign.center,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                const SizedBox(width: 10,),
-                                TextButton(
-                                  style: ButtonStyle(
-                                    backgroundColor: MaterialStateProperty.all<Color>(themeColor),
-                                    foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                                    padding: MaterialStateProperty.all<EdgeInsets>(
-                                        const EdgeInsets.all(0)
-                                    ),
-                                  ),
-                                  child: Row(
-                                      children: [
-                                        const SizedBox(
-                                          width: 10,
-                                        ),
-                                        GetBuilder<Controller>(
-                                          builder: (_) => Text(
-                                            c.selectedTime.string,
-                                            style: const TextStyle(
-                                              fontSize: 15,
-                                              color: textColor,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(
-                                          width: 10,
-                                        ),
-                                      ]
-                                  ),
-                                  onPressed: () async {
-                                    await showTime();
-                                  },
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10,),
-                            GetBuilder<Controller>(
-                              builder: (_) => Text(
-                                c.drawerTarget.string,
-                                style: const TextStyle(
-                                  color: textColor,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),),
-                            GetBuilder<Controller>(
-                              builder: (_) => Slider(
-                                value: c.target.value.toDouble(),
-                                min: 5,
-                                max: 50,
-                                divisions: 9,
-                                activeColor: backgroundColor,
-                                inactiveColor: themeColor,
-                                thumbColor: backgroundColor,
-                                label: c.target.value.toString(),
-                                onChanged: (double value) async {
-                                  c.target = RxInt(value.toInt());
-                                  var box = await Hive.openBox('setting');
-                                  await box.put('target',value.toInt());
-                                  await box.close();
-                                  c.update();
-                                },
                               ),
+                              SizedBox(
+                                width: (MediaQuery.of(context).size.width*0.7-25)*2/9,
+                                child: const Text(
+                                  '8.000',
+                                  style: TextStyle(
+                                    color: textColor,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              SizedBox(
+                                width: (MediaQuery.of(context).size.width*0.7-25)*2/9,
+                                child: const Text(
+                                  '5.000',
+                                  style: TextStyle(
+                                    color: textColor,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              SizedBox(
+                                width: (MediaQuery.of(context).size.width*0.7-25)*2/9,
+                                child: const Text(
+                                  '3.000',
+                                  style: TextStyle(
+                                    color: textColor,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                            onPressed: (int index) {
+                              for (var i=0;i<4;i++){
+                                i!=index? c.isSelectedBundle[i] = false
+                                    : c.isSelectedBundle[i] = true;
+                              }
+                              c.changeLevel(index);
+                              Navigator.pop(context);
+                            },
+                            isSelected: c.isSelectedBundle,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ]
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        alignment: Alignment.center,
+                        height: 45,
+                        child: GetBuilder<Controller>(
+                          builder: (_) => ToggleButtons(
+                            fillColor: backgroundColor,
+                            borderRadius: const BorderRadius.all(
+                                Radius.circular(30)
                             ),
+                            disabledColor: themeColor,
+                            children: <Widget>[
+                              SizedBox(
+                                width: (MediaQuery.of(context).size.width*0.7-23)/2,
+                                child: Text(
+                                  c.language.string == 'VN'? 'chủ đề':'category',
+                                  style: const TextStyle(
+                                    color: textColor,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              SizedBox(
+                                width: (MediaQuery.of(context).size.width*0.7-23)/2,
+                                child: Text(
+                                  c.language.string == 'VN'? 'từ loại':'type',
+                                  style: const TextStyle(
+                                    color: textColor,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                            onPressed: (int index) {
+                              for (var i=0;i<2;i++){
+                                i!=index? c.isSelectedSort[i] = false
+                                    : c.isSelectedSort[i] = true;
+                              }
+                              c.update();
+                            },
+                            isSelected: c.isSelectedSort,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ]
+                ),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: GetBuilder<Controller>(
+                    builder: (_) => ListView.builder(
+                      // Important: Remove any padding from the ListView.
+                      padding: EdgeInsets.zero,
+                      itemCount: c.isSelectedSort[0]?c.listCategory.length:c.listType.length,
+                      itemBuilder: (BuildContext context, int i) {
+                        return Column(
+                          children:[
+                            ListTile(
+                              title: GetBuilder<Controller>(
+                                builder: (_) => Text(
+                                  c.isSelectedSort[0]?c.listCategory[i]:c.listType[i],
+                                  style: const TextStyle(
+                                    color: textColor,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                              onTap: () {
+                                c.isSelectedSort[0]?c.changeCategory(i):c.changeType(i);
+                                Navigator.pop(context);
+                              },
+                            ),
+                            const Divider(height:1),
                           ]
-                      )
+                        );
+                      }
+                    ),
                   ),
                 ),
-                const Divider(height:1,),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    GetBuilder<Controller>(
-                      builder: (_) => Text(
-                      c.drawerWord.string,
-                      style: const TextStyle(
-                        color: textColor,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),),
-                    GetBuilder<Controller>(
-                      builder: (_) => Switch(
-                        value: c.notifyWord.value,
-                        onChanged: (value) async {
-                          c.notifyWord = RxBool(value);
-                          c.update();
-                          var box = await Hive.openBox('setting');
-                          await box.put('notifyWord',value);
-                          await box.close();
-                          if (value) {
-                            await showNotificationWord();
-                          }else{
-                            for (var i=1;i<18;i++){
-                              await AwesomeNotifications().dismiss(i);
-                              await AwesomeNotifications().cancelSchedule(i);
-                            }
-                          }
-                        },
-                        activeTrackColor: themeColor,
-                        activeColor: backgroundColor,
-                      ),
-                    ),
-                  ],
-                ),
-                const Divider(height:1,),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 15,),
-                    GetBuilder<Controller>(
-                      builder: (_) => Text(
-                      c.drawerSpeech.string,
-                      style: const TextStyle(
-                        color: textColor,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),),
-                    GetBuilder<Controller>(
-                      builder: (_) => Slider(
-                        value: c.speakSpeed.value,
-                        min: 0.1,
-                        max: 1,
-                        divisions: 9,
-                        activeColor: backgroundColor,
-                        inactiveColor: themeColor,
-                        thumbColor: backgroundColor,
-                        label: double.parse((c.speakSpeed.value).toStringAsFixed(1)).toString(),
-                        onChanged: (double value) async {
-                          c.speakSpeed = RxDouble(value);
-                          var box = await Hive.openBox('setting');
-                          await box.put('speakSpeed',value);
-                          await box.close();
-                          c.update();
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                const Divider(height:1,),
-                const SizedBox(height:5),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    GetBuilder<Controller>(
-                      builder: (_) => Text(
-                        c.drawerInitSpeak.string,
-                        style: const TextStyle(
-                          color: textColor,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+              ]
+            )
+          ),
+        ),
+        endDrawer: Container(
+          color: Colors.white,
+          width: MediaQuery.of(context).size.width*0.7,
+          child: Drawer(
+            // backgroundColor: Colors.white,
+            child: Column(
+              children: [
+                DrawerHeader(
+                  margin: const EdgeInsets.all(0),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                  decoration: const BoxDecoration(
+                    color: backgroundColor,
+                  ),
+                  child: Container(
+                    alignment: Alignment.center,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(
+                          'BeDict',
+                          style: TextStyle(
+                              fontSize: 50,
+                              foreground: Paint()..shader = linearGradient
+                          ),
                         ),
-                        textAlign: TextAlign.center,
-                      ),),
-                    const SizedBox(width:10),
-                    GetBuilder<Controller>(
-                      builder: (_) => Switch(
-                        activeColor: backgroundColor,
-                        activeTrackColor: themeColor,
-                        value: c.initSpeak.value,
-                        onChanged: (value) async {
-                          c.initSpeak = value.obs;
-                          c.update();
-                          var box = await Hive.openBox('setting');
-                          await box.put('initSpeak',value);
-                          await box.close();
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height:5),
-                const Divider(height:1,),
-                const SizedBox(height:5),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    GetBuilder<Controller>(
-                      builder: (_) => Text(
-                        c.drawerEnableSound.string,
-                        style: const TextStyle(
-                          color: textColor,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                        Text(
+                          'Pictorial Dictionary',
+                          style: TextStyle(
+                              fontSize: 16.7,
+                              foreground: Paint()..shader = linearGradient
+                          ),
                         ),
-                        textAlign: TextAlign.center,
-                      ),),
-                    const SizedBox(width:10),
-                    GetBuilder<Controller>(
-                      builder: (_) => Switch(
-                        activeColor: backgroundColor,
-                        activeTrackColor: themeColor,
-                        value: c.enableSound.value,
-                        onChanged: (value) async {
-                          c.enableSound = value.obs;
-                          c.update();
-                          var box = await Hive.openBox('setting');
-                          await box.put('enableSound',value);
-                          await box.close();
+                      ],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: ListView(
+                    // Important: Remove any padding from the ListView.
+                    padding: EdgeInsets.zero,
+                    children: [
+                      ListTile(
+                        title: GetBuilder<Controller>(
+                          builder: (_) => Text(
+                            c.isVip.value? 'VIP' : c.drawerUpgrade.string,
+                            style: const TextStyle(
+                              color: textColor,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),),
+                        onTap: () {
+                          Navigator.pop(context);
+                          Get.to(()=>const MyUpgradePage());
                         },
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height:5),
-                const Divider(height:1,),
-                const SizedBox(height:12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    GetBuilder<Controller>(
-                      builder: (_) =>  Text(
-                      c.drawerLanguage.string,
-                      style: const TextStyle(
-                        color: textColor,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                      const Divider(height:1),
+                      ListTile(
+                        title: GetBuilder<Controller>(
+                          builder: (_) => Text(
+                            c.drawerHistory.string,
+                            style: const TextStyle(
+                              color: textColor,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),),
+                        onTap: () {
+                          Navigator.pop(context);
+                          Get.to(()=>const HistoryPage());
+                        },
                       ),
-                      textAlign: TextAlign.center,
-                    ),),
-                    const SizedBox(width:10),
-                    ToggleSwitch(
-                      minWidth: 50.0,
-                      minHeight: 30.0,
-                      fontSize: 14.0,
-                      initialLabelIndex: initLanguageIndex,
-                      activeBgColor: const [backgroundColor],
-                      activeFgColor: Colors.white,
-                      inactiveBgColor: const Color.fromRGBO(240, 240, 240, 1),
-                      inactiveFgColor: textColor,
-                      totalSwitches: 2,
-                      changeOnTap: true,
-                      labels: const ['VN', 'EN'],
-                      onToggle: (index) async {
-                        if (index == 0){
-                          c.changeLanguage('VN');
-                        }else{
-                          c.changeLanguage('EN');
-                        }
-                      },
-                    ),
-                  ],
+                      const Divider(height:1,),
+                      ListTile(
+                        title: GetBuilder<Controller>(
+                          builder: (_) => Text(
+                            c.drawerScore.string,
+                            style: const TextStyle(
+                              color: textColor,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),),
+                        onTap: () {
+                          Navigator.pop(context);
+                          Get.to(()=> const ScorePage());
+                        },
+                      ),
+                      const Divider(height:1,),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          GetBuilder<Controller>(
+                            builder: (_) => Text(
+                              c.drawerDaily.string,
+                              style: const TextStyle(
+                                color: textColor,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),),
+                          GetBuilder<Controller>(
+                            builder: (_) => Switch(
+                              value: c.notifyDaily.value,
+                              onChanged: (value) async {
+                                c.notifyDaily = RxBool(value);
+                                c.update();
+                                await boxSetting.put('notifyDaily',value);
+                                if (value) {
+                                  showNotification();
+                                }else{
+                                  await AwesomeNotifications().dismiss(0);
+                                  await AwesomeNotifications().cancelSchedule(0);
+                                }
+                              },
+                              activeTrackColor: themeColor,
+                              activeColor: backgroundColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                      GetBuilder<Controller>(
+                        builder: (_) => Visibility(
+                          visible: c.notifyDaily.value,
+                          child: Column(
+                            children:[
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children:[
+                                  Text(
+                                    c.drawerTime.string,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: textColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(width: 10,),
+                                  TextButton(
+                                    style: ButtonStyle(
+                                      backgroundColor: MaterialStateProperty.all<Color>(themeColor),
+                                      foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                                      padding: MaterialStateProperty.all<EdgeInsets>(
+                                          const EdgeInsets.all(0)
+                                      ),
+                                    ),
+                                    child: Row(
+                                        children: [
+                                          const SizedBox(
+                                            width: 10,
+                                          ),
+                                          GetBuilder<Controller>(
+                                            builder: (_) => Text(
+                                              c.selectedTime.string,
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                                color: textColor,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(
+                                            width: 10,
+                                          ),
+                                        ]
+                                    ),
+                                    onPressed: () async {
+                                      await showTime();
+                                    },
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10,),
+                              GetBuilder<Controller>(
+                                builder: (_) => Text(
+                                  c.drawerTarget.string,
+                                  style: const TextStyle(
+                                    color: textColor,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),),
+                              GetBuilder<Controller>(
+                                builder: (_) => Slider(
+                                  value: c.target.value.toDouble(),
+                                  min: 5,
+                                  max: 50,
+                                  divisions: 9,
+                                  activeColor: backgroundColor,
+                                  inactiveColor: themeColor,
+                                  thumbColor: backgroundColor,
+                                  label: c.target.value.toString(),
+                                  onChanged: (double value) async {
+                                    c.target = RxInt(value.toInt());
+                                    await boxSetting.put('target',value.toInt());
+                                    c.update();
+                                  },
+                                ),
+                              ),
+                            ]
+                          )
+                        ),
+                      ),
+                      const Divider(height:1),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          GetBuilder<Controller>(
+                            builder: (_) => Text(
+                              c.drawerWord.string,
+                              style: const TextStyle(
+                                color: textColor,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          GetBuilder<Controller>(
+                            builder: (_) => Switch(
+                              value: c.notifyWord.value,
+                              onChanged: (value) async {
+                                c.notifyWord = RxBool(value);
+                                c.update();
+                                await boxSetting.put('notifyWord',value);
+                                if (value) {
+                                  showNotificationWord();
+                                }else{
+                                  await AwesomeNotifications().dismissNotificationsByChannelKey('word');
+                                  await AwesomeNotifications().cancelSchedulesByChannelKey('word');
+                                }
+                              },
+                              activeTrackColor: themeColor,
+                              activeColor: backgroundColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                      GetBuilder<Controller>(
+                        builder: (_) => Visibility(
+                          visible: c.notifyWord.value,
+                          child: Column(
+                            children:[
+                              GetBuilder<Controller>(
+                                builder: (_) => Text(
+                                  c.language.string == 'VN'?
+                                  'Thông báo sau mỗi (phút):':
+                                  'Notify interval (minutes)',
+                                  style: const TextStyle(
+                                    color: textColor,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                              GetBuilder<Controller>(
+                                builder: (_) => Slider(
+                                  value: c.notificationInterval.value.toDouble(),
+                                  min: 15,
+                                  max: 120,
+                                  divisions: 7,
+                                  activeColor: backgroundColor,
+                                  inactiveColor: themeColor,
+                                  thumbColor: backgroundColor,
+                                  label: c.notificationInterval.value.toString()
+                                      + (c.language.string == 'VN'? ' phút':' minutes'),
+                                  onChanged: (double value) async {
+                                    c.notificationInterval = RxInt(value.toInt());
+                                    await boxSetting.put('notificationInterval',value.toInt());
+                                    c.update();
+                                    await AwesomeNotifications().dismissNotificationsByChannelKey('word');
+                                    await AwesomeNotifications().cancelSchedulesByChannelKey('word');
+                                    showNotificationWord();
+                                  },
+                                ),
+                              ),
+                            ]
+                          )
+                        ),
+                      ),
+                      const Divider(height:1,),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 15,),
+                          GetBuilder<Controller>(
+                            builder: (_) => Text(
+                              c.drawerSpeech.string,
+                              style: const TextStyle(
+                                color: textColor,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),),
+                          GetBuilder<Controller>(
+                            builder: (_) => Slider(
+                              value: c.speakSpeed.value,
+                              min: 0.1,
+                              max: 1,
+                              divisions: 9,
+                              activeColor: backgroundColor,
+                              inactiveColor: themeColor,
+                              thumbColor: backgroundColor,
+                              label: double.parse((c.speakSpeed.value).toStringAsFixed(1)).toString(),
+                              onChanged: (double value) async {
+                                c.speakSpeed = RxDouble(value);
+                                await boxSetting.put('speakSpeed',value);
+                                c.update();
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Divider(height:1,),
+                      const SizedBox(height:5),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          GetBuilder<Controller>(
+                            builder: (_) => Text(
+                              c.drawerInitSpeak.string,
+                              style: const TextStyle(
+                                color: textColor,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),),
+                          const SizedBox(width:10),
+                          GetBuilder<Controller>(
+                            builder: (_) => Switch(
+                              activeColor: backgroundColor,
+                              activeTrackColor: themeColor,
+                              value: c.initSpeak.value,
+                              onChanged: (value) async {
+                                c.initSpeak = value.obs;
+                                c.update();
+                                await boxSetting.put('initSpeak',value);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height:5),
+                      const Divider(height:1,),
+                      const SizedBox(height:5),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          GetBuilder<Controller>(
+                            builder: (_) => Text(
+                              c.drawerEnableSound.string,
+                              style: const TextStyle(
+                                color: textColor,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),),
+                          const SizedBox(width:10),
+                          GetBuilder<Controller>(
+                            builder: (_) => Switch(
+                              activeColor: backgroundColor,
+                              activeTrackColor: themeColor,
+                              value: c.enableSound.value,
+                              onChanged: (value) async {
+                                c.enableSound = value.obs;
+                                c.update();
+                                await boxSetting.put('enableSound',value);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height:5),
+                      const Divider(height:1,),
+                      const SizedBox(height:12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          GetBuilder<Controller>(
+                            builder: (_) =>  Text(
+                              c.drawerLanguage.string,
+                              style: const TextStyle(
+                                color: textColor,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),),
+                          const SizedBox(width:10),
+                          ToggleSwitch(
+                            minWidth: 50.0,
+                            minHeight: 30.0,
+                            fontSize: 14.0,
+                            initialLabelIndex: initLanguageIndex,
+                            activeBgColor: const [backgroundColor],
+                            activeFgColor: Colors.white,
+                            inactiveBgColor: const Color.fromRGBO(240, 240, 240, 1),
+                            inactiveFgColor: textColor,
+                            totalSwitches: 2,
+                            changeOnTap: true,
+                            labels: const ['VN', 'EN'],
+                            onToggle: (index) async {
+                              if (index == 0){
+                                c.changeLanguage('VN');
+                              }else{
+                                c.changeLanguage('EN');
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height:12),
+                      const Divider(height:1),
+                      ListTile(
+                        title: GetBuilder<Controller>(
+                          builder: (_) =>  Text(
+                            c.drawerPolicy.string,
+                            style: const TextStyle(
+                              color: textColor,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),),
+                        onTap: () {
+                          Navigator.pop(context);
+                          Get.to(()=>const PolicyPage());
+                        },
+                      ),
+                      const Divider(height:1),
+                      ListTile(
+                        title: GetBuilder<Controller>(
+                          builder: (_) =>  Text(
+                            c.drawerContact.string,
+                            style: const TextStyle(
+                              color: textColor,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),),
+                        onTap: () {
+                          Navigator.pop(context);
+                          Get.to(()=>const ContactPage());
+                        },
+                      ),
+                      const Divider(height:1),
+                    ],
+                  ),
                 ),
-                const SizedBox(height:12),
-                const Divider(height:1),
-                ListTile(
-                  title: GetBuilder<Controller>(
-                    builder: (_) =>  Text(
-                    c.drawerPolicy.string,
-                    style: const TextStyle(
-                      color: textColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Get.to(()=>const PolicyPage());
-                  },
-                ),
-                const Divider(height:1),
-                ListTile(
-                  title: GetBuilder<Controller>(
-                    builder: (_) =>  Text(
-                    c.drawerContact.string,
-                    style: const TextStyle(
-                      color: textColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Get.to(()=>const ContactPage());
-                  },
-                ),
-                const Divider(height:1),
-              ],
+              ]
             ),
           ),
         ),
@@ -1682,382 +1886,211 @@ class Home extends StatelessWidget {
                 painter: ShapePainter(statusBarHeight: MediaQuery.of(context).padding.top),
                 child: Container(),
               ),
-              Column (
-                mainAxisAlignment: MainAxisAlignment.start,
-                children:<Widget> [
-                  SizedBox(height: MediaQuery.of(context).padding.top,),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      GestureDetector(
-                        onTap: () async {
-                          await setDefault();
-                          bool check = await getListWords(c.level.string,c.category.string,c.type.string);
-                          if (!check){
-                            if (Get.isSnackbarOpen) Get.closeAllSnackbars();
-                            Get.snackbar(c.learnWrongTitle.string,c.notFound.string);
-                          }else{
-                            await c.layWord('hello');
-                          }
-                        },
-                        child: Row(
-                            children: [
-                              const SizedBox(
-                                width: 10,
-                              ),
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: const [
-                                  Text(
-                                    'BeDict',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      color: textColor,
-                                    ),
-                                  ),
-                                  Text(
-                                    'Pictorial Dictionary',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: textColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ]
+              GestureDetector(
+
+                child: Column (
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children:<Widget> [
+                    SizedBox(height: MediaQuery.of(context).padding.top,),
+                    Row(
+                      children: [
+                        IconButton(
+                          padding: const EdgeInsets.all(0.0),
+                          icon: const Icon(Icons.arrow_forward_ios_rounded, size: 20,),
+                          tooltip: 'Open Sort',
+                          onPressed: () {
+                            _key.currentState!.openDrawer();
+                          },
                         ),
-                      ),
-                      IconButton(
-                        padding: const EdgeInsets.all(0.0),
-                        icon: const Icon(Icons.more_vert, size: 25,),
-                        tooltip: 'Open Menu',
-                        onPressed: () {
-                          _key.currentState!.openEndDrawer();
-                        },
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      const SizedBox(width: 0,),
-                      const SizedBox(
-                        height: 30,
-                        child: VerticalDivider(
-                          width: 10,
-                          thickness: 1,
-                          indent: 5,
-                          endIndent: 5,
-                          color: Colors.black26,
-                        ),
-                      ),
-                      Expanded(
-                        flex: 8,
-                        child: GetBuilder<Controller>(
-                            builder: (_) => DropdownButton<String>(
-                              value: c.listCategory[c.categoryIndex.value],
-                              icon: const Icon(Icons.arrow_drop_down),
-                              iconSize: 15,
-                              isDense: true,
-                              isExpanded: true,
-                              borderRadius: const BorderRadius.all(Radius.circular(15)),
-                              style: const TextStyle(
-                                color: textColor,
-                                fontSize: 13,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              underline: const SizedBox(),
-                              onChanged: (String? newValue) async {
-                                if (c.language.string == 'VN'){
-                                  await c.changeCategory(listCategoryVN.indexOf(newValue!));
-                                }else{
-                                  await c.changeCategory(listCategoryEN.indexOf(newValue!));
-                                }
-                              },
-                              items: c.listCategory.map<DropdownMenuItem<String>>((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
-                            )),
-                      ),
-                      const SizedBox(
-                        height: 30,
-                        child: VerticalDivider(
-                          width: 10,
-                          thickness: 1,
-                          indent: 5,
-                          endIndent: 5,
-                          color: Colors.black26,
-                        ),
-                      ),
-                      Expanded(
-                        flex: 10,
-                        child: GetBuilder<Controller>(
-                            builder: (_) => DropdownButton<String>(
-                              value: c.listType[c.typeIndex.value],
-                              icon: const Icon(Icons.arrow_drop_down),
-                              iconSize: 15,
-                              isDense: true,
-                              isExpanded: true,
-                              borderRadius: const BorderRadius.all(Radius.circular(15)),
-                              style: const TextStyle(
-                                color: textColor,
-                                fontSize: 13,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              underline: const SizedBox(),
-                              onChanged: (String? newValue) async {
-                                if (c.language.string == 'VN'){
-                                  await c.changeType(listTypeVN.indexOf(newValue!));
-                                }else{
-                                  await c.changeType(listTypeEN.indexOf(newValue!));
-                                }
-                              },
-                              items: c.listType.map<DropdownMenuItem<String>>((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
-                            )),
-                      ),
-                      const SizedBox(
-                        height: 30,
-                        child: VerticalDivider(
-                          width: 10,
-                          thickness: 1,
-                          indent: 5,
-                          endIndent: 5,
-                          color: Colors.black26,
-                        ),
-                      ),
-                      Expanded(
-                        flex: 7,
-                        child: GetBuilder<Controller>(
-                            builder: (_) => DropdownButton<String>(
-                              value: c.listLevel[c.levelIndex.value],
-                              icon: const Icon(Icons.arrow_drop_down),
-                              iconSize: 15,
-                              isDense: true,
-                              isExpanded: true,
-                              borderRadius: const BorderRadius.all(Radius.circular(15)),
-                              style: const TextStyle(
-                                color: textColor,
-                                fontSize: 13,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              underline: const SizedBox(),
-                              onChanged: (String? newValue) async {
-                                if (c.language.string == 'VN'){
-                                  await c.changeLevel(listLevelVN.indexOf(newValue!));
-                                }else{
-                                  await c.changeLevel(listLevelEN.indexOf(newValue!));
-                                }
-                              },
-                              items: c.listLevel.map<DropdownMenuItem<String>>((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
-                            )),
-                      ),
-                      const SizedBox(
-                        height: 30,
-                        child: VerticalDivider(
-                          width: 10,
-                          thickness: 1,
-                          indent: 5,
-                          endIndent: 5,
-                          color: Colors.black26,
-                        ),
-                      ),
-                      const SizedBox(width: 0,),
-                    ],
-                  ),
-                  const SizedBox(height: 5,),
-                  Row(
-                    children: [
-                      const SizedBox(width: 20,),
-                      Expanded(
-                        child: Container(
-                          // height: 36,
-                          alignment: Alignment.centerLeft,
+                        Expanded(
                           child: GetBuilder<Controller>(
-                            builder: (_) => TypeAheadField(
-                              textFieldConfiguration: TextFieldConfiguration(
-                                controller: searchField,
-                                autofocus: false,
-                                autocorrect: false,
-                                style: const TextStyle(
-                                  fontSize: 15.0,
-                                  color: textColor,
-                                ),
-                                decoration: InputDecoration(
-                                  border: const OutlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.white, width:0),
-                                    borderRadius: BorderRadius.all(
-                                        Radius.circular(30)
-                                    ),
-                                  ),
-                                  focusedBorder: const OutlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.white, width: 0),
-                                    borderRadius: BorderRadius.all(
-                                        Radius.circular(30)
-                                    ),
-                                  ),
-                                  enabledBorder: const OutlineInputBorder(
-                                    borderSide: BorderSide(color: Colors.white, width: 0),
-                                    borderRadius: BorderRadius.all(
-                                        Radius.circular(30)
-                                    ),
-                                  ),
-                                  // prefixIcon: Icon(Icons.search_outlined,size:15),
-                                  hintText: c.hint.string,
-                                  isDense: true,
-                                  contentPadding: const EdgeInsets.all(12),
-                                  prefixIcon: const Icon(Icons.search),
-                                  // icon: Icon(Icons.search),
-                                  // isCollapsed: true,
-                                ),
-                                onSubmitted: (value) async {
-                                  await c.layWord(value);
-                                },
+                            builder: (_) => Text(
+                              c.categoryIndex.value!=0? c.listCategory[c.categoryIndex.value]
+                                : c.typeIndex.value!=0? c.listType[c.typeIndex.value]:'',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: textColor,
                               ),
-                              suggestionsBoxVerticalOffset: 10,
-                              noItemsFoundBuilder: (BuildContext context) => ListTile(
-                                title: Text(
-                                  c.notFound.string,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.left,
+                            ),
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () async {
+                            await setDefault();
+                            await c.layWord('hello');
+                          },
+                          child: const Text(
+                            'BeDict',
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: textColor,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        Expanded(
+                          child: GetBuilder<Controller>(
+                            builder: (_) => Text(
+                              c.levelIndex.value!=0?c.listLevel[c.levelIndex.value]:'',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: textColor,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.right,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          padding: const EdgeInsets.all(0.0),
+                          icon: const Icon(Icons.more_vert, size: 25,),
+                          tooltip: 'Open Menu',
+                          onPressed: () {
+                            _key.currentState!.openEndDrawer();
+                          },
+                        ),
+                        // const SizedBox(width: 10),
+                      ],
+                    ),
+                    const SizedBox(height: 5,),
+                    Row(
+                      children: [
+                        const SizedBox(width: 20,),
+                        Expanded(
+                          child: Container(
+                            // height: 36,
+                            alignment: Alignment.centerLeft,
+                            child: GetBuilder<Controller>(
+                              builder: (_) => TypeAheadField(
+                                textFieldConfiguration: TextFieldConfiguration(
+                                  controller: searchField,
+                                  autofocus: false,
+                                  autocorrect: false,
                                   style: const TextStyle(
                                     fontSize: 15.0,
                                     color: textColor,
                                   ),
+                                  decoration: InputDecoration(
+                                    border: const OutlineInputBorder(
+                                      borderSide: BorderSide(color: Colors.white, width:0),
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(30)
+                                      ),
+                                    ),
+                                    focusedBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(color: Colors.white, width: 0),
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(30)
+                                      ),
+                                    ),
+                                    enabledBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(color: Colors.white, width: 0),
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(30)
+                                      ),
+                                    ),
+                                    // prefixIcon: Icon(Icons.search_outlined,size:15),
+                                    hintText: c.hint.string,
+                                    isDense: true,
+                                    contentPadding: const EdgeInsets.all(12),
+                                    prefixIcon: const Icon(Icons.search),
+                                    // icon: Icon(Icons.search),
+                                    // isCollapsed: true,
+                                  ),
+                                  onSubmitted: (value) async {
+                                    if (suggestArray.isEmpty){
+                                      searchField.text = c.word.string;
+                                      if (Get.isSnackbarOpen) Get.closeAllSnackbars();
+                                      Get.snackbar(c.learnWrongTitle.string, c.notFound.string);
+                                    }else{
+                                      await c.layWord(suggestArray[0]);
+                                    }
+                                  },
                                 ),
-                              ),
-                              suggestionsCallback: (pattern){
-                                var suggestArray = [];
-                                for (var i = 0; i < c.wordArray.length; i++){
-                                  if (c.wordArray[i].toString().toLowerCase().startsWith(pattern.toLowerCase())){
-                                    suggestArray.add(c.wordArray[i].toString());
-                                  }
-                                  if (suggestArray.length > 5){
-                                    break;
-                                  }
-                                }
-                                return suggestArray;
-                              },
-                              suggestionsBoxDecoration: const SuggestionsBoxDecoration(
-                                borderRadius: BorderRadius.all(Radius.circular(15)),
-                              ),
-                              itemBuilder: (context, suggestion) {
-                                return ListTile(
+                                suggestionsBoxVerticalOffset: 10,
+                                noItemsFoundBuilder: (BuildContext context) => ListTile(
                                   title: Text(
-                                    suggestion.toString(),
+                                    c.notFound.string,
                                     style: const TextStyle(
                                       fontSize: 15.0,
                                       color: textColor,
                                     ),
                                   ),
-                                );
-                              },
-                              onSuggestionSelected: (suggestion) async {
-                                searchField.text = suggestion.toString();
-                                await c.layWord(suggestion.toString());
-                              },
-                              animationDuration: Duration.zero,
-                              debounceDuration: Duration.zero,
-                            ),
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color.fromRGBO(245, 245, 245, 1),
-                            borderRadius: const BorderRadius.all(
-                                Radius.circular(30)
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.8),
-                                spreadRadius: 0,
-                                blurRadius: 3,
-                                offset: const Offset(4, 4), // changes position of shadow
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 20,),
-                    ],
-                  ),
-                  const SizedBox(height: 5),
-                  Opacity(
-                    opacity: 0.6,
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 2),
-                        Expanded(
-                          flex: 6,
-                          child: TextButton(
-                            style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  Colors.white
-                              ),
-                              foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                              padding: MaterialStateProperty.all<EdgeInsets>(
-                                  const EdgeInsets.all(0)
-                              ),
-                              shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                  RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30.0),
-                                  )
-                              ),
-                              fixedSize: MaterialStateProperty.all<Size>(
-                                  const Size.fromHeight(40)
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                const SizedBox(width: 3),
-                                const Icon(
-                                  Icons.volume_up_outlined,
-                                  size: 25,
-                                  color: textColor,
                                 ),
-                                Expanded(
-                                  child: GetBuilder<Controller>(
-                                    builder: (_) => Text(
-                                      c.pronun.string,
+                                suggestionsCallback: (pattern) async {
+                                  suggestArray = [];
+                                  if (pattern == ''){
+                                    suggestArray = await getLastSearch();
+                                  }
+                                  for (var i = 0; i < c.wordArray.length; i++){
+                                    if (suggestArray.length > 9){
+                                      break;
+                                    }
+                                    if (c.wordArray[i].toString().toLowerCase().startsWith(pattern.toLowerCase())){
+                                      if (!suggestArray.contains(c.wordArray[i])){
+                                        suggestArray.add(c.wordArray[i]);
+                                      }
+                                    }
+                                  }
+                                  return suggestArray;
+                                },
+                                suggestionsBoxDecoration: const SuggestionsBoxDecoration(
+                                  borderRadius: BorderRadius.all(Radius.circular(15)),
+                                ),
+                                itemBuilder: (context, suggestion) {
+                                  return ListTile(
+                                    title: Text(
+                                      suggestion.toString(),
                                       style: const TextStyle(
-                                        fontSize: 14,
-                                        overflow: TextOverflow.ellipsis,
+                                        fontSize: 15.0,
                                         color: textColor,
                                       ),
                                     ),
-                                  ),
+                                  );
+                                },
+                                onSuggestionSelected: (suggestion) async {
+                                  searchField.text = suggestion.toString();
+                                  await c.layWord(suggestion.toString());
+                                },
+                                animationDuration: Duration.zero,
+                                debounceDuration: Duration.zero,
+                              ),
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color.fromRGBO(245, 245, 245, 1),
+                              borderRadius: const BorderRadius.all(
+                                  Radius.circular(30)
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.8),
+                                  spreadRadius: 0,
+                                  blurRadius: 3,
+                                  offset: const Offset(4, 4), // changes position of shadow
                                 ),
                               ],
                             ),
-                            onPressed: () {
-                              _speak(c.word.string);
-                            },
                           ),
                         ),
-                        const SizedBox(width:3),
-                        GetBuilder<Controller>(
-                          builder: (_) => Expanded(
-                            flex: 4,
-                            child: Visibility(
+                        const SizedBox(width: 20,),
+                      ],
+                    ),
+                    const SizedBox(height: 5),
+                    Opacity(
+                      opacity: 0.6,
+                      child: Row(
+                        // mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          const SizedBox(width: 5),
+                          Expanded(child:Container(height:25,color:Colors.transparent)),
+                          GetBuilder<Controller>(
+                            builder: (_) => Visibility(
                               visible: c.notifyDaily.value,
                               child: PopupMenuButton<Score>(
                                 onSelected: (Score score) async {
                                   await setDefault();
-                                  c.wordArray.clear();
-                                  for (var i=0;i<c.listLearnedToday.length;i++){
-                                    if (!c.wordArray.contains(c.listLearnedToday[i].wordId)){
-                                      c.wordArray.add(c.listLearnedToday[i].wordId);
-                                    }
-                                  }
                                   await c.layWord(score.wordId);
                                 },
                                 padding: const EdgeInsets.all(0),
@@ -2173,25 +2206,22 @@ class Home extends StatelessWidget {
                                     ),
                                 ],
                                 // color: themeColor,
-                                child: Container(
-                                  height: 40,
-                                  margin: const EdgeInsets.all(2),
-                                  decoration: const BoxDecoration(
-                                    color: themeColor,
-                                    borderRadius: BorderRadius.all(
-                                        Radius.circular(30)
-                                    ),
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    c.learnedWordsTodayTitle.string
-                                        + ' ' + c.listLearnedToday.length.toString()
-                                        + '/' + c.target.value.toString(),
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      color: textColor,
-                                    ),
-                                  ),
+                                child: Row(
+                                    children:[
+                                      Text(
+                                        c.learnedWordsTodayTitle.string
+                                            + ' ' + c.listLearnedToday.length.toString()
+                                            + '/' + c.target.value.toString(),
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          color: textColor,
+                                        ),
+                                      ),
+                                      const Icon(
+                                        Icons.keyboard_arrow_down,
+                                        size: 25,
+                                      ),
+                                    ]
                                 ),
                                 shape: const RoundedRectangleBorder(
                                     borderRadius: BorderRadius.all(Radius.circular(10.0))
@@ -2199,111 +2229,102 @@ class Home extends StatelessWidget {
                               ),
                             ),
                           ),
-                        ),
-                        GetBuilder<Controller>(
-                          builder: (_) => Visibility(
-                            visible: c.notifyDaily.value,
-                            child: const SizedBox(width:3),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: TextButton(
-                            style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                const Color.fromRGBO(170, 230, 180, 1)
-                              ),
-                              foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                              padding: MaterialStateProperty.all<EdgeInsets>(
-                                  const EdgeInsets.all(0)
-                              ),
-                              shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                  RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30.0),
-                                  )
-                              ),
-                              fixedSize: MaterialStateProperty.all<Size>(
-                                  const Size.fromHeight(40)
-                              ),
-                            ),
-                            onPressed: () async {
-                              if (c.word.string != ''){
-                                arrangeLearnMean();
-                                if (!await checkScore(c.word.string)){
-                                  c.listWordsToday.add(c.word.string);
-                                  var box = await Hive.openBox('setting');
-                                  await box.put('listWordsToday',jsonEncode(c.listWordsToday));
-                                  await box.close();
-                                  await insertScore(c.word.string);
-                                }
-                                Get.to(()=>const LearnWord());
-                              }else{
-                                if (Get.isSnackbarOpen) Get.closeAllSnackbars();
-                                Get.snackbar(c.snackbarFindTitle.string,c.snackbarFindBody.string);
-                              }
-                            },
-                            child: GetBuilder<Controller>(
-                              builder: (_) => Text(
-                                  c.learnTitle.string.toLowerCase(),
-                                  style: const TextStyle(
-                                    color: textColor,
-                                    fontWeight: FontWeight.w400,
-                                  )
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width:5),
-                      ],
+                          const SizedBox(width:5),
+                        ],
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: Screenshot(
-                      controller: screenshotController,
-                      child: Container(
-                        color: Colors.white,
-                        child: Column(
-                          children:[
-                            const SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                GetBuilder<Controller>(
-                                  builder: (_) => Flexible(
-                                    child: AnimatedSwitcher(
-                                      duration: const Duration(milliseconds: 500),
-                                      transitionBuilder: (Widget child, Animation<double> animation) {
-                                        return ScaleTransition(child: child, scale: animation);
-                                      },
-                                      child: Text(
-                                        c.word.toString(),
-                                        key: ValueKey<String>(c.word.string),
-                                        style: const TextStyle(
-                                          fontSize: 50,
-                                          color: textColor,
-                                          shadows: [
-                                            Shadow(
-                                              blurRadius: 5,
-                                              color: Colors.grey,
-                                              offset: Offset(2, 2),
-                                            ),
-                                          ],
+                    Expanded(
+                      child: Screenshot(
+                        controller: screenshotController,
+                        child: Container(
+                          color: Colors.white,
+                          child: Column(
+                            children:[
+                              const SizedBox(height: 15),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  GetBuilder<Controller>(
+                                    builder: (_) => Flexible(
+                                      child: AnimatedSwitcher(
+                                        duration: const Duration(milliseconds: 500),
+                                        transitionBuilder: (Widget child, Animation<double> animation) {
+                                          return ScaleTransition(child: child, scale: animation);
+                                        },
+                                        child: Text(
+                                          c.word.toString(),
+                                          key: ValueKey<String>(c.word.string),
+                                          style: const TextStyle(
+                                            fontSize: 50,
+                                            color: textColor,
+                                            shadows: [
+                                              Shadow(
+                                                blurRadius: 5,
+                                                color: Colors.grey,
+                                                offset: Offset(2, 2),
+                                              ),
+                                            ],
+                                          ),
+                                          textAlign: TextAlign.center,
                                         ),
-                                        textAlign: TextAlign.center,
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            Opacity(
-                              opacity: 0.6,
-                              child: Row(
-                                children:[
-                                  const SizedBox(width: 5),
-                                  Expanded(
-                                    flex: 2,
-                                    child: TextButton(
+                                ],
+                              ),
+                              const SizedBox(height: 5),
+                              Opacity(
+                                opacity: 0.6,
+                                child: Row(
+                                  // crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const SizedBox(width:5),
+                                    TextButton(
+                                      style: ButtonStyle(
+                                        backgroundColor: MaterialStateProperty.all<Color>(
+                                            Colors.white
+                                        ),
+                                        foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                                        padding: MaterialStateProperty.all<EdgeInsets>(
+                                            const EdgeInsets.all(0)
+                                        ),
+                                        shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                            RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(30.0),
+                                            )
+                                        ),
+                                        fixedSize: MaterialStateProperty.all<Size>(
+                                            const Size.fromHeight(40)
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        children: [
+                                          const SizedBox(width: 10),
+                                          const Icon(
+                                            Icons.volume_up_outlined,
+                                            size: 25,
+                                            color: textColor,
+                                          ),
+                                          GetBuilder<Controller>(
+                                            builder: (_) => Text(
+                                              c.pronun.string,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                overflow: TextOverflow.ellipsis,
+                                                color: textColor,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 20),
+                                        ],
+                                      ),
+                                      onPressed: () {
+                                        _speak(c.word.string);
+                                      },
+                                    ),
+                                    const Expanded(child:SizedBox()),
+                                    TextButton(
                                       style: ButtonStyle(
                                         backgroundColor: MaterialStateProperty.all<Color>(
                                             themeColor
@@ -2314,11 +2335,11 @@ class Home extends StatelessWidget {
                                         ),
                                         shape: MaterialStateProperty.all<OutlinedBorder?>(
                                             RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(20.0),
+                                              borderRadius: BorderRadius.circular(30.0),
                                             )
                                         ),
                                         fixedSize: MaterialStateProperty.all<Size>(
-                                            const Size.fromHeight(30)
+                                            const Size.fromHeight(40)
                                         ),
                                       ),
                                       onPressed: () async {
@@ -2341,276 +2362,87 @@ class Home extends StatelessWidget {
                                         color: Color.fromRGBO(150, 200, 160, 1),
                                       ),
                                     ),
-                                  ),
-                                  const Expanded(
-                                    flex:12,
-                                    child: SizedBox(),
-                                  ),
-                                ]
-                              ),
-                            ),
-                            GetBuilder<Controller>(
-                              builder: (_) => LinearPercentIndicator(
-                                alignment: MainAxisAlignment.center,
-                                width: MediaQuery.of(context).size.width-20,
-                                lineHeight: 1.0,
-                                percent: (c.wordScore.value+c.pronunScore.value+c.speakScore.value+c.meanScore.value)/100,
-                                backgroundColor: themeColor,
-                                progressColor: backgroundColor,
-                                padding: const EdgeInsets.all(0),
-                                animation: true,
-                              ),
-                            ),
-                            GetBuilder<Controller>(
-                              builder: (_) => Expanded(
-                                child: ScrollSnapList(
-                                  shrinkWrap: true,
-                                  curve: Curves.ease,
-                                  onItemFocus: c.onItemFocus,
-                                  listController: scrollController,
-                                  itemSize: c.imageWidth.value,
-                                  itemBuilder: buildListItem,
-                                  itemCount: c.isVip.value? c.mean.length: c.mean.length + 1,
-                                  key: sslKey,
-                                  duration: 10,
-                                  dynamicItemSize: true,
-                                  allowAnotherDirection: false,
-                                  clipBehavior: Clip.none,
-                                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                                    const SizedBox(width:5),
+                                  ],
                                 ),
                               ),
-                            ),
-                          ]
+                              GetBuilder<Controller>(
+                                builder: (_) => LinearPercentIndicator(
+                                  alignment: MainAxisAlignment.center,
+                                  width: MediaQuery.of(context).size.width-20,
+                                  lineHeight: 1.0,
+                                  percent: (c.wordScore.value+c.pronunScore.value+c.speakScore.value+c.meanScore.value)/100,
+                                  backgroundColor: themeColor,
+                                  progressColor: backgroundColor,
+                                  padding: const EdgeInsets.all(0),
+                                  animation: true,
+                                ),
+                              ),
+                              GetBuilder<Controller>(
+                                builder: (_) => Expanded(
+                                  child: GestureDetector(
+                                    onVerticalDragEnd: (details) async {
+                                      if (details.primaryVelocity! > 0) {
+                                        await c.layWord(c.wordPrevious.value);
+                                      }
+                                      if (details.primaryVelocity! < -0) {
+                                        await c.layWord(c.wordNext.value);
+                                      }
+                                    },
+                                    onDoubleTap: () async {
+                                      await newWord();
+                                    },
+                                    child: ScrollSnapList(
+                                      shrinkWrap: true,
+                                      curve: Curves.ease,
+                                      onItemFocus: c.onItemFocus,
+                                      listController: scrollController,
+                                      itemSize: c.imageWidth.value,
+                                      itemBuilder: buildListItem,
+                                      itemCount: c.isVip.value? c.mean.length: c.mean.length + 1,
+                                      key: sslKey,
+                                      duration: 10,
+                                      dynamicItemSize: true,
+                                      allowAnotherDirection: false,
+                                      clipBehavior: Clip.none,
+                                      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                                    )
+                                  )
+                                ),
+                              ),
+                            ]
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height:5),
-                  Row(
-                    children:[
-                      const SizedBox(width:3),
-                      Expanded(
-                        flex: 1,
-                        child: PopupMenuButton<String>(
-                          onSelected: (String word) async {
-                            await c.layWord(word);
-                          },
-                          padding: const EdgeInsets.all(0),
-                          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                            for (int i=0; i<c.wordsPrevious.length; i++)
-                              PopupMenuItem<String>(
-                                  value: c.wordsPrevious[i],
-                                  padding: const EdgeInsets.fromLTRB(6,0,6,0),
-                                  child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          c.wordsPrevious[i],
-                                          style: const TextStyle(
-                                            fontSize: 15,
-                                            color: textColor,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ]
-                                  )
-                              ),
-                          ],
-                          // color: themeColor,
-                          child: Container(
-                            // width: 150,
-                            height: 48,
-                            margin: const EdgeInsets.all(2),
-                            decoration: const BoxDecoration(
-                              color: themeColor,
-                              borderRadius: BorderRadius.all(
-                                  Radius.circular(30)
-                              ),
-                            ),
-                            alignment: Alignment.center,
-                            child: const Icon(
-                                FontAwesomeIcons.angleDoubleLeft,
-                                size: 15,
-                                color: Color.fromRGBO(150, 180, 160, 1)
-                            ),
-                          ),
-                          shape: const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(Radius.circular(20.0))
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width:3),
-                      Expanded(
-                        child: TextButton(
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                                themeColor
-                            ),
-                            foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                            padding: MaterialStateProperty.all<EdgeInsets>(
-                                const EdgeInsets.all(0)
-                            ),
-                            shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30.0),
-                                )
-                            ),
-                            fixedSize: MaterialStateProperty.all<Size>(
-                                const Size.fromHeight(48)
-                            ),
-                          ),
-                          onPressed: () async {
-                            if (c.wordsPrevious.isNotEmpty){
-                              await c.layWord(c.wordsPrevious[0]);
-                            }
-                          },
-                          child: const Icon(
-                            FontAwesomeIcons.angleLeft,
-                            size: 15,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width:3),
-                      Expanded(
-                        flex: 2,
-                        child: TextButton(
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                                themeColor
-                            ),
-                            foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                            padding: MaterialStateProperty.all<EdgeInsets>(
-                                const EdgeInsets.all(0)
-                            ),
-                            shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30.0),
-                                )
-                            ),
-                            fixedSize: MaterialStateProperty.all<Size>(
-                                const Size.fromHeight(48)
-                            ),
-                          ),
-                          onPressed: () async {
-                            var newRandomWord = '';
-                            var check = true;
-                            List<String> listRandom = <String>[];
-                            while (check && listRandom.length < c.wordArray.length){
-                              newRandomWord = c.wordArray[Random().nextInt(c.wordArray.length)];
-                              check = await checkScore(newRandomWord);
-                              if (!listRandom.contains(newRandomWord)){
-                                listRandom.add(newRandomWord);
-                              }
-                            }
-                            if (check && listRandom.length == c.wordArray.length){
-                              if (Get.isSnackbarOpen) Get.closeAllSnackbars();
-                              Get.snackbar(c.learnRightTitle.string,c.all.string);
-                            }else{
-                              c.word = RxString(newRandomWord);
-                              await c.layWord(c.word.string);
-                              // sslKey.currentState!.focusToItem(c.firstMean.value);
-                            }
-                          },
-                          child: GetBuilder<Controller>(
-                            builder: (_) => Text(
-                                c.newRandomWordTitle.string,
-                                style: const TextStyle(
-                                  color: textColor,
-                                  fontWeight: FontWeight.w400,
-                                )
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width:3),
-                      Expanded(
-                        child: TextButton(
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                                themeColor
-                            ),
-                            foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                            padding: MaterialStateProperty.all<EdgeInsets>(
-                                const EdgeInsets.all(0)
-                            ),
-                            shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30.0),
-                                )
-                            ),
-                            fixedSize: MaterialStateProperty.all<Size>(
-                                const Size.fromHeight(48)
-                            ),
-                          ),
-                          onPressed: () async {
-                            if (c.wordsNext.isNotEmpty){
-                              await c.layWord(c.wordsNext[0]);
-                            }
-                          },
-                          child: const Icon(
-                            FontAwesomeIcons.angleRight,
-                            size: 15,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width:3),
-                      Expanded(
-                        flex: 1,
-                        child: PopupMenuButton<String>(
-                          onSelected: (String word) async {
-                            await c.layWord(word);
-                          },
-                          padding: const EdgeInsets.all(0),
-                          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                            for (int i=0; i<c.wordsNext.length; i++)
-                              PopupMenuItem<String>(
-                                  value: c.wordsNext[i],
-                                  padding: const EdgeInsets.fromLTRB(6,0,6,0),
-                                  child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          c.wordsNext[i],
-                                          style: const TextStyle(
-                                            fontSize: 15,
-                                            color: textColor,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ]
-                                  )
-                              ),
-                          ],
-                          child: Container(
-                            // width: 150,
-                            height: 48,
-                            margin: const EdgeInsets.all(2),
-                            decoration: const BoxDecoration(
-                              color: themeColor,
-                              borderRadius: BorderRadius.all(
-                                  Radius.circular(30)
-                              ),
-                            ),
-                            alignment: Alignment.center,
-                            child: const Icon(
-                                FontAwesomeIcons.angleDoubleRight,
-                                size: 15,
-                                color: Color.fromRGBO(150, 180, 160, 1)
-                            ),
-                          ),
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(20.0))
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width:3),
-                    ]
-                  ),
-                  const SizedBox(height:5),
-                ],
+                    const SizedBox(height:5),
+                  ],
+                ),
               ),
             ]
           ),
+        ),
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: backgroundColor,
+          child: GetBuilder<Controller>(
+            builder: (_) => Text(
+              c.language.string == 'VN'? 'chơi game':'play game',
+              style: const TextStyle(
+                color: textColor,
+                fontSize: 10,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          onPressed: () async {
+            if (c.word.string != ''){
+              arrangeLearnMean();
+              Get.to(()=>const LearnWord());
+            }else{
+              if (Get.isSnackbarOpen) Get.closeAllSnackbars();
+              Get.snackbar(c.snackbarFindTitle.string,c.snackbarFindBody.string);
+            }
+          }
         ),
       ),
     );
@@ -2630,8 +2462,8 @@ class ShapePainter extends CustomPainter {
       ..strokeWidth = 1.0;
 
     Path path = Path();
-    path.lineTo(0, 105 + statusBarHeight);
-    path.quadraticBezierTo(size.width / 2, 133 + statusBarHeight, size.width, 105 + statusBarHeight);
+    path.lineTo(0, 75 + statusBarHeight);
+    path.quadraticBezierTo(size.width / 2, 90 + statusBarHeight, size.width, 75 + statusBarHeight);
     path.lineTo(size.width, 0);
     path.lineTo(0, 0);
     canvas.drawPath(path, paint);
@@ -2661,9 +2493,9 @@ class WriteWidget extends StatelessWidget {
     });
 
     return Container(
-      color: Colors.white,
-      height: double.infinity,
-      width: double.infinity,
+      color: const Color.fromRGBO(255, 255, 255, 1),
+      // height: double.infinity,
+      // width: double.infinity,
       child: Column(
         children: [
           const SizedBox(height:10),
@@ -2836,11 +2668,13 @@ class WriteWidget extends StatelessWidget {
                       for (int i=0; i<c.word.string.split('').length; i++)
                         GestureDetector(
                           onTap: () async {
-                            c.listRandom[c.listRandom.indexOf('')] = c.listArrange[i];
-                            c.listArrange[i] = '';
-                            c.update();
-                            if (c.enableSound.value){
-                              await pool.play(soundId);
+                            if (c.listArrange[i] != ''){
+                              c.listRandom[c.listRandom.indexOf('')] = c.listArrange[i];
+                              c.listArrange[i] = '';
+                              c.update();
+                              if (c.enableSound.value){
+                                await pool.play(soundId);
+                              }
                             }
                           },
                           child: GetBuilder<Controller>(
@@ -2891,21 +2725,26 @@ class WriteWidget extends StatelessWidget {
               alignment: Alignment.center,
               child: SingleChildScrollView(
                 child: Wrap(
-                    spacing: 5,
-                    runSpacing: 5,
-                    runAlignment: WrapAlignment.center,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    direction: Axis.horizontal,
-                    alignment: WrapAlignment.center,
-                    children: [
-                      for (int i=0; i<c.word.string.split('').length; i++)
-                        GestureDetector(
-                          onTap: () async {
+                  spacing: 5,
+                  runSpacing: 5,
+                  runAlignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  direction: Axis.horizontal,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    for (int i=0; i<c.word.string.split('').length; i++)
+                      GestureDetector(
+                        onTap: () async {
+                          if (c.listRandom[i] != ''){
+                            if (c.enableSound.value){
+                              await pool.play(soundId);
+                            }
                             c.listArrange[c.listArrange.indexOf('')] = c.listRandom[i];
                             c.listRandom[i] = '';
                             c.update();
                             if (!c.listArrange.contains('')){
                               if (listEquals(c.listArrange,c.word.string.split(''))){
+                                await setRight();
                                 if (c.wordScore.value<25){
                                   c.wordScore = RxInt(c.wordScore.value + 1);
                                   c.update();
@@ -2919,56 +2758,6 @@ class WriteWidget extends StatelessWidget {
                                     time: DateTime.now().millisecondsSinceEpoch,
                                   );
                                   await updateScore(newScore);
-                                  if (c.wordScore.value==25){
-                                    Get.defaultDialog(
-                                        title: c.learnRightTitle.string,
-                                        middleText: c.learnRightBodyAllWord.string,
-                                        backgroundColor: themeColor,
-                                        titleStyle: const TextStyle(color: textColor,),
-                                        middleTextStyle: const TextStyle(color: textColor,),
-                                        textConfirm: c.learnNext.string,
-                                        confirmTextColor: textColor,
-                                        buttonColor: Colors.white,
-                                        textCancel: "ok",
-                                        cancelTextColor: textColor,
-                                        barrierDismissible: false,
-                                        radius: 8,
-                                        onConfirm: () async {
-                                          reset();
-                                          await updateToday();
-                                          Navigator.pop(context);
-                                          c.currentTab = RxInt(1);
-                                        },
-                                        onCancel: () async {
-                                          await updateToday();
-                                        }
-                                    );
-                                  }else{
-                                    Get.defaultDialog(
-                                        title: c.learnRightTitle.string,
-                                        middleText: c.learnRightBody.string,
-                                        backgroundColor: themeColor,
-                                        titleStyle: const TextStyle(color: textColor,),
-                                        middleTextStyle: const TextStyle(color: textColor,),
-                                        textConfirm: c.learnNext.string,
-                                        confirmTextColor: textColor,
-                                        buttonColor: Colors.white,
-                                        textCancel: "ok",
-                                        cancelTextColor: textColor,
-                                        barrierDismissible: false,
-                                        radius: 8,
-                                        onConfirm: () async{
-                                          reset();
-                                          await updateToday();
-                                          Navigator.pop(context);
-                                          c.currentTab = RxInt(1);
-                                          c.update();
-                                        },
-                                        onCancel: () async {
-                                          await updateToday();
-                                        }
-                                    );
-                                  }
                                 }
                               }else{
                                 if (c.wordScore.value>0){
@@ -2985,73 +2774,50 @@ class WriteWidget extends StatelessWidget {
                                   );
                                   await updateScore(newScore);
                                 }
-                                Get.defaultDialog(
-                                    title: c.learnWrongTitle.string,
-                                    middleText: c.learnWrongBody.string,
-                                    backgroundColor: themeColor,
-                                    titleStyle: const TextStyle(color: textColor,),
-                                    middleTextStyle: const TextStyle(color: textColor,),
-                                    textConfirm: c.learnReset.string,
-                                    confirmTextColor: textColor,
-                                    buttonColor: Colors.white,
-                                    textCancel: "ok",
-                                    cancelTextColor: textColor,
-                                    barrierDismissible: false,
-                                    radius: 8,
-                                    onConfirm: () async {
-                                      reset();
-                                      await updateToday();
-                                      Navigator.pop(context);
-                                    },
-                                    onCancel: () async {
-                                      await updateToday();
-                                    }
-                                );
+                                await setWrong();
                               }
                             }
-                            if (c.enableSound.value){
-                              await pool.play(soundId);
-                            }
-                          },
-                          child: GetBuilder<Controller>(
-                              builder: (_) => Neumorphic(
-                                style: c.listRandom[i] == ''?
-                                NeumorphicStyle(
-                                  shape: NeumorphicShape.flat,
-                                  boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(5)),
-                                  depth: -5,
-                                  lightSource: LightSource.topLeft,
-                                  color: Colors.white,
-                                  intensity: 1,
-                                  border: const NeumorphicBorder (
-                                    color: Color.fromRGBO(250, 250, 250, 1),
-                                    width: 0.05,
-                                  ),
-                                ):
-                                NeumorphicStyle(
-                                  shape: NeumorphicShape.convex,
-                                  boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(5)),
-                                  depth: 3,
-                                  lightSource: LightSource.topLeft,
-                                  color: const Color.fromRGBO(50, 90, 60, 1),
-                                  intensity: 1,
+                          }
+                        },
+                        child: GetBuilder<Controller>(
+                            builder: (_) => Neumorphic(
+                              style: c.listRandom[i] == ''?
+                              NeumorphicStyle(
+                                shape: NeumorphicShape.flat,
+                                boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(5)),
+                                depth: -5,
+                                lightSource: LightSource.topLeft,
+                                color: Colors.white,
+                                intensity: 1,
+                                border: const NeumorphicBorder (
+                                  color: Color.fromRGBO(250, 250, 250, 1),
+                                  width: 0.05,
                                 ),
-                                child: Container(
-                                  alignment: Alignment.center,
-                                  height: 45,
-                                  width: 45,
-                                  child: Text(
-                                    c.listRandom[i],
-                                    style: const TextStyle(
-                                      fontSize: 27,
-                                      color: Color.fromRGBO(255, 255, 255, 1), //customize color here
-                                    ),
+                              ):
+                              NeumorphicStyle(
+                                shape: NeumorphicShape.convex,
+                                boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(5)),
+                                depth: 3,
+                                lightSource: LightSource.topLeft,
+                                color: const Color.fromRGBO(50, 90, 60, 1),
+                                intensity: 1,
+                              ),
+                              child: Container(
+                                alignment: Alignment.center,
+                                height: 45,
+                                width: 45,
+                                child: Text(
+                                  c.listRandom[i],
+                                  style: const TextStyle(
+                                    fontSize: 27,
+                                    color: Color.fromRGBO(255, 255, 255, 1), //customize color here
                                   ),
                                 ),
-                              )
-                          ),
-                        )
-                    ]
+                              ),
+                            )
+                        ),
+                      )
+                  ]
                 ),
               ),
             ),
@@ -3254,11 +3020,13 @@ class PronunWidget extends StatelessWidget {
                       for (int i=0; i<c.pronun.string.split('').length; i++)
                         GestureDetector(
                           onTap: () async {
-                            c.listRandomPronun[c.listRandomPronun.indexOf('')] = c.listArrangePronun[i];
-                            c.listArrangePronun[i] = '';
-                            c.update();
-                            if (c.enableSound.value){
-                              await pool.play(soundId);
+                            if (c.listArrangePronun[i] != ''){
+                              c.listRandomPronun[c.listRandomPronun.indexOf('')] = c.listArrangePronun[i];
+                              c.listArrangePronun[i] = '';
+                              c.update();
+                              if (c.enableSound.value){
+                                await pool.play(soundId);
+                              }
                             }
                           },
                           child: GetBuilder<Controller>(
@@ -3319,117 +3087,48 @@ class PronunWidget extends StatelessWidget {
                       for (int i=0; i<c.pronun.string.split('').length; i++)
                         GestureDetector(
                           onTap: () async {
-                            c.listArrangePronun[c.listArrangePronun.indexOf('')] = c.listRandomPronun[i];
-                            c.listRandomPronun[i] = '';
-                            c.update();
-                            if (!c.listArrangePronun.contains('')){
-                              if (listEquals(c.listArrangePronun,c.pronun.string.split(''))){
-                                if (c.pronunScore.value<25){
-                                  c.pronunScore = RxInt(c.pronunScore.value + 1);
-                                  c.update();
-                                  var newScore = Score(
-                                    wordId: c.word.value,
-                                    word: c.wordScore.value,
-                                    pronun: c.pronunScore.value,
-                                    speak: c.speakScore.value,
-                                    mean: c.meanScore.value,
-                                    total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
-                                    time: DateTime.now().millisecondsSinceEpoch,
-                                  );
-                                  await updateScore(newScore);
-                                  if (c.pronunScore.value==25){
-                                    Get.defaultDialog(
-                                        title: c.learnRightTitle.string,
-                                        middleText: c.learnRightBodyAllPronun.string,
-                                        backgroundColor: const Color.fromRGBO(202, 237, 214, 1),
-                                        titleStyle: const TextStyle(color: textColor,),
-                                        middleTextStyle: const TextStyle(color: textColor,),
-                                        textConfirm: c.learnNext.string,
-                                        confirmTextColor: textColor,
-                                        buttonColor: Colors.white,
-                                        textCancel: "ok",
-                                        cancelTextColor: textColor,
-                                        barrierDismissible: false,
-                                        radius: 8,
-                                        onConfirm: () async {
-                                          reset();
-                                          await updateToday();
-                                          Navigator.pop(context);
-                                          c.currentTab = RxInt(2);
-                                          c.update();
-                                        },
-                                        onCancel: () async {
-                                          await updateToday();
-                                        }
-                                    );
-                                  }else{
-                                    Get.defaultDialog(
-                                        title: c.learnRightTitle.string,
-                                        middleText: c.learnRightBody.string,
-                                        backgroundColor: const Color.fromRGBO(202, 237, 214, 1),
-                                        titleStyle: const TextStyle(color: textColor,),
-                                        middleTextStyle: const TextStyle(color: textColor,),
-                                        textConfirm: c.learnNext.string,
-                                        confirmTextColor: textColor,
-                                        buttonColor: Colors.white,
-                                        textCancel: "ok",
-                                        cancelTextColor: textColor,
-                                        barrierDismissible: false,
-                                        radius: 8,
-                                        onConfirm: () async {
-                                          reset();
-                                          await updateToday();
-                                          Navigator.pop(context);
-                                          c.currentTab = RxInt(2);
-                                          c.update();
-                                        },
-                                        onCancel: () async {
-                                          await updateToday();
-                                        }
-                                    );
-                                  }
-                                }
-                              }else{
-                                if (c.pronunScore.value>0){
-                                  c.pronunScore = RxInt(c.pronunScore.value - 1);
-                                  c.update();
-                                  var newScore = Score(
-                                    wordId: c.word.value,
-                                    word: c.wordScore.value,
-                                    pronun: c.pronunScore.value,
-                                    speak: c.speakScore.value,
-                                    mean: c.meanScore.value,
-                                    total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
-                                    time: DateTime.now().millisecondsSinceEpoch,
-                                  );
-                                  await updateScore(newScore);
-                                }
-                                Get.defaultDialog(
-                                    title: c.learnWrongTitle.string,
-                                    middleText: c.learnWrongBody.string,
-                                    backgroundColor: const Color.fromRGBO(202, 237, 214, 1),
-                                    titleStyle: const TextStyle(color: textColor,),
-                                    middleTextStyle: const TextStyle(color: textColor,),
-                                    textConfirm: c.learnReset.string,
-                                    confirmTextColor: textColor,
-                                    buttonColor: Colors.white,
-                                    textCancel: "ok",
-                                    cancelTextColor: textColor,
-                                    barrierDismissible: false,
-                                    radius: 8,
-                                    onConfirm: () async {
-                                      reset();
-                                      await updateToday();
-                                      Navigator.pop(context);
-                                    },
-                                    onCancel: () async {
-                                      await updateToday();
-                                    }
-                                );
+                            if (c.listRandomPronun[i] != ''){
+                              if (c.enableSound.value){
+                                await pool.play(soundId);
                               }
-                            }
-                            if (c.enableSound.value){
-                              await pool.play(soundId);
+                              c.listArrangePronun[c.listArrangePronun.indexOf('')] = c.listRandomPronun[i];
+                              c.listRandomPronun[i] = '';
+                              c.update();
+                              if (!c.listArrangePronun.contains('')){
+                                if (listEquals(c.listArrangePronun,c.pronun.string.split(''))){
+                                  await setRight();
+                                  if (c.pronunScore.value<25){
+                                    c.pronunScore = RxInt(c.pronunScore.value + 1);
+                                    c.update();
+                                    var newScore = Score(
+                                      wordId: c.word.value,
+                                      word: c.wordScore.value,
+                                      pronun: c.pronunScore.value,
+                                      speak: c.speakScore.value,
+                                      mean: c.meanScore.value,
+                                      total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
+                                      time: DateTime.now().millisecondsSinceEpoch,
+                                    );
+                                    await updateScore(newScore);
+                                  }
+                                }else{
+                                  if (c.pronunScore.value>0){
+                                    c.pronunScore = RxInt(c.pronunScore.value - 1);
+                                    c.update();
+                                    var newScore = Score(
+                                      wordId: c.word.value,
+                                      word: c.wordScore.value,
+                                      pronun: c.pronunScore.value,
+                                      speak: c.speakScore.value,
+                                      mean: c.meanScore.value,
+                                      total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
+                                      time: DateTime.now().millisecondsSinceEpoch,
+                                    );
+                                    await updateScore(newScore);
+                                  }
+                                  await setWrong();
+                                }
+                              }
                             }
                           },
                           child: GetBuilder<Controller>(
@@ -3487,12 +3186,7 @@ class SpeakWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
-    SpeechToText stt = SpeechToText();
 
-    Future initSpeech() async {
-      c.speechEnabled = RxBool(await stt.initialize());
-      c.update();
-    }
     void onSpeechResult(SpeechRecognitionResult result) async {
       c.listenString = RxString(result.recognizedWords);
       c.update();
@@ -3508,6 +3202,7 @@ class SpeakWidget extends StatelessWidget {
           }
         }
         if (kt){
+          await setRight();
           if (c.speakScore.value<25){
             c.speakScore = RxInt(c.speakScore.value + 1);
             c.update();
@@ -3521,59 +3216,6 @@ class SpeakWidget extends StatelessWidget {
               time: DateTime.now().millisecondsSinceEpoch,
             );
             await updateScore(newScore);
-            if (c.speakScore.value==25){
-              Get.defaultDialog(
-                  title: c.learnRightTitle.string,
-                  middleText: c.learnRightBodyAllSpeak.string,
-                  backgroundColor: const Color.fromRGBO(202, 237, 214, 1),
-                  titleStyle: const TextStyle(color: textColor,),
-                  middleTextStyle: const TextStyle(color: textColor,),
-                  textConfirm: c.learnNext.string,
-                  confirmTextColor: textColor,
-                  buttonColor: Colors.white,
-                  textCancel: "ok",
-                  cancelTextColor: textColor,
-                  barrierDismissible: false,
-                  radius: 8,
-                  onConfirm: () async{
-                    c.listenString = ''.obs;
-                    await updateToday();
-                    Navigator.pop(context);
-                    c.nowIndex = 0.obs;
-                    c.currentTab = RxInt(3);
-                    c.update();
-                  },
-                  onCancel: () async {
-                    await updateToday();
-                  }
-              );
-            }else{
-              Get.defaultDialog(
-                  title: c.learnRightTitle.string,
-                  middleText: c.learnRightBodySpeak.string,
-                  backgroundColor: themeColor,
-                  titleStyle: const TextStyle(color: textColor,),
-                  middleTextStyle: const TextStyle(color: textColor,),
-                  textConfirm: c.learnNext.string,
-                  confirmTextColor: textColor,
-                  buttonColor: Colors.white,
-                  textCancel: "ok",
-                  cancelTextColor: textColor,
-                  barrierDismissible: false,
-                  radius: 8,
-                  onConfirm: () async {
-                    c.listenString = ''.obs;
-                    await updateToday();
-                    Navigator.pop(context);
-                    c.nowIndex = 0.obs;
-                    c.currentTab = RxInt(3);
-                    c.update();
-                  },
-                  onCancel: () async {
-                    await updateToday();
-                  }
-              );
-            }
           }
         }else{
           if (c.speakScore.value>0){
@@ -3590,37 +3232,19 @@ class SpeakWidget extends StatelessWidget {
             );
             await updateScore(newScore);
           }
-          Get.defaultDialog(
-              title: c.learnWrongTitle.string,
-              middleText: c.learnWrongBodySpeak.string,
-              backgroundColor: themeColor,
-              titleStyle: const TextStyle(color: textColor,),
-              middleTextStyle: const TextStyle(color: textColor,),
-              textConfirm: c.learnReset.string,
-              confirmTextColor: textColor,
-              buttonColor: Colors.white,
-              textCancel: "ok",
-              cancelTextColor: textColor,
-              barrierDismissible: false,
-              radius: 8,
-              onConfirm: () async {
-                c.listenString = ''.obs;
-                await updateToday();
-                Navigator.pop(context);
-              },
-              onCancel: () async {
-                await updateToday();
-              }
-          );
+          await setWrong();
         }
       }
     }
+
     Future startListening() async {
       await stt.listen(
-          onResult: onSpeechResult,
-          localeId: c.locale.string
+        onResult: onSpeechResult,
+        localeId: c.locale.string,
+        // partialResults: false,
       );
     }
+
     void stopListening() async {
       await stt.stop();
     }
@@ -3766,10 +3390,6 @@ class SpeakWidget extends StatelessWidget {
         },
       );
     }
-
-    Future.delayed(Duration.zero, () async {
-      await initSpeech();
-    });
 
     return Container(
       color: Colors.white,
@@ -3981,8 +3601,11 @@ class SpeakWidget extends StatelessWidget {
                 },
                 child: GetBuilder<Controller>(
                   builder: (_) => Icon(
-                    c.speechEnabled.value ? Icons.mic : Icons.mic_off,
-                    size:150,
+                    c.speechEnabled.value?
+                        c.isListening.value? Icons.mic
+                    : Icons.mic_none : Icons.mic_off,
+                    size: c.speechEnabled.value?
+                    c.isListening.value? 150 : 120 : 120,
                     color: backgroundColor,
                   ),
                 ),
@@ -4013,184 +3636,174 @@ class MeanWidget extends StatelessWidget {
       c.update();
     });
 
-    return Container(
-      color: Colors.white,
-      child: Column(
-        children: [
-          const SizedBox(height: 20),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(width: 5),
-              OutlinedButton(
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(
-                      Colors.white
-                  ),
-                  foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                  padding: MaterialStateProperty.all<EdgeInsets>(
-                      const EdgeInsets.all(0)
-                  ),
-                  shape: MaterialStateProperty.all<OutlinedBorder?>(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30.0),
-                      )
-                  ),
-                  fixedSize: MaterialStateProperty.all<Size>(
-                      const Size.fromHeight(40)
-                  ),
-                ),
-                onPressed: () async {
-                  if (c.nowIndex.value > 0){
-                    c.nowIndex = RxInt(c.nowIndex.value - 1);
-                    c.update();
-                  }else{
-                    c.nowIndex = RxInt(c.mean.length - 1);
-                    c.update();
-                  }
-                },
-                child: const Icon(Icons.arrow_left_sharp, size: 20),
-              ),
-              const SizedBox(width: 5),
-              Expanded(
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            c.word.string,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 40,
-                              color: textColor,
-                              shadows: [
-                                Shadow(
-                                  blurRadius: 5,
-                                  color: Colors.grey,
-                                  offset: Offset(2, 2),
-                                ),
-                              ],
+    return GestureDetector(
+      onHorizontalDragEnd: (details) async {
+        if (details.primaryVelocity! > 0) {
+          if (c.nowIndex.value > 0){
+            c.nowIndex = RxInt(c.nowIndex.value - 1);
+          }else{
+            c.nowIndex = RxInt(c.mean.length - 1);
+          }
+          c.update();
+        }
+        if (details.primaryVelocity! < -0) {
+          if (c.nowIndex.value < c.mean.length - 1){
+            c.nowIndex = RxInt(c.nowIndex.value + 1);
+          }else{
+            c.nowIndex = RxInt(0);
+          }
+          c.update();
+        }
+      },
+      child: Container(
+        color: Colors.white,
+        child: Column(
+          children: [
+            const SizedBox(height: 20),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(width: 5),
+                Expanded(
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              c.word.string,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 40,
+                                color: textColor,
+                                shadows: [
+                                  Shadow(
+                                    blurRadius: 5,
+                                    color: Colors.grey,
+                                    offset: Offset(2, 2),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      ]
-                  )
-              ),
-              const SizedBox(width: 5),
-              OutlinedButton(
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(
-                      Colors.white
-                  ),
-                  foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                  padding: MaterialStateProperty.all<EdgeInsets>(
-                      const EdgeInsets.all(0)
-                  ),
-                  shape: MaterialStateProperty.all<OutlinedBorder?>(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30.0),
-                      )
-                  ),
-                  fixedSize: MaterialStateProperty.all<Size>(
-                      const Size.fromHeight(40)
-                  ),
+                        ]
+                    )
                 ),
-                onPressed: () async {
-                  if (c.nowIndex.value < c.mean.length - 1){
-                    c.nowIndex = RxInt(c.nowIndex.value + 1);
-                    c.update();
-                  }else{
-                    c.nowIndex = RxInt(0);
-                    c.update();
-                  }
-                },
-                child: const Icon(Icons.arrow_right_sharp, size: 20),
-              ),
-              const SizedBox(width: 5),
-            ]
-          ),
-          const SizedBox(height: 20),
-          GetBuilder<Controller>(
-            builder: (_) => Container(
-              alignment: Alignment.center,
-              width: MediaQuery.of(context).size.width*0.95,
-              child: Column(
-                children: c.mean[c.listIndex[c.nowIndex.value]].map<Widget>((subMean) =>
-                    Container(
-                      margin: const EdgeInsets.fromLTRB(0, 0, 0, 5),
-                      padding: const EdgeInsets.all(3),
-                      decoration: const BoxDecoration(
-                        color: Color.fromRGBO(255, 255, 255, 1),
-                        borderRadius: BorderRadius.all(
-                            Radius.circular(6)
+                const SizedBox(width: 5),
+              ]
+            ),
+            const SizedBox(height: 20),
+            GetBuilder<Controller>(
+              builder: (_) => Container(
+                alignment: Alignment.center,
+                width: MediaQuery.of(context).size.width*0.95,
+                child: Column(
+                  children: c.mean[c.listIndex[c.nowIndex.value]].map<Widget>((subMean) =>
+                      Container(
+                        margin: const EdgeInsets.fromLTRB(0, 0, 0, 5),
+                        padding: const EdgeInsets.all(3),
+                        decoration: const BoxDecoration(
+                          color: Color.fromRGBO(255, 255, 255, 1),
+                          borderRadius: BorderRadius.all(
+                              Radius.circular(6)
+                          ),
                         ),
-                      ),
-                      width: MediaQuery.of(context).size.width*0.95,
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 3,),
-                          Opacity(
-                            opacity: 0.3,
-                            child: Text(
-                              laytuloai(subMean.substring(subMean.length - 1))[c.typeState.value],
+                        width: MediaQuery.of(context).size.width*0.95,
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 3,),
+                            Opacity(
+                              opacity: 0.3,
+                              child: Text(
+                                laytuloai(subMean.substring(subMean.length - 1))[c.typeState.value],
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: textColor,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            const SizedBox(height: 2,),
+                            Text(
+                              subMean.substring(0,subMean.length-1),
                               style: const TextStyle(
-                                fontSize: 11,
+                                fontSize: 18,
                                 color: textColor,
                               ),
                               textAlign: TextAlign.center,
                             ),
-                          ),
-                          const SizedBox(height: 2,),
-                          Text(
-                            subMean.substring(0,subMean.length-1),
-                            style: const TextStyle(
-                              fontSize: 18,
-                              color: textColor,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 3,),
-                        ],
+                            const SizedBox(height: 3,),
+                          ],
+                        ),
                       ),
-                    ),
-                ).toList(),
+                  ).toList(),
+                ),
               ),
             ),
-          ),
-          GetBuilder<Controller>(
-            builder: (_) => LinearPercentIndicator(
-              alignment: MainAxisAlignment.center,
-              width: MediaQuery.of(context).size.width - 40,
-              lineHeight: 1,
-              percent: c.meanScore.value/25,
-              backgroundColor: themeColor,
-              progressColor: backgroundColor,
-              padding: const EdgeInsets.all(0),
-              animation: true,
+            GetBuilder<Controller>(
+              builder: (_) => LinearPercentIndicator(
+                alignment: MainAxisAlignment.center,
+                width: MediaQuery.of(context).size.width - 40,
+                lineHeight: 1,
+                percent: c.meanScore.value/25,
+                backgroundColor: themeColor,
+                progressColor: backgroundColor,
+                padding: const EdgeInsets.all(0),
+                animation: true,
+              ),
             ),
-          ),
-          Expanded(
-            child: Container(
-              alignment: Alignment.center,
-              child: SingleChildScrollView(
-                child: GetBuilder<Controller>(
-                  builder: (_) => Wrap(
-                    spacing: 0,
-                    runSpacing: 0,
-                    runAlignment: WrapAlignment.center,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    direction: Axis.horizontal,
-                    alignment: WrapAlignment.center,
-                    children: [
-                      for (int index=0; index<(c.isVip.value?(c.mean.length<4)?c.mean.length:4:(c.mean.length+1<4)?c.mean.length+1:4); index++)
-                        c.isVip.value?
-                        GestureDetector(
-                          onTap: () async {
-                            if (c.listImage[c.nowIndex.value][index] == c.imageURL[c.listIndex[c.nowIndex.value]]){
-                              ktMean[c.nowIndex.value] = true;
-                              if (!ktMean.contains(false)){
-                                if (c.meanScore.value<25){
-                                  c.meanScore = RxInt(c.meanScore.value + 1);
+            Expanded(
+              child: Container(
+                alignment: Alignment.center,
+                child: SingleChildScrollView(
+                  child: GetBuilder<Controller>(
+                    builder: (_) => Wrap(
+                      spacing: 0,
+                      runSpacing: 0,
+                      runAlignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      direction: Axis.horizontal,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        for (int index=0; index<(c.isVip.value?(c.mean.length<4)?c.mean.length:4:(c.mean.length+1<4)?c.mean.length+1:4); index++)
+                          c.isVip.value?
+                          GestureDetector(
+                            onTap: () async {
+                              if (c.enableSound.value){
+                                await pool.play(soundId);
+                              }
+                              if (c.listImage[c.nowIndex.value][index] == c.imageURL[c.listIndex[c.nowIndex.value]]){
+                                ktMean[c.nowIndex.value] = true;
+                                await setRight();
+                                if (!ktMean.contains(false)){
+                                  if (c.meanScore.value<25){
+                                    c.meanScore = RxInt(c.meanScore.value + 1);
+                                    c.update();
+                                    var newScore = Score(
+                                      wordId: c.word.value,
+                                      word: c.wordScore.value,
+                                      pronun: c.pronunScore.value,
+                                      speak: c.speakScore.value,
+                                      mean: c.meanScore.value,
+                                      total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
+                                      time: DateTime.now().millisecondsSinceEpoch,
+                                    );
+                                    await updateScore(newScore);
+                                  }
+                                  ktMean.clear();
+                                  for (var i=0;i<c.mean.length;i++){
+                                    ktMean.add(false);
+                                  }
+                                }
+                                if (c.nowIndex.value < c.mean.length - 1){
+                                  c.nowIndex = RxInt(c.nowIndex.value + 1);
+                                }else{
+                                  c.nowIndex = 0.obs;
+                                }
+                                c.update();
+                              }else{
+                                ktMean[c.nowIndex.value] = false;
+                                if (c.meanScore.value>0){
+                                  c.meanScore = RxInt(c.meanScore.value - 1);
                                   c.update();
                                   var newScore = Score(
                                     wordId: c.word.value,
@@ -4202,101 +3815,283 @@ class MeanWidget extends StatelessWidget {
                                     time: DateTime.now().millisecondsSinceEpoch,
                                   );
                                   await updateScore(newScore);
-                                  if (c.meanScore.value==25){
-                                    Get.defaultDialog(
-                                      title: c.learnRightTitle.string,
-                                      middleText: c.learnRightBodyAllMeanDone.string,
-                                      backgroundColor: themeColor,
-                                      titleStyle: const TextStyle(color: textColor,),
-                                      middleTextStyle: const TextStyle(color: textColor,),
-                                      textConfirm: c.learnNext.string,
-                                      confirmTextColor: textColor,
-                                      buttonColor: Colors.white,
-                                      textCancel: "ok",
-                                      cancelTextColor: textColor,
-                                      barrierDismissible: false,
-                                      radius: 8,
-                                      onConfirm: () async {
-                                        c.nowIndex = 0.obs;
-                                        await updateToday();
-                                        Navigator.pop(context);
-                                        c.currentTab = RxInt(0);
-                                        c.update();
+                                }
+                                await setWrong();
+                              }
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: const BorderRadius.all(
+                                    Radius.circular(8)
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.6),
+                                    spreadRadius: 0,
+                                    blurRadius: 5,
+                                    offset: const Offset(5, 5), // changes position of shadow
+                                  ),
+                                ],
+                              ),
+                              // alignment: Alignment.center,
+                              width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                              height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                              child: Stack(
+                                children:[
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: ImageFiltered(
+                                      imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                      child: Opacity(
+                                        opacity: 0.8,
+                                        child: Image(
+                                          image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index].replaceAll('\\','')),
+                                          fit: BoxFit.fill,
+                                          width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                                          height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                            return const SizedBox();
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image(
+                                      image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index].replaceAll('\\','')),
+                                      fit: BoxFit.contain,
+                                      width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                                      height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                        return const SizedBox();
                                       },
-                                      onCancel: () async {
-                                        c.nowIndex = 0.obs;
-                                        await updateToday();
-                                      },
+                                    ),
+                                  ),
+                                ]
+                              )
+                            ),
+                          )
+                          :index<randomPosition[c.nowIndex.value]?
+                          GestureDetector(
+                            onTap: () async {
+                              if (c.enableSound.value){
+                                await pool.play(soundId);
+                              }
+                              if (c.listImage[c.nowIndex.value][index] == c.imageURL[c.listIndex[c.nowIndex.value]]){
+                                ktMean[c.nowIndex.value] = true;
+                                await setRight();
+                                if (!ktMean.contains(false)){
+                                  if (c.meanScore.value<25){
+                                    c.meanScore = RxInt(c.meanScore.value + 1);
+                                    c.update();
+                                    var newScore = Score(
+                                      wordId: c.word.value,
+                                      word: c.wordScore.value,
+                                      pronun: c.pronunScore.value,
+                                      speak: c.speakScore.value,
+                                      mean: c.meanScore.value,
+                                      total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
+                                      time: DateTime.now().millisecondsSinceEpoch,
                                     );
-                                  }else{
-                                    Get.defaultDialog(
-                                        title: c.learnRightTitle.string,
-                                        middleText: c.learnRightBodyAllMean.string,
-                                        backgroundColor: themeColor,
-                                        titleStyle: const TextStyle(color: textColor,),
-                                        middleTextStyle: const TextStyle(color: textColor,),
-                                        textConfirm: c.learnNext.string,
-                                        confirmTextColor: textColor,
-                                        buttonColor: Colors.white,
-                                        textCancel: "ok",
-                                        cancelTextColor: textColor,
-                                        barrierDismissible: false,
-                                        radius: 8,
-                                        onConfirm: () async {
-                                          c.nowIndex = 0.obs;
-                                          await updateToday();
-                                          Navigator.pop(context);
-                                          c.currentTab = RxInt(0);
-                                          c.update();
-                                        },
-                                        onCancel: () async {
-                                          c.nowIndex = 0.obs;
-                                          await updateToday();
-                                        }
-                                    );
+                                    await updateScore(newScore);
+                                  }
+                                  ktMean.clear();
+                                  for (var i=0;i<c.mean.length;i++){
+                                    ktMean.add(false);
                                   }
                                 }
-                                ktMean.clear();
-                                for (var i=0;i<c.mean.length;i++){
-                                  ktMean.add(false);
+                                if (c.nowIndex.value < c.mean.length - 1){
+                                  c.nowIndex = RxInt(c.nowIndex.value + 1);
+                                }else{
+                                  c.nowIndex = 0.obs;
                                 }
+                                c.update();
                               }else{
-                                Get.defaultDialog(
-                                    title: c.learnRightTitle.string,
-                                    middleText: c.learnRightBodyMean.string,
-                                    backgroundColor: themeColor,
-                                    titleStyle: const TextStyle(color: textColor,),
-                                    middleTextStyle: const TextStyle(color: textColor,),
-                                    textConfirm: c.learnNext.string,
-                                    confirmTextColor: textColor,
-                                    buttonColor: Colors.white,
-                                    textCancel: "ok",
-                                    cancelTextColor: textColor,
-                                    barrierDismissible: false,
-                                    radius: 8,
-                                    onConfirm: () {
-                                      if (c.nowIndex.value < c.mean.length - 1){
-                                        c.nowIndex = RxInt(c.nowIndex.value + 1);
-                                      }else{
-                                        c.nowIndex = 0.obs;
-                                      }
-                                      c.update();
-                                      Navigator.pop(context);
-                                    },
-                                    onCancel: () {
-                                    }
-                                );
+                                ktMean[c.nowIndex.value] = false;
+                                if (c.meanScore.value>0){
+                                  c.meanScore = RxInt(c.meanScore.value - 1);
+                                  c.update();
+                                  var newScore = Score(
+                                    wordId: c.word.value,
+                                    word: c.wordScore.value,
+                                    pronun: c.pronunScore.value,
+                                    speak: c.speakScore.value,
+                                    mean: c.meanScore.value,
+                                    total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
+                                    time: DateTime.now().millisecondsSinceEpoch,
+                                  );
+                                  await updateScore(newScore);
+                                }
+                                await setWrong();
                               }
-                            }else{
-                              ktMean[c.nowIndex.value] = false;
-                              if (Get.isSnackbarOpen) Get.closeAllSnackbars();
-                              Get.snackbar(c.learnWrongTitle.string,c.learnWrongBodyMean.string);
-                            }
-                            if (c.enableSound.value){
-                              await pool.play(soundId);
-                            }
-                          },
-                          child: Container(
+                            },
+                            child: Container(
+                                margin: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(8)
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.6),
+                                      spreadRadius: 0,
+                                      blurRadius: 5,
+                                      offset: const Offset(5, 5), // changes position of shadow
+                                    ),
+                                  ],
+                                ),
+                                // alignment: Alignment.center,
+                                width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                                height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                child: Stack(
+                                    children:[
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: ImageFiltered(
+                                          imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                          child: Opacity(
+                                            opacity: 0.8,
+                                            child: Image(
+                                              image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index].replaceAll('\\','')),
+                                              fit: BoxFit.fill,
+                                              width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                                              height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                return const SizedBox();
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image(
+                                          image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index].replaceAll('\\','')),
+                                          fit: BoxFit.contain,
+                                          width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                                          height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                            return const SizedBox();
+                                          },
+                                        ),
+                                      ),
+                                    ]
+                                )
+                            ),
+                          ):index>randomPosition[c.nowIndex.value]?
+                          GestureDetector(
+                            onTap: () async {
+                              if (c.enableSound.value){
+                                await pool.play(soundId);
+                              }
+                              if (c.listImage[c.nowIndex.value][index-1] == c.imageURL[c.listIndex[c.nowIndex.value]]){
+                                ktMean[c.nowIndex.value] = true;
+                                await setRight();
+                                if (!ktMean.contains(false)){
+                                  if (c.meanScore.value<25){
+                                    c.meanScore = RxInt(c.meanScore.value + 1);
+                                    c.update();
+                                    var newScore = Score(
+                                      wordId: c.word.value,
+                                      word: c.wordScore.value,
+                                      pronun: c.pronunScore.value,
+                                      speak: c.speakScore.value,
+                                      mean: c.meanScore.value,
+                                      total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
+                                      time: DateTime.now().millisecondsSinceEpoch,
+                                    );
+                                    await updateScore(newScore);
+                                  }
+                                  ktMean.clear();
+                                  for (var i=0;i<c.mean.length;i++){
+                                    ktMean.add(false);
+                                  }
+                                }
+                                if (c.nowIndex.value < c.mean.length - 1){
+                                  c.nowIndex = RxInt(c.nowIndex.value + 1);
+                                }else{
+                                  c.nowIndex = 0.obs;
+                                }
+                                c.update();
+                              }else{
+                                ktMean[c.nowIndex.value] = false;
+                                if (c.meanScore.value>0){
+                                  c.meanScore = RxInt(c.meanScore.value - 1);
+                                  c.update();
+                                  var newScore = Score(
+                                    wordId: c.word.value,
+                                    word: c.wordScore.value,
+                                    pronun: c.pronunScore.value,
+                                    speak: c.speakScore.value,
+                                    mean: c.meanScore.value,
+                                    total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
+                                    time: DateTime.now().millisecondsSinceEpoch,
+                                  );
+                                  await updateScore(newScore);
+                                }
+                                await setWrong();
+                              }
+                            },
+                            child: Container(
+                                margin: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(8)
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.6),
+                                      spreadRadius: 0,
+                                      blurRadius: 5,
+                                      offset: const Offset(5, 5), // changes position of shadow
+                                    ),
+                                  ],
+                                ),
+                                // alignment: Alignment.center,
+                                width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                                height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                child: Stack(
+                                    children:[
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: ImageFiltered(
+                                          imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                          child: Opacity(
+                                            opacity: 0.8,
+                                            child: Image(
+                                              image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index-1].replaceAll('\\','')),
+                                              fit: BoxFit.fill,
+                                              width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                                              height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                return const SizedBox();
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image(
+                                          image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index-1].replaceAll('\\','')),
+                                          fit: BoxFit.contain,
+                                          width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                                          height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                            return const SizedBox();
+                                          },
+                                        ),
+                                      ),
+                                    ]
+                                )
+                            ),
+                          ):
+                          Container(
                             margin: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
                               color: Colors.white,
@@ -4315,430 +4110,41 @@ class MeanWidget extends StatelessWidget {
                             // alignment: Alignment.center,
                             width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
                             height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
-                            child: Stack(
-                              children:[
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: ImageFiltered(
-                                    imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                                    child: Opacity(
-                                      opacity: 0.8,
-                                      child: Image(
-                                        image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index].replaceAll('\\','')),
-                                        fit: BoxFit.fill,
-                                        width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                        height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
-                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                          return const SizedBox();
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image(
-                                    image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index].replaceAll('\\','')),
-                                    fit: BoxFit.contain,
-                                    width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                    height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
-                                    errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                      return const SizedBox();
-                                    },
-                                  ),
-                                ),
-                              ]
-                            )
-                          ),
-                        )
-                        :index<randomPosition[c.nowIndex.value]?
-                        GestureDetector(
-                          onTap: () async {
-                            if (c.listImage[c.nowIndex.value][index] == c.imageURL[c.listIndex[c.nowIndex.value]]){
-                              ktMean[c.nowIndex.value] = true;
-                              if (!ktMean.contains(false)){
-                                if (c.meanScore.value<25){
-                                  c.meanScore = RxInt(c.meanScore.value + 1);
-                                  c.update();
-                                  var newScore = Score(
-                                    wordId: c.word.value,
-                                    word: c.wordScore.value,
-                                    pronun: c.pronunScore.value,
-                                    speak: c.speakScore.value,
-                                    mean: c.meanScore.value,
-                                    total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
-                                    time: DateTime.now().millisecondsSinceEpoch,
-                                  );
-                                  await updateScore(newScore);
-                                  if (c.meanScore.value==25){
-                                    Get.defaultDialog(
-                                      title: c.learnRightTitle.string,
-                                      middleText: c.learnRightBodyAllMeanDone.string,
-                                      backgroundColor: themeColor,
-                                      titleStyle: const TextStyle(color: textColor,),
-                                      middleTextStyle: const TextStyle(color: textColor,),
-                                      textConfirm: c.learnNext.string,
-                                      confirmTextColor: textColor,
-                                      buttonColor: Colors.white,
-                                      textCancel: "ok",
-                                      cancelTextColor: textColor,
-                                      barrierDismissible: false,
-                                      radius: 8,
-                                      onConfirm: () async {
-                                        c.nowIndex = 0.obs;
-                                        await updateToday();
-                                        Navigator.pop(context);
-                                        c.currentTab = RxInt(0);
-                                        c.update();
-                                      },
-                                      onCancel: () async {
-                                        c.nowIndex = 0.obs;
-                                        await updateToday();
-                                      },
-                                    );
-                                  }else{
-                                    Get.defaultDialog(
-                                        title: c.learnRightTitle.string,
-                                        middleText: c.learnRightBodyAllMean.string,
-                                        backgroundColor: themeColor,
-                                        titleStyle: const TextStyle(color: textColor,),
-                                        middleTextStyle: const TextStyle(color: textColor,),
-                                        textConfirm: c.learnNext.string,
-                                        confirmTextColor: textColor,
-                                        buttonColor: Colors.white,
-                                        textCancel: "ok",
-                                        cancelTextColor: textColor,
-                                        barrierDismissible: false,
-                                        radius: 8,
-                                        onConfirm: () async {
-                                          c.nowIndex = 0.obs;
-                                          await updateToday();
-                                          Navigator.pop(context);
-                                          c.currentTab = RxInt(0);
-                                          c.update();
-                                        },
-                                        onCancel: () async {
-                                          c.nowIndex = 0.obs;
-                                          await updateToday();
-                                        }
-                                    );
-                                  }
-                                }
-                                ktMean.clear();
-                                for (var i=0;i<c.mean.length;i++){
-                                  ktMean.add(false);
-                                }
-                              }else{
-                                Get.defaultDialog(
-                                    title: c.learnRightTitle.string,
-                                    middleText: c.learnRightBodyMean.string,
-                                    backgroundColor: themeColor,
-                                    titleStyle: const TextStyle(color: textColor,),
-                                    middleTextStyle: const TextStyle(color: textColor,),
-                                    textConfirm: c.learnNext.string,
-                                    confirmTextColor: textColor,
-                                    buttonColor: Colors.white,
-                                    textCancel: "ok",
-                                    cancelTextColor: textColor,
-                                    barrierDismissible: false,
-                                    radius: 8,
-                                    onConfirm: () {
-                                      if (c.nowIndex.value < c.mean.length - 1){
-                                        c.nowIndex = RxInt(c.nowIndex.value + 1);
-                                      }else{
-                                        c.nowIndex = 0.obs;
-                                      }
-                                      c.update();
-                                      Navigator.pop(context);
-                                    },
-                                    onCancel: () {
-                                    }
-                                );
-                              }
-                            }else{
-                              ktMean[c.nowIndex.value] = false;
-                              if (Get.isSnackbarOpen) Get.closeAllSnackbars();
-                              Get.snackbar(c.learnWrongTitle.string,c.learnWrongBodyMean.string);
-                            }
-                            if (c.enableSound.value){
-                              await pool.play(soundId);
-                            }
-                          },
-                          child: Container(
-                              margin: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: const BorderRadius.all(
-                                    Radius.circular(8)
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.6),
-                                    spreadRadius: 0,
-                                    blurRadius: 5,
-                                    offset: const Offset(5, 5), // changes position of shadow
-                                  ),
-                                ],
-                              ),
-                              // alignment: Alignment.center,
-                              width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                              height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
-                              child: Stack(
-                                  children:[
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: ImageFiltered(
-                                        imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                                        child: Opacity(
-                                          opacity: 0.8,
-                                          child: Image(
-                                            image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index].replaceAll('\\','')),
-                                            fit: BoxFit.fill,
-                                            width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                            height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
-                                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                              return const SizedBox();
-                                            },
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image(
-                                        image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index].replaceAll('\\','')),
-                                        fit: BoxFit.contain,
-                                        width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                        height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
-                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                          return const SizedBox();
-                                        },
-                                      ),
-                                    ),
-                                  ]
-                              )
-                          ),
-                        ):index>randomPosition[c.nowIndex.value]?
-                        GestureDetector(
-                          onTap: () async {
-                            if (c.listImage[c.nowIndex.value][index-1] == c.imageURL[c.listIndex[c.nowIndex.value]]){
-                              ktMean[c.nowIndex.value] = true;
-                              if (!ktMean.contains(false)){
-                                if (c.meanScore.value<25){
-                                  c.meanScore = RxInt(c.meanScore.value + 1);
-                                  c.update();
-                                  var newScore = Score(
-                                    wordId: c.word.value,
-                                    word: c.wordScore.value,
-                                    pronun: c.pronunScore.value,
-                                    speak: c.speakScore.value,
-                                    mean: c.meanScore.value,
-                                    total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
-                                    time: DateTime.now().millisecondsSinceEpoch,
-                                  );
-                                  await updateScore(newScore);
-                                  if (c.meanScore.value==25){
-                                    Get.defaultDialog(
-                                      title: c.learnRightTitle.string,
-                                      middleText: c.learnRightBodyAllMeanDone.string,
-                                      backgroundColor: themeColor,
-                                      titleStyle: const TextStyle(color: textColor,),
-                                      middleTextStyle: const TextStyle(color: textColor,),
-                                      textConfirm: c.learnNext.string,
-                                      confirmTextColor: textColor,
-                                      buttonColor: Colors.white,
-                                      textCancel: "ok",
-                                      cancelTextColor: textColor,
-                                      barrierDismissible: false,
-                                      radius: 8,
-                                      onConfirm: () async {
-                                        c.nowIndex = 0.obs;
-                                        await updateToday();
-                                        Navigator.pop(context);
-                                        c.currentTab = RxInt(0);
-                                        c.update();
-                                      },
-                                      onCancel: () async {
-                                        c.nowIndex = 0.obs;
-                                        await updateToday();
-                                      },
-                                    );
-                                  }else{
-                                    Get.defaultDialog(
-                                        title: c.learnRightTitle.string,
-                                        middleText: c.learnRightBodyAllMean.string,
-                                        backgroundColor: themeColor,
-                                        titleStyle: const TextStyle(color: textColor,),
-                                        middleTextStyle: const TextStyle(color: textColor,),
-                                        textConfirm: c.learnNext.string,
-                                        confirmTextColor: textColor,
-                                        buttonColor: Colors.white,
-                                        textCancel: "ok",
-                                        cancelTextColor: textColor,
-                                        barrierDismissible: false,
-                                        radius: 8,
-                                        onConfirm: () async {
-                                          c.nowIndex = 0.obs;
-                                          await updateToday();
-                                          Navigator.pop(context);
-                                          c.currentTab = RxInt(0);
-                                          c.update();
-                                        },
-                                        onCancel: () async {
-                                          c.nowIndex = 0.obs;
-                                          await updateToday();
-                                        }
-                                    );
-                                  }
-                                }
-                                ktMean.clear();
-                                for (var i=0;i<c.mean.length;i++){
-                                  ktMean.add(false);
-                                }
-                              }else{
-                                Get.defaultDialog(
-                                    title: c.learnRightTitle.string,
-                                    middleText: c.learnRightBodyMean.string,
-                                    backgroundColor: themeColor,
-                                    titleStyle: const TextStyle(color: textColor,),
-                                    middleTextStyle: const TextStyle(color: textColor,),
-                                    textConfirm: c.learnNext.string,
-                                    confirmTextColor: textColor,
-                                    buttonColor: Colors.white,
-                                    textCancel: "ok",
-                                    cancelTextColor: textColor,
-                                    barrierDismissible: false,
-                                    radius: 8,
-                                    onConfirm: () {
-                                      if (c.nowIndex.value < c.mean.length - 1){
-                                        c.nowIndex = RxInt(c.nowIndex.value + 1);
-                                      }else{
-                                        c.nowIndex = 0.obs;
-                                      }
-                                      c.update();
-                                      Navigator.pop(context);
-                                    },
-                                    onCancel: () {
-                                    }
-                                );
-                              }
-                            }else{
-                              ktMean[c.nowIndex.value] = false;
-                              if (Get.isSnackbarOpen) Get.closeAllSnackbars();
-                              Get.snackbar(c.learnWrongTitle.string,c.learnWrongBodyMean.string);
-                            }
-                            if (c.enableSound.value){
-                              await pool.play(soundId);
-                            }
-                          },
-                          child: Container(
-                              margin: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: const BorderRadius.all(
-                                    Radius.circular(8)
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.6),
-                                    spreadRadius: 0,
-                                    blurRadius: 5,
-                                    offset: const Offset(5, 5), // changes position of shadow
-                                  ),
-                                ],
-                              ),
-                              // alignment: Alignment.center,
-                              width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                              height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
-                              child: Stack(
-                                  children:[
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: ImageFiltered(
-                                        imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                                        child: Opacity(
-                                          opacity: 0.8,
-                                          child: Image(
-                                            image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index-1].replaceAll('\\','')),
-                                            fit: BoxFit.fill,
-                                            width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                            height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
-                                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                              return const SizedBox();
-                                            },
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image(
-                                        image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index-1].replaceAll('\\','')),
-                                        fit: BoxFit.contain,
-                                        width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                        height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
-                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                          return const SizedBox();
-                                        },
-                                      ),
-                                    ),
-                                  ]
-                              )
-                          ),
-                        ):
-                        Container(
-                          margin: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: const BorderRadius.all(
-                                Radius.circular(8)
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.6),
-                                spreadRadius: 0,
-                                blurRadius: 5,
-                                offset: const Offset(5, 5), // changes position of shadow
-                              ),
-                            ],
-                          ),
-                          // alignment: Alignment.center,
-                          width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                          height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
-                          child: BannerAdWidget(adWidth: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2)
-                        )
-                    ]
+                            child: BannerAdWidget(adWidth: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2)
+                          )
+                      ]
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          GetBuilder<Controller>(
-            builder: (_) => DotsIndicator(
-                dotsCount: c.mean.length,
-                position: c.nowIndex.value.toDouble(),
-                decorator: DotsDecorator(
-                  size: const Size.square(9.0),
-                  activeSize: const Size(18.0, 9.0),
-                  activeColor: backgroundColor,
-                  color: const Color.fromRGBO(230, 230, 230, 1),
-                  activeShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
-                  spacing: 19*c.mean.length>MediaQuery.of(context).size.width - 20 ?
-                  EdgeInsets.fromLTRB(
-                      ((MediaQuery.of(context).size.width-20)/c.mean.length-9)/2,
-                      10,
-                      ((MediaQuery.of(context).size.width-20)/c.mean.length-9)/2,
-                      10
-                  )
-                      : const EdgeInsets.fromLTRB(5, 10, 5, 10),
-                ),
-                onTap: (index){
-                  c.nowIndex = RxInt(index.toInt());
-                  c.update();
-                }
+            GetBuilder<Controller>(
+              builder: (_) => DotsIndicator(
+                  dotsCount: c.mean.length,
+                  position: c.nowIndex.value.toDouble(),
+                  decorator: DotsDecorator(
+                    size: const Size.square(9.0),
+                    activeSize: const Size(18.0, 9.0),
+                    activeColor: backgroundColor,
+                    color: const Color.fromRGBO(230, 230, 230, 1),
+                    activeShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
+                    spacing: 19*c.mean.length>MediaQuery.of(context).size.width - 20 ?
+                    EdgeInsets.fromLTRB(
+                        ((MediaQuery.of(context).size.width-20)/c.mean.length-9)/2,
+                        10,
+                        ((MediaQuery.of(context).size.width-20)/c.mean.length-9)/2,
+                        10
+                    )
+                        : const EdgeInsets.fromLTRB(5, 10, 5, 10),
+                  ),
+                  onTap: (index){
+                    c.nowIndex = RxInt(index.toInt());
+                    c.update();
+                  }
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -4789,16 +4195,54 @@ class LearnWord extends StatelessWidget {
           systemNavigationBarColor: themeColor, // Status bar
         ),
       ),
-      body: Column(
-          children: [
-            Expanded(
-              child: GetBuilder<Controller>(
-                builder: (_) => Center(
-                  child: widgetOptions.elementAt(c.currentTab.value),
+      body: Stack(
+        children: [
+          GestureDetector(
+            onVerticalDragEnd: (details) async {
+              if (details.primaryVelocity! > 0) {
+                if (c.currentTab.value>0){
+                  c.currentTab = RxInt(c.currentTab.value-1);
+                }else{
+                  c.currentTab = 3.obs;
+                }
+                c.update();
+              }
+              if (details.primaryVelocity! < -0) {
+                if (c.currentTab.value<3){
+                  c.currentTab = RxInt(c.currentTab.value+1);
+                }else{
+                  c.currentTab = 0.obs;
+                }
+                c.update();
+              }
+            },
+            child: Column(
+                children: [
+                  Expanded(
+                    child: GetBuilder<Controller>(
+                      builder: (_) => Center(
+                        child: widgetOptions.elementAt(c.currentTab.value),
+                      ),
+                    ),
+                  ),
+                ]
+            ),
+          ),
+          GetBuilder<Controller>(
+            builder: (_) => Visibility(
+              visible: c.learnRight.value,
+              child: Container(
+                alignment: Alignment.center,
+                color: Colors.black.withOpacity(0.7),
+                child: Icon(
+                  c.right.value?Icons.check_rounded:Icons.close_rounded,
+                  size: 250,
+                  color: backgroundColor,
                 ),
               ),
             ),
-          ]
+          ),
+        ]
       ),
       bottomNavigationBar: GetBuilder<Controller>(
         builder: (_) => BottomNavigationBar(
@@ -4847,11 +4291,16 @@ class HistoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
-    int duration = 86400000;
+    const int pageCount = 200;
+
+    Future findHistory() async {
+      c.listHistory = await getHistory(c.startDayHistory.value,c.endDayHistory.value);
+      c.indexHistoryPage = 0.obs;
+      c.update();
+    }
 
     Future.delayed(Duration.zero, () async {
-      c.listHistory = await getHistory(duration);
-      c.update();
+      await findHistory();
     });
 
     return Scaffold(
@@ -4866,155 +4315,383 @@ class HistoryPage extends StatelessWidget {
         centerTitle: true,
         backgroundColor: backgroundColor,
       ),
-      body: Column(
-        children:[
-          const SizedBox(
-            height: 3,
-          ),
-          GroupButton(
-            spacing: 5,
-            selectedButton: 0,
-            buttonWidth: (MediaQuery.of(context).size.width-20)/5,
-            isRadio: true,
-            direction: Axis.horizontal,
-            onSelected: (index, isSelected) async {
-              switch (index){
-                case 0:
-                  duration = 86400000;
-                  break;
-                case 1:
-                  duration = 604800000;
-                  break;
-                case 2:
-                  duration = 2629800000;
-                  break;
-                case 3:
-                  duration = 31557600000;
-                  break;
-                case 4:
-                  duration = DateTime.now().millisecondsSinceEpoch;
-                  break;
-              }
-              c.listHistory = await getHistory(duration);
+      body: GestureDetector(
+        onHorizontalDragEnd: (details) async {
+          if (details.primaryVelocity! > 0) {
+            if (c.indexHistoryPage.value>0){
+              c.indexHistoryPage = RxInt(c.indexHistoryPage.value-1);
               c.update();
-            },
-            buttons: [c.day.string,c.week.string,c.month.string,c.year.string,c.all.string],
-            // selectedButtons: [0, 1], /// [List<int>] after 2.2.1 version
-            selectedTextStyle: const TextStyle(
-              fontSize: 14,
-              color: textColor,
-            ),
-            unselectedTextStyle: const TextStyle(
-              fontSize: 14,
-              color: textColor,
-            ),
-            selectedColor: backgroundColor,
-            unselectedColor: themeColor,
-            selectedBorderColor: backgroundColor,
-            unselectedBorderColor: themeColor,
-            borderRadius: BorderRadius.circular(3.0),
-            selectedShadow: const <BoxShadow>[BoxShadow(color: Colors.transparent)],
-            unselectedShadow: const <BoxShadow>[BoxShadow(color: Colors.transparent)],
-          ),
-          Expanded(
-            child: GetBuilder<Controller>(
-              builder: (_) =>  ListView.builder(
-                padding: const EdgeInsets.all(4),
-                itemCount: c.listHistory.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return SizedBox(
-                    height: 50,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex:3,
-                          child: Container(
-                            height: double.infinity,
-                            alignment: Alignment.center,
-                            padding: const EdgeInsets.all(4),
-                            margin: const EdgeInsets.all(4),
-                            color: const Color.fromRGBO(230, 240, 230, 1),
-                            child: Text(
-                              DateFormat('dd-MM-yyyy HH:mm').format(DateTime.fromMillisecondsSinceEpoch(c.listHistory[index].time)),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: textColor,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          flex:3,
-                          child: GestureDetector(
-                            onTap: () async {
-                              await setDefault();
-                              c.wordArray.clear();
-                              for (var i=0;i<c.listHistory.length;i++){
-                                if (!c.wordArray.contains(c.listHistory[i].word)){
-                                  c.wordArray.add(c.listHistory[i].word);
-                                }
-                              }
-                              await c.layWord(c.listHistory[index].word);
-                              Get.to(()=>Home());
-                            },
-                            child: Container(
-                              height: double.infinity,
-                              alignment: Alignment.center,
-                              padding: const EdgeInsets.all(4),
-                              margin: const EdgeInsets.all(4),
-                              color: const Color.fromRGBO(230, 240, 230, 1),
-                              child: Text(
-                                c.listHistory[index].word,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: textColor,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-            ),
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-          backgroundColor: backgroundColor,
-          child: GetBuilder<Controller>(
-            builder: (_) => Text(
-              c.relearnButton.string,
-              style: const TextStyle(
-                color: textColor,
-                fontSize: 10,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          onPressed: () async {
-            if (c.listHistory.isNotEmpty){
-              await setDefault();
-              c.wordArray.clear();
-              for (var i=0;i<c.listHistory.length;i++){
-                if (!c.wordArray.contains(c.listHistory[i].word)){
-                  c.wordArray.add(c.listHistory[i].word);
-                }
-              }
-              await c.layWord('');
-              Get.to(()=>Home());
-            }else{
-              Get.to(()=>Home());
-              Get.closeAllSnackbars();
-              Get.snackbar(c.learnWrongTitle.string,c.snackbarRelearn.string);
             }
           }
+          if (details.primaryVelocity! < -0) {
+            if (c.listHistory.length>pageCount*(c.indexHistoryPage.value+1)){
+              c.indexHistoryPage = RxInt(c.indexHistoryPage.value+1);
+              c.update();
+            }
+          }
+        },
+        child: Container(
+          color: Colors.white,
+          child: Column(
+            children:[
+              const SizedBox(height: 10),
+              Row(
+                  children:[
+                    const SizedBox(width:10),
+                    Expanded(
+                      child: OutlinedButton(
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              Colors.white
+                          ),
+                          foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                          padding: MaterialStateProperty.all<EdgeInsets>(
+                              const EdgeInsets.all(0)
+                          ),
+                          shape: MaterialStateProperty.all<OutlinedBorder?>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10.0),
+                              )
+                          ),
+                          fixedSize: MaterialStateProperty.all<Size>(
+                              const Size.fromHeight(45)
+                          ),
+                        ),
+                        onPressed: () async {
+                          if (c.isEndDayHistory.value){
+                            c.isEndDayHistory = false.obs;
+                          }
+                          c.isStartDayHistory = RxBool(!c.isStartDayHistory.value);
+                          c.update();
+                        },
+                        child: GetBuilder<Controller>(
+                          builder: (_) => Text(
+                            DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(c.startDayHistory.value)),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: textColor,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width:10),
+                    const Text(
+                      '-',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: textColor,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(width:10),
+                    Expanded(
+                      child: OutlinedButton(
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              Colors.white
+                          ),
+                          foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                          padding: MaterialStateProperty.all<EdgeInsets>(
+                              const EdgeInsets.all(0)
+                          ),
+                          shape: MaterialStateProperty.all<OutlinedBorder?>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10.0),
+                              )
+                          ),
+                          fixedSize: MaterialStateProperty.all<Size>(
+                              const Size.fromHeight(45)
+                          ),
+                        ),
+                        onPressed: () async {
+                          if (c.isStartDayHistory.value){
+                            c.isStartDayHistory = false.obs;
+                          }
+                          c.isEndDayHistory = RxBool(!c.isEndDayHistory.value);
+                          c.update();
+                        },
+                        child: GetBuilder<Controller>(
+                          builder: (_) => Text(
+                            DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(c.endDayHistory.value)),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: textColor,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width:10),
+                    TextButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            backgroundColor
+                        ),
+                        foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                        padding: MaterialStateProperty.all<EdgeInsets>(
+                            const EdgeInsets.all(0)
+                        ),
+                        shape: MaterialStateProperty.all<OutlinedBorder?>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            )
+                        ),
+                        fixedSize: MaterialStateProperty.all<Size>(
+                            const Size.fromHeight(45)
+                        ),
+                      ),
+                      onPressed: () async {
+                        c.isStartDayHistory = false.obs;
+                        c.isEndDayHistory = false.obs;
+                        await findHistory();
+                      },
+                      child: const Text(
+                        'ok',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: textColor,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(width:10),
+                  ]
+              ),
+              GetBuilder<Controller>(
+                builder: (_) => Visibility(
+                  visible: c.isStartDayHistory.value,
+                  child: Column(
+                      children:[
+                        const SizedBox(height:10),
+                        SizedBox(
+                          height: 100,
+                          width: MediaQuery.of(context).size.width,
+                          child: CupertinoDatePicker(
+                            mode: CupertinoDatePickerMode.date,
+                            initialDateTime: DateTime.fromMillisecondsSinceEpoch(c.startDayHistory.value),
+                            minimumDate: DateTime(2021,12,25),
+                            maximumDate: DateTime.now().add(const Duration(days: 1)),
+                            onDateTimeChanged: (DateTime newDateTime) {
+                              c.startDayHistory = RxInt(newDateTime.millisecondsSinceEpoch);
+                              c.update();
+                            },
+                          ),
+                        ),
+                      ]
+                  ),
+                ),
+              ),
+              GetBuilder<Controller>(
+                builder: (_) => Visibility(
+                  visible: c.isEndDayHistory.value,
+                  child: Column(
+                      children:[
+                        const SizedBox(height:10),
+                        SizedBox(
+                          height: 100,
+                          width: MediaQuery.of(context).size.width,
+                          child: CupertinoDatePicker(
+                            mode: CupertinoDatePickerMode.date,
+                            initialDateTime: DateTime.fromMillisecondsSinceEpoch(c.endDayHistory.value),
+                            minimumDate: DateTime(2021,12,25),
+                            maximumDate: DateTime.now().add(const Duration(days: 1)),
+                            onDateTimeChanged: (DateTime newDateTime) {
+                              c.endDayHistory = RxInt(newDateTime.millisecondsSinceEpoch);
+                              c.update();
+                            },
+                          ),
+                        ),
+                      ]
+                  ),
+                ),
+              ),
+              Row(
+                  children:[
+                    GetBuilder<Controller>(
+                      builder: (_) => Opacity(
+                        opacity: c.indexHistoryPage.value>0? 1: 0.3,
+                        child: IconButton(
+                          padding: const EdgeInsets.all(0.0),
+                          icon: const Icon(
+                            Icons.arrow_back_ios,
+                            size: 20,
+                          ),
+                          tooltip: 'previous',
+                          onPressed: () {
+                            if (c.indexHistoryPage.value>0){
+                              c.indexHistoryPage = RxInt(c.indexHistoryPage.value-1);
+                              c.update();
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                    const Expanded(child: SizedBox()),
+                    GetBuilder<Controller>(
+                      builder: (_) => PopupMenuButton<String>(
+                        onSelected: (String word) async {
+                          c.indexHistoryPage = RxInt(int.parse(word.split('-')[0])~/pageCount);
+                          c.update();
+                        },
+                        padding: const EdgeInsets.all(0),
+                        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                          for (int i=0; i<(c.listHistory.length/pageCount).abs(); i++)
+                            PopupMenuItem<String>(
+                                value: (pageCount*i+1).toString() + '-' +
+                                    (c.listHistory.length~/pageCount>i?
+                                    (pageCount*i+pageCount).toString():
+                                    (pageCount*i+c.listHistory.length%pageCount).toString()) +
+                                    '/' + c.listHistory.length.toString(),
+                                padding: const EdgeInsets.fromLTRB(6,0,6,0),
+                                child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        (pageCount*i+1).toString() + '-' +
+                                            (c.listHistory.length~/pageCount>i?
+                                            (pageCount*i+pageCount).toString():
+                                            (pageCount*i+c.listHistory.length%pageCount).toString()) +
+                                            '/' + c.listHistory.length.toString(),
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          color: textColor,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ]
+                                )
+                            ),
+                        ],
+                        // color: themeColor,
+                        child: Row(
+                            children: [
+                              Text(
+                                (pageCount*c.indexHistoryPage.value+(c.listHistory.isEmpty?0:1)).toString() + '-' +
+                                    (c.listHistory.length~/pageCount>c.indexHistoryPage.value?
+                                    (pageCount*c.indexHistoryPage.value+pageCount).toString():
+                                    (pageCount*c.indexHistoryPage.value+c.listHistory.length%pageCount).toString()) +
+                                    '/' + c.listHistory.length.toString(),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: textColor,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.left,
+                              ),
+                            ]
+                        ),
+                        shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(20.0))
+                        ),
+                      ),
+                    ),
+                    const Expanded(child: SizedBox()),
+                    GetBuilder<Controller>(
+                      builder: (_) => Opacity(
+                        opacity: c.listHistory.length>pageCount*(c.indexHistoryPage.value+1)? 1: 0.3,
+                        child: IconButton(
+                          padding: const EdgeInsets.all(0.0),
+                          icon: const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 20,
+                          ),
+                          tooltip: 'next',
+                          onPressed: () {
+                            if (c.listHistory.length>pageCount*(c.indexHistoryPage.value+1)){
+                              c.indexHistoryPage = RxInt(c.indexHistoryPage.value+1);
+                              c.update();
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ]
+              ),
+              Expanded(
+                child: GetBuilder<Controller>(
+                  builder: (_) =>  ListView.builder(
+                      padding: const EdgeInsets.all(4),
+                      itemCount: c.listHistory.length>(c.indexHistoryPage.value+1)*pageCount?
+                      pageCount:c.listHistory.length-c.indexHistoryPage.value*pageCount,
+                      itemBuilder: (BuildContext context, int index) {
+                        return SizedBox(
+                          height: 50,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex:3,
+                                child: Container(
+                                  height: double.infinity,
+                                  alignment: Alignment.center,
+                                  decoration: const BoxDecoration(
+                                    color: Color.fromRGBO(240, 240, 240, 1),
+                                    borderRadius: BorderRadius.all(
+                                        Radius.circular(8)
+                                    ),
+                                  ),
+                                  padding: const EdgeInsets.all(4),
+                                  margin: const EdgeInsets.all(4),
+                                  child: Text(
+                                    DateFormat('dd-MM-yyyy HH:mm').format(DateTime.fromMillisecondsSinceEpoch(c.listHistory[c.indexHistoryPage.value*pageCount+index].time)),
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      color: textColor,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex:3,
+                                child: GestureDetector(
+                                  onTap: () async {
+                                    await setDefault();
+                                    await c.layWord(c.listHistory[c.indexHistoryPage.value*pageCount+index].word);
+                                    Get.to(()=>Home());
+                                  },
+                                  child: Container(
+                                    height: double.infinity,
+                                    alignment: Alignment.center,
+                                    decoration: const BoxDecoration(
+                                      color: Color.fromRGBO(240, 240, 240, 1),
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(8)
+                                      ),
+                                    ),
+                                    padding: const EdgeInsets.all(4),
+                                    margin: const EdgeInsets.all(4),
+                                    child: Text(
+                                      c.listHistory[c.indexHistoryPage.value*pageCount+index].word,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        color: textColor,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -5026,259 +4703,822 @@ class ScorePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
-    int duration = 86400000;
+    final GlobalKey<ScaffoldState> _key = GlobalKey();
+    const int pageCount = 200;
+
+    Future setHome() async {
+      if (c.isSortScore[0]){
+        c.level = RxString(listLevelEN[c.levelIndexScore.value]);
+        c.levelIndex = c.levelIndexScore;
+        c.type = RxString(listTypeEN[c.typeIndexScore.value]);
+        c.typeIndex = c.typeIndexScore;
+        c.category = RxString(listCategoryEN[c.categoryIndexScore.value]);
+        c.categoryIndex = c.categoryIndexScore;
+        c.wordArray = c.listWordScore;
+        await boxSetting.put('category',c.categoryIndexScore.value);
+        await boxSetting.put('type',c.typeIndexScore.value);
+        await boxSetting.put('level',c.levelIndexScore.value);
+      }else{
+        await setDefault();
+      }
+    }
+
+    Future findScore() async {
+      if (c.isSortScore[0]){
+        List<String> listWord = [];
+        listWord = await getListWords(
+          listLevelEN[c.levelIndexScore.value],
+          listCategoryEN[c.categoryIndexScore.value],
+          listTypeEN[c.typeIndexScore.value],
+        );
+        if (listWord.isNotEmpty){
+          c.listWordScore = RxList(listWord);
+        }
+        c.listLearned = await getListScore();
+      }else{
+        c.listLearned = await getListScoreTime(c.startDay.value,c.endDay.value);
+      }
+      c.indexScorePage = 0.obs;
+      c.update();
+    }
 
     Future.delayed(Duration.zero, () async {
-      c.listLearned = await getListScore(duration);
-      c.update();
+      await findScore();
     });
 
     return Scaffold(
+      key: _key,
       appBar: AppBar(
         title: GetBuilder<Controller>(
           builder: (_) => Text(
-          c.drawerScore.string.toUpperCase(),
-          style: const TextStyle(
-            color: Color.fromRGBO(255, 255, 255, 1),
+            c.drawerScore.string.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 18,
+              color: Colors.white,
+            ),
+            overflow: TextOverflow.ellipsis,
+            // textAlign: TextAlign.left,
           ),
-        ),),
+        ),
         centerTitle: true,
         backgroundColor: backgroundColor,
       ),
-      body: Column(
-        children:[
-          const SizedBox(height: 3,),
-          GroupButton(
-            spacing: 5,
-            selectedButton: 0,
-            buttonWidth: (MediaQuery.of(context).size.width-20)/5,
-            isRadio: true,
-            direction: Axis.horizontal,
-            onSelected: (index, isSelected) async {
-              switch (index){
-                case 0:
-                  duration = 86400000;
-                  break;
-                case 1:
-                  duration = 604800000;
-                  break;
-                case 2:
-                  duration = 2629800000;
-                  break;
-                case 3:
-                  duration = 31557600000;
-                  break;
-                case 4:
-                  duration = DateTime.now().millisecondsSinceEpoch;
-                  break;
-              }
-              c.listLearned = await getListScore(duration);
+      body: GestureDetector(
+        onHorizontalDragEnd: (details) async {
+          if (details.primaryVelocity! > 0) {
+            if (c.indexScorePage.value>0){
+              c.indexScorePage = RxInt(c.indexScorePage.value-1);
               c.update();
-            },
-            buttons: [c.day.string,c.week.string,c.month.string,c.year.string,c.all.string],
-            // selectedButtons: [0, 1], /// [List<int>] after 2.2.1 version
-            selectedTextStyle: const TextStyle(
-              fontSize: 14,
-              color: textColor,
-            ),
-            unselectedTextStyle: const TextStyle(
-              fontSize: 14,
-              color: textColor,
-            ),
-            selectedColor: backgroundColor,
-            unselectedColor: themeColor,
-            selectedBorderColor: backgroundColor,
-            unselectedBorderColor: themeColor,
-            borderRadius: BorderRadius.circular(3.0),
-            selectedShadow: const <BoxShadow>[BoxShadow(color: Colors.transparent)],
-            unselectedShadow: const <BoxShadow>[BoxShadow(color: Colors.transparent)],
-          ),
-          const SizedBox(height: 5,),
-          Expanded(
-            child: GetBuilder<Controller>(
-              builder: (_) => Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              runAlignment: WrapAlignment.start,
-              crossAxisAlignment: WrapCrossAlignment.start,
-              direction: Axis.horizontal,
-              alignment: WrapAlignment.start,
-              children: c.listLearned.map((Score score) {
-                return GestureDetector(
-                  onTap: () async{
-                    await setDefault();
-                    c.wordArray.clear();
-                    for (var i=0;i<c.listLearned.length;i++){
-                      c.wordArray.add(c.listLearned[i].wordId);
-                    }
-                    await c.layWord(score.wordId);
-                    Get.to(()=>Home());
-                  },
-                  child: Container(
-                    // height: 105,
-                    width: MediaQuery.of(context).size.width*0.5 - 15,
-                    // padding: const EdgeInsets.all(10),
-                    decoration: const BoxDecoration(
-                      color: Color.fromRGBO(240, 240, 240, 1),
-                      borderRadius: BorderRadius.all(
-                          Radius.circular(8)
-                      ),
-                      // boxShadow: [
-                      //   BoxShadow(
-                      //     color: Colors.black.withOpacity(0.6),
-                      //     spreadRadius: 0,
-                      //     blurRadius: 5,
-                      //     offset: const Offset(5, 5), // changes position of shadow
-                      //   ),
-                      // ],
+            }
+          }
+          if (details.primaryVelocity! < -0) {
+            if (c.listLearned.length>pageCount*(c.indexScorePage.value+1)){
+              c.indexScorePage = RxInt(c.indexScorePage.value+1);
+              c.update();
+            }
+          }
+        },
+        child: Container(
+          color: Colors.white,
+          child: Column(
+            children:[
+              const SizedBox(height: 15),
+              GetBuilder<Controller>(
+                builder: (_) => Container(
+                  alignment: Alignment.center,
+                  height: 45,
+                  child: ToggleButtons(
+                    fillColor: backgroundColor,
+                    borderRadius: const BorderRadius.all(
+                        Radius.circular(10)
                     ),
-                    child: Column(
-                      children: [
-                        const SizedBox(height:5),
-                        Text(
-                          score.wordId,
+                    children: <Widget>[
+                      SizedBox(
+                        width: (MediaQuery.of(context).size.width-23)/2,
+                        child: Text(
+                          c.language.string == 'VN'? 'Theo phân loại'
+                              : 'By distinguishing',
                           style: const TextStyle(
-                            fontSize: 15,
+                            fontSize: 14,
                             color: textColor,
                           ),
                           overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height:5),
-                        Row(
-                          children: [
-                            const SizedBox(width:3),
-                            Expanded(
-                              child: CircularPercentIndicator(
-                                radius: (MediaQuery.of(context).size.width*0.5 - 30)/4,
-                                lineWidth: 3.0,
-                                animation: true,
-                                percent: score.word/25,
-                                backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
-                                center: Text(
-                                  c.scoreWord.string,
-                                  style: const TextStyle(
-                                    fontSize: 10.0,
-                                    color: textColor,
-                                  ),
-                                ),
-                                circularStrokeCap: CircularStrokeCap.round,
-                                progressColor: Colors.purple,
-                              ),
-                            ),
-                            Expanded(
-                              child: CircularPercentIndicator(
-                                radius: (MediaQuery.of(context).size.width*0.5 - 30)/4,
-                                lineWidth: 3.0,
-                                animation: true,
-                                percent: score.pronun/25,
-                                backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
-                                center: Text(
-                                  c.scorePronun.string,
-                                  style: const TextStyle(
-                                    fontSize: 10.0,
-                                    color: textColor,
-                                  ),
-                                ),
-                                circularStrokeCap: CircularStrokeCap.round,
-                                progressColor: Colors.purple,
-                              ),
-                            ),
-                            Expanded(
-                              child: CircularPercentIndicator(
-                                radius: (MediaQuery.of(context).size.width*0.5 - 30)/4,
-                                lineWidth: 3.0,
-                                animation: true,
-                                percent: score.speak/25,
-                                backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
-                                center: Text(
-                                  c.scoreSpeak.string,
-                                  style: const TextStyle(
-                                    fontSize: 10.0,
-                                    color: textColor,
-                                  ),
-                                ),
-                                circularStrokeCap: CircularStrokeCap.round,
-                                progressColor: Colors.purple,
-                              ),
-                            ),
-                            Expanded(
-                              child: CircularPercentIndicator(
-                                radius: (MediaQuery.of(context).size.width*0.5 - 30)/4,
-                                lineWidth: 3.0,
-                                animation: true,
-                                percent: score.mean/25,
-                                backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
-                                center: Text(
-                                  c.scoreMean.string,
-                                  style: const TextStyle(
-                                    fontSize: 10.0,
-                                    color: textColor,
-                                  ),
-                                ),
-                                circularStrokeCap: CircularStrokeCap.round,
-                                progressColor: Colors.purple,
-                              ),
-                            ),
-                            const SizedBox(width:3),
-                          ],
+                      ),
+                      SizedBox(
+                        width: (MediaQuery.of(context).size.width-23)/2,
+                        child: Text(
+                          c.language.string == 'VN'? 'Theo thời gian'
+                              : 'By time',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: textColor,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height:5),
-                        GetBuilder<Controller>(
-                          builder: (_) => LinearPercentIndicator(
-                            alignment: MainAxisAlignment.center,
-                            // width: MediaQuery.of(context).size.width-20,
-                            lineHeight: 10.0,
-                            percent: score.total/100,
-                            backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
-                            progressColor: backgroundColor,
-                            // padding: const EdgeInsets.all(5),
-                            animation: true,
-                            center: Text(
-                                c.scoreTotal.string,
-                                style: const TextStyle(
-                                  fontSize: 8,
-                                )
+                      ),
+                    ],
+                    onPressed: (int index) async {
+                      for (var i=0;i<2;i++){
+                        i!=index? c.isSortScore[i] = false
+                            : c.isSortScore[i] = true;
+                      }
+                      await findScore();
+                    },
+                    isSelected: c.isSortScore,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              GetBuilder<Controller>(
+                builder: (_) => Visibility(
+                    visible: c.isSortScore[0],
+                    child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              const SizedBox(width: 10),
+                              Container(
+                                alignment: Alignment.center,
+                                height: 40,
+                                child: ToggleButtons(
+                                  fillColor: backgroundColor,
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(10)
+                                  ),
+                                  children: <Widget>[
+                                    SizedBox(
+                                      width: 70,
+                                      child: Text(
+                                        c.language.string == 'VN'? 'chủ đề':'category',
+                                        style: const TextStyle(
+                                          color: textColor,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: 70,
+                                      child: Text(
+                                        c.language.string == 'VN'? 'từ loại':'type',
+                                        style: const TextStyle(
+                                          color: textColor,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                  onPressed: (int index) {
+                                    for (var i=0;i<2;i++){
+                                      i!=index? c.isSelectedSortScore[i] = false
+                                          : c.isSelectedSortScore[i] = true;
+                                    }
+                                    c.update();
+                                  },
+                                  isSelected: c.isSelectedSortScore,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              PopupMenuButton<String>(
+                                onSelected: (String word) async {
+                                  if (c.isSelectedSortScore[0]){
+                                    c.categoryIndexScore = RxInt(c.listCategory.indexOf(word));
+                                    c.typeIndexScore = 0.obs;
+                                  }else{
+                                    c.typeIndexScore = RxInt(c.listType.indexOf(word));
+                                    c.categoryIndexScore = 0.obs;
+                                  }
+                                  await findScore();
+                                },
+                                padding: const EdgeInsets.all(0),
+                                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                                  for (int i=0; i<(c.isSelectedSortScore[0]? c.listCategory.length:c.listType.length); i++)
+                                    PopupMenuItem<String>(
+                                        value: c.isSelectedSortScore[0]? c.listCategory[i]:c.listType[i],
+                                        padding: const EdgeInsets.fromLTRB(6,0,6,0),
+                                        child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                c.isSelectedSortScore[0]? c.listCategory[i]:c.listType[i],
+                                                style: const TextStyle(
+                                                  fontSize: 15,
+                                                  color: textColor,
+                                                ),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                            ]
+                                        )
+                                    ),
+                                ],
+                                // color: themeColor,
+                                child: Row(
+                                    children: [
+                                      Text(
+                                        c.isSelectedSortScore[0]? c.listCategory[c.categoryIndexScore.value]:c.listType[c.typeIndexScore.value],
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          color: textColor,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.left,
+                                      ),
+                                      const Icon(
+                                        Icons.keyboard_arrow_down,
+                                        size: 25,
+                                      ),
+                                    ]
+                                ),
+                                shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.all(Radius.circular(20.0))
+                                ),
+                              ),
+                              Expanded(
+                                child: PopupMenuButton<String>(
+                                  onSelected: (String word) async {
+                                    c.levelIndexScore = RxInt(c.listLevel.indexOf(word));
+                                    await findScore();
+                                  },
+                                  padding: const EdgeInsets.all(0),
+                                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                                    for (int i=0; i<c.listLevel.length; i++)
+                                      PopupMenuItem<String>(
+                                          value: c.listLevel[i],
+                                          padding: const EdgeInsets.fromLTRB(6,0,6,0),
+                                          child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Text(
+                                                  c.listLevel[i],
+                                                  style: const TextStyle(
+                                                    fontSize: 15,
+                                                    color: textColor,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ]
+                                          )
+                                      ),
+                                  ],
+                                  // color: themeColor,
+                                  child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          c.listLevel[c.levelIndexScore.value],
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: textColor,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                          textAlign: TextAlign.right,
+                                        ),
+                                        const Icon(
+                                          Icons.keyboard_arrow_down,
+                                          size: 25,
+                                        ),
+                                      ]
+                                  ),
+                                  shape: const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.all(Radius.circular(20.0))
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                              children:[
+                                const SizedBox(width: 13),
+                                Expanded(
+                                  child: GetBuilder<Controller>(
+                                    builder: (_) => Text(
+                                      (c.language.string == 'VN'? 'đã học (' : 'learned (')
+                                          + c.listLearned.length.toString() + ')',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: textColor,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.left,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: GetBuilder<Controller>(
+                                    builder: (_) => Text(
+                                      (c.language.string == 'VN'? 'chưa học (' : 'not yet (')
+                                          + (c.listWordScore.length - c.listLearned.length).toString() + ')',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: textColor,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.right,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 13),
+                              ]
+                          ),
+                          const SizedBox(height: 3),
+                          Row(
+                              children: [
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: GetBuilder<Controller>(
+                                    builder: (_) => LinearPercentIndicator(
+                                      alignment: MainAxisAlignment.center,
+                                      // width: MediaQuery.of(context).size.width-20,
+                                      lineHeight: 18,
+                                      percent: c.listLearned.length/c.listWordScore.length,
+                                      backgroundColor: const Color.fromRGBO(235, 235, 235, 1),
+                                      progressColor: backgroundColor,
+                                      // padding: const EdgeInsets.all(5),
+                                      animation: true,
+                                      center: Text(
+                                          c.listWordScore.length.toString() +
+                                              (c.language.string == 'VN'? ' từ' : ' words'),
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                          )
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                              ]
+                          ),
+                        ]
+                    )
+                ),
+              ),
+              GetBuilder<Controller>(
+                builder: (_) => Visibility(
+                    visible: c.isSortScore[1],
+                    child: Column(
+                        children: [
+                          Row(
+                              children:[
+                                const SizedBox(width:10),
+                                Expanded(
+                                  child: OutlinedButton(
+                                    style: ButtonStyle(
+                                      backgroundColor: MaterialStateProperty.all<Color>(
+                                          Colors.white
+                                      ),
+                                      foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                                      padding: MaterialStateProperty.all<EdgeInsets>(
+                                          const EdgeInsets.all(0)
+                                      ),
+                                      shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                          RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(10.0),
+                                          )
+                                      ),
+                                      fixedSize: MaterialStateProperty.all<Size>(
+                                          const Size.fromHeight(45)
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      if (c.isEndDayOpen.value){
+                                        c.isEndDayOpen = false.obs;
+                                      }
+                                      c.isStartDayOpen = RxBool(!c.isStartDayOpen.value);
+                                      c.update();
+                                    },
+                                    child: Text(
+                                      DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(c.startDay.value)),
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: textColor,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width:10),
+                                const Text(
+                                  '-',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: textColor,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(width:10),
+                                Expanded(
+                                  child: OutlinedButton(
+                                    style: ButtonStyle(
+                                      backgroundColor: MaterialStateProperty.all<Color>(
+                                          Colors.white
+                                      ),
+                                      foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                                      padding: MaterialStateProperty.all<EdgeInsets>(
+                                          const EdgeInsets.all(0)
+                                      ),
+                                      shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                          RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(10.0),
+                                          )
+                                      ),
+                                      fixedSize: MaterialStateProperty.all<Size>(
+                                          const Size.fromHeight(45)
+                                      ),
+                                    ),
+                                    onPressed: () async {
+                                      if (c.isStartDayOpen.value){
+                                        c.isStartDayOpen = false.obs;
+                                      }
+                                      c.isEndDayOpen = RxBool(!c.isEndDayOpen.value);
+                                      c.update();
+                                    },
+                                    child: Text(
+                                      DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(c.endDay.value)),
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: textColor,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width:10),
+                                TextButton(
+                                  style: ButtonStyle(
+                                    backgroundColor: MaterialStateProperty.all<Color>(
+                                        backgroundColor
+                                    ),
+                                    foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                                    padding: MaterialStateProperty.all<EdgeInsets>(
+                                        const EdgeInsets.all(0)
+                                    ),
+                                    shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                        RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10.0),
+                                        )
+                                    ),
+                                    fixedSize: MaterialStateProperty.all<Size>(
+                                        const Size.fromHeight(45)
+                                    ),
+                                  ),
+                                  onPressed: () async {
+                                    c.isStartDayOpen = false.obs;
+                                    c.isEndDayOpen = false.obs;
+                                    await findScore();
+                                  },
+                                  child: const Text(
+                                    'ok',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: textColor,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                                const SizedBox(width:10),
+                              ]
+                          ),
+                          Visibility(
+                            visible: c.isStartDayOpen.value,
+                            child: Column(
+                                children:[
+                                  const SizedBox(height:10),
+                                  SizedBox(
+                                    height: 100,
+                                    width: MediaQuery.of(context).size.width,
+                                    child: CupertinoDatePicker(
+                                      mode: CupertinoDatePickerMode.date,
+                                      initialDateTime: DateTime.fromMillisecondsSinceEpoch(c.startDay.value),
+                                      minimumDate: DateTime(2021,12,25),
+                                      maximumDate: DateTime.now().add(const Duration(days: 1)),
+                                      onDateTimeChanged: (DateTime newDateTime) {
+                                        c.startDay = RxInt(newDateTime.millisecondsSinceEpoch);
+                                        c.update();
+                                      },
+                                    ),
+                                  ),
+                                ]
                             ),
                           ),
+                          Visibility(
+                            visible: c.isEndDayOpen.value,
+                            child: Column(
+                                children:[
+                                  const SizedBox(height:10),
+                                  SizedBox(
+                                    height: 100,
+                                    width: MediaQuery.of(context).size.width,
+                                    child: CupertinoDatePicker(
+                                      mode: CupertinoDatePickerMode.date,
+                                      initialDateTime: DateTime.fromMillisecondsSinceEpoch(c.endDay.value),
+                                      minimumDate: DateTime(2021,12,25),
+                                      maximumDate: DateTime.now().add(const Duration(days: 1)),
+                                      onDateTimeChanged: (DateTime newDateTime) {
+                                        c.endDay = RxInt(newDateTime.millisecondsSinceEpoch);
+                                        c.update();
+                                      },
+                                    ),
+                                  ),
+                                ]
+                            ),
+                          ),
+                        ]
+                    )
+                ),
+              ),
+              Row(
+                  children:[
+                    GetBuilder<Controller>(
+                      builder: (_) => Opacity(
+                        opacity: c.indexScorePage.value>0? 1: 0.3,
+                        child: IconButton(
+                          padding: const EdgeInsets.all(0.0),
+                          icon: const Icon(
+                            Icons.arrow_back_ios,
+                            size: 20,
+                          ),
+                          tooltip: 'previous',
+                          onPressed: () {
+                            if (c.indexScorePage.value>0){
+                              c.indexScorePage = RxInt(c.indexScorePage.value-1);
+                              c.update();
+                            }
+                          },
                         ),
-                        const SizedBox(height:5),
-                      ]
+                      ),
                     ),
+                    const Expanded(child: SizedBox()),
+                    GetBuilder<Controller>(
+                      builder: (_) => PopupMenuButton<String>(
+                        onSelected: (String word) async {
+                          c.indexScorePage = RxInt(int.parse(word.split('-')[0])~/pageCount);
+                          c.update();
+                        },
+                        padding: const EdgeInsets.all(0),
+                        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                          for (int i=0; i<(c.listLearned.length/pageCount).abs(); i++)
+                            PopupMenuItem<String>(
+                                value: (pageCount*i+1).toString() + '-' +
+                                    (c.listLearned.length~/pageCount>i?
+                                    (pageCount*i+pageCount).toString():
+                                    (pageCount*i+c.listLearned.length%pageCount).toString()) +
+                                    '/' + c.listLearned.length.toString(),
+                                padding: const EdgeInsets.fromLTRB(6,0,6,0),
+                                child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        (pageCount*i+1).toString() + '-' +
+                                            (c.listLearned.length~/pageCount>i?
+                                            (pageCount*i+pageCount).toString():
+                                            (pageCount*i+c.listLearned.length%pageCount).toString()) +
+                                            '/' + c.listLearned.length.toString(),
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          color: textColor,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ]
+                                )
+                            ),
+                        ],
+                        // color: themeColor,
+                        child: Row(
+                            children: [
+                              Text(
+                                (pageCount*c.indexScorePage.value+(c.listLearned.isEmpty?0:1)).toString() + '-' +
+                                    (c.listLearned.length~/pageCount>c.indexScorePage.value?
+                                    (pageCount*c.indexScorePage.value+pageCount).toString():
+                                    (pageCount*c.indexScorePage.value+c.listLearned.length%pageCount).toString()) +
+                                    '/' + c.listLearned.length.toString(),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: textColor,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.left,
+                              ),
+                            ]
+                        ),
+                        shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(20.0))
+                        ),
+                      ),
+                    ),
+                    const Expanded(child: SizedBox()),
+                    GetBuilder<Controller>(
+                      builder: (_) => Opacity(
+                        opacity: c.listLearned.length>pageCount*(c.indexScorePage.value+1)? 1: 0.3,
+                        child: IconButton(
+                          padding: const EdgeInsets.all(0.0),
+                          icon: const Icon(
+                            Icons.arrow_forward_ios,
+                            size: 20,
+                          ),
+                          tooltip: 'next',
+                          onPressed: () {
+                            if (c.listLearned.length>pageCount*(c.indexScorePage.value+1)){
+                              c.indexScorePage = RxInt(c.indexScorePage.value+1);
+                              c.update();
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ]
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children:[
+                      GetBuilder<Controller>(
+                        builder: (_) => Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            runAlignment: WrapAlignment.start,
+                            crossAxisAlignment: WrapCrossAlignment.start,
+                            direction: Axis.horizontal,
+                            alignment: WrapAlignment.start,
+                            children: [
+                              for (var i=pageCount*c.indexScorePage.value;
+                              i<(c.listLearned.length~/pageCount>c.indexScorePage.value?
+                              pageCount*c.indexScorePage.value+pageCount:
+                              pageCount*c.indexScorePage.value+c.listLearned.length%pageCount); i++)
+                                GestureDetector(
+                                  onTap: () async{
+                                    await setHome();
+                                    await c.layWord(c.listLearned[i].wordId);
+                                    Get.to(()=>Home());
+                                  },
+                                  child: Container(
+                                    // height: 105,
+                                    width: MediaQuery.of(context).size.width*0.5 - 15,
+                                    // padding: const EdgeInsets.all(10),
+                                    decoration: const BoxDecoration(
+                                      color: Color.fromRGBO(240, 240, 240, 1),
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(8)
+                                      ),
+                                    ),
+                                    child: Column(
+                                        children: [
+                                          const SizedBox(height:5),
+                                          Text(
+                                            c.listLearned[i].wordId,
+                                            style: const TextStyle(
+                                              fontSize: 15,
+                                              color: textColor,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height:5),
+                                          Row(
+                                            children: [
+                                              const SizedBox(width:3),
+                                              Expanded(
+                                                child: CircularPercentIndicator(
+                                                  radius: (MediaQuery.of(context).size.width*0.5 - 30)/4,
+                                                  lineWidth: 3.0,
+                                                  animation: true,
+                                                  percent: c.listLearned[i].word/25,
+                                                  backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
+                                                  center: Text(
+                                                    c.scoreWord.string,
+                                                    style: const TextStyle(
+                                                      fontSize: 10.0,
+                                                      color: textColor,
+                                                    ),
+                                                  ),
+                                                  circularStrokeCap: CircularStrokeCap.round,
+                                                  progressColor: Colors.purple,
+                                                ),
+                                              ),
+                                              Expanded(
+                                                child: CircularPercentIndicator(
+                                                  radius: (MediaQuery.of(context).size.width*0.5 - 30)/4,
+                                                  lineWidth: 3.0,
+                                                  animation: true,
+                                                  percent: c.listLearned[i].pronun/25,
+                                                  backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
+                                                  center: Text(
+                                                    c.scorePronun.string,
+                                                    style: const TextStyle(
+                                                      fontSize: 10.0,
+                                                      color: textColor,
+                                                    ),
+                                                  ),
+                                                  circularStrokeCap: CircularStrokeCap.round,
+                                                  progressColor: Colors.purple,
+                                                ),
+                                              ),
+                                              Expanded(
+                                                child: CircularPercentIndicator(
+                                                  radius: (MediaQuery.of(context).size.width*0.5 - 30)/4,
+                                                  lineWidth: 3.0,
+                                                  animation: true,
+                                                  percent: c.listLearned[i].speak/25,
+                                                  backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
+                                                  center: Text(
+                                                    c.scoreSpeak.string,
+                                                    style: const TextStyle(
+                                                      fontSize: 10.0,
+                                                      color: textColor,
+                                                    ),
+                                                  ),
+                                                  circularStrokeCap: CircularStrokeCap.round,
+                                                  progressColor: Colors.purple,
+                                                ),
+                                              ),
+                                              Expanded(
+                                                child: CircularPercentIndicator(
+                                                  radius: (MediaQuery.of(context).size.width*0.5 - 30)/4,
+                                                  lineWidth: 3.0,
+                                                  animation: true,
+                                                  percent: c.listLearned[i].mean/25,
+                                                  backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
+                                                  center: Text(
+                                                    c.scoreMean.string,
+                                                    style: const TextStyle(
+                                                      fontSize: 10.0,
+                                                      color: textColor,
+                                                    ),
+                                                  ),
+                                                  circularStrokeCap: CircularStrokeCap.round,
+                                                  progressColor: Colors.purple,
+                                                ),
+                                              ),
+                                              const SizedBox(width:3),
+                                            ],
+                                          ),
+                                          const SizedBox(height:5),
+                                          GetBuilder<Controller>(
+                                            builder: (_) => LinearPercentIndicator(
+                                              alignment: MainAxisAlignment.center,
+                                              // width: MediaQuery.of(context).size.width-20,
+                                              lineHeight: 10.0,
+                                              percent: c.listLearned[i].total/100,
+                                              backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
+                                              progressColor: backgroundColor,
+                                              // padding: const EdgeInsets.all(5),
+                                              animation: true,
+                                              center: Text(
+                                                  c.scoreTotal.string,
+                                                  style: const TextStyle(
+                                                    fontSize: 8,
+                                                  )
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height:5),
+                                        ]
+                                    ),
+                                  ),
+                                )
+                            ]
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                    ]
                   ),
-                );
-              }).toList(),
-            ),
-            ),
-          )
-        ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
-          backgroundColor: backgroundColor,
-          child: GetBuilder<Controller>(
-            builder: (_) => Text(
-              c.relearnButton.string,
-              style: const TextStyle(
-                color: textColor,
-                fontSize: 10,
-              ),
-              textAlign: TextAlign.center,
+        backgroundColor: backgroundColor,
+        child: GetBuilder<Controller>(
+          builder: (_) => Text(
+            c.newRandomWordTitle.string,
+            style: const TextStyle(
+              color: textColor,
+              fontSize: 10,
             ),
+            textAlign: TextAlign.center,
           ),
-          onPressed: () async {
-            if (c.listLearned.isNotEmpty){
-              await setDefault();
-              c.wordArray.clear();
-              for (var i=0;i<c.listLearned.length;i++){
-                c.wordArray.add(c.listLearned[i].wordId);
-              }
-              await c.layWord('');
-              Get.to(()=>Home());
-            }else{
-              Get.to(()=>Home());
-              if (Get.isSnackbarOpen) Get.closeAllSnackbars();
-              Get.snackbar(c.learnWrongTitle.string,c.snackbarRelearn.string);
-            }
+        ),
+        onPressed: () async {
+          if (c.listWordScore.isNotEmpty){
+            await setHome();
+            await newWord();
+            Get.to(()=>Home());
+          }else{
+            Get.to(()=>Home());
           }
+        }
       ),
     );
   }
@@ -5304,109 +5544,51 @@ class MyUpgradePage extends StatelessWidget {
         centerTitle: true,
         backgroundColor: backgroundColor,
       ),
-      body: Column(
-        children:[
-          const SizedBox(height:7),
-          Row(
-              children:[
-                const SizedBox(width:15),
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.fromLTRB(0, 10, 10, 10),
-                    decoration: BoxDecoration(
-                      color: themeColor,
-                      borderRadius: const BorderRadius.all(
-                          Radius.circular(8)
+      body: Container(
+        color: Colors.white,
+        child: Column(
+          children:[
+            const SizedBox(height:7),
+            Row(
+                children:[
+                  const SizedBox(width:15),
+                  Expanded(
+                    child: Container(
+                      margin: const EdgeInsets.fromLTRB(0, 10, 10, 10),
+                      decoration: BoxDecoration(
+                        color: themeColor,
+                        borderRadius: const BorderRadius.all(
+                            Radius.circular(8)
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.6),
+                            spreadRadius: 0,
+                            blurRadius: 1,
+                            offset: const Offset(1, 1), // changes position of shadow
+                          ),
+                        ],
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.6),
-                          spreadRadius: 0,
-                          blurRadius: 1,
-                          offset: const Offset(1, 1), // changes position of shadow
-                        ),
-                      ],
-                    ),
-                    height: 50,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        const SizedBox(width: 20),
-                        GetBuilder<Controller>(
-                          builder: (_) => Icon(
-                            c.available.value? Icons.check: Icons.highlight_off_rounded,
-                            size: 25,
-                            color: textColor,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Container(
-                            alignment: Alignment.center,
-                            child: GetBuilder<Controller>(
-                              builder: (_) => Text(
-                                c.available.value? c.language.value == 'VN'? 'cửa hàng có sẵn': 'the store is available'
-                                    : c.language.value == 'VN'? 'cửa hàng không có sẵn': 'the store is not available',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  overflow: TextOverflow.ellipsis,
-                                  color: textColor,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width:5),
-              ]
-          ),
-          const SizedBox(height:10),
-          Row(
-              children:[
-                const SizedBox(width:15),
-                Expanded(
-                  child: GetBuilder<Controller>(
-                    builder: (_) => Opacity(
-                      opacity: c.isVip.value? 0.6:1,
-                      child: ElevatedButton(
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              themeColor
-                          ),
-                          foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                          padding: MaterialStateProperty.all<EdgeInsets>(
-                              const EdgeInsets.all(0)
-                          ),
-                          shape: MaterialStateProperty.all<OutlinedBorder?>(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                              )
-                          ),
-                          fixedSize: MaterialStateProperty.all<Size>(
-                              const Size.fromHeight(50)
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            const SizedBox(width: 20),
-                            Icon(
-                              c.isVip.value? Icons.check: Icons.highlight_off_rounded,
+                      height: 50,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          const SizedBox(width: 20),
+                          GetBuilder<Controller>(
+                            builder: (_) => Icon(
+                              c.available.value? Icons.check_rounded: Icons.close_rounded,
                               size: 25,
                               color: textColor,
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Container(
-                                alignment: Alignment.center,
-                                child: Text(
-                                  c.isVip.value? c.language.value == 'VN'?
-                                  'VIP (hạn đến ' + DateTime.fromMillisecondsSinceEpoch(c.expire.value).toString() + ')':
-                                  'VIP (valid until ' + DateTime.fromMillisecondsSinceEpoch(c.expire.value).toString() + ')'
-                                      : c.language.value == 'VN'? 'đăng kí 01 năm (119k)': 'register for 1 year (4.9\$)',
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Container(
+                              alignment: Alignment.center,
+                              child: GetBuilder<Controller>(
+                                builder: (_) => Text(
+                                  c.available.value? c.language.value == 'VN'? 'cửa hàng có sẵn': 'the store is available'
+                                      : c.language.value == 'VN'? 'cửa hàng không có sẵn': 'the store is not available',
                                   style: const TextStyle(
                                     fontSize: 16,
                                     overflow: TextOverflow.ellipsis,
@@ -5415,48 +5597,109 @@ class MyUpgradePage extends StatelessWidget {
                                 ),
                               ),
                             ),
-                          ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width:5),
+                ]
+            ),
+            const SizedBox(height:10),
+            Row(
+                children:[
+                  const SizedBox(width:15),
+                  Expanded(
+                    child: GetBuilder<Controller>(
+                      builder: (_) => Opacity(
+                        opacity: c.isVip.value? 0.6:1,
+                        child: ElevatedButton(
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                themeColor
+                            ),
+                            foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                            padding: MaterialStateProperty.all<EdgeInsets>(
+                                const EdgeInsets.all(0)
+                            ),
+                            shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                )
+                            ),
+                            fixedSize: MaterialStateProperty.all<Size>(
+                                const Size.fromHeight(50)
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              const SizedBox(width: 20),
+                              Icon(
+                                c.isVip.value? Icons.check_rounded: Icons.close_rounded,
+                                size: 25,
+                                color: textColor,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Container(
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    c.isVip.value? c.language.value == 'VN'?
+                                    'VIP (hạn đến ' + DateFormat('dd-MM-yyyy HH:mm').format(DateTime.fromMillisecondsSinceEpoch(c.expire.value)) + ')':
+                                    'VIP (valid until ' + DateFormat('dd-MM-yyyy HH:mm').format(DateTime.fromMillisecondsSinceEpoch(c.expire.value)) + ')'
+                                        : c.language.value == 'VN'? 'đăng kí 01 năm (119k)': 'register for 1 year (4.9\$)',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      overflow: TextOverflow.ellipsis,
+                                      color: textColor,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          onPressed: () {
+                            if (!c.isVip.value){
+                              final ProductDetails productDetails = c.products[0];
+                              final PurchaseParam purchaseParam = PurchaseParam(productDetails: productDetails);
+                              InAppPurchase.instance.buyNonConsumable(purchaseParam: purchaseParam);
+                            }
+                          },
                         ),
-                        onPressed: () {
-                          if (!c.isVip.value){
-                            final ProductDetails productDetails = c.products[0];
-                            final PurchaseParam purchaseParam = PurchaseParam(productDetails: productDetails);
-                            InAppPurchase.instance.buyNonConsumable(purchaseParam: purchaseParam);
-                          }
-                        },
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width:15),
-              ]
-          ),
-          const SizedBox(height:15),
-          Row(
-              children:[
-                const SizedBox(width:15),
-                Flexible(
-                  child: GetBuilder<Controller>(
-                    builder: (_) => Text(
-                      c.language.value == 'VN'?
-                      'đăng kí 1 năm sử dụng ứng dụng không bị làm phiền bởi quảng cáo,'
-                          ' giúp chúng tôi duy trì ứng dụng này tới mọi người,'
-                          ' hết thời gian ứng dụng sẽ được gia hạn tự động':
-                      'register 1 year using this app without advertisement,'
-                          ' helping us distribute this app to people, this app auto renews',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        // overflow: TextOverflow.ellipsis,
-                        color: textColor,
+                  const SizedBox(width:15),
+                ]
+            ),
+            const SizedBox(height:15),
+            Row(
+                children:[
+                  const SizedBox(width:15),
+                  Flexible(
+                    child: GetBuilder<Controller>(
+                      builder: (_) => Text(
+                        c.language.value == 'VN'?
+                        'đăng kí 1 năm sử dụng ứng dụng không bị làm phiền bởi quảng cáo,'
+                            ' giúp chúng tôi duy trì ứng dụng này tới mọi người,'
+                            ' hết thời gian ứng dụng sẽ được gia hạn tự động':
+                        'register 1 year using this app without advertisement,'
+                            ' helping us distribute this app to people, this app auto renews',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          // overflow: TextOverflow.ellipsis,
+                          color: textColor,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
                     ),
                   ),
-                ),
-                const SizedBox(width:15),
-              ]
-          ),
-        ],
+                  const SizedBox(width:15),
+                ]
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -6035,14 +6278,12 @@ class LoadingPage extends StatelessWidget {
       final response = await http.get(Uri.parse('https://drive.google.com/uc?export=download&id=1vUu4qZjTS5tpndNEHTBHaE51rr6y0sP_'),headers: {'Content-Type': 'application/json'});
       if (response.statusCode == 200) {
         List data = json.decode(utf8.decode(response.bodyBytes));
-        var box = await Hive.openBox('data');
         for (var i=0;i<data.length;i++){
           await box.put(data[i]['word'],data[i]);
+          List score = [data[i]['word'],0,0,0,0,0,DateTime.now().millisecondsSinceEpoch];
+          await boxScore.put(data[i]['word'],score);
         }
-        await box.close();
-        var boxSetting = await Hive.openBox('setting');
         await boxSetting.put('isIntroduce',false);
-        await boxSetting.close();
         Get.to(()=>Home());
       } else {
         Get.defaultDialog(
@@ -6066,7 +6307,6 @@ class LoadingPage extends StatelessWidget {
           },
         );
       }
-
     });
 
     return Scaffold(
@@ -6218,8 +6458,7 @@ class WelcomePage extends StatelessWidget {
   }
 }
 
-Future<bool> getListWords(String levelString, String category, String type) async {
-  final Controller c = Get.put(Controller());
+Future<List<String>> getListWords(String levelString, String category, String type) async {
   int getLevel(String level){
     int levelFind = 20;
     switch(level) {
@@ -6248,15 +6487,14 @@ Future<bool> getListWords(String levelString, String category, String type) asyn
   }
   int level = getLevel(levelString);
   List<String> findList = <String>[];
-  var box = await Hive.openBox('data');
   for (var i=0;i<box.length;i++){
     var nowWord = await box.getAt(i);
-    if (category != 'category'){
+    if (category != 'all category'){
       if (nowWord['category'].contains(','+ category) && int.parse(nowWord['level']) <= level){
         findList.add(nowWord['word']);
       }
     }else{
-      if (type != 'type'){
+      if (type != 'all type'){
         if ((nowWord['type'].startsWith(type) || nowWord['type'].contains(' $type'))
             && int.parse(nowWord['level']) <= level){
           findList.add(nowWord['word']);
@@ -6268,23 +6506,15 @@ Future<bool> getListWords(String levelString, String category, String type) asyn
       }
     }
   }
-  box.close();
-  if (findList.isEmpty){
-    return false;
-  }else{
-    findList.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
-    c.wordArray = findList;
-    return true;
-  }
+  findList.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+  return findList;
 }
 
 Future getWord(String word) async {
   // final String response = await rootBundle.loadString('assets/data.json');
   // List data = json.decode(response);
   // return data.where((element) => element['word'] == word).toList()[0];
-  var box = await Hive.openBox('data');
   dynamic data = await box.get(word);
-  await box.close();
   return data;
 }
 
@@ -6489,9 +6719,28 @@ void arrangeLearnMean() {
   }
 }
 
+Future newWord() async {
+  final Controller c = Get.put(Controller());
+  var newRandomWord = '';
+  var check = true;
+  List<String> listRandom = <String>[];
+  while (check && listRandom.length < c.wordArray.length){
+    newRandomWord = c.wordArray[Random().nextInt(c.wordArray.length)];
+    check = await checkScore(newRandomWord);
+    if (!listRandom.contains(newRandomWord)){
+      listRandom.add(newRandomWord);
+    }
+  }
+  if (check && listRandom.length == c.wordArray.length){
+    Get.snackbar(c.language.string == 'VN'?'Chúc mừng':'Congratulation',c.all.string);
+  }else{
+    c.word = RxString(newRandomWord);
+    await c.layWord(c.word.string);
+  }
+}
+
 Future _speak(String string) async{
   final Controller c = Get.put(Controller());
-  final FlutterTts flutterTts = FlutterTts();
   await flutterTts.setLanguage("en-US");
   await flutterTts.setSpeechRate(c.speakSpeed.value);
   await flutterTts.setVolume(1.0);
@@ -6500,37 +6749,68 @@ Future _speak(String string) async{
   await flutterTts.speak(string);
 }
 
+Future setRight() async {
+  final Controller c = Get.put(Controller());
+  c.learnRight = true.obs;
+  c.right = true.obs;
+  c.update();
+  if (c.enableSound.value){
+    await pool.play(soundIdRight);
+  }
+  await Future.delayed(const Duration(milliseconds:1000));
+  c.learnRight = false.obs;
+  c.update();
+  await updateToday();
+}
+
+Future setWrong() async {
+  final Controller c = Get.put(Controller());
+  c.learnRight = true.obs;
+  c.right = false.obs;
+  c.update();
+  if (c.enableSound.value){
+    await pool.play(soundIdWrong);
+  }
+  await Future.delayed(const Duration(milliseconds:1000));
+  c.learnRight = false.obs;
+  c.update();
+  await updateToday();
+}
+
 Future updateToday() async{
   final Controller c = Get.put(Controller());
   var yesterday = DateTime(
       DateTime.now().year,
       DateTime.now().month,
       DateTime.now().day,
-      0, 0
   );
   c.listLearnedToday.clear();
-  List<Score> listScore = await getListScore(DateTime.now().difference(yesterday).inMilliseconds);
+  List<Score> listScore = await getListScoreTime(yesterday.millisecondsSinceEpoch,DateTime.now().millisecondsSinceEpoch);
   for (var i=0;i<listScore.length;i++){
-    if (c.listWordsToday.contains(listScore[i].wordId)){
-      c.listLearnedToday.add(listScore[i]);
-    }
+    c.listLearnedToday.add(listScore[i]);
   }
   c.update();
 }
 
 Future setDefault() async {
   final Controller c = Get.put(Controller());
-  var box = await Hive.openBox('setting');
-  await box.put('category',0);
-  await box.put('type',0);
-  await box.put('level',0);
-  await box.close();
-  c.category = RxString('category');
-  c.type = RxString('type');
+  await boxSetting.put('category',0);
+  await boxSetting.put('type',0);
+  await boxSetting.put('level',0);
+  c.category = RxString('all category');
+  c.type = RxString('all type');
   c.level = RxString('all words');
   c.categoryIndex = 0.obs;
   c.typeIndex = 0.obs;
   c.levelIndex = 0.obs;
+  c.wordArray.clear();
+  List<String> listWord = [];
+  listWord = await getListWords(
+    listLevelEN[0],
+    listCategoryEN[0],
+    listTypeEN[0],
+  );
+  c.wordArray = RxList(listWord);
 }
 
 bool checkSubMean(List<String> subMean){
@@ -6538,7 +6818,7 @@ bool checkSubMean(List<String> subMean){
   bool ktCategory = false;
   bool ktType = false;
   for(var j = 0; j< subMean.length; j++) {
-    if (c.category.string != 'category'){
+    if (c.category.string != 'all category'){
       if (subMean[j].contains('#')){
         if(subMean[j].split('#')[0].split(',').contains(c.category.string)){
           ktCategory = true;
@@ -6547,7 +6827,7 @@ bool checkSubMean(List<String> subMean){
     }else{
       ktCategory = true;
     }
-    if (c.type.string != 'type'){
+    if (c.type.string != 'all type'){
       var currentType = laytuloai(subMean[j].substring(subMean[j].length-1));
       if (c.type.string.contains(' ')){
         if (currentType[0].toLowerCase().contains(c.type.string)){
@@ -6574,195 +6854,117 @@ bool checkSubMean(List<String> subMean){
 
 Future insertHistory(String wordSearch) async {
   if (wordSearch != ''){
-    WidgetsFlutterBinding.ensureInitialized();
-    // Open the database and store the reference.
-    final database = openDatabase(
-      join(await getDatabasesPath(), 'data.db'),
-      // When the database is first created, create a table to store dogs.
-      onCreate: (db, version) {
-        // Run the CREATE TABLE statement on the database.
-        db.execute(
-          'CREATE TABLE scores(wordId TEXT PRIMARY KEY, word INTEGER, pronun INTEGER, speak INTEGER, mean INTEGER, total INTEGER, time INTEGER)',
-        );
-        db.execute(
-          'CREATE TABLE history(time INTEGER PRIMARY KEY, word TEXT)',
-        );
-      },
-      version: 1,
-    );
-    final db = await database;
-    var newSearch = History(
-      time: DateTime.now().millisecondsSinceEpoch,
-      word: wordSearch,
-    );
-    await db.insert(
-      'history',
-      newSearch.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    await boxHistory.put(DateTime.now().toString(),[DateTime.now().millisecondsSinceEpoch,wordSearch]);
   }
 }
 
-Future<List<History>> getHistory(int duration) async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // Open the database and store the reference.
-  final database = openDatabase(
-    join(await getDatabasesPath(), 'data.db'),
-    // When the database is first created, create a table to store dogs.
-    onCreate: (db, version) {
-      // Run the CREATE TABLE statement on the database.
-      db.execute(
-        'CREATE TABLE scores(wordId TEXT PRIMARY KEY, word INTEGER, pronun INTEGER, speak INTEGER, mean INTEGER, total INTEGER, time INTEGER)',
-      );
-      db.execute(
-        'CREATE TABLE history(time INTEGER PRIMARY KEY, word TEXT)',
-      );
-    },
-    version: 1,
-  );
-  final db = await database;
-  List<Map> maps = await db.query ('history',
-      columns: ['time','word'],
-      orderBy: 'time DESC',
-      where: 'time > ?',
-      whereArgs: [DateTime.now().millisecondsSinceEpoch - duration]
-  );
-  return List.generate(maps.length, (i) {
-    return History(
-      time: maps[i]['time'],
-      word: maps[i]['word'],
-    );
-  });
+Future<List<History>> getHistory(int start, int end) async {
+  List<History> findList = <History>[];
+  for (var i=0;i<boxHistory.length;i++){
+    var nowWord = await boxHistory.getAt(i);
+    if (nowWord[0] > start && nowWord[0] < end){
+      findList.add(History(word: nowWord[1], time: nowWord[0]));
+    }
+  }
+  findList.sort((a, b) => b.time.compareTo(a.time));
+  return findList;
+}
+
+Future<List<String>> getLastSearch() async {
+  final Controller c = Get.put(Controller());
+  List<String> findList = <String>[];
+  bool kt = true;
+  int i = boxHistory.length-1;
+  if (i<0) kt = false;
+  while (kt){
+    var nowWord = await boxHistory.getAt(i);
+    if (c.wordArray.contains(nowWord[1]) && (!findList.contains(nowWord[1]))){
+      findList.add(nowWord[1]);
+    }
+    i = i-1;
+    if (i<0 || findList.length>9){
+      kt = false;
+    }
+  }
+  return findList;
+}
+
+Future<String> getLastSearchWord() async {
+  final Controller c = Get.put(Controller());
+  String find = '';
+  bool kt = true;
+  int i = boxHistory.length-1;
+  if (i<0) kt = false;
+  while (kt){
+    var nowWord = await boxHistory.getAt(i);
+    if (c.wordArray.contains(nowWord[1])){
+      find = nowWord[1];
+    }
+    i = i-1;
+    if (i<0 || find != ''){
+      kt = false;
+    }
+  }
+  return find;
 }
 
 Future<Score> getScore(String wordScore) async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // Open the database and store the reference.
-  final database = openDatabase(
-    join(await getDatabasesPath(), 'data.db'),
-    // When the database is first created, create a table to store dogs.
-    onCreate: (db, version) {
-      db.execute(
-        'CREATE TABLE scores(wordId TEXT PRIMARY KEY, word INTEGER, pronun INTEGER, speak INTEGER, mean INTEGER, total INTEGER, time INTEGER)',
-      );
-      db.execute(
-        'CREATE TABLE history(time INTEGER PRIMARY KEY, word TEXT)',
-      );
-    },
-    version: 1,
-  );
-  final db = await database;
-  List<Map> maps = await db.query(
-      'scores',
-      columns: ['wordId', 'word', 'pronun', 'speak', 'mean', 'total','time'],
-      where: 'wordId = ?',
-      whereArgs: [wordScore]
-  );
+  List score = await boxScore.get(wordScore);
   return Score(
-    wordId: maps[0]['wordId'],
-    word: maps[0]['word'],
-    pronun: maps[0]['pronun'],
-    speak: maps[0]['speak'],
-    mean: maps[0]['mean'],
-    total: maps[0]['total'],
-    time: DateTime.now().millisecondsSinceEpoch,
+    wordId: score[0],
+    word: score[1],
+    pronun: score[2],
+    speak: score[3],
+    mean: score[4],
+    total: score[5],
+    time: score[6],
   );
 }
 
-Future<List<Score>> getListScore(int duration) async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // Open the database and store the reference.
-  final database = openDatabase(
-    join(await getDatabasesPath(), 'data.db'),
-    // When the database is first created, create a table to store dogs.
-    onCreate: (db, version) {
-      // Run the CREATE TABLE statement on the database.
-      db.execute(
-        'CREATE TABLE scores(wordId TEXT PRIMARY KEY, word INTEGER, pronun INTEGER, speak INTEGER, mean INTEGER, total INTEGER, time INTEGER)',
+Future<List<Score>> getListScore() async {
+  final Controller c = Get.put(Controller());
+  List<Score> findList = <Score>[];
+  for (var i=0;i<c.listWordScore.length;i++){
+    var nowWord = await boxScore.get(c.listWordScore[i]);
+    if (nowWord[5]>0){
+      findList.add(Score(
+        wordId: nowWord[0],
+        word: nowWord[1],
+        pronun: nowWord[2],
+        speak: nowWord[3],
+        mean: nowWord[4],
+        total: nowWord[5],
+        time: nowWord[6])
       );
-      db.execute(
-        'CREATE TABLE history(time INTEGER PRIMARY KEY, word TEXT)',
-      );
-    },
-    version: 1,
-  );
-  final db = await database;
-  List<Map> maps = await db.query (
-      'scores',
-      columns: ['wordId', 'word', 'pronun', 'speak', 'mean', 'total','time'],
-      orderBy: 'time DESC',
-      where: 'time > ?',
-      whereArgs: [DateTime.now().millisecondsSinceEpoch - duration]
-  );
-  return List.generate(maps.length, (i) {
-    return Score(
-      wordId: maps[i]['wordId'],
-      word: maps[i]['word'],
-      pronun: maps[i]['pronun'],
-      speak: maps[i]['speak'],
-      mean: maps[i]['mean'],
-      total: maps[i]['total'],
-      time: DateTime.now().millisecondsSinceEpoch,
-    );
-  });
+    }
+  }
+  findList.sort((a, b) => b.total.compareTo(a.total));
+  return findList;
 }
 
-Future insertScore(String wordScore) async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // Open the database and store the reference.
-  final database = openDatabase(
-    join(await getDatabasesPath(), 'data.db'),
-    // When the database is first created, create a table to store dogs.
-    onCreate: (db, version) {
-      db.execute(
-        'CREATE TABLE scores(wordId TEXT PRIMARY KEY, word INTEGER, pronun INTEGER, speak INTEGER, mean INTEGER, total INTEGER, time INTEGER)',
+Future<List<Score>> getListScoreTime(int start,int end) async {
+  List<Score> findList = <Score>[];
+  for (var i=0;i<boxScore.length;i++){
+    var nowWord = await boxScore.getAt(i);
+    if (nowWord[6] > start && nowWord[6] < end && nowWord[5]>0){
+      findList.add(Score(
+          wordId: nowWord[0],
+          word: nowWord[1],
+          pronun: nowWord[2],
+          speak: nowWord[3],
+          mean: nowWord[4],
+          total: nowWord[5],
+          time: nowWord[6])
       );
-      db.execute(
-        'CREATE TABLE history(time INTEGER PRIMARY KEY, word TEXT)',
-      );
-    },
-    version: 1,
-  );
-  final db = await database;
-  var newScore = Score(
-    wordId: wordScore,
-    word: 0,
-    pronun: 0,
-    speak: 0,
-    mean: 0,
-    total: 0,
-    time: DateTime.now().millisecondsSinceEpoch,
-  );
-  await db.insert(
-    'scores',
-    newScore.toMap(),
-    conflictAlgorithm: ConflictAlgorithm.replace,
-  );
+    }
+  }
+  findList.sort((a, b) => b.total.compareTo(a.total));
+  return findList;
 }
 
 Future<bool> checkScore(String wordScore) async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // Open the database and store the reference.
-  final database = openDatabase(
-    join(await getDatabasesPath(), 'data.db'),
-    // When the database is first created, create a table to store dogs.
-    onCreate: (db, version) {
-      db.execute(
-        'CREATE TABLE scores(wordId TEXT PRIMARY KEY, word INTEGER, pronun INTEGER, speak INTEGER, mean INTEGER, total INTEGER, time INTEGER)',
-      );
-      db.execute(
-        'CREATE TABLE history(time INTEGER PRIMARY KEY, word TEXT)',
-      );
-    },
-    version: 1,
-  );
-  final db = await database;
-  List<Map> maps = await db.query(
-      'scores',
-      columns: ['wordId'],
-      where: 'wordId = ?',
-      whereArgs: [wordScore]);
-  if (maps.isNotEmpty) {
+  List score = await boxScore.get(wordScore) ?? [];
+  if (score[5]>0) {
     return true;
   }else{
     return false;
@@ -6770,28 +6972,15 @@ Future<bool> checkScore(String wordScore) async {
 }
 
 Future updateScore(Score dataScore) async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // Open the database and store the reference.
-  final database = openDatabase(
-    join(await getDatabasesPath(), 'data.db'),
-    // When the database is first created, create a table to store dogs.
-    onCreate: (db, version) {
-      db.execute(
-        'CREATE TABLE scores(wordId TEXT PRIMARY KEY, word INTEGER, pronun INTEGER, speak INTEGER, mean INTEGER, total INTEGER, time INTEGER)',
-      );
-      db.execute(
-        'CREATE TABLE history(time INTEGER PRIMARY KEY, word TEXT)',
-      );
-    },
-    version: 1,
-  );
-  final db = await database;
-  await db.update(
-      'scores',
-      dataScore.toMap(),
-      where: 'wordId = ?',
-      whereArgs: [dataScore.wordId]
-  );
+  await boxScore.put(dataScore.wordId,[
+    dataScore.wordId,
+    dataScore.word,
+    dataScore.pronun,
+    dataScore.speak,
+    dataScore.mean,
+    dataScore.total,
+    DateTime.now().millisecondsSinceEpoch
+  ]);
 }
 
 class Score {
@@ -6876,173 +7065,122 @@ Future showNotification() async {
   );
 }
 
-Future<List<String>> getScoreScore() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // Open the database and store the reference.
-  final database = openDatabase(
-    join(await getDatabasesPath(), 'data.db'),
-    // When the database is first created, create a table to store dogs.
-    onCreate: (db, version) {
-      // Run the CREATE TABLE statement on the database.
-      db.execute(
-        'CREATE TABLE scores(wordId TEXT PRIMARY KEY, word INTEGER, pronun INTEGER, speak INTEGER, mean INTEGER, total INTEGER, time INTEGER)',
-      );
-      db.execute(
-        'CREATE TABLE history(time INTEGER PRIMARY KEY, word TEXT)',
-      );
-    },
-    version: 1,
-  );
-  final db = await database;
-  List<Map> maps = await db.query (
-    'scores',
-    columns: ['wordId'],
-    orderBy: 'total ASC',
-    limit: 10,
-  );
-  return List.generate(maps.length, (i) {
-    return maps[i]['wordId'];
-  });
-}
-Future<List<String>> getScoreTime() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // Open the database and store the reference.
-  final database = openDatabase(
-    join(await getDatabasesPath(), 'data.db'),
-    // When the database is first created, create a table to store dogs.
-    onCreate: (db, version) {
-      // Run the CREATE TABLE statement on the database.
-      db.execute(
-        'CREATE TABLE scores(wordId TEXT PRIMARY KEY, word INTEGER, pronun INTEGER, speak INTEGER, mean INTEGER, total INTEGER, time INTEGER)',
-      );
-      db.execute(
-        'CREATE TABLE history(time INTEGER PRIMARY KEY, word TEXT)',
-      );
-    },
-    version: 1,
-  );
-  final db = await database;
-  List<Map> maps = await db.query (
-    'scores',
-    columns: ['wordId'],
-    orderBy: 'time DESC',
-    limit: 10,
-  );
-  return List.generate(maps.length, (i) {
-    return maps[i]['wordId'];
-  });
+Future<List<String>> getScoreNotification() async {
+  List<String> findList = <String>[];
+  List findListScore = [];
+  for (var i=0;i<boxScore.length;i++){
+    var nowWord = await boxScore.getAt(i);
+    if (nowWord[5]>0) findListScore.add(nowWord);
+  }
+  findListScore.sort((a, b) => a[5].compareTo(b[5]));
+  for (var i=0;i<(findListScore.length<10?findListScore.length:10);i++){
+    if (!findList.contains(findListScore[i][0])) {
+      findList.add(findListScore[i][0]);
+    }
+  }
+  findListScore.sort((a, b) => a[6].compareTo(b[6]));
+  for (var i=0;i<(findListScore.length<10?findListScore.length:10);i++){
+    if (!findList.contains(findListScore[i][0])) {
+      findList.add(findListScore[i][0]);
+    }
+  }
+  return findList;
 }
 
 Future showNotificationWord() async {
-  final Controller c = Get.put(Controller());
-  AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
-    if (!isAllowed) {
-      // Insert here your friendly dialog box before call the request method
-      // This is very important to not harm the user experience
-      AwesomeNotifications().requestPermissionToSendNotifications();
-    }
-  });
-
-  List<String> listWord = <String>[];
-  List<String> listScoreScore = await getScoreScore();
-  for (var i=0;i< listScoreScore.length;i++){
-    if (!listWord.contains(listScoreScore[i])){
-      listWord.add(listScoreScore[i]);
-    }
-  }
-  List<String> listScoreTime = await getScoreTime();
-  for (var i=0;i< listScoreTime.length;i++){
-    if (!listWord.contains(listScoreTime[i])){
-      listWord.add(listScoreTime[i]);
-    }
-  }
-  var box = await Hive.openBox('data');
-  String localTimeZone = await AwesomeNotifications().getLocalTimeZoneIdentifier();
-  for (var i=1;i<18;i++){
-    var dataRaw = await box.get(listWord[Random().nextInt(listWord.length)]);
-    var randomMean = Random().nextInt(jsonDecode(dataRaw['mean']).length);
-    List listMean = jsonDecode(dataRaw['mean'])[randomMean];
-    List meanENAdd = [];
-    List meanVNAdd = [];
-    for(var j = 0; j< listMean.length; j++) {
-      String meanENElement = '';
-      if(listMean[j].contains('#')){
-        meanENElement = listMean[j].split('#')[1];
-      }else{
-        meanENElement = listMean[j];
+  List<String> listWord = await getScoreNotification();
+  if (listWord.isNotEmpty){
+    final Controller c = Get.put(Controller());
+    AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
+      if (!isAllowed) {
+        // Insert here your friendly dialog box before call the request method
+        // This is very important to not harm the user experience
+        AwesomeNotifications().requestPermissionToSendNotifications();
       }
-      meanENAdd.add(meanENElement);
-      String meanVNElement = jsonDecode(dataRaw['meanVN'])[randomMean][j];
-      meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
-      meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
-      meanVNAdd.add(meanVNElement);
-    }
-    String meanEN = '';
-    String meanVN = '';
-    String mean = '';
-    for(var j = 0; j< meanENAdd.length; j++) {
-      if (j==0){
-        meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
-        meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
-      }else{
-        meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
-        meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+    });
+    String localTimeZone = await AwesomeNotifications().getLocalTimeZoneIdentifier();
+    for (var i=0;i<=960;i+=c.notificationInterval.value){
+      var dataRaw = await box.get(listWord[Random().nextInt(listWord.length)]);
+      var randomMean = Random().nextInt(jsonDecode(dataRaw['mean']).length);
+      List listMean = jsonDecode(dataRaw['mean'])[randomMean];
+      List meanENAdd = [];
+      List meanVNAdd = [];
+      for(var j = 0; j< listMean.length; j++) {
+        String meanENElement = '';
+        if(listMean[j].contains('#')){
+          meanENElement = listMean[j].split('#')[1];
+        }else{
+          meanENElement = listMean[j];
+        }
+        meanENAdd.add(meanENElement);
+        String meanVNElement = jsonDecode(dataRaw['meanVN'])[randomMean][j];
+        meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
+        meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
+        meanVNAdd.add(meanVNElement);
       }
+      String meanEN = '';
+      String meanVN = '';
+      String mean = '';
+      for(var j = 0; j< meanENAdd.length; j++) {
+        if (j==0){
+          meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+          meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+        }else{
+          meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+          meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+        }
+      }
+      if (c.language.string == 'VN'){
+        mean = meanVN;
+      }else{
+        mean = meanEN;
+      }
+      String image = '';
+      if (randomMean>=jsonDecode(dataRaw['imageURL']).length){
+        image = 'https://bedict.com/bedict.png';
+      }else{
+        image = 'https://bedict.com/' + jsonDecode(dataRaw['imageURL'])[randomMean];
+      }
+      await AwesomeNotifications().createNotification(
+          content: NotificationContent(
+            id: i,
+            channelKey: 'word',
+            title: dataRaw['word'],
+            body: mean,
+            bigPicture: image,
+            largeIcon: image,
+            hideLargeIconOnExpand: true,
+            notificationLayout: NotificationLayout.BigPicture,
+          ),
+          schedule: NotificationCalendar(
+            second: 0, millisecond: 0,
+            minute: i % 60,
+            hour: 6 + i ~/ 60,
+            timeZone: localTimeZone, repeats: true,
+            allowWhileIdle: true,
+          )
+      );
     }
-    if (c.language.string == 'VN'){
-      mean = meanVN;
-    }else{
-      mean = meanEN;
-    }
-    String image = '';
-    if (randomMean>=jsonDecode(dataRaw['imageURL']).length){
-      image = 'https://bedict.com/bedict.png';
-    }else{
-      image = 'https://bedict.com/' + jsonDecode(dataRaw['imageURL'])[randomMean];
-    }
-    await AwesomeNotifications().createNotification(
-      content: NotificationContent(
-        id: i,
-        channelKey: 'word',
-        title: dataRaw['word'],
-        body: mean,
-        bigPicture: image,
-        largeIcon: image,
-        hideLargeIconOnExpand: true,
-        notificationLayout: NotificationLayout.BigPicture,
-      ),
-      // schedule: NotificationInterval(interval: i*5, timeZone: localTimeZone),
-      schedule: NotificationCalendar(
-        second: 0, millisecond: 0,
-        minute: 0,
-        hour: 5 + i,
-        timeZone: localTimeZone, repeats: true,
-        allowWhileIdle: true,
-      )
-    );
   }
-  await box.close();
 }
 
 Future showWord(String wordShow) async {
   if (wordShow != 'Daily'){
-    var box = await Hive.openBox('setting');
 
     final Controller c = Get.put(Controller());
 
     c.category = RxString('category');
-    await box.put('category',0);
+    await boxSetting.put('category',0);
 
     c.type = RxString('type');
-    await box.put('type',0);
+    await boxSetting.put('type',0);
 
     c.categoryIndex = 0.obs;
     c.typeIndex = 0.obs;
     c.levelIndex = 0.obs;
 
     c.level = RxString('all words');
-    await box.put('level',0);
-    await box.close();
+    await boxSetting.put('level',0);
 
     final String response = await rootBundle.loadString('assets/allWords.json');
     final data = await json.decode(response);
