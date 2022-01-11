@@ -6360,7 +6360,7 @@ List laytuloai(String kyhieu){
 Future showFullScreenAd(String word) async {
   final Controller c = Get.put(Controller());
   InterstitialAd.load(
-    adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/1735030175':'ca-app-pub-3940256099942544/4411468910',
+    adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/1735030175':'ca-app-pub-9467993129762242/5200342904',
     request: const AdRequest(),
     adLoadCallback: InterstitialAdLoadCallback(
       onAdLoaded: (InterstitialAd ad) {
@@ -6392,7 +6392,7 @@ Future showFullScreenAd(String word) async {
 Future showAdLearn(int tab) async {
   final Controller c = Get.put(Controller());
   InterstitialAd.load(
-    adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/1735030175':'ca-app-pub-3940256099942544/4411468910',
+    adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/1735030175':'ca-app-pub-9467993129762242/5200342904',
     request: const AdRequest(),
     adLoadCallback: InterstitialAdLoadCallback(
       onAdLoaded: (InterstitialAd ad) {
