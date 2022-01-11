@@ -708,7 +708,7 @@ class Introduce extends StatelessWidget {
     Get.to(()=>const LoadingPage());
   }
 
-  Widget _buildImage(String assetName, [double width = 300]) {
+  Widget _buildImage(String assetName, [double width = 250]) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: Image.asset('assets/$assetName', width: width)
@@ -6376,7 +6376,7 @@ List laytuloai(String kyhieu){
 Future showFullScreenAd(String word) async {
   final Controller c = Get.put(Controller());
   InterstitialAd.load(
-    adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/1735030175':'ca-app-pub-9467993129762242/5200342904',
+    adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/1735030175':'ca-app-pub-3940256099942544/4411468910',
     request: const AdRequest(),
     adLoadCallback: InterstitialAdLoadCallback(
       onAdLoaded: (InterstitialAd ad) {
@@ -6408,7 +6408,7 @@ Future showFullScreenAd(String word) async {
 Future showAdLearn(int tab) async {
   final Controller c = Get.put(Controller());
   InterstitialAd.load(
-    adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/1735030175':'ca-app-pub-9467993129762242/5200342904',
+    adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/1735030175':'ca-app-pub-3940256099942544/4411468910',
     request: const AdRequest(),
     adLoadCallback: InterstitialAdLoadCallback(
       onAdLoaded: (InterstitialAd ad) {
