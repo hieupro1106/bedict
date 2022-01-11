@@ -2421,19 +2421,15 @@ class WriteWidget extends StatelessWidget {
       reset();
     });
 
-    return GestureDetector(
-      onDoubleTap: () {
-        reset();
-      },
-      child: Container(
-        color: Colors.transparent,
-        child: Column(
-          children: [
-            const SizedBox(height:10),
-            GetBuilder<Controller>(
-              builder: (_) => SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
+    return Container(
+      color: Colors.transparent,
+      child: Column(
+        children: [
+          const SizedBox(height:10),
+          GetBuilder<Controller>(
+            builder: (_) => SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     for (int index=0; index<c.mean.length; index++)
@@ -2491,35 +2487,35 @@ class WriteWidget extends StatelessWidget {
                           )
                       ),
                   ]
-                ),
               ),
             ),
-            const SizedBox(height:10),
-            GetBuilder<Controller>(
-              builder: (_) => LinearPercentIndicator(
-                alignment: MainAxisAlignment.center,
-                width: MediaQuery.of(context).size.width - 20,
-                lineHeight: 3,
-                percent: c.wordScore.value/25,
-                backgroundColor: Colors.black.withOpacity(0.1),
-                progressColor: Colors.black.withOpacity(0.3),
-                padding: const EdgeInsets.all(0),
-                animation: true,
-              ),
+          ),
+          const SizedBox(height:10),
+          GetBuilder<Controller>(
+            builder: (_) => LinearPercentIndicator(
+              alignment: MainAxisAlignment.center,
+              width: MediaQuery.of(context).size.width - 20,
+              lineHeight: 3,
+              percent: c.wordScore.value/25,
+              backgroundColor: Colors.black.withOpacity(0.1),
+              progressColor: Colors.black.withOpacity(0.3),
+              padding: const EdgeInsets.all(0),
+              animation: true,
             ),
-            Expanded(
-              child: Row(
-                  children:[
-                    const SizedBox(width:20),
-                    Expanded(
-                      child: Column(
-                          children:[
-                            Expanded(
-                              child: Container(
-                                alignment: Alignment.center,
-                                child: SingleChildScrollView(
-                                  child: GetBuilder<Controller>(
-                                    builder: (_) => Wrap(
+          ),
+          Expanded(
+            child: Row(
+                children:[
+                  const SizedBox(width:20),
+                  Expanded(
+                    child: Column(
+                        children:[
+                          Expanded(
+                            child: Container(
+                              alignment: Alignment.center,
+                              child: SingleChildScrollView(
+                                child: GetBuilder<Controller>(
+                                  builder: (_) => Wrap(
                                       spacing: 5,
                                       runSpacing: 5,
                                       runAlignment: WrapAlignment.center,
@@ -2539,7 +2535,6 @@ class WriteWidget extends StatelessWidget {
                                                 }
                                               }
                                             },
-                                            onDoubleTap: (){},
                                             child: Neumorphic(
                                               style: c.listArrange[i] == ''?
                                               NeumorphicStyle(
@@ -2574,16 +2569,16 @@ class WriteWidget extends StatelessWidget {
                                           )
                                       ]
                                   ),
-                                  ),
                                 ),
                               ),
                             ),
-                            Expanded(
-                              child: Container(
-                                alignment: Alignment.center,
-                                child: SingleChildScrollView(
-                                  child: GetBuilder<Controller>(
-                                    builder: (_) => Wrap(
+                          ),
+                          Expanded(
+                            child: Container(
+                              alignment: Alignment.center,
+                              child: SingleChildScrollView(
+                                child: GetBuilder<Controller>(
+                                  builder: (_) => Wrap(
                                       spacing: 5,
                                       runSpacing: 5,
                                       runAlignment: WrapAlignment.center,
@@ -2640,7 +2635,6 @@ class WriteWidget extends StatelessWidget {
                                                 }
                                               }
                                             },
-                                            onDoubleTap: (){},
                                             child: Neumorphic(
                                               style: c.listRandom[i] == ''?
                                               NeumorphicStyle(
@@ -2675,19 +2669,18 @@ class WriteWidget extends StatelessWidget {
                                           )
                                       ]
                                   ),
-                                  ),
                                 ),
                               ),
                             ),
-                          ]
-                      ),
+                          ),
+                        ]
                     ),
-                    const SizedBox(width:5),
-                  ]
-              ),
+                  ),
+                  const SizedBox(width:5),
+                ]
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -2710,105 +2703,101 @@ class PronunWidget extends StatelessWidget {
       reset();
     });
 
-    return GestureDetector(
-      onDoubleTap: () {
-        reset();
-      },
-      child: Container(
-        color: Colors.transparent,
-        child: Column(
-          children: [
-            const SizedBox(height:10),
-            GetBuilder<Controller>(
-              builder: (_) => SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      for (int index=0; index<c.mean.length; index++)
-                        Container(
-                            margin: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: const BorderRadius.all(
-                                  Radius.circular(8)
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.6),
-                                  spreadRadius: 0,
-                                  blurRadius: 5,
-                                  offset: const Offset(5, 5), // changes position of shadow
-                                ),
-                              ],
+    return Container(
+      color: Colors.transparent,
+      child: Column(
+        children: [
+          const SizedBox(height:10),
+          GetBuilder<Controller>(
+            builder: (_) => SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (int index=0; index<c.mean.length; index++)
+                      Container(
+                          margin: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: const BorderRadius.all(
+                                Radius.circular(8)
                             ),
-                            width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                            height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
-                            child: Stack(
-                                children:[
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: ImageFiltered(
-                                      imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                                      child: Opacity(
-                                        opacity: 0.8,
-                                        child: Image(
-                                          image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
-                                          fit: BoxFit.cover,
-                                          width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                          height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
-                                          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                            return const SizedBox();
-                                          },
-                                        ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.6),
+                                spreadRadius: 0,
+                                blurRadius: 5,
+                                offset: const Offset(5, 5), // changes position of shadow
+                              ),
+                            ],
+                          ),
+                          width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                          height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                          child: Stack(
+                              children:[
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: ImageFiltered(
+                                    imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                    child: Opacity(
+                                      opacity: 0.8,
+                                      child: Image(
+                                        image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
+                                        fit: BoxFit.cover,
+                                        width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                                        height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                          return const SizedBox();
+                                        },
                                       ),
                                     ),
                                   ),
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image(
-                                      image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
-                                      fit: BoxFit.contain,
-                                      width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                      height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
-                                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                        return const SizedBox();
-                                      },
-                                    ),
+                                ),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image(
+                                    image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
+                                    fit: BoxFit.contain,
+                                    width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
+                                    height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                    errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                      return const SizedBox();
+                                    },
                                   ),
-                                ]
-                            )
-                        ),
-                    ]
-                ),
+                                ),
+                              ]
+                          )
+                      ),
+                  ]
               ),
             ),
-            const SizedBox(height:10),
-            GetBuilder<Controller>(
-              builder: (_) => LinearPercentIndicator(
-                alignment: MainAxisAlignment.center,
-                width: MediaQuery.of(context).size.width - 20,
-                lineHeight: 3,
-                percent: c.pronunScore.value/25,
-                backgroundColor: Colors.black.withOpacity(0.1),
-                progressColor: Colors.black.withOpacity(0.3),
-                padding: const EdgeInsets.all(0),
-                animation: true,
-              ),
+          ),
+          const SizedBox(height:10),
+          GetBuilder<Controller>(
+            builder: (_) => LinearPercentIndicator(
+              alignment: MainAxisAlignment.center,
+              width: MediaQuery.of(context).size.width - 20,
+              lineHeight: 3,
+              percent: c.pronunScore.value/25,
+              backgroundColor: Colors.black.withOpacity(0.1),
+              progressColor: Colors.black.withOpacity(0.3),
+              padding: const EdgeInsets.all(0),
+              animation: true,
             ),
-            Expanded(
-              child: Row(
-                  children:[
-                    const SizedBox(width:20),
-                    Expanded(
-                      child: Column(
-                          children:[
-                            Expanded(
-                              child: Container(
-                                alignment: Alignment.center,
-                                child: SingleChildScrollView(
-                                  child: GetBuilder<Controller>(
-                                    builder: (_) => Wrap(
+          ),
+          Expanded(
+            child: Row(
+                children:[
+                  const SizedBox(width:20),
+                  Expanded(
+                    child: Column(
+                        children:[
+                          Expanded(
+                            child: Container(
+                              alignment: Alignment.center,
+                              child: SingleChildScrollView(
+                                child: GetBuilder<Controller>(
+                                  builder: (_) => Wrap(
                                       spacing: 5,
                                       runSpacing: 5,
                                       runAlignment: WrapAlignment.center,
@@ -2828,7 +2817,6 @@ class PronunWidget extends StatelessWidget {
                                                 }
                                               }
                                             },
-                                            onDoubleTap: (){},
                                             child: Neumorphic(
                                               style: c.listArrangePronun[i] == ''?
                                               NeumorphicStyle(
@@ -2863,16 +2851,16 @@ class PronunWidget extends StatelessWidget {
                                           )
                                       ]
                                   ),
-                                  ),
                                 ),
                               ),
                             ),
-                            Expanded(
-                              child: Container(
-                                alignment: Alignment.center,
-                                child: SingleChildScrollView(
-                                  child: GetBuilder<Controller>(
-                                    builder: (_) => Wrap(
+                          ),
+                          Expanded(
+                            child: Container(
+                              alignment: Alignment.center,
+                              child: SingleChildScrollView(
+                                child: GetBuilder<Controller>(
+                                  builder: (_) => Wrap(
                                       spacing: 5,
                                       runSpacing: 5,
                                       runAlignment: WrapAlignment.center,
@@ -2929,7 +2917,6 @@ class PronunWidget extends StatelessWidget {
                                                 }
                                               }
                                             },
-                                            onDoubleTap: (){},
                                             child: Neumorphic(
                                               style: c.listRandomPronun[i] == ''?
                                               NeumorphicStyle(
@@ -2964,19 +2951,18 @@ class PronunWidget extends StatelessWidget {
                                           )
                                       ]
                                   ),
-                                  ),
                                 ),
                               ),
                             ),
-                          ]
-                      ),
+                          ),
+                        ]
                     ),
-                    const SizedBox(width:5),
-                  ]
-              ),
+                  ),
+                  const SizedBox(width:5),
+                ]
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -3200,8 +3186,7 @@ class SpeakWidget extends StatelessWidget {
       c.update();
     });
 
-    return GestureDetector(
-      child: Container(
+    return Container(
         color: Colors.transparent,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -3362,7 +3347,6 @@ class SpeakWidget extends StatelessWidget {
             ),
           ],
         )
-      )
     );
   }
 }
