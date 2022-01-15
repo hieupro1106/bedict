@@ -820,6 +820,12 @@ class Home extends StatelessWidget {
   Widget build(context) {
     final Controller c = Get.put(Controller());
     List<String> suggestArray = [];
+    const colorizeColors = [
+      Colors.black,
+      Colors.blue,
+      Colors.yellow,
+      Colors.green,
+    ];
 
     Future<void> showTime() async {
       final TimeOfDay? result =
@@ -1814,31 +1820,50 @@ class Home extends StatelessWidget {
                             children: [
                               GetBuilder<Controller>(
                                 builder: (_) => Flexible(
-                                  child: DefaultTextStyle(
-                                    style: TextStyle(
-                                      fontSize: 50,
-                                      letterSpacing: 1,
-                                      fontWeight: FontWeight.w600,
-                                      foreground: Paint()..shader = linearGradient,
-                                      shadows: [
-                                        Shadow(
-                                          blurRadius: 15,
-                                          color: Colors.black.withOpacity(0.5),
-                                          offset: const Offset(3, 3),
+                                  child: AnimatedTextKit(
+                                    key: ValueKey<String> (c.word.string),
+                                    animatedTexts: [
+                                      ColorizeAnimatedText(
+                                        c.word.string,
+                                        textAlign: TextAlign.center,
+                                        speed: const Duration(milliseconds: 300),
+                                        textStyle: TextStyle(
+                                          fontSize: 50,
+                                          letterSpacing: 1,
+                                          fontWeight: FontWeight.w600,
+                                          shadows: [
+                                            Shadow(
+                                              blurRadius: 15,
+                                              color: Colors.black.withOpacity(0.5),
+                                              offset: const Offset(3, 3),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                    child: AnimatedTextKit(
-                                      key: ValueKey<String>(c.word.string),
-                                      animatedTexts: [
-                                        WavyAnimatedText(c.word.string),
-                                        WavyAnimatedText(c.pronun.string),
-                                      ],
-                                      isRepeatingAnimation: true,
-                                      repeatForever: true,
-                                      onTap: () {},
-                                    ),
-                                  )
+                                        colors: colorizeColors,
+                                      ),
+                                      ColorizeAnimatedText(
+                                        c.pronun.string,
+                                        textAlign: TextAlign.center,
+                                        speed: const Duration(milliseconds: 300),
+                                        textStyle: TextStyle(
+                                          fontSize: 50,
+                                          letterSpacing: 1,
+                                          fontWeight: FontWeight.w600,
+                                          shadows: [
+                                            Shadow(
+                                              blurRadius: 15,
+                                              color: Colors.black.withOpacity(0.5),
+                                              offset: const Offset(3, 3),
+                                            ),
+                                          ],
+                                        ),
+                                        colors: colorizeColors,
+                                      ),
+                                    ],
+                                    isRepeatingAnimation: true,
+                                    repeatForever: true,
+                                    onTap: () {},
+                                  ),
                                 ),
                               ),
                             ],
@@ -3359,6 +3384,12 @@ class MeanWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
     List<bool> ktMean = <bool>[for (int i=0; i<c.mean.length; i++)false];
+    const colorizeColors = [
+      Colors.black,
+      Colors.blue,
+      Colors.yellow,
+      Colors.green,
+    ];
 
     Future.delayed(Duration.zero, () async {
       c.nowIndex = 0.obs;
@@ -3403,31 +3434,50 @@ class MeanWidget extends StatelessWidget {
                     children: [
                       GetBuilder<Controller>(
                         builder: (_) => Flexible(
-                            child: DefaultTextStyle(
-                              style: TextStyle(
-                                fontSize: 50,
-                                letterSpacing: 1,
-                                fontWeight: FontWeight.w600,
-                                foreground: Paint()..shader = linearGradient,
-                                shadows: [
-                                  Shadow(
-                                    blurRadius: 15,
-                                    color: Colors.black.withOpacity(0.5),
-                                    offset: const Offset(3, 3),
-                                  ),
-                                ],
+                          child: AnimatedTextKit(
+                            key: ValueKey<String> (c.word.string),
+                            animatedTexts: [
+                              ColorizeAnimatedText(
+                                c.word.string,
+                                textAlign: TextAlign.center,
+                                speed: const Duration(milliseconds: 300),
+                                textStyle: TextStyle(
+                                  fontSize: 50,
+                                  letterSpacing: 1,
+                                  fontWeight: FontWeight.w600,
+                                  shadows: [
+                                    Shadow(
+                                      blurRadius: 15,
+                                      color: Colors.black.withOpacity(0.5),
+                                      offset: const Offset(3, 3),
+                                    ),
+                                  ],
+                                ),
+                                colors: colorizeColors,
                               ),
-                              child: AnimatedTextKit(
-                                key: ValueKey<String>(c.word.string),
-                                animatedTexts: [
-                                  WavyAnimatedText(c.word.string),
-                                  WavyAnimatedText(c.pronun.string),
-                                ],
-                                isRepeatingAnimation: true,
-                                repeatForever: true,
-                                onTap: () {},
+                              ColorizeAnimatedText(
+                                c.pronun.string,
+                                textAlign: TextAlign.center,
+                                speed: const Duration(milliseconds: 300),
+                                textStyle: TextStyle(
+                                  fontSize: 50,
+                                  letterSpacing: 1,
+                                  fontWeight: FontWeight.w600,
+                                  shadows: [
+                                    Shadow(
+                                      blurRadius: 15,
+                                      color: Colors.black.withOpacity(0.5),
+                                      offset: const Offset(3, 3),
+                                    ),
+                                  ],
+                                ),
+                                colors: colorizeColors,
                               ),
-                            )
+                            ],
+                            isRepeatingAnimation: true,
+                            repeatForever: true,
+                            onTap: () {},
+                          ),
                         ),
                       ),
                     ],
