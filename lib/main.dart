@@ -37,6 +37,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 // import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:soundpool/soundpool.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
 
 List<String> listCategoryVN = ["tất cả chủ đề","khả năng","trừu tượng","thành tích","hành động","tuổi tác","nông nghiệp",
 "trợ giúp","số lượng","giải phẫu","động vật","vẻ ngoài","khảo cổ học","kiến trúc","khu vực",
@@ -187,9 +188,6 @@ Future<void> main() async {
   c.notifyWord = RxBool(await boxSetting.get('notifyWord') ?? false);
   c.enableSound = RxBool(await boxSetting.get('enableSound') ?? true);
   c.initSpeak = RxBool(await boxSetting.get('initSpeak') ?? true);
-  c.category = RxString(listCategoryEN[await boxSetting.get('category') ?? 0]);
-  c.type = RxString(listTypeEN[await boxSetting.get('type') ?? 0]);
-  c.level = RxString(listLevelEN[await boxSetting.get('level') ?? 0]);
   c.word = RxString(await boxSetting.get('word') ?? 'hello');
   c.speakSpeed = RxDouble(await boxSetting.get('speakSpeed') ?? 0.3);
   c.target = RxInt(await boxSetting.get('target') ?? 10);
@@ -198,6 +196,13 @@ Future<void> main() async {
   c.categoryIndex = RxInt(await boxSetting.get('category') ?? 0);
   c.typeIndex = RxInt(await boxSetting.get('type') ?? 0);
   c.levelIndex = RxInt(await boxSetting.get('level') ?? 0);
+  for (var i=0;i<4;i++){
+    if (c.levelIndex.value == i) {
+      c.isSelectedBundle[i] = true;
+    } else {
+      c.isSelectedBundle[i] = false;
+    }
+  }
   if (c.language.string == 'VN'){
     c.listCategory = listCategoryVN;
     c.listType = listTypeVN;
@@ -860,206 +865,6 @@ class Home extends StatelessWidget {
         child: Drawer(
           backgroundColor: Colors.white.withOpacity(0.8),
             child: Column(
-                children: [
-                  DrawerHeader(
-                    margin: const EdgeInsets.all(0),
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-                    decoration: BoxDecoration(
-                      color: backgroundColor.withOpacity(0.4),
-                    ),
-                    child: Container(
-                      alignment: Alignment.center,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            'BeDict',
-                            style: TextStyle(
-                                fontSize: 50,
-                                foreground: Paint()..shader = linearGradient
-                            ),
-                          ),
-                          Text(
-                            'Pictorial Dictionary',
-                            style: TextStyle(
-                                fontSize: 16.7,
-                                foreground: Paint()..shader = linearGradient
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                  Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            alignment: Alignment.center,
-                            height: 45,
-                            child: GetBuilder<Controller>(
-                              builder: (_) => ToggleButtons(
-                                fillColor: backgroundColor,
-                                borderRadius: const BorderRadius.all(
-                                    Radius.circular(30)
-                                ),
-                                disabledColor: themeColor,
-                                children: <Widget>[
-                                  SizedBox(
-                                    width: (MediaQuery.of(context).size.width*0.7-25)*3/9,
-                                    child: Text(
-                                      c.language.string == 'VN'? 'tất cả từ': 'all words',
-                                      style: const TextStyle(
-                                        color: textColor,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: (MediaQuery.of(context).size.width*0.7-25)*2/9,
-                                    child: const Text(
-                                      '8.000',
-                                      style: TextStyle(
-                                        color: textColor,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: (MediaQuery.of(context).size.width*0.7-25)*2/9,
-                                    child: const Text(
-                                      '5.000',
-                                      style: TextStyle(
-                                        color: textColor,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: (MediaQuery.of(context).size.width*0.7-25)*2/9,
-                                    child: const Text(
-                                      '3.000',
-                                      style: TextStyle(
-                                        color: textColor,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                                onPressed: (int index) {
-                                  for (var i=0;i<4;i++){
-                                    i!=index? c.isSelectedBundle[i] = false
-                                        : c.isSelectedBundle[i] = true;
-                                  }
-                                  c.changeLevel(index);
-                                  Navigator.pop(context);
-                                },
-                                isSelected: c.isSelectedBundle,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ]
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            alignment: Alignment.center,
-                            height: 45,
-                            child: GetBuilder<Controller>(
-                              builder: (_) => ToggleButtons(
-                                fillColor: backgroundColor,
-                                borderRadius: const BorderRadius.all(
-                                    Radius.circular(30)
-                                ),
-                                disabledColor: themeColor,
-                                children: <Widget>[
-                                  SizedBox(
-                                    width: (MediaQuery.of(context).size.width*0.7-23)/2,
-                                    child: Text(
-                                      c.language.string == 'VN'? 'chủ đề':'category',
-                                      style: const TextStyle(
-                                        color: textColor,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: (MediaQuery.of(context).size.width*0.7-23)/2,
-                                    child: Text(
-                                      c.language.string == 'VN'? 'từ loại':'type',
-                                      style: const TextStyle(
-                                        color: textColor,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                                onPressed: (int index) {
-                                  for (var i=0;i<2;i++){
-                                    i!=index? c.isSelectedSort[i] = false
-                                        : c.isSelectedSort[i] = true;
-                                  }
-                                  c.update();
-                                },
-                                isSelected: c.isSelectedSort,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ]
-                  ),
-                  const SizedBox(height: 10),
-                  Expanded(
-                    child: GetBuilder<Controller>(
-                      builder: (_) => ListView.builder(
-                        // Important: Remove any padding from the ListView.
-                          padding: EdgeInsets.zero,
-                          itemCount: c.isSelectedSort[0]?c.listCategory.length:c.listType.length,
-                          addAutomaticKeepAlives: false,
-                          itemBuilder: (BuildContext context, int i) {
-                            return Column(
-                                children:[
-                                  ListTile(
-                                    title: GetBuilder<Controller>(
-                                      builder: (_) => Text(
-                                        c.isSelectedSort[0]?c.listCategory[i]:c.listType[i],
-                                        style: const TextStyle(
-                                          color: textColor,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                    onTap: () {
-                                      c.isSelectedSort[0]?c.changeCategory(i):c.changeType(i);
-                                      Navigator.pop(context);
-                                    },
-                                  ),
-                                  const Divider(height:1),
-                                ]
-                            );
-                          }
-                      ),
-                    ),
-                  ),
-                ]
-            )
-        ),
-      ),
-      endDrawer: SizedBox(
-        width: MediaQuery.of(context).size.width*0.7,
-        child: Drawer(
-          backgroundColor: Colors.white.withOpacity(0.8),
-          child: Column(
               children: [
                 DrawerHeader(
                   margin: const EdgeInsets.all(0),
@@ -1091,421 +896,621 @@ class Home extends StatelessWidget {
                     ),
                   ),
                 ),
-                Expanded(
-                  child: ListView(
-                    // Important: Remove any padding from the ListView.
-                    padding: EdgeInsets.zero,
-                    children: [
-                      ListTile(
-                        title: GetBuilder<Controller>(
-                          builder: (_) => Text(
-                            c.isVip.value? 'VIP' : c.drawerUpgrade.string,
-                            style: const TextStyle(
-                              color: textColor,
+                const SizedBox(height: 15),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        alignment: Alignment.center,
+                        height: 45,
+                        child: GetBuilder<Controller>(
+                          builder: (_) => ToggleButtons(
+                            fillColor: backgroundColor.withOpacity(0.6),
+                            borderRadius: const BorderRadius.all(
+                                Radius.circular(30)
                             ),
-                            textAlign: TextAlign.center,
-                          ),),
-                        onTap: () {
-                          Navigator.pop(context);
-                          Get.to(()=>const MyUpgradePage());
-                        },
-                      ),
-                      const Divider(height:1),
-                      ListTile(
-                        title: GetBuilder<Controller>(
-                          builder: (_) => Text(
-                            c.drawerHistory.string,
-                            style: const TextStyle(
-                              color: textColor,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),),
-                        onTap: () {
-                          Navigator.pop(context);
-                          Get.to(()=>const HistoryPage());
-                        },
-                      ),
-                      const Divider(height:1,),
-                      ListTile(
-                        title: GetBuilder<Controller>(
-                          builder: (_) => Text(
-                            c.drawerScore.string,
-                            style: const TextStyle(
-                              color: textColor,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),),
-                        onTap: () {
-                          Navigator.pop(context);
-                          Get.to(()=> const ScorePage());
-                        },
-                      ),
-                      const Divider(height:1,),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          GetBuilder<Controller>(
-                            builder: (_) => Text(
-                              c.drawerDaily.string,
-                              style: const TextStyle(
-                                color: textColor,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),),
-                          GetBuilder<Controller>(
-                            builder: (_) => Switch(
-                              value: c.notifyDaily.value,
-                              onChanged: (value) async {
-                                c.notifyDaily = RxBool(value);
-                                c.update();
-                                await boxSetting.put('notifyDaily',value);
-                                if (value) {
-                                  showNotification();
-                                }else{
-                                  await AwesomeNotifications().dismiss(0);
-                                  await AwesomeNotifications().cancelSchedule(0);
-                                }
-                              },
-                              activeTrackColor: themeColor,
-                              activeColor: backgroundColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                      GetBuilder<Controller>(
-                        builder: (_) => Visibility(
-                            visible: c.notifyDaily.value,
-                            child: Column(
-                                children:[
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children:[
-                                      Text(
-                                        c.drawerTime.string,
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          color: textColor,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(width: 10,),
-                                      TextButton(
-                                        style: ButtonStyle(
-                                          backgroundColor: MaterialStateProperty.all<Color>(themeColor),
-                                          foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                                          padding: MaterialStateProperty.all<EdgeInsets>(
-                                              const EdgeInsets.all(0)
-                                          ),
-                                        ),
-                                        child: Row(
-                                            children: [
-                                              const SizedBox(
-                                                width: 10,
-                                              ),
-                                              GetBuilder<Controller>(
-                                                builder: (_) => Text(
-                                                  c.selectedTime.string,
-                                                  style: const TextStyle(
-                                                    fontSize: 15,
-                                                    color: textColor,
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(
-                                                width: 10,
-                                              ),
-                                            ]
-                                        ),
-                                        onPressed: () async {
-                                          await showTime();
-                                        },
-                                      ),
-                                    ],
+                            disabledColor: themeColor,
+                            children: <Widget>[
+                              SizedBox(
+                                width: (MediaQuery.of(context).size.width*0.7-25)*3/9,
+                                child: Text(
+                                  c.language.string == 'VN'? 'tất cả từ': 'all words',
+                                  style: const TextStyle(
+                                    color: textColor,
                                   ),
-                                  const SizedBox(height: 10,),
-                                  GetBuilder<Controller>(
-                                    builder: (_) => Text(
-                                      c.drawerTarget.string,
-                                      style: const TextStyle(
-                                        color: textColor,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),),
-                                  GetBuilder<Controller>(
-                                    builder: (_) => Slider(
-                                      value: c.target.value.toDouble(),
-                                      min: 5,
-                                      max: 50,
-                                      divisions: 9,
-                                      activeColor: backgroundColor,
-                                      inactiveColor: themeColor,
-                                      thumbColor: backgroundColor,
-                                      label: c.target.value.toString(),
-                                      onChanged: (double value) async {
-                                        c.target = RxInt(value.toInt());
-                                        await boxSetting.put('target',value.toInt());
-                                        c.update();
-                                      },
-                                    ),
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              SizedBox(
+                                width: (MediaQuery.of(context).size.width*0.7-25)*2/9,
+                                child: const Text(
+                                  '8.000',
+                                  style: TextStyle(
+                                    color: textColor,
                                   ),
-                                ]
-                            )
-                        ),
-                      ),
-                      const Divider(height:1),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          GetBuilder<Controller>(
-                            builder: (_) => Text(
-                              c.drawerWord.string,
-                              style: const TextStyle(
-                                color: textColor,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          GetBuilder<Controller>(
-                            builder: (_) => Switch(
-                              value: c.notifyWord.value,
-                              onChanged: (value) async {
-                                c.notifyWord = RxBool(value);
-                                c.update();
-                                await boxSetting.put('notifyWord',value);
-                                if (value) {
-                                  showNotificationWord();
-                                }else{
-                                  await AwesomeNotifications().dismissNotificationsByChannelKey('word');
-                                  await AwesomeNotifications().cancelSchedulesByChannelKey('word');
-                                }
-                              },
-                              activeTrackColor: themeColor,
-                              activeColor: backgroundColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                      GetBuilder<Controller>(
-                        builder: (_) => Visibility(
-                            visible: c.notifyWord.value,
-                            child: Column(
-                                children:[
-                                  GetBuilder<Controller>(
-                                    builder: (_) => Text(
-                                      c.language.string == 'VN'?
-                                      'Thông báo sau mỗi (phút):':
-                                      'Notify interval (minutes)',
-                                      style: const TextStyle(
-                                        color: textColor,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
+                              SizedBox(
+                                width: (MediaQuery.of(context).size.width*0.7-25)*2/9,
+                                child: const Text(
+                                  '5.000',
+                                  style: TextStyle(
+                                    color: textColor,
                                   ),
-                                  GetBuilder<Controller>(
-                                    builder: (_) => Slider(
-                                      value: c.notificationInterval.value.toDouble(),
-                                      min: 15,
-                                      max: 120,
-                                      divisions: 7,
-                                      activeColor: backgroundColor,
-                                      inactiveColor: themeColor,
-                                      thumbColor: backgroundColor,
-                                      label: c.notificationInterval.value.toString()
-                                          + (c.language.string == 'VN'? ' phút':' minutes'),
-                                      onChanged: (double value) async {
-                                        c.notificationInterval = RxInt(value.toInt());
-                                        await boxSetting.put('notificationInterval',value.toInt());
-                                        c.update();
-                                        await AwesomeNotifications().dismissNotificationsByChannelKey('word');
-                                        await AwesomeNotifications().cancelSchedulesByChannelKey('word');
-                                        showNotificationWord();
-                                      },
-                                    ),
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              SizedBox(
+                                width: (MediaQuery.of(context).size.width*0.7-25)*2/9,
+                                child: const Text(
+                                  '3.000',
+                                  style: TextStyle(
+                                    color: textColor,
                                   ),
-                                ]
-                            )
-                        ),
-                      ),
-                      const Divider(height:1,),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const SizedBox(height: 15,),
-                          GetBuilder<Controller>(
-                            builder: (_) => Text(
-                              c.drawerSpeech.string,
-                              style: const TextStyle(
-                                color: textColor,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                              textAlign: TextAlign.center,
-                            ),),
-                          GetBuilder<Controller>(
-                            builder: (_) => Slider(
-                              value: c.speakSpeed.value,
-                              min: 0.1,
-                              max: 1,
-                              divisions: 9,
-                              activeColor: backgroundColor,
-                              inactiveColor: themeColor,
-                              thumbColor: backgroundColor,
-                              label: double.parse((c.speakSpeed.value).toStringAsFixed(1)).toString(),
-                              onChanged: (double value) async {
-                                c.speakSpeed = RxDouble(value);
-                                await boxSetting.put('speakSpeed',value);
-                                c.update();
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Divider(height:1,),
-                      const SizedBox(height:5),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          GetBuilder<Controller>(
-                            builder: (_) => Text(
-                              c.drawerInitSpeak.string,
-                              style: const TextStyle(
-                                color: textColor,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),),
-                          const SizedBox(width:10),
-                          GetBuilder<Controller>(
-                            builder: (_) => Switch(
-                              activeColor: backgroundColor,
-                              activeTrackColor: themeColor,
-                              value: c.initSpeak.value,
-                              onChanged: (value) async {
-                                c.initSpeak = value.obs;
-                                c.update();
-                                await boxSetting.put('initSpeak',value);
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height:5),
-                      const Divider(height:1,),
-                      const SizedBox(height:5),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          GetBuilder<Controller>(
-                            builder: (_) => Text(
-                              c.drawerEnableSound.string,
-                              style: const TextStyle(
-                                color: textColor,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),),
-                          const SizedBox(width:10),
-                          GetBuilder<Controller>(
-                            builder: (_) => Switch(
-                              activeColor: backgroundColor,
-                              activeTrackColor: themeColor,
-                              value: c.enableSound.value,
-                              onChanged: (value) async {
-                                c.enableSound = value.obs;
-                                c.update();
-                                await boxSetting.put('enableSound',value);
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height:5),
-                      const Divider(height:1,),
-                      const SizedBox(height:12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          GetBuilder<Controller>(
-                            builder: (_) =>  Text(
-                              c.drawerLanguage.string,
-                              style: const TextStyle(
-                                color: textColor,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),),
-                          const SizedBox(width:10),
-                          ToggleSwitch(
-                            minWidth: 50.0,
-                            minHeight: 30.0,
-                            fontSize: 14.0,
-                            initialLabelIndex: initLanguageIndex,
-                            activeBgColor: const [backgroundColor],
-                            activeFgColor: Colors.white,
-                            inactiveBgColor: const Color.fromRGBO(240, 240, 240, 1),
-                            inactiveFgColor: textColor,
-                            totalSwitches: 2,
-                            changeOnTap: true,
-                            labels: const ['VN', 'EN'],
-                            onToggle: (index) async {
-                              if (index == 0){
-                                c.changeLanguage('VN');
-                              }else{
-                                c.changeLanguage('EN');
+                            ],
+                            onPressed: (int index) {
+                              for (var i=0;i<4;i++){
+                                i!=index? c.isSelectedBundle[i] = false
+                                    : c.isSelectedBundle[i] = true;
                               }
+                              c.changeLevel(index);
+                              Navigator.pop(context);
                             },
+                            isSelected: c.isSelectedBundle,
                           ),
-                        ],
+                        ),
                       ),
-                      const SizedBox(height:12),
-                      const Divider(height:1),
-                      ListTile(
-                        title: GetBuilder<Controller>(
-                          builder: (_) =>  Text(
-                            c.drawerPolicy.string,
-                            style: const TextStyle(
-                              color: textColor,
+                    ),
+                  ]
+                ),
+                const SizedBox(height: 10),
+                Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          alignment: Alignment.center,
+                          height: 45,
+                          child: GetBuilder<Controller>(
+                            builder: (_) => ToggleButtons(
+                              fillColor: backgroundColor.withOpacity(0.6),
+                              borderRadius: const BorderRadius.all(
+                                  Radius.circular(30)
+                              ),
+                              disabledColor: themeColor,
+                              children: <Widget>[
+                                SizedBox(
+                                  width: (MediaQuery.of(context).size.width*0.7-23)/2,
+                                  child: Text(
+                                    c.language.string == 'VN'? 'chủ đề':'category',
+                                    style: const TextStyle(
+                                      color: textColor,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: (MediaQuery.of(context).size.width*0.7-23)/2,
+                                  child: Text(
+                                    c.language.string == 'VN'? 'từ loại':'type',
+                                    style: const TextStyle(
+                                      color: textColor,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                              onPressed: (int index) {
+                                for (var i=0;i<2;i++){
+                                  i!=index? c.isSelectedSort[i] = false
+                                      : c.isSelectedSort[i] = true;
+                                }
+                                c.update();
+                              },
+                              isSelected: c.isSelectedSort,
                             ),
-                            textAlign: TextAlign.center,
-                          ),),
-                        onTap: () {
-                          Navigator.pop(context);
-                          Get.to(()=>const PolicyPage());
-                        },
+                          ),
+                        ),
                       ),
-                      const Divider(height:1),
-                      ListTile(
-                        title: GetBuilder<Controller>(
-                          builder: (_) =>  Text(
-                            c.drawerContact.string,
-                            style: const TextStyle(
-                              color: textColor,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),),
-                        onTap: () {
-                          Navigator.pop(context);
-                          Get.to(()=>const ContactPage());
-                        },
-                      ),
-                      const Divider(height:1),
-                    ],
+                    ]
+                ),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: GetBuilder<Controller>(
+                    builder: (_) => ListView.builder(
+                      // Important: Remove any padding from the ListView.
+                        padding: EdgeInsets.zero,
+                        itemCount: c.isSelectedSort[0]?c.listCategory.length:c.listType.length,
+                        addAutomaticKeepAlives: false,
+                        itemBuilder: (BuildContext context, int i) {
+                          return Column(
+                              children:[
+                                ListTile(
+                                  title: GetBuilder<Controller>(
+                                    builder: (_) => Text(
+                                      c.isSelectedSort[0]?c.listCategory[i]:c.listType[i],
+                                      style: const TextStyle(
+                                        color: textColor,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                  onTap: () {
+                                    c.isSelectedSort[0]?c.changeCategory(i):c.changeType(i);
+                                    Navigator.pop(context);
+                                  },
+                                ),
+                                const Divider(height:1),
+                              ]
+                          );
+                        }
+                    ),
                   ),
                 ),
               ]
+            )
+        ),
+      ),
+      endDrawer: SizedBox(
+        width: MediaQuery.of(context).size.width*0.7,
+        child: Drawer(
+          backgroundColor: Colors.white.withOpacity(0.8),
+          child: Column(
+            children: [
+              DrawerHeader(
+                margin: const EdgeInsets.all(0),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                decoration: BoxDecoration(
+                  color: backgroundColor.withOpacity(0.4),
+                ),
+                child: Container(
+                  alignment: Alignment.center,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        'BeDict',
+                        style: TextStyle(
+                            fontSize: 50,
+                            foreground: Paint()..shader = linearGradient
+                        ),
+                      ),
+                      Text(
+                        'Pictorial Dictionary',
+                        style: TextStyle(
+                            fontSize: 16.7,
+                            foreground: Paint()..shader = linearGradient
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  // Important: Remove any padding from the ListView.
+                  padding: EdgeInsets.zero,
+                  children: [
+                    ListTile(
+                      title: GetBuilder<Controller>(
+                        builder: (_) => Text(
+                          c.isVip.value? 'VIP' : c.drawerUpgrade.string,
+                          style: const TextStyle(
+                            color: textColor,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Get.to(()=>const MyUpgradePage());
+                      },
+                    ),
+                    const Divider(height:1),
+                    ListTile(
+                      title: GetBuilder<Controller>(
+                        builder: (_) => Text(
+                          c.drawerHistory.string,
+                          style: const TextStyle(
+                            color: textColor,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Get.to(()=>const HistoryPage());
+                      },
+                    ),
+                    const Divider(height:1,),
+                    ListTile(
+                      title: GetBuilder<Controller>(
+                        builder: (_) => Text(
+                          c.drawerScore.string,
+                          style: const TextStyle(
+                            color: textColor,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Get.to(()=> const ScorePage());
+                      },
+                    ),
+                    const Divider(height:1,),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GetBuilder<Controller>(
+                          builder: (_) => Text(
+                            c.drawerDaily.string,
+                            style: const TextStyle(
+                              color: textColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),),
+                        GetBuilder<Controller>(
+                          builder: (_) => Switch(
+                            value: c.notifyDaily.value,
+                            onChanged: (value) async {
+                              c.notifyDaily = RxBool(value);
+                              c.update();
+                              await boxSetting.put('notifyDaily',value);
+                              if (value) {
+                                showNotification();
+                              }else{
+                                await AwesomeNotifications().dismiss(0);
+                                await AwesomeNotifications().cancelSchedule(0);
+                              }
+                            },
+                            activeTrackColor: themeColor,
+                            activeColor: backgroundColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    GetBuilder<Controller>(
+                      builder: (_) => Visibility(
+                          visible: c.notifyDaily.value,
+                          child: Column(
+                              children:[
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children:[
+                                    Text(
+                                      c.drawerTime.string,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: textColor,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(width: 10,),
+                                    TextButton(
+                                      style: ButtonStyle(
+                                        backgroundColor: MaterialStateProperty.all<Color>(themeColor),
+                                        foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                                        padding: MaterialStateProperty.all<EdgeInsets>(
+                                            const EdgeInsets.all(0)
+                                        ),
+                                      ),
+                                      child: Row(
+                                          children: [
+                                            const SizedBox(
+                                              width: 10,
+                                            ),
+                                            GetBuilder<Controller>(
+                                              builder: (_) => Text(
+                                                c.selectedTime.string,
+                                                style: const TextStyle(
+                                                  fontSize: 15,
+                                                  color: textColor,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(
+                                              width: 10,
+                                            ),
+                                          ]
+                                      ),
+                                      onPressed: () async {
+                                        await showTime();
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10,),
+                                GetBuilder<Controller>(
+                                  builder: (_) => Text(
+                                    c.drawerTarget.string,
+                                    style: const TextStyle(
+                                      color: textColor,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),),
+                                GetBuilder<Controller>(
+                                  builder: (_) => Slider(
+                                    value: c.target.value.toDouble(),
+                                    min: 5,
+                                    max: 50,
+                                    divisions: 9,
+                                    activeColor: backgroundColor,
+                                    inactiveColor: themeColor,
+                                    thumbColor: backgroundColor,
+                                    label: c.target.value.toString(),
+                                    onChanged: (double value) async {
+                                      c.target = RxInt(value.toInt());
+                                      await boxSetting.put('target',value.toInt());
+                                      c.update();
+                                    },
+                                  ),
+                                ),
+                              ]
+                          )
+                      ),
+                    ),
+                    const Divider(height:1),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GetBuilder<Controller>(
+                          builder: (_) => Text(
+                            c.drawerWord.string,
+                            style: const TextStyle(
+                              color: textColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        GetBuilder<Controller>(
+                          builder: (_) => Switch(
+                            value: c.notifyWord.value,
+                            onChanged: (value) async {
+                              c.notifyWord = RxBool(value);
+                              c.update();
+                              await boxSetting.put('notifyWord',value);
+                              if (value) {
+                                showNotificationWord();
+                              }else{
+                                await AwesomeNotifications().dismissNotificationsByChannelKey('word');
+                                await AwesomeNotifications().cancelSchedulesByChannelKey('word');
+                              }
+                            },
+                            activeTrackColor: themeColor,
+                            activeColor: backgroundColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    GetBuilder<Controller>(
+                      builder: (_) => Visibility(
+                          visible: c.notifyWord.value,
+                          child: Column(
+                              children:[
+                                GetBuilder<Controller>(
+                                  builder: (_) => Text(
+                                    c.language.string == 'VN'?
+                                    'Thông báo sau mỗi (phút):':
+                                    'Notify interval (minutes)',
+                                    style: const TextStyle(
+                                      color: textColor,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                                GetBuilder<Controller>(
+                                  builder: (_) => Slider(
+                                    value: c.notificationInterval.value.toDouble(),
+                                    min: 15,
+                                    max: 120,
+                                    divisions: 7,
+                                    activeColor: backgroundColor,
+                                    inactiveColor: themeColor,
+                                    thumbColor: backgroundColor,
+                                    label: c.notificationInterval.value.toString()
+                                        + (c.language.string == 'VN'? ' phút':' minutes'),
+                                    onChanged: (double value) async {
+                                      c.notificationInterval = RxInt(value.toInt());
+                                      await boxSetting.put('notificationInterval',value.toInt());
+                                      c.update();
+                                      await AwesomeNotifications().dismissNotificationsByChannelKey('word');
+                                      await AwesomeNotifications().cancelSchedulesByChannelKey('word');
+                                      showNotificationWord();
+                                    },
+                                  ),
+                                ),
+                              ]
+                          )
+                      ),
+                    ),
+                    const Divider(height:1,),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 15,),
+                        GetBuilder<Controller>(
+                          builder: (_) => Text(
+                            c.drawerSpeech.string,
+                            style: const TextStyle(
+                              color: textColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),),
+                        GetBuilder<Controller>(
+                          builder: (_) => Slider(
+                            value: c.speakSpeed.value,
+                            min: 0.1,
+                            max: 1,
+                            divisions: 9,
+                            activeColor: backgroundColor,
+                            inactiveColor: themeColor,
+                            thumbColor: backgroundColor,
+                            label: double.parse((c.speakSpeed.value).toStringAsFixed(1)).toString(),
+                            onChanged: (double value) async {
+                              c.speakSpeed = RxDouble(value);
+                              await boxSetting.put('speakSpeed',value);
+                              c.update();
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height:1,),
+                    const SizedBox(height:5),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GetBuilder<Controller>(
+                          builder: (_) => Text(
+                            c.drawerInitSpeak.string,
+                            style: const TextStyle(
+                              color: textColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),),
+                        const SizedBox(width:10),
+                        GetBuilder<Controller>(
+                          builder: (_) => Switch(
+                            activeColor: backgroundColor,
+                            activeTrackColor: themeColor,
+                            value: c.initSpeak.value,
+                            onChanged: (value) async {
+                              c.initSpeak = value.obs;
+                              c.update();
+                              await boxSetting.put('initSpeak',value);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height:5),
+                    const Divider(height:1,),
+                    const SizedBox(height:5),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GetBuilder<Controller>(
+                          builder: (_) => Text(
+                            c.drawerEnableSound.string,
+                            style: const TextStyle(
+                              color: textColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),),
+                        const SizedBox(width:10),
+                        GetBuilder<Controller>(
+                          builder: (_) => Switch(
+                            activeColor: backgroundColor,
+                            activeTrackColor: themeColor,
+                            value: c.enableSound.value,
+                            onChanged: (value) async {
+                              c.enableSound = value.obs;
+                              c.update();
+                              await boxSetting.put('enableSound',value);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height:5),
+                    const Divider(height:1,),
+                    const SizedBox(height:12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GetBuilder<Controller>(
+                          builder: (_) =>  Text(
+                            c.drawerLanguage.string,
+                            style: const TextStyle(
+                              color: textColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),),
+                        const SizedBox(width:10),
+                        ToggleSwitch(
+                          minWidth: 50.0,
+                          minHeight: 30.0,
+                          fontSize: 14.0,
+                          initialLabelIndex: initLanguageIndex,
+                          activeBgColor: const [backgroundColor],
+                          activeFgColor: Colors.white,
+                          inactiveBgColor: const Color.fromRGBO(240, 240, 240, 1),
+                          inactiveFgColor: textColor,
+                          totalSwitches: 2,
+                          changeOnTap: true,
+                          labels: const ['VN', 'EN'],
+                          onToggle: (index) async {
+                            if (index == 0){
+                              c.changeLanguage('VN');
+                            }else{
+                              c.changeLanguage('EN');
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height:12),
+                    const Divider(height:1),
+                    ListTile(
+                      title: GetBuilder<Controller>(
+                        builder: (_) =>  Text(
+                          c.drawerPolicy.string,
+                          style: const TextStyle(
+                            color: textColor,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Get.to(()=>const PolicyPage());
+                      },
+                    ),
+                    const Divider(height:1),
+                    ListTile(
+                      title: GetBuilder<Controller>(
+                        builder: (_) =>  Text(
+                          c.drawerContact.string,
+                          style: const TextStyle(
+                            color: textColor,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Get.to(()=>const ContactPage());
+                      },
+                    ),
+                    const Divider(height:1),
+                  ],
+                ),
+              ),
+            ]
           ),
         ),
       ),
@@ -1519,807 +1524,803 @@ class Home extends StatelessWidget {
         child: Screenshot(
           controller: screenshotController,
           child: Stack(
-              children: [
-                GetBuilder<Controller>(
-                  builder: (_) => c.imageURL.isNotEmpty?
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(0),
-                    child: ImageFiltered(
-                      imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                      child: Opacity(
-                        opacity: 0.8,
-                        child: Image(
-                          image: NetworkImage('https://bedict.com/' + c.imageURL[c.nowMean.value].replaceAll('\\','')),
-                          fit: BoxFit.cover,
-                          width: MediaQuery.of(context).size.width,
-                          height: MediaQuery.of(context).size.height,
-                          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                            return const SizedBox();
-                          },
-                        ),
+            children: [
+              GetBuilder<Controller>(
+                builder: (_) => c.imageURL.isNotEmpty?
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(0),
+                  child: ImageFiltered(
+                    imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                    child: Opacity(
+                      opacity: 0.8,
+                      child: Image(
+                        image: NetworkImage('https://bedict.com/' + c.imageURL[c.nowMean.value].replaceAll('\\','')),
+                        fit: BoxFit.cover,
+                        width: MediaQuery.of(context).size.width,
+                        height: MediaQuery.of(context).size.height,
+                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                          return const SizedBox();
+                        },
                       ),
                     ),
-                  )
-                      : const SizedBox(),
-                ),
-                GetBuilder<Controller>(
-                  builder: (_) => AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 500),
-                    transitionBuilder: (Widget child, Animation<double> animation) {
-                      return ScaleTransition(child: child, scale: animation);
-                    },
-                    child: Container(
-                      key: ValueKey<String>(c.nowMean.value.toString()),
-                      alignment: Alignment.center,
-                      color: Colors.transparent,
-                      child:c.imageURL.isNotEmpty?
-                      SingleChildScrollView(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: const BorderRadius.all(
-                                Radius.circular(20)
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.6),
-                                spreadRadius: 0,
-                                blurRadius: 5,
-                                offset: const Offset(5, 5), // changes position of shadow
-                              ),
-                            ],
+                  ),
+                )
+                    : const SizedBox(),
+              ),
+              GetBuilder<Controller>(
+                builder: (_) => AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 500),
+                  transitionBuilder: (Widget child, Animation<double> animation) {
+                    return ScaleTransition(child: child, scale: animation);
+                  },
+                  child: Container(
+                    key: ValueKey<String>(c.nowMean.value.toString()),
+                    alignment: Alignment.center,
+                    color: Colors.transparent,
+                    child:c.imageURL.isNotEmpty?
+                    SingleChildScrollView(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: const BorderRadius.all(
+                              Radius.circular(20)
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: Image(
-                              image: NetworkImage('https://bedict.com/' + c.imageURL[c.nowMean.value].replaceAll('\\','')),
-                              fit: BoxFit.contain,
-                              width: MediaQuery.of(context).size.width<500? MediaQuery.of(context).size.width-100:400,
-                              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                return const SizedBox();
-                              },
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.6),
+                              spreadRadius: 0,
+                              blurRadius: 5,
+                              offset: const Offset(5, 5), // changes position of shadow
                             ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Image(
+                            image: NetworkImage('https://bedict.com/' + c.imageURL[c.nowMean.value].replaceAll('\\','')),
+                            fit: BoxFit.contain,
+                            width: MediaQuery.of(context).size.width<500? MediaQuery.of(context).size.width-100:400,
+                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                              return const SizedBox();
+                            },
                           ),
                         ),
-                      )
-                          :const SizedBox(),
-                    ),
+                      ),
+                    )
+                        :const SizedBox(),
                   ),
                 ),
-                Column (
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children:<Widget> [
-                    SizedBox(height: MediaQuery.of(context).padding.top),
-                    Row(
-                      children: [
-                        IconButton(
-                          padding: const EdgeInsets.all(0.0),
-                          icon: const Icon(Icons.arrow_forward_ios_rounded, size: 20,),
-                          tooltip: 'Open Sort',
-                          onPressed: () {
-                            _key.currentState!.openDrawer();
-                          },
-                        ),
-                        GetBuilder<Controller>(
-                          builder: (_) => Expanded(
-                            child: !c.isSearch.value?
-                            Row(
-                                children:[
-                                  Expanded(
-                                    child: Text(
-                                      c.categoryIndex.value!=0? c.listCategory[c.categoryIndex.value]
-                                          : c.typeIndex.value!=0? c.listType[c.typeIndex.value]:'',
+              ),
+              Column (
+                mainAxisAlignment: MainAxisAlignment.start,
+                children:<Widget> [
+                  SizedBox(height: MediaQuery.of(context).padding.top),
+                  Row(
+                    children: [
+                      IconButton(
+                        padding: const EdgeInsets.all(0.0),
+                        icon: const Icon(Icons.arrow_forward_ios_rounded, size: 20,),
+                        tooltip: 'Open Sort',
+                        onPressed: () {
+                          _key.currentState!.openDrawer();
+                        },
+                      ),
+                      GetBuilder<Controller>(
+                        builder: (_) => Expanded(
+                          child: !c.isSearch.value?
+                          Row(
+                              children:[
+                                Expanded(
+                                  child: Text(
+                                    c.categoryIndex.value!=0? c.listCategory[c.categoryIndex.value]
+                                        : c.typeIndex.value!=0? c.listType[c.typeIndex.value]:'',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: textColor,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.left,
+                                  ),
+                                ),
+                                IconButton(
+                                  padding: const EdgeInsets.all(0.0),
+                                  icon: const Icon(Icons.search_rounded, size: 20,),
+                                  tooltip: 'search',
+                                  onPressed: () {
+                                    c.isSearch = true.obs;
+                                    searchFocusNode.requestFocus();
+                                    c.update();
+                                  },
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    c.levelIndex.value!=0?c.listLevel[c.levelIndex.value]:'',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: textColor,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.right,
+                                  ),
+                                ),
+                              ]
+                          ):
+                          Row(
+                              children:[
+                                Expanded(
+                                  child: TypeAheadField(
+                                    textFieldConfiguration: TextFieldConfiguration(
+                                      controller: searchField,
+                                      autofocus: false,
+                                      autocorrect: false,
+                                      focusNode: searchFocusNode,
                                       style: const TextStyle(
-                                        fontSize: 12,
+                                        fontSize: 15.0,
                                         color: textColor,
                                       ),
-                                      overflow: TextOverflow.ellipsis,
-                                      textAlign: TextAlign.left,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    padding: const EdgeInsets.all(0.0),
-                                    icon: const Icon(Icons.search_rounded, size: 20,),
-                                    tooltip: 'search',
-                                    onPressed: () {
-                                      c.isSearch = true.obs;
-                                      searchFocusNode.requestFocus();
-                                      c.update();
-                                    },
-                                  ),
-                                  Expanded(
-                                    child: Text(
-                                      c.levelIndex.value!=0?c.listLevel[c.levelIndex.value]:'',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: textColor,
+                                      decoration: InputDecoration(
+                                        border: const OutlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.black, width:1),
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(30)
+                                          ),
+                                        ),
+                                        focusedBorder: const OutlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.black, width: 1),
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(30)
+                                          ),
+                                        ),
+                                        enabledBorder: const OutlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.black, width: 1),
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(30)
+                                          ),
+                                        ),
+                                        // prefixIcon: Icon(Icons.search_outlined,size:15),
+                                        hintText: c.hint.string,
+                                        isDense: true,
+                                        contentPadding: const EdgeInsets.all(5),
+                                        prefixIcon: const Icon(Icons.search),
+                                        // icon: Icon(Icons.search),
+                                        // isCollapsed: true,
                                       ),
-                                      overflow: TextOverflow.ellipsis,
-                                      textAlign: TextAlign.right,
+                                      onSubmitted: (value) async {
+                                        if (suggestArray.isEmpty){
+                                          searchField.text = c.word.string;
+                                          if (Get.isSnackbarOpen) Get.closeAllSnackbars();
+                                          Get.snackbar(c.learnWrongTitle.string, c.notFound.string);
+                                        }else{
+                                          c.isSearch = false.obs;
+                                          await getWord(suggestArray[0]);
+                                        }
+                                      },
                                     ),
-                                  ),
-                                ]
-                            ):
-                            Row(
-                                children:[
-                                  Expanded(
-                                    child: TypeAheadField(
-                                      textFieldConfiguration: TextFieldConfiguration(
-                                        controller: searchField,
-                                        autofocus: false,
-                                        autocorrect: false,
-                                        focusNode: searchFocusNode,
+                                    suggestionsBoxVerticalOffset: 10,
+                                    noItemsFoundBuilder: (BuildContext context) => ListTile(
+                                      title: Text(
+                                        c.notFound.string,
                                         style: const TextStyle(
                                           fontSize: 15.0,
                                           color: textColor,
                                         ),
-                                        decoration: InputDecoration(
-                                          border: const OutlineInputBorder(
-                                            borderSide: BorderSide(color: Colors.black, width:1),
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(30)
-                                            ),
-                                          ),
-                                          focusedBorder: const OutlineInputBorder(
-                                            borderSide: BorderSide(color: Colors.black, width: 1),
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(30)
-                                            ),
-                                          ),
-                                          enabledBorder: const OutlineInputBorder(
-                                            borderSide: BorderSide(color: Colors.black, width: 1),
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(30)
-                                            ),
-                                          ),
-                                          // prefixIcon: Icon(Icons.search_outlined,size:15),
-                                          hintText: c.hint.string,
-                                          isDense: true,
-                                          contentPadding: const EdgeInsets.all(5),
-                                          prefixIcon: const Icon(Icons.search),
-                                          // icon: Icon(Icons.search),
-                                          // isCollapsed: true,
-                                        ),
-                                        onSubmitted: (value) async {
-                                          if (suggestArray.isEmpty){
-                                            searchField.text = c.word.string;
-                                            if (Get.isSnackbarOpen) Get.closeAllSnackbars();
-                                            Get.snackbar(c.learnWrongTitle.string, c.notFound.string);
-                                          }else{
-                                            c.isSearch = false.obs;
-                                            await getWord(suggestArray[0]);
-                                          }
-                                        },
                                       ),
-                                      suggestionsBoxVerticalOffset: 10,
-                                      noItemsFoundBuilder: (BuildContext context) => ListTile(
+                                    ),
+                                    suggestionsCallback: (pattern) async {
+                                      suggestArray = [];
+                                      if (pattern == ''){
+                                        suggestArray = await getLastSearch();
+                                      }
+                                      for (var i = 0; i < c.wordArray.length; i++){
+                                        if (suggestArray.length > 9){
+                                          break;
+                                        }
+                                        if (c.wordArray[i].toString().toLowerCase().startsWith(pattern.toLowerCase())){
+                                          if (!suggestArray.contains(c.wordArray[i])){
+                                            suggestArray.add(c.wordArray[i]);
+                                          }
+                                        }
+                                      }
+                                      return suggestArray;
+                                    },
+                                    suggestionsBoxDecoration: SuggestionsBoxDecoration(
+                                      borderRadius: const BorderRadius.all(Radius.circular(15)),
+                                      color: Colors.white.withOpacity(1.0),
+                                    ),
+                                    itemBuilder: (context, suggestion) {
+                                      return ListTile(
                                         title: Text(
-                                          c.notFound.string,
+                                          suggestion.toString(),
                                           style: const TextStyle(
                                             fontSize: 15.0,
                                             color: textColor,
                                           ),
                                         ),
-                                      ),
-                                      suggestionsCallback: (pattern) async {
-                                        suggestArray = [];
-                                        if (pattern == ''){
-                                          suggestArray = await getLastSearch();
-                                        }
-                                        for (var i = 0; i < c.wordArray.length; i++){
-                                          if (suggestArray.length > 9){
-                                            break;
-                                          }
-                                          if (c.wordArray[i].toString().toLowerCase().startsWith(pattern.toLowerCase())){
-                                            if (!suggestArray.contains(c.wordArray[i])){
-                                              suggestArray.add(c.wordArray[i]);
-                                            }
-                                          }
-                                        }
-                                        return suggestArray;
-                                      },
-                                      suggestionsBoxDecoration: SuggestionsBoxDecoration(
-                                        borderRadius: const BorderRadius.all(Radius.circular(15)),
-                                        color: Colors.white.withOpacity(1.0),
-                                      ),
-                                      itemBuilder: (context, suggestion) {
-                                        return ListTile(
-                                          title: Text(
-                                            suggestion.toString(),
-                                            style: const TextStyle(
-                                              fontSize: 15.0,
-                                              color: textColor,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      onSuggestionSelected: (suggestion) async {
-                                        searchField.text = suggestion.toString();
-                                        c.isSearch = false.obs;
-                                        await getWord(suggestion.toString());
-                                      },
-                                      animationDuration: Duration.zero,
-                                      debounceDuration: Duration.zero,
+                                      );
+                                    },
+                                    onSuggestionSelected: (suggestion) async {
+                                      searchField.text = suggestion.toString();
+                                      c.isSearch = false.obs;
+                                      await getWord(suggestion.toString());
+                                    },
+                                    animationDuration: Duration.zero,
+                                    debounceDuration: Duration.zero,
+                                  ),
+                                )
+                              ]
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        padding: const EdgeInsets.all(0.0),
+                        icon: const Icon(Icons.more_vert, size: 25,),
+                        tooltip: 'Open Menu',
+                        onPressed: () {
+                          _key.currentState!.openEndDrawer();
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height:5),
+                  Expanded(
+                    child: GestureDetector(
+                      onVerticalDragEnd: (details) async {
+                        if (details.primaryVelocity! > 0) {
+                          await getWord(c.wordPrevious.string);
+                        }
+                        if (details.primaryVelocity! < -0) {
+                          await getWord(c.wordNext.string);
+                        }
+                      },
+                      onHorizontalDragEnd: (details) async {
+                        if (details.primaryVelocity! > 0) {
+                          if (c.nowMean.value>0){
+                            c.nowMean = RxInt(c.nowMean.value-1);
+                            c.update();
+                          }else{
+                            c.nowMean = RxInt(c.imageURL.length-1);
+                            c.update();
+                          }
+                        }
+                        if (details.primaryVelocity! < -0) {
+                          if (c.nowMean.value<(c.mean.length-1)){
+                            c.nowMean = RxInt(c.nowMean.value+1);
+                            c.update();
+                          }else{
+                            c.nowMean = 0.obs;
+                            c.update();
+                          }
+                        }
+                      },
+                      onDoubleTap: () async {
+                        await getNewWord();
+                      },
+                      onTap:(){
+                        if (controller.isAnimating){
+                          controller.stop();
+                        }else{
+                          controller.forward();
+                        }
+                        if (searchFocusNode.hasFocus){
+                          searchFocusNode.unfocus();
+                          c.isSearch = false.obs;
+                          c.update();
+                        }
+                      },
+                      child: Column(
+                        children:[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              GetBuilder<Controller>(
+                                builder: (_) => Flexible(
+                                  child: DefaultTextStyle(
+                                    style: TextStyle(
+                                      fontSize: 50,
+                                      letterSpacing: 1,
+                                      fontWeight: FontWeight.w600,
+                                      foreground: Paint()..shader = linearGradient,
+                                      shadows: [
+                                        Shadow(
+                                          blurRadius: 15,
+                                          color: Colors.black.withOpacity(0.5),
+                                          offset: const Offset(3, 3),
+                                        ),
+                                      ],
+                                    ),
+                                    child: AnimatedTextKit(
+                                      key: ValueKey<String>(c.word.string),
+                                      animatedTexts: [
+                                        WavyAnimatedText(c.word.string),
+                                        WavyAnimatedText(c.pronun.string),
+                                      ],
+                                      isRepeatingAnimation: true,
+                                      repeatForever: true,
+                                      onTap: () {},
                                     ),
                                   )
+                                ),
+                              ),
+                            ],
+                          ),
+                          Expanded(
+                            child: Container(color: Colors.transparent),
+                          ),
+                          GetBuilder<Controller>(
+                            builder: (_) => Row(
+                                children:[
+                                  const SizedBox(width:10),
+                                  c.mean.isNotEmpty?
+                                  Flexible(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: c.mean[c.nowMean.value].asMap().entries.map<Widget>((subMean) =>
+                                            FutureBuilder(
+                                              future: Future.delayed(Duration(milliseconds: (subMean.key+1)*1000)), // a previously-obtained Future<String> or null
+                                              builder: (context, snapshot) {
+                                                Widget child;
+                                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                                  child = const SizedBox();
+                                                } else {
+                                                  child = Container(
+                                                    margin: const EdgeInsets.fromLTRB(0, 0, 0, 5),
+                                                    padding: const EdgeInsets.all(5),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white.withOpacity(0.3),
+                                                      borderRadius: const BorderRadius.all(
+                                                          Radius.circular(10)
+                                                      ),
+                                                    ),
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                                      children: [
+                                                        const SizedBox(height: 3,),
+                                                        Opacity(
+                                                          opacity: 0.3,
+                                                          child: Text(
+                                                            laytuloai(subMean.value.substring(subMean.value.length - 1))[c.typeState.value],
+                                                            style: const TextStyle(
+                                                              fontSize: 11,
+                                                              color: textColor,
+                                                            ),
+                                                            textAlign: TextAlign.left,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(height: 2),
+                                                        Text(
+                                                          subMean.value.substring(0,subMean.value.length-1),
+                                                          style: const TextStyle(
+                                                            fontSize: 18,
+                                                            color: textColor,
+                                                          ),
+                                                          textAlign: TextAlign.left,
+                                                        ),
+                                                        const SizedBox(height: 3),
+                                                      ],
+                                                    ),
+                                                  );
+                                                }
+                                                return AnimatedSwitcher(
+                                                  duration: const Duration(milliseconds: 500),
+                                                  child: child,
+                                                );
+                                              },
+                                            ),
+                                        ).toList(),
+                                      )
+                                  )
+                                      :const SizedBox(),
+                                  const SizedBox(width:10),
                                 ]
                             ),
                           ),
-                        ),
-                        IconButton(
-                          padding: const EdgeInsets.all(0.0),
-                          icon: const Icon(Icons.more_vert, size: 25,),
-                          tooltip: 'Open Menu',
-                          onPressed: () {
-                            _key.currentState!.openEndDrawer();
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height:5),
-                    Expanded(
-                        child: GestureDetector(
-                          onVerticalDragEnd: (details) async {
-                            if (details.primaryVelocity! > 0) {
-                              await getWord(c.wordPrevious.string);
-                            }
-                            if (details.primaryVelocity! < -0) {
-                              await getWord(c.wordNext.string);
-                            }
-                          },
-                          onHorizontalDragEnd: (details) async {
-                            if (details.primaryVelocity! > 0) {
-                              if (c.nowMean.value>0){
-                                c.nowMean = RxInt(c.nowMean.value-1);
-                                c.update();
-                              }else{
-                                c.nowMean = RxInt(c.imageURL.length-1);
-                                c.update();
-                              }
-                            }
-                            if (details.primaryVelocity! < -0) {
-                              if (c.nowMean.value<(c.mean.length-1)){
-                                c.nowMean = RxInt(c.nowMean.value+1);
-                                c.update();
-                              }else{
-                                c.nowMean = 0.obs;
-                                c.update();
-                              }
-                            }
-                          },
-                          onDoubleTap: () async {
-                            await getNewWord();
-                          },
-                          onTap:(){
-                            if (controller.isAnimating){
-                              controller.stop();
-                            }else{
-                              controller.forward();
-                            }
-                            if (searchFocusNode.hasFocus){
-                              searchFocusNode.unfocus();
-                              c.isSearch = false.obs;
-                              c.update();
-                            }
-                          },
-                          child: Column(
-                              children:[
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    GetBuilder<Controller>(
-                                      builder: (_) => Flexible(
-                                        child: AnimatedSwitcher(
-                                          duration: const Duration(milliseconds: 500),
-                                          transitionBuilder: (Widget child, Animation<double> animation) {
-                                            return ScaleTransition(child: child, scale: animation);
-                                          },
-                                          child: Text(
-                                            c.word.toString(),
-                                            key: ValueKey<String>(c.word.string),
-                                            style: TextStyle(
-                                              fontSize: 50,
-                                              letterSpacing: 1,
-                                              fontWeight: FontWeight.w600,
-                                              foreground: Paint()..shader = linearGradient,
-                                              shadows: [
-                                                Shadow(
-                                                  blurRadius: 15,
-                                                  color: Colors.black.withOpacity(0.5),
-                                                  offset: const Offset(3, 3),
+                        ]
+                      ),
+                    )
+                  ),
+                  GetBuilder<Controller>(
+                    builder: (_) => Visibility(
+                      visible: c.notifyDaily.value,
+                      child: Opacity(
+                        opacity: 0.6,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            const SizedBox(width: 5),
+                            PopupMenuButton<Score>(
+                              onSelected: (Score score) async {
+                                await setDefault();
+                                await c.layWord(score.wordId);
+                              },
+                              padding: const EdgeInsets.all(0),
+                              itemBuilder: (BuildContext context) => <PopupMenuEntry<Score>>[
+                                for (int i=0; i<c.listLearnedToday.length; i++)
+                                  PopupMenuItem<Score>(
+                                    value: c.listLearnedToday[i],
+                                    padding: const EdgeInsets.fromLTRB(8,0,8,0),
+                                    // padding: const EdgeInsets.all(0),
+                                    child: Container(
+                                      margin: const EdgeInsets.fromLTRB(0,4,0,4),
+                                      // width: 180,
+                                      decoration: const BoxDecoration(
+                                        color: Color.fromRGBO(245, 245, 245, 1),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(10)
+                                        ),
+                                      ),
+                                      child: Column(
+                                          children: [
+                                            const SizedBox(height:7),
+                                            Text(
+                                              c.listLearnedToday[i].wordId,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                color: textColor,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height:7),
+                                            Row(
+                                              children: [
+                                                const SizedBox(width:5),
+                                                Expanded(
+                                                  child: CircularPercentIndicator(
+                                                    radius: 40,
+                                                    lineWidth: 1.0,
+                                                    animation: true,
+                                                    percent: c.listLearnedToday[i].word/25,
+                                                    backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
+                                                    progressColor: textColor,
+                                                    center: Text(
+                                                      c.scoreWord.string,
+                                                      style: const TextStyle(
+                                                        fontSize: 9,
+                                                        color: textColor,
+                                                      ),
+                                                    ),
+                                                    circularStrokeCap: CircularStrokeCap.round,
+                                                  ),
                                                 ),
+                                                Expanded(
+                                                  child: CircularPercentIndicator(
+                                                    radius: 40,
+                                                    lineWidth: 1.0,
+                                                    animation: true,
+                                                    percent: c.listLearnedToday[i].pronun/25,
+                                                    backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
+                                                    progressColor: textColor,
+                                                    center: Text(
+                                                      c.scorePronun.string,
+                                                      style: const TextStyle(
+                                                        fontSize: 9,
+                                                        color: textColor,
+                                                      ),
+                                                    ),
+                                                    circularStrokeCap: CircularStrokeCap.round,
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: CircularPercentIndicator(
+                                                    radius: 40,
+                                                    lineWidth: 1.0,
+                                                    animation: true,
+                                                    percent: c.listLearnedToday[i].speak/25,
+                                                    backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
+                                                    progressColor: textColor,
+                                                    center: Text(
+                                                      c.scoreSpeak.string,
+                                                      style: const TextStyle(
+                                                        fontSize: 9,
+                                                        color: textColor,
+                                                      ),
+                                                    ),
+                                                    circularStrokeCap: CircularStrokeCap.round,
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: CircularPercentIndicator(
+                                                    radius: 40,
+                                                    lineWidth: 1.0,
+                                                    animation: true,
+                                                    percent: c.listLearnedToday[i].mean/25,
+                                                    backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
+                                                    progressColor: textColor,
+                                                    center: Text(
+                                                      c.scoreMean.string,
+                                                      style: const TextStyle(
+                                                        fontSize: 9,
+                                                        color: textColor,
+                                                      ),
+                                                    ),
+                                                    circularStrokeCap: CircularStrokeCap.round,
+                                                  ),
+                                                ),
+                                                const SizedBox(width:5),
                                               ],
                                             ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ),
+                                            const SizedBox(height:7),
+                                          ]
                                       ),
                                     ),
-                                  ],
-                                ),
-                                Expanded(
-                                  child: Container(color: Colors.transparent),
-                                ),
-                                GetBuilder<Controller>(
-                                  builder: (_) => Row(
-                                      children:[
-                                        const SizedBox(width:10),
-                                        c.mean.isNotEmpty?
-                                        Flexible(
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: c.mean[c.nowMean.value].asMap().entries.map<Widget>((subMean) =>
-                                                  FutureBuilder(
-                                                    future: Future.delayed(Duration(milliseconds: (subMean.key+1)*1000)), // a previously-obtained Future<String> or null
-                                                    builder: (context, snapshot) {
-                                                      Widget child;
-                                                      if (snapshot.connectionState == ConnectionState.waiting) {
-                                                        child = const SizedBox();
-                                                      } else {
-                                                        child = Container(
-                                                          margin: const EdgeInsets.fromLTRB(0, 0, 0, 5),
-                                                          padding: const EdgeInsets.all(5),
-                                                          decoration: BoxDecoration(
-                                                            color: Colors.white.withOpacity(0.3),
-                                                            borderRadius: const BorderRadius.all(
-                                                                Radius.circular(10)
-                                                            ),
-                                                          ),
-                                                          child: Column(
-                                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                                            children: [
-                                                              const SizedBox(height: 3,),
-                                                              Opacity(
-                                                                opacity: 0.3,
-                                                                child: Text(
-                                                                  laytuloai(subMean.value.substring(subMean.value.length - 1))[c.typeState.value],
-                                                                  style: const TextStyle(
-                                                                    fontSize: 11,
-                                                                    color: textColor,
-                                                                  ),
-                                                                  textAlign: TextAlign.left,
-                                                                ),
-                                                              ),
-                                                              const SizedBox(height: 2),
-                                                              Text(
-                                                                subMean.value.substring(0,subMean.value.length-1),
-                                                                style: const TextStyle(
-                                                                  fontSize: 18,
-                                                                  color: textColor,
-                                                                ),
-                                                                textAlign: TextAlign.left,
-                                                              ),
-                                                              const SizedBox(height: 3),
-                                                            ],
-                                                          ),
-                                                        );
-                                                      }
-                                                      return AnimatedSwitcher(
-                                                        duration: const Duration(milliseconds: 500),
-                                                        child: child,
-                                                      );
-                                                    },
-                                                  ),
-                                              ).toList(),
-                                            )
-                                        )
-                                            :const SizedBox(),
-                                        const SizedBox(width:10),
-                                      ]
                                   ),
-                                ),
-                              ]
-                          ),
-                        )
-                    ),
-                    GetBuilder<Controller>(
-                      builder: (_) => Visibility(
-                        visible: c.notifyDaily.value,
-                        child: Container(
-                          // color: Colors.yellow,
-                          // height: 20,
-                          child: Opacity(
-                            opacity: 0.6,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                const SizedBox(width: 5),
-                                // Expanded(child:Container(height:25,color:Colors.transparent)),
-                                PopupMenuButton<Score>(
-                                  onSelected: (Score score) async {
-                                    await setDefault();
-                                    await c.layWord(score.wordId);
-                                  },
-                                  padding: const EdgeInsets.all(0),
-                                  itemBuilder: (BuildContext context) => <PopupMenuEntry<Score>>[
-                                    for (int i=0; i<c.listLearnedToday.length; i++)
-                                      PopupMenuItem<Score>(
-                                        value: c.listLearnedToday[i],
-                                        padding: const EdgeInsets.fromLTRB(8,0,8,0),
-                                        // padding: const EdgeInsets.all(0),
-                                        child: Container(
-                                          margin: const EdgeInsets.fromLTRB(0,4,0,4),
-                                          // width: 180,
-                                          decoration: const BoxDecoration(
-                                            color: Color.fromRGBO(245, 245, 245, 1),
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(10)
-                                            ),
-                                          ),
-                                          child: Column(
-                                              children: [
-                                                const SizedBox(height:7),
-                                                Text(
-                                                  c.listLearnedToday[i].wordId,
-                                                  style: const TextStyle(
-                                                    fontSize: 14,
-                                                    color: textColor,
-                                                  ),
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                                const SizedBox(height:7),
-                                                Row(
-                                                  children: [
-                                                    const SizedBox(width:5),
-                                                    Expanded(
-                                                      child: CircularPercentIndicator(
-                                                        radius: 40,
-                                                        lineWidth: 1.0,
-                                                        animation: true,
-                                                        percent: c.listLearnedToday[i].word/25,
-                                                        backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
-                                                        progressColor: textColor,
-                                                        center: Text(
-                                                          c.scoreWord.string,
-                                                          style: const TextStyle(
-                                                            fontSize: 9,
-                                                            color: textColor,
-                                                          ),
-                                                        ),
-                                                        circularStrokeCap: CircularStrokeCap.round,
-                                                      ),
-                                                    ),
-                                                    Expanded(
-                                                      child: CircularPercentIndicator(
-                                                        radius: 40,
-                                                        lineWidth: 1.0,
-                                                        animation: true,
-                                                        percent: c.listLearnedToday[i].pronun/25,
-                                                        backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
-                                                        progressColor: textColor,
-                                                        center: Text(
-                                                          c.scorePronun.string,
-                                                          style: const TextStyle(
-                                                            fontSize: 9,
-                                                            color: textColor,
-                                                          ),
-                                                        ),
-                                                        circularStrokeCap: CircularStrokeCap.round,
-                                                      ),
-                                                    ),
-                                                    Expanded(
-                                                      child: CircularPercentIndicator(
-                                                        radius: 40,
-                                                        lineWidth: 1.0,
-                                                        animation: true,
-                                                        percent: c.listLearnedToday[i].speak/25,
-                                                        backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
-                                                        progressColor: textColor,
-                                                        center: Text(
-                                                          c.scoreSpeak.string,
-                                                          style: const TextStyle(
-                                                            fontSize: 9,
-                                                            color: textColor,
-                                                          ),
-                                                        ),
-                                                        circularStrokeCap: CircularStrokeCap.round,
-                                                      ),
-                                                    ),
-                                                    Expanded(
-                                                      child: CircularPercentIndicator(
-                                                        radius: 40,
-                                                        lineWidth: 1.0,
-                                                        animation: true,
-                                                        percent: c.listLearnedToday[i].mean/25,
-                                                        backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
-                                                        progressColor: textColor,
-                                                        center: Text(
-                                                          c.scoreMean.string,
-                                                          style: const TextStyle(
-                                                            fontSize: 9,
-                                                            color: textColor,
-                                                          ),
-                                                        ),
-                                                        circularStrokeCap: CircularStrokeCap.round,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width:5),
-                                                  ],
-                                                ),
-                                                const SizedBox(height:7),
-                                              ]
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                  // color: themeColor,
-                                  child: Row(
-                                    children:[
-                                      Text(
-                                        c.learnedWordsTodayTitle.string
-                                            + ' ' + c.listLearnedToday.length.toString()
-                                            + '/' + c.target.value.toString(),
-                                        style: const TextStyle(
-                                          fontSize: 13,
-                                          color: textColor,
-                                        ),
-                                      ),
-                                      // const Icon(
-                                      //   Icons.keyboard_arrow_down,
-                                      //   size: 25,
-                                      // ),
-                                    ]
-                                  ),
-                                  shape: const RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.all(Radius.circular(10.0))
-                                  ),
-                                ),
-                                const SizedBox(width:5),
                               ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    GetBuilder<Controller>(
-                      builder: (_) => c.mean.length>1?
-                      DotsIndicator(
-                          dotsCount: c.mean.length,
-                          position: c.nowMean.value.toDouble(),
-                          axis: Axis.horizontal,
-                          decorator: DotsDecorator(
-                            size: const Size.square(9.0),
-                            activeSize: const Size(14.0, 9.0),
-                            activeColor: Colors.black.withOpacity(0.4),
-                            color: Colors.black.withOpacity(0.1),
-                            activeShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
-                            spacing: 19*c.mean.length>MediaQuery.of(context).size.width - 20 ?
-                            EdgeInsets.fromLTRB(
-                                ((MediaQuery.of(context).size.width-20)/c.mean.length-9)/2,
-                                10,
-                                ((MediaQuery.of(context).size.width-20)/c.mean.length-9)/2,
-                                10
-                            )
-                                : const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                          ),
-                          onTap: (index){
-                            c.nowMean = RxInt(index.toInt());
-                            c.update();
-                          }
-                      )
-                          : const SizedBox(),
-                    ),
-                    const SizedBox(height:5),
-                    GetBuilder<Controller>(
-                      builder: (_) => c.mean.isNotEmpty?
-                      ProcessWidget(meanLength: c.mean[c.nowMean.value].length)
-                          :const SizedBox(),
-                    ),
-                    const SizedBox(height:5),
-                    Opacity(
-                      opacity: 0.6,
-                      child: Row(
-                        // crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(width:5),
-                          TextButton(
-                            style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  Colors.white
-                              ),
-                              foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                              padding: MaterialStateProperty.all<EdgeInsets>(
-                                  const EdgeInsets.all(0)
-                              ),
-                              shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                  RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30.0),
-                                  )
-                              ),
-                              fixedSize: MaterialStateProperty.all<Size>(
-                                  const Size.fromHeight(40)
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                const SizedBox(width: 10),
-                                const Icon(
-                                  Icons.volume_up_outlined,
-                                  size: 25,
-                                  color: textColor,
-                                ),
-                                GetBuilder<Controller>(
-                                  builder: (_) => Text(
-                                    c.pronun.string,
+                              // color: themeColor,
+                              child: Row(
+                                children:[
+                                  Text(
+                                    c.learnedWordsTodayTitle.string
+                                        + ' ' + c.listLearnedToday.length.toString()
+                                        + '/' + c.target.value.toString(),
                                     style: const TextStyle(
-                                      fontSize: 14,
-                                      overflow: TextOverflow.ellipsis,
+                                      fontSize: 13,
                                       color: textColor,
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 10),
-                              ],
-                            ),
-                            onPressed: () {
-                              _speak(c.word.string);
-                            },
-                          ),
-                          const Expanded(child:SizedBox()),
-                          TextButton(
-                            style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  themeColor
+                                  // const Icon(
+                                  //   Icons.keyboard_arrow_down,
+                                  //   size: 25,
+                                  // ),
+                                ]
                               ),
-                              foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                              padding: MaterialStateProperty.all<EdgeInsets>(
-                                  const EdgeInsets.all(0)
-                              ),
-                              shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                  RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30.0),
-                                  )
-                              ),
-                              fixedSize: MaterialStateProperty.all<Size>(
-                                  const Size.fromHeight(40)
+                              shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(Radius.circular(10.0))
                               ),
                             ),
-                            onPressed: () async {
-                              double pixelRatio = MediaQuery.of(context).devicePixelRatio;
-                              await screenshotController.capture(
-                                  delay: const Duration(milliseconds: 10),
-                                  pixelRatio: pixelRatio
-                              ).then((image) async {
-                                if (image != null) {
-                                  final directory = await getApplicationDocumentsDirectory();
-                                  final imagePath = await File('${directory.path}/image.png').create();
-                                  await imagePath.writeAsBytes(image);
-                                  await Share.shareFiles([imagePath.path]);
-                                }
-                              });
-                            },
-                            child: const Icon(
-                              FontAwesomeIcons.share,
-                              size: 15,
-                              color: Color.fromRGBO(150, 200, 160, 1),
-                            ),
-                          ),
-                          const SizedBox(width:5),
-                          TextButton(
-                            style: ButtonStyle(
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  themeColor
-                              ),
-                              foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                              padding: MaterialStateProperty.all<EdgeInsets>(
-                                  const EdgeInsets.all(0)
-                              ),
-                              shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                  RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30.0),
-                                  )
-                              ),
-                              fixedSize: MaterialStateProperty.all<Size>(
-                                  const Size.fromHeight(40)
-                              ),
-                            ),
-                            onPressed: () async {
-                              if (c.word.string != ''){
-                                arrangeLearnMean();
-                                if (controller.isAnimating){
-                                  controller.stop();
-                                }
-                                Get.to(()=>const LearnWord());
-                              }else{
-                                if (Get.isSnackbarOpen) Get.closeAllSnackbars();
-                                Get.snackbar(c.snackbarFindTitle.string,c.snackbarFindBody.string);
-                              }
-                            },
-                            child: GetBuilder<Controller>(
-                              builder: (_) => Text(
-                                c.language.string == 'VN'? 'chơi game':'play game',
-                                style: const TextStyle(
-                                  color: textColor,
-                                  fontSize: 10,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width:5),
-                        ],
+                            const SizedBox(width:5),
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(height:5),
-                    SizedBox(height: MediaQuery.of(context).padding.bottom),
-                  ],
-                ),
-                Container(
-                  alignment:Alignment.centerRight,
-                  child: Row(
-                      children: [
-                        Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children:[
-                              const Expanded(child: SizedBox()),
-                              IconButton(
-                                padding: const EdgeInsets.all(0.0),
-                                icon: Icon(
-                                  Icons.keyboard_arrow_up_rounded,
-                                  size: 25,
-                                  color: Colors.black.withOpacity(0.3),
-                                ),
-                                tooltip: 'next',
-                                onPressed: () async {
-                                  await getWord(c.wordNext.string);
-                                },
-                              ),
-                              IconButton(
-                                padding: const EdgeInsets.all(0.0),
-                                icon: Icon(
-                                  Icons.refresh_rounded,
-                                  size: 25,
-                                  color: Colors.black.withOpacity(0.3),
-                                ),
-                                tooltip: 'next',
-                                onPressed: () async {
-                                  await getNewWord();
-                                },
-                              ),
-                              IconButton(
-                                padding: const EdgeInsets.all(0.0),
-                                icon: Icon(
-                                  Icons.keyboard_arrow_down_rounded,
-                                  size: 25,
-                                  color: Colors.black.withOpacity(0.3),
-                                ),
-                                tooltip: 'previous',
-                                onPressed: () async {
-                                  await getWord(c.wordPrevious.string);
-                                },
-                              ),
-                              const Expanded(child: SizedBox()),
-                            ]
+                  ),
+                  GetBuilder<Controller>(
+                    builder: (_) => c.mean.length>1?
+                    DotsIndicator(
+                        dotsCount: c.mean.length,
+                        position: c.nowMean.value.toDouble(),
+                        axis: Axis.horizontal,
+                        decorator: DotsDecorator(
+                          size: const Size.square(9.0),
+                          activeSize: const Size(14.0, 9.0),
+                          activeColor: Colors.black.withOpacity(0.4),
+                          color: Colors.black.withOpacity(0.1),
+                          activeShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
+                          spacing: 19*c.mean.length>MediaQuery.of(context).size.width - 20 ?
+                          EdgeInsets.fromLTRB(
+                              ((MediaQuery.of(context).size.width-20)/c.mean.length-9)/2,
+                              10,
+                              ((MediaQuery.of(context).size.width-20)/c.mean.length-9)/2,
+                              10
+                          )
+                              : const EdgeInsets.fromLTRB(5, 5, 5, 5),
                         ),
-                        const Expanded(child: SizedBox()),
-                        Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children:[
-                              const Expanded(child: SizedBox()),
-                              RotatedBox(
-                                quarterTurns: -1,
-                                child: GetBuilder<Controller>(
-                                  builder: (_) => LinearPercentIndicator(
-                                    alignment: MainAxisAlignment.center,
-                                    width: MediaQuery.of(context).size.height*0.2,
-                                    lineHeight: 5.0,
-                                    percent: (c.wordScore.value+c.pronunScore.value+c.speakScore.value+c.meanScore.value)/100,
-                                    backgroundColor: Colors.black.withOpacity(0.1),
-                                    progressColor: Colors.black.withOpacity(0.4),
-                                    padding: const EdgeInsets.all(0),
-                                    animation: true,
+                        onTap: (index){
+                          c.nowMean = RxInt(index.toInt());
+                          c.update();
+                        }
+                    )
+                        : const SizedBox(),
+                  ),
+                  const SizedBox(height:5),
+                  GetBuilder<Controller>(
+                    builder: (_) => c.mean.isNotEmpty?
+                    ProcessWidget(meanLength: c.mean[c.nowMean.value].length)
+                        :const SizedBox(),
+                  ),
+                  const SizedBox(height:5),
+                  Opacity(
+                    opacity: 0.6,
+                    child: Row(
+                      // crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(width:5),
+                        TextButton(
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                Colors.white
+                            ),
+                            foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                            padding: MaterialStateProperty.all<EdgeInsets>(
+                                const EdgeInsets.all(0)
+                            ),
+                            shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30.0),
+                                )
+                            ),
+                            fixedSize: MaterialStateProperty.all<Size>(
+                                const Size.fromHeight(40)
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              const SizedBox(width: 10),
+                              const Icon(
+                                Icons.volume_up_outlined,
+                                size: 25,
+                                color: textColor,
+                              ),
+                              GetBuilder<Controller>(
+                                builder: (_) => Text(
+                                  c.pronun.string,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    overflow: TextOverflow.ellipsis,
+                                    color: textColor,
                                   ),
                                 ),
                               ),
-                              const Expanded(child: SizedBox()),
-                            ]
+                              const SizedBox(width: 10),
+                            ],
+                          ),
+                          onPressed: () {
+                            _speak(c.word.string);
+                          },
                         ),
-                        const SizedBox(width:7),
-                      ]
+                        const Expanded(child:SizedBox()),
+                        TextButton(
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                themeColor
+                            ),
+                            foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                            padding: MaterialStateProperty.all<EdgeInsets>(
+                                const EdgeInsets.all(0)
+                            ),
+                            shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30.0),
+                                )
+                            ),
+                            fixedSize: MaterialStateProperty.all<Size>(
+                                const Size.fromHeight(40)
+                            ),
+                          ),
+                          onPressed: () async {
+                            double pixelRatio = MediaQuery.of(context).devicePixelRatio;
+                            await screenshotController.capture(
+                                delay: const Duration(milliseconds: 10),
+                                pixelRatio: pixelRatio
+                            ).then((image) async {
+                              if (image != null) {
+                                final directory = await getApplicationDocumentsDirectory();
+                                final imagePath = await File('${directory.path}/image.png').create();
+                                await imagePath.writeAsBytes(image);
+                                await Share.shareFiles([imagePath.path]);
+                              }
+                            });
+                          },
+                          child: const Icon(
+                            FontAwesomeIcons.share,
+                            size: 15,
+                            color: Color.fromRGBO(150, 200, 160, 1),
+                          ),
+                        ),
+                        const SizedBox(width:5),
+                        TextButton(
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                themeColor
+                            ),
+                            foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                            padding: MaterialStateProperty.all<EdgeInsets>(
+                                const EdgeInsets.all(0)
+                            ),
+                            shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30.0),
+                                )
+                            ),
+                            fixedSize: MaterialStateProperty.all<Size>(
+                                const Size.fromHeight(40)
+                            ),
+                          ),
+                          onPressed: () async {
+                            if (c.word.string != ''){
+                              arrangeLearnMean();
+                              if (controller.isAnimating){
+                                controller.stop();
+                              }
+                              Get.to(()=>const LearnWord());
+                            }else{
+                              if (Get.isSnackbarOpen) Get.closeAllSnackbars();
+                              Get.snackbar(c.snackbarFindTitle.string,c.snackbarFindBody.string);
+                            }
+                          },
+                          child: GetBuilder<Controller>(
+                            builder: (_) => Text(
+                              c.language.string == 'VN'? 'chơi game':'play game',
+                              style: const TextStyle(
+                                color: textColor,
+                                fontSize: 10,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width:5),
+                      ],
+                    ),
                   ),
+                  const SizedBox(height:5),
+                  SizedBox(height: MediaQuery.of(context).padding.bottom),
+                ],
+              ),
+              Container(
+                alignment:Alignment.centerRight,
+                child: Row(
+                    children: [
+                      Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children:[
+                            const Expanded(child: SizedBox()),
+                            IconButton(
+                              padding: const EdgeInsets.all(0.0),
+                              icon: Icon(
+                                Icons.keyboard_arrow_up_rounded,
+                                size: 25,
+                                color: Colors.black.withOpacity(0.3),
+                              ),
+                              tooltip: 'next',
+                              onPressed: () async {
+                                await getWord(c.wordNext.string);
+                              },
+                            ),
+                            IconButton(
+                              padding: const EdgeInsets.all(0.0),
+                              icon: Icon(
+                                Icons.refresh_rounded,
+                                size: 25,
+                                color: Colors.black.withOpacity(0.3),
+                              ),
+                              tooltip: 'next',
+                              onPressed: () async {
+                                await getNewWord();
+                              },
+                            ),
+                            IconButton(
+                              padding: const EdgeInsets.all(0.0),
+                              icon: Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                size: 25,
+                                color: Colors.black.withOpacity(0.3),
+                              ),
+                              tooltip: 'previous',
+                              onPressed: () async {
+                                await getWord(c.wordPrevious.string);
+                              },
+                            ),
+                            const Expanded(child: SizedBox()),
+                          ]
+                      ),
+                      const Expanded(child: SizedBox()),
+                      Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children:[
+                            const Expanded(child: SizedBox()),
+                            RotatedBox(
+                              quarterTurns: -1,
+                              child: GetBuilder<Controller>(
+                                builder: (_) => LinearPercentIndicator(
+                                  alignment: MainAxisAlignment.center,
+                                  width: MediaQuery.of(context).size.height*0.2,
+                                  lineHeight: 5.0,
+                                  percent: (c.wordScore.value+c.pronunScore.value+c.speakScore.value+c.meanScore.value)/100,
+                                  backgroundColor: Colors.black.withOpacity(0.1),
+                                  progressColor: Colors.black.withOpacity(0.4),
+                                  padding: const EdgeInsets.all(0),
+                                  animation: true,
+                                ),
+                              ),
+                            ),
+                            const Expanded(child: SizedBox()),
+                          ]
+                      ),
+                      const SizedBox(width:7),
+                    ]
                 ),
-              ]
+              ),
+            ]
           ),
         ),
       ),
@@ -3400,27 +3401,37 @@ class MeanWidget extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Flexible(
-                        child: Text(
-                          c.word.string,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 50,
-                            letterSpacing: 1,
-                            fontWeight: FontWeight.w600,
-                            foreground: Paint()..shader = linearGradient,
-                            shadows: [
-                              Shadow(
-                                blurRadius: 15,
-                                color: Colors.black.withOpacity(0.5),
-                                offset: const Offset(3, 3),
+                      GetBuilder<Controller>(
+                        builder: (_) => Flexible(
+                            child: DefaultTextStyle(
+                              style: TextStyle(
+                                fontSize: 50,
+                                letterSpacing: 1,
+                                fontWeight: FontWeight.w600,
+                                foreground: Paint()..shader = linearGradient,
+                                shadows: [
+                                  Shadow(
+                                    blurRadius: 15,
+                                    color: Colors.black.withOpacity(0.5),
+                                    offset: const Offset(3, 3),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                              child: AnimatedTextKit(
+                                key: ValueKey<String>(c.word.string),
+                                animatedTexts: [
+                                  WavyAnimatedText(c.word.string),
+                                  WavyAnimatedText(c.pronun.string),
+                                ],
+                                isRepeatingAnimation: true,
+                                repeatForever: true,
+                                onTap: () {},
+                              ),
+                            )
                         ),
                       ),
-                    ]
-                  )
+                    ],
+                  ),
                 ),
                 const SizedBox(width: 5),
               ]
