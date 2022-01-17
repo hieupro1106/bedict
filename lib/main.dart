@@ -48,7 +48,7 @@ List<String> listCategoryVN = ["tất cả chủ đề","khả năng","trừu t�
 "bệnh tật","học thuyết","uống","sinh thái học","kinh tế","giáo dục","điện","điện tử",
 "nguyên tố","cảm xúc","năng lượng","giải trí","môi trường","sự kiện","câu cảm thán",
 "gia đình","lễ hội","hình khối","tài chính","cá","đồ ăn","tần suất","hoa quả","nhiên liệu",
-"chức năng","future","trò chơi","khoảng trống","địa lý","địa chất","nhà nước","ngữ pháp",
+"chức năng","tương lai","trò chơi","khoảng trống","địa lý","địa chất","nhà nước","ngữ pháp",
 "nhóm","vi phạm","huy hiệu","lịch sử","kỳ nghỉ","công nghiệp","thông tin","thực thể khác người",
 "côn trùng","bảo hiểm","mạng internet","vật thể","nghề nghiệp","ngôn ngữ","luật pháp",
 "ngôn ngữ học","danh sách","văn học","logic","máy móc","dấu, dấu vết","đống","vật liệu",
@@ -5415,10 +5415,20 @@ class MyUpgradePage extends StatelessWidget {
                       builder: (_) => Text(
                         c.language.value == 'VN'?
                         'đăng kí 1 năm sử dụng ứng dụng không bị làm phiền bởi quảng cáo,'
-                            ' giúp chúng tôi duy trì ứng dụng này tới mọi người,'
-                            ' hết thời gian ứng dụng sẽ được gia hạn tự động':
+                            ' giúp chúng tôi duy trì ứng dụng này tới mọi người.\n'
+                            ' Số tiền 119,000 đồng cho 1 năm sẽ được áp dụng khi xác nhận. '
+                            'Đăng ký sẽ được gia hạn tự động trừ khi bị huỷ trong vòng 24 giờ '
+                            'trước cuối kỳ hạn. Bạn có thể huỷ bất cứ lúc nào trong cài đặt'
+                            'tài khoản iTunes. Chi tiết hơn ghé qua đường link https://bedict.com/privacy_policy.html.':
                         'register 1 year using this app without advertisement,'
-                            ' helping us distribute this app to people, this app auto renews',
+                            ' helping us distribute this app to people\n'
+                            'A 4.9\$ for one year purchase will '
+                            'be applied to your iTunes account on confirmation. '
+                            'Subscriptions will automatically renew unless '
+                            'canceled within 24-hours before the end of the current period. '
+                            'You can cancel anytime with your iTunes account settings. '
+                            'For more information, '
+                            'see our https://bedict.com/privacy_policy.html.',
                         style: const TextStyle(
                           fontSize: 16,
                           // overflow: TextOverflow.ellipsis,
