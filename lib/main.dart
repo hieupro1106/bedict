@@ -38,8 +38,9 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:soundpool/soundpool.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:translator/translator.dart';
 
-List<String> listCategoryVN = ["tất cả chủ đề","khả năng","trừu tượng","thành tích","hành động","tuổi tác","nông nghiệp",
+List<String> listCategoryVN = ["khả năng","trừu tượng","thành tích","hành động","tuổi tác","nông nghiệp",
 "trợ giúp","số lượng","giải phẫu","động vật","vẻ ngoài","khảo cổ học","kiến trúc","khu vực",
 "nghệ thuật","khía cạnh","tài sản","chiêm tinh học","thiên văn học","thái độ","thực thể",
 "rung chuông","cá cược","hoá sinh học","sinh học","chim","cơ thể","nhà cửa","việc làm ăn",
@@ -65,7 +66,7 @@ List<String> listCategoryVN = ["tất cả chủ đề","khả năng","trừu t�
 "sự vật","thời gian","tiêu đề","truyền thống","giao thông","loại, kiểu","đơn vị","đồ dùng",
 "tiện ích","giá trị","rau củ","phương tiện","vi rút","chiến tranh","cách thức","vũ khí",
 "trang phục","thời tiết","từ","công việc","thế giới","viết lách","không chủ đề"];
-List<String> listCategoryEN = ["all category","ability","abstract","achievement",
+List<String> listCategoryEN = ["ability","abstract","achievement",
 "action","age","agriculture","aid","amount","anatomy","animal",
 "appearance","archaeology","architecture","area","art",
 "aspect","asset","astrology","astronomy","attitude","being","bell-ringing",
@@ -98,24 +99,38 @@ List<String> listCategoryEN = ["all category","ability","abstract","achievement"
 List<String> listLevelVN = ['tất cả từ', '8.000 từ','5.000 từ','3.000 từ'];
 List<String> listLevelEN = ['all words', '8.000 words','5.000 words','3.000 words'];
 
-List<String> listTypeVN = ["tất cả từ loại","danh từ","động từ","tính từ","trạng từ","đại từ","từ viết tắt", "từ cảm thán",
+List<String> listTypeVN = ["danh từ","động từ","tính từ","trạng từ","đại từ","từ viết tắt", "từ cảm thán",
   "giới từ","liên từ", "từ hạn định sở hữu","đại từ sở hữu","cụm từ","từ rút gọn",
   "động từ khiếm khuyết","từ hạn định","số đếm","số thứ tự",
   "tiểu từ nguyên mẫu", "từ chỉ định","trợ động từ","trạng từ nghi vấn",
   "đại từ nghi vấn","đại từ quan hệ","trạng từ quan hệ"];
-List<String> listTypeEN = ["all type","noun","verb","adjective","adverb","pronoun","abbreviation","exclamation",
+List<String> listTypeEN = ["noun","verb","adjective","adverb","pronoun","abbreviation","exclamation",
   "preposition","conjunction", "possessive determiner","possessive pronoun","phrase","contraction",
   "modal verb","determiner","cardinal number","ordinal number",
   "infinitive particle","predeterminer","auxiliary verb","interrogative adverb",
   "interrogative pronoun","relative pronoun","relative adverb"];
 
+const String androidAd = 'ca-app-pub-3940256099942544/1033173712';
+const String iosAd = 'ca-app-pub-9467993129762242/5200342904';
+int showAdFrequency = 10;
+int runAppCount = 1;
+
 // const textColor = Color.fromRGBO(3, 64, 24, 1);
 const textColor = Colors.black;
 const backgroundColor = Color.fromRGBO(147, 219, 172, 1);
-const themeColor = Color.fromRGBO(230, 255, 240, 1);
+// const backgroundColor = Color.fromRGBO(50,128,80, 1);
+// const themeColor = Color.fromRGBO(230, 255, 240, 1);
+const themeColor = Color.fromRGBO(240, 240, 240, 1);
 final Shader linearGradient = const LinearGradient(
   colors: <Color>[Color.fromRGBO(150,173,10,1), Color.fromRGBO(53,61,1,1)],
 ).createShader(const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0));
+const colorizeColors = [
+  Colors.black,
+  Colors.blue,
+  Colors.yellow,
+  Colors.green,
+];
+
 
 final Soundpool pool = Soundpool.fromOptions();
 late int soundId;
@@ -125,14 +140,17 @@ late int soundIdWrong;
 int initLanguageIndex = 0;
 late SpeechToText stt;
 late FlutterTts flutterTts;
-late AnimationController controller;
 FocusNode searchFocusNode = FocusNode();
 late var box;
 late var boxSetting;
 late var boxScore;
 late var boxHistory;
+List<String> ieltsList = <String>[];
+List<String> toeflList = <String>[];
+List<String> toeicList = <String>[];
+List<String> essentialList = <String>[];
 
-final searchField = TextEditingController();
+// final searchField = TextEditingController();
 
 Future<void> main() async {
 
@@ -183,6 +201,14 @@ Future<void> main() async {
     c.isVip = RxBool(await checkExpire(vipToken));
   }
 
+  runAppCount = await boxSetting.get('runAppCount') ?? runAppCount;
+  await boxSetting.put('runAppCount',runAppCount+1);
+  if (runAppCount<100){
+    showAdFrequency = 20 - runAppCount~/10;
+  }else{
+    showAdFrequency = 10;
+  }
+
   c.notifyDaily = RxBool(await boxSetting.get('notifyDaily') ?? false);
   c.selectedTime = RxString(await boxSetting.get('timeDaily') ?? '20:00');
   c.notifyWord = RxBool(await boxSetting.get('notifyWord') ?? false);
@@ -193,25 +219,6 @@ Future<void> main() async {
   c.target = RxInt(await boxSetting.get('target') ?? 10);
   c.notificationInterval = RxInt(await boxSetting.get('notificationInterval') ?? 60);
   c.language = RxString(await boxSetting.get('language') ?? c.language.string);
-  c.categoryIndex = RxInt(await boxSetting.get('category') ?? 0);
-  c.typeIndex = RxInt(await boxSetting.get('type') ?? 0);
-  c.levelIndex = RxInt(await boxSetting.get('level') ?? 0);
-  for (var i=0;i<4;i++){
-    if (c.levelIndex.value == i) {
-      c.isSelectedBundle[i] = true;
-    } else {
-      c.isSelectedBundle[i] = false;
-    }
-  }
-  if (c.language.string == 'VN'){
-    c.listCategory = listCategoryVN;
-    c.listType = listTypeVN;
-    c.listLevel = listLevelVN;
-  }else{
-    c.listCategory = listCategoryEN;
-    c.listType = listTypeEN;
-    c.listLevel = listLevelEN;
-  }
   bool isIntroduce = await boxSetting.get('isIntroduce') ?? true;
 
   if (c.notifyWord.value){
@@ -220,10 +227,36 @@ Future<void> main() async {
     showNotificationWord();
   }
 
+  soundId = await rootBundle.load("assets/tap.mp3").then((ByteData soundData) {
+    return pool.load(soundData);
+  });
+  soundIdRight = await rootBundle.load("assets/right.mp3").then((ByteData soundData) {
+    return pool.load(soundData);
+  });
+  soundIdWrong = await rootBundle.load("assets/wrong.mp3").then((ByteData soundData) {
+    return pool.load(soundData);
+  });
+
+  String response = await rootBundle.loadString('assets/ielts.json');
+  var data = await json.decode(response);
+  ieltsList = data.cast<String>();
+  response = await rootBundle.loadString('assets/toeic.json');
+  data = await json.decode(response);
+  toeicList = data.cast<String>();
+  response = await rootBundle.loadString('assets/toefl.json');
+  data = await json.decode(response);
+  toeflList = data.cast<String>();
+  response = await rootBundle.loadString('assets/essential.json');
+  data = await json.decode(response);
+  essentialList = data.cast<String>();
+  response = await rootBundle.loadString('assets/allWords.json');
+  data = await json.decode(response);
+  c.wordArray = RxList(data.cast<String>());
+
   runApp(
     GetMaterialApp(
       title: "BeDict",
-      home: isIntroduce? const WelcomePage(): Home(),
+      home: isIntroduce? const WelcomePage(): MainScreen(),
       debugShowCheckedModeBanner: false,
     )
   );
@@ -321,25 +354,25 @@ class Controller extends GetxController{
     });
   }
 
+  var bundle = ''.obs;
+  var part = 0.obs;
+
+  var fromScreen = 0.obs;
+  var translateIn = ''.obs;
+  var translateOut = ''.obs;
+  var languageIn = 'English'.obs;
+  var languageOut = 'Tiếng Việt'.obs;
+  var currentPage = 0.obs;
+  var currentTab = 0.obs;
+  var nowIndex = 0.obs;
+  var nowWord = 0.obs;
   var lastHistoryIndex = 0.obs;
   var learnRight = false.obs;
   var right = false.obs;
   var isSearch = false.obs;
-  var isSearching = false.obs;
   var playing = true.obs;
   var nowMean = 0.obs;
   var expire = 0.obs;
-  List<String> listRandom = <String>[].obs;
-  List<String> listArrange = <String>[].obs;
-  List<String> listRandomPronun = <String>[].obs;
-  List<String> listArrangePronun = <String>[].obs;
-  List<bool> isSelectedBundle = [true,false,false,false].obs;
-  List<bool> isSelectedSort = [true,false].obs;
-  List<bool> isSelectedSortScore = [true,false].obs;
-  List<bool> isSortScore = [true,false].obs;
-  var typeIndexScore = 0.obs;
-  var categoryIndexScore = 0.obs;
-  var levelIndexScore = 0.obs;
   var indexScorePage = 0.obs;
   var indexHistoryPage = 0.obs;
   List<String> listWordScore = <String>[].obs;
@@ -351,7 +384,6 @@ class Controller extends GetxController{
   var isEndDayOpen = false.obs;
   var isStartDayHistory = false.obs;
   var isEndDayHistory = false.obs;
-  var isSortScoreOpen = false.obs;
   var notificationInterval = 60.obs;
   var isListening = false.obs;
   var isVip = false.obs;
@@ -362,34 +394,19 @@ class Controller extends GetxController{
   var language = 'VN'.obs;
   var locale = 'en-US'.obs;
   var listenString = ''.obs;
-  var nowIndex = 0.obs;
   List mean = [].obs;
   List meanVN = [].obs;
   List meanEN = [].obs;
   List imageURL = [].obs;
-  List<List> listImage = <List>[].obs;
-  List<int> listIndex = <int>[].obs;
   var word = ''.obs;
-  var wordPrevious = ''.obs;
-  var wordNext = ''.obs;
   var typeState = 0.obs;
   var pronun = ''.obs;
 
   var category = 'all category'.obs;
-  var categoryIndex = 0.obs;
-  List<String> listCategory = listCategoryVN.obs;
 
   var type = 'all type'.obs;
-  var typeIndex = 0.obs;
-  List<String> listType = listTypeVN.obs;
 
-  var level = 'tất cả từ'.obs;
-  var levelIndex = 0.obs;
-  List<String> listLevel = listLevelVN.obs;
-
-  var focusedIndex = 0.obs;
   List<String> wordArray = <String>[].obs;
-  var currentTab = 0.obs;
 
   var wordScore = 0.obs;
   var pronunScore = 0.obs;
@@ -400,6 +417,7 @@ class Controller extends GetxController{
   List<History> listHistory = <History> [].obs;
   List<Score> listLearned = <Score> [].obs;
   List<Score> listLearnedToday = <Score> [].obs;
+  List<String> listWordScorePage = <String> [].obs;
 
   var notifyDaily = false.obs;
   var notifyWord = false.obs;
@@ -409,10 +427,6 @@ class Controller extends GetxController{
   var speakSpeed = 0.3.obs;
 
   var isAdShowing = false.obs;
-
-  onItemFocus (int index){
-    focusedIndex = RxInt(index);
-  }
 
   var drawerInitSpeak = 'Tự động phát âm'.obs;
   var drawerEnableSound = 'Âm nền'.obs;
@@ -470,9 +484,6 @@ class Controller extends GetxController{
     if (language.string == 'VN'){
       initLanguageIndex = 0;
       await boxSetting.put('language','VN');
-      listCategory = listCategoryVN.obs;
-      listType = listTypeVN.obs;
-      listLevel = listLevelVN.obs;
       mean = meanVN;
       typeState = 1.obs;
       drawerInitSpeak = 'Tự động phát âm'.obs;
@@ -528,9 +539,6 @@ class Controller extends GetxController{
     }else{
       initLanguageIndex = 1;
       await boxSetting.put('language','EN');
-      listCategory = listCategoryEN.obs;
-      listType = listTypeEN.obs;
-      listLevel = listLevelEN.obs;
       mean = meanEN;
       typeState = 0.obs;
       drawerInitSpeak = 'Automatic speaking'.obs;
@@ -586,81 +594,17 @@ class Controller extends GetxController{
     }
     update();
   }
-  changeLevel(int index) async{
-    List<String> listWord = await getListWords(listLevel[index],category.string,type.string);
-    if (listWord.isEmpty){
-      if (Get.isSnackbarOpen) Get.closeAllSnackbars();
-      Get.snackbar(learnWrongTitle.string,notFound.string);
-    }else{
-      wordArray = RxList(listWord);
-      levelIndex = RxInt(index);
-      level = RxString(listLevel[index]);
-      await boxSetting.put('level',index);
-      word = RxString(listWord[0]);
-      await layWord(word.string);
-    }
-  }
-  changeCategory(int index) async {
-    typeIndex = 0.obs;
-    type = 'all type'.obs;
-    await boxSetting.put('type',0);
-    List<String> listWord = await getListWords(level.string,listCategoryEN[index],type.string);
-    if (listWord.isEmpty){
-      if (Get.isSnackbarOpen) Get.closeAllSnackbars();
-      Get.snackbar(learnWrongTitle.string,notFound.string);
-      update();
-    }else{
-      wordArray = RxList(listWord);
-      categoryIndex = RxInt(index);
-      category = RxString(listCategoryEN[index]);
-      await boxSetting.put('category',index);
-      word = RxString(listWord[0]);
-      await layWord(word.string);
-    }
-  }
-  changeType(int index) async {
-    categoryIndex = 0.obs;
-    category = 'all category'.obs;
-    await boxSetting.put('category',0);
-    List<String> listWord = await getListWords(level.string,category.string,listTypeEN[index]);
-    if (listWord.isEmpty){
-      if (Get.isSnackbarOpen) Get.closeAllSnackbars();
-      Get.snackbar(learnWrongTitle.string,notFound.string);
-      update();
-    }else{
-      wordArray = RxList(listWord);
-      typeIndex = RxInt(index);
-      type = RxString(listTypeEN[index]);
-      await boxSetting.put('type',index);
-      word = RxString(listWord[0]);
-      await layWord(word.string);
-    }
-  }
   Future layWord(String newWord) async {
-    focusedIndex = 0.obs;
-    isSearching = true.obs;
-    int h = wordArray.indexOf(newWord);
-    word = RxString(wordArray[h]);
+    word = RxString(newWord);
     await boxSetting.put('word',word.string);
-    searchField.text = word.string;
+    // searchField.text = word.string;
     Score currentScore = await getScore(word.string);
     wordScore = RxInt(currentScore.word);
     pronunScore = RxInt(currentScore.pronun);
     speakScore = RxInt(currentScore.speak);
     meanScore = RxInt(currentScore.mean);
     await insertHistory(word.string);
-    if (h>0){
-      wordPrevious = RxString(wordArray[h-1]);
-    }else{
-      wordPrevious = RxString(wordArray[wordArray.length-1]);
-    }
-    if (h<(wordArray.length-1)){
-      wordNext = RxString(wordArray[h+1]);
-    }else{
-      wordNext = RxString(wordArray[0]);
-    }
     var dataRaw = await box.get(word.string);
-    word = RxString(dataRaw['word']);
     if (dataRaw['pronun'] != ''){
       pronun = RxString(dataRaw['pronun'].split('/')[1]);
     }else{
@@ -689,7 +633,6 @@ class Controller extends GetxController{
         }
         meanEN.add(meanENAdd);
         meanVN.add(meanVNAdd);
-        listImage.add([]);
         if (i>=jsonDecode(dataRaw['imageURL']).length){
           imageURL.add('bedict.png');
         }else{
@@ -698,9 +641,13 @@ class Controller extends GetxController{
       }
     }
     nowMean = 0.obs;
-    arrangeLearnMean();
-    await changeLanguage(language.string);
-    if (initSpeak.value) await _speak(word.string);
+    if (language.string == 'VN'){
+      mean = meanVN;
+    }else{
+      mean = meanEN;
+    }
+    update();
+    if (initSpeak.value) _speak(word.string);
   }
 
 }
@@ -710,7 +657,7 @@ class Introduce extends StatelessWidget {
   final introKey = GlobalKey<IntroductionScreenState>();
 
   void _onIntroEnd(context) async {
-    Get.to(()=>const LoadingPage());
+    Get.offAll(()=>const LoadingPage());
   }
 
   Widget _buildImage(String assetName, [double width = 250]) {
@@ -738,94 +685,2432 @@ class Introduce extends StatelessWidget {
 
     });
 
-    return IntroductionScreen(
-      key: introKey,
-      globalBackgroundColor: Colors.white,
-      pages: [
-        PageViewModel(
-          title: c.introduce0Title.string,
-          body: c.introduce0Body.string,
-          image: _buildImage(c.language.string == 'VN'?'img0.jpg':'img0EN.jpg'),
-          decoration: pageDecoration,
+    return WillPopScope(
+      onWillPop: () async {
+        return false;
+      },
+      child: IntroductionScreen(
+        key: introKey,
+        globalBackgroundColor: Colors.white,
+        pages: [
+          PageViewModel(
+            title: c.introduce0Title.string,
+            body: c.introduce0Body.string,
+            image: _buildImage(c.language.string == 'VN'?'img0.jpg':'img0EN.jpg'),
+            decoration: pageDecoration,
+          ),
+          PageViewModel(
+            title: c.introduce1Title.string,
+            body: c.introduce1Body.string,
+            image: _buildImage(c.language.string == 'VN'?'img1.jpg':'img1EN.jpg'),
+            decoration: pageDecoration,
+          ),
+          PageViewModel(
+            title: c.introduce2Title.string,
+            body: c.introduce2Body.string,
+            image: _buildImage('img2.jpg'),
+            decoration: pageDecoration,
+          ),
+          PageViewModel(
+            title: c.introduce3Title.string,
+            body: c.introduce3Body.string,
+            image: _buildImage(c.language.string == 'VN'?'img3.jpg':'img3EN.jpg'),
+            decoration: pageDecoration,
+          ),
+        ],
+        onDone: () => _onIntroEnd(context),
+        //onSkip: () => _onIntroEnd(context), // You can override onSkip callback
+        showSkipButton: true,
+        skipFlex: 0,
+        nextFlex: 0,
+        //rtl: true, // Display as right-to-left
+        skip: GetBuilder<Controller>(
+          builder: (_) => Text(
+              c.language.string=='VN'?'Bỏ qua':'Skip',
+              style: const TextStyle(color:backgroundColor)
+          ),
         ),
-        PageViewModel(
-          title: c.introduce1Title.string,
-          body: c.introduce1Body.string,
-          image: _buildImage(c.language.string == 'VN'?'img1.jpg':'img1EN.jpg'),
-          decoration: pageDecoration,
+        next: const Icon(Icons.arrow_forward,color:backgroundColor),
+        done: GetBuilder<Controller>(
+          builder: (_) => Text(
+              c.language.string=='VN'?'Xong':'Done',
+              style: const TextStyle(fontWeight: FontWeight.w600,color:backgroundColor)
+          ),
         ),
-        PageViewModel(
-          title: c.introduce2Title.string,
-          body: c.introduce2Body.string,
-          image: _buildImage('img2.jpg'),
-          decoration: pageDecoration,
+        curve: Curves.fastLinearToSlowEaseIn,
+        controlsMargin: const EdgeInsets.all(16),
+        controlsPadding: kIsWeb
+            ? const EdgeInsets.all(12.0)
+            : const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 4.0),
+        dotsDecorator: const DotsDecorator(
+          size: Size(10.0, 10.0),
+          activeColor: backgroundColor,
+          color: Color(0xFFBDBDBD),
+          activeSize: Size(22.0, 10.0),
+          activeShape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(25.0)),
+          ),
         ),
-        PageViewModel(
-          title: c.introduce3Title.string,
-          body: c.introduce3Body.string,
-          image: _buildImage(c.language.string == 'VN'?'img3.jpg':'img3EN.jpg'),
-          decoration: pageDecoration,
-        ),
-      ],
-      onDone: () => _onIntroEnd(context),
-      //onSkip: () => _onIntroEnd(context), // You can override onSkip callback
-      showSkipButton: true,
-      skipFlex: 0,
-      nextFlex: 0,
-      //rtl: true, // Display as right-to-left
-      skip: GetBuilder<Controller>(
-        builder: (_) => Text(
-          c.language.string=='VN'?'Bỏ qua':'Skip',
-          style: const TextStyle(color:backgroundColor)
-        ),
-      ),
-      next: const Icon(Icons.arrow_forward,color:backgroundColor),
-      done: GetBuilder<Controller>(
-        builder: (_) => Text(
-          c.language.string=='VN'?'Xong':'Done',
-          style: const TextStyle(fontWeight: FontWeight.w600,color:backgroundColor)
-        ),
-      ),
-      curve: Curves.fastLinearToSlowEaseIn,
-      controlsMargin: const EdgeInsets.all(16),
-      controlsPadding: kIsWeb
-          ? const EdgeInsets.all(12.0)
-          : const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 4.0),
-      dotsDecorator: const DotsDecorator(
-        size: Size(10.0, 10.0),
-        activeColor: backgroundColor,
-        color: Color(0xFFBDBDBD),
-        activeSize: Size(22.0, 10.0),
-        activeShape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(25.0)),
-        ),
-      ),
-      dotsContainerDecorator: const ShapeDecoration(
-        // color: Colors.black87,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(8.0)),
+        dotsContainerDecorator: const ShapeDecoration(
+          // color: Colors.black87,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(8.0)),
+          ),
         ),
       ),
     );
   }
 }
 
-class Home extends StatelessWidget {
-  Home({Key? key}) : super(key: key);
+class MainScreen extends StatelessWidget {
+  MainScreen({Key? key}) : super(key: key);
   final GlobalKey<ScaffoldState> _key = GlobalKey();
 
-  final ScreenshotController screenshotController = ScreenshotController();
+  @override
+  Widget build(BuildContext context) {
+    final Controller c = Get.put(Controller());
+
+    List<Widget> pages = [
+      const SearchPage(),
+      TranslatePage(),
+      const SettingPage(),
+    ];
+
+    WidgetsBinding.instance?.addPostFrameCallback((_) async {
+
+    });
+
+    return AnnotatedRegion(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent, //i like transaparent :-)
+        systemNavigationBarColor: Colors.white, // navigation bar color
+        statusBarIconBrightness: Brightness.light, // status bar icons' color
+        systemNavigationBarIconBrightness: Brightness.light, //navigation bar icons' color
+      ),
+      child: WillPopScope(
+        onWillPop: () async {
+          return false;
+        },
+        child: Scaffold(
+          key: _key,
+          resizeToAvoidBottomInset: false,
+          body: GetBuilder<Controller>(
+            builder: (_) => pages.elementAt(c.currentPage.value),
+          ),
+          bottomNavigationBar: GetBuilder<Controller>(
+            builder: (_) => BottomNavigationBar(
+              currentIndex: c.currentPage.value,
+              onTap: (int index) {
+                c.currentPage = RxInt(index);
+                c.update();
+              },
+              backgroundColor: Colors.white,
+              showUnselectedLabels: true,
+              unselectedItemColor: const Color.fromRGBO(235, 235, 235, 1),
+              selectedItemColor: textColor,
+              selectedFontSize: 14,
+              unselectedFontSize: 14,
+              items: [
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.search_rounded),
+                  backgroundColor: backgroundColor,
+                  label: c.language.string == 'VN'? 'Tìm kiếm':'Search',
+                ),
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.g_translate_outlined),
+                  backgroundColor: backgroundColor,
+                  label: c.language.string == 'VN'? 'Dịch':'Translate',
+                ),
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.settings_rounded),
+                  backgroundColor: backgroundColor,
+                  label: c.language.string == 'VN'? 'Cài đặt':'Setting',
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class SearchPage extends StatefulWidget {
+  const SearchPage({Key? key}) : super(key: key);
 
   @override
-  Widget build(context) {
+  State<SearchPage> createState() => _SearchPageState();
+}
+
+class _SearchPageState extends State<SearchPage> {
+  List listShowIelts = [];
+  List listShowToeic = [];
+  List listShowToefl = [];
+  List listShowEssential = [];
+  int ieltsCount = 0;
+  int toeicCount = 0;
+  int toeflCount = 0;
+  int essentialCount = 0;
+  bool initial = true;
+
+  Future getList(int count) async {
+    List _listShowIelts = [];
+    List _listShowToeic = [];
+    List _listShowToefl = [];
+    List _listShowEssential = [];
+    List<int> listIndex = [];
+    while (_listShowIelts.length<count){
+      int newIndex = Random().nextInt(ieltsList.length);
+      if (!listIndex.contains(newIndex)){
+        listIndex.add(newIndex);
+        var dataRaw = await box.get(ieltsList[newIndex]);
+        _listShowIelts.add(dataRaw);
+      }
+    }
+    listIndex = [];
+    while (_listShowToeic.length<count){
+      int newIndex = Random().nextInt(toeicList.length);
+      if (!listIndex.contains(newIndex)){
+        listIndex.add(newIndex);
+        var dataRaw = await box.get(toeicList[newIndex]);
+        _listShowToeic.add(dataRaw);
+      }
+    }
+    listIndex = [];
+    while (_listShowToefl.length<count){
+      int newIndex = Random().nextInt(toeflList.length);
+      if (!listIndex.contains(newIndex)){
+        listIndex.add(newIndex);
+        var dataRaw = await box.get(toeflList[newIndex]);
+        _listShowToefl.add(dataRaw);
+      }
+    }
+    listIndex = [];
+    while (_listShowEssential.length<count){
+      int newIndex = Random().nextInt(essentialList.length);
+      if (!listIndex.contains(newIndex)){
+        listIndex.add(newIndex);
+        var dataRaw = await box.get(essentialList[newIndex]);
+        _listShowEssential.add(dataRaw);
+      }
+    }
+    int _ieltsCount = 0;
+    int _toeicCount = 0;
+    int _toeflCount = 0;
+    int _essentialCount = 0;
+    for (var i=0;i<ieltsList.length;i++){
+      var nowWord = await boxScore.get(ieltsList[i]);
+      if (nowWord[5]>0){
+        _ieltsCount++;
+      }
+    }
+    for (var i=0;i<toeicList.length;i++){
+      var nowWord = await boxScore.get(toeicList[i]);
+      if (nowWord[5]>0){
+        _toeicCount++;
+      }
+    }
+    for (var i=0;i<toeflList.length;i++){
+      var nowWord = await boxScore.get(toeflList[i]);
+      if (nowWord[5]>0){
+        _toeflCount++;
+      }
+    }
+    for (var i=0;i<essentialList.length;i++){
+      var nowWord = await boxScore.get(essentialList[i]);
+      if (nowWord[5]>0){
+        _essentialCount++;
+      }
+    }
+    setState((){
+      listShowIelts = _listShowIelts;
+      listShowToeic = _listShowToeic;
+      listShowToefl = _listShowToefl;
+      listShowEssential = _listShowEssential;
+      ieltsCount = _ieltsCount;
+      toeicCount = _toeicCount;
+      toeflCount = _toeflCount;
+      essentialCount = _essentialCount;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
     List<String> suggestArray = [];
-    const colorizeColors = [
-      Colors.black,
-      Colors.blue,
-      Colors.yellow,
-      Colors.green,
-    ];
+
+    if (initial){
+      getList(MediaQuery.of(context).size.width < 500?5:(MediaQuery.of(context).size.width~/220+2));
+    }
+    initial = false;
+
+    void getToScore(String bundle) {
+      if (!c.isAdShowing.value){
+        void toScore() {
+          c.bundle = RxString(bundle);
+          c.part = 0.obs;
+          c.isAdShowing = false.obs;
+          c.category = 'all category'.obs;
+          c.type = 'all type'.obs;
+          Get.offAll(()=> const ScorePage());
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
+
+    void getToHome(String bundle, String word) {
+      if (!c.isAdShowing.value){
+        void toScore() async {
+          c.fromScreen = 1.obs;
+          c.isSearch = false.obs;
+          c.isAdShowing = false.obs;
+          c.bundle = RxString(bundle);
+          c.category = 'all category'.obs;
+          c.type = 'all type'.obs;
+          await c.layWord(word);
+          Get.offAll(()=>Home());
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
+
+    void searchToHome(String word) {
+      if (!c.isAdShowing.value){
+        void toScore() async {
+          c.nowWord = RxInt(c.wordArray.indexOf(word));
+          c.isAdShowing = false.obs;
+          c.isSearch = false.obs;
+          c.category = 'all category'.obs;
+          c.type = 'all type'.obs;
+          await c.layWord(word);
+          c.fromScreen = 0.obs;
+          Get.offAll(()=>Home());
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
+
+    void getToCategory() {
+      if (!c.isAdShowing.value){
+        void toScore() {
+          c.isAdShowing = false.obs;
+          Get.offAll(()=> const CategoryScreen());
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
+
+    void getToType() {
+      if (!c.isAdShowing.value){
+        void toScore() {
+          c.isAdShowing = false.obs;
+          Get.offAll(()=> const TypeScreen());
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
+
+    return GestureDetector(
+      onTap:(){
+        if (searchFocusNode.hasFocus){
+          searchFocusNode.unfocus();
+        }
+        if (c.isSearch.value){
+          c.isSearch = false.obs;
+          c.update();
+        }
+      },
+      child: Container(
+        color: Colors.white,
+        child: Column(
+          children:[
+            Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                // boxShadow: [
+                //   BoxShadow(
+                //     color: Colors.black.withOpacity(0.3),
+                //     spreadRadius: 0,
+                //     blurRadius: 10,
+                //     offset: const Offset(0, 2),
+                //   ),
+                // ],
+              ),
+              child: Column(
+                  children:[
+                    SizedBox(height: MediaQuery.of(context).padding.top+10),
+                    GetBuilder<Controller>(
+                      builder: (_) => Visibility(
+                        visible: c.isSearch.value,
+                        child: Row(
+                            children:[
+                              const SizedBox(width:15),
+                              Expanded(
+                                child: TypeAheadField(
+                                  textFieldConfiguration: TextFieldConfiguration(
+                                    // controller: searchField,
+                                    autofocus: false,
+                                    autocorrect: false,
+                                    textInputAction: TextInputAction.done,
+                                    focusNode: searchFocusNode,
+                                    style: const TextStyle(
+                                      fontSize: 15.0,
+                                      color: textColor,
+                                    ),
+                                    decoration: InputDecoration(
+                                      fillColor: backgroundColor.withOpacity(0.5),
+                                      filled: true,
+                                      border: const OutlineInputBorder(
+                                        borderSide: BorderSide.none,
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(30)
+                                        ),
+                                      ),
+                                      focusedBorder: const OutlineInputBorder(
+                                        borderSide: BorderSide.none,
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(30)
+                                        ),
+                                      ),
+                                      enabledBorder: const OutlineInputBorder(
+                                        borderSide: BorderSide.none,
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(30)
+                                        ),
+                                      ),
+                                      // prefixIcon: Icon(Icons.search_outlined,size:15),
+                                      hintText: c.hint.string,
+                                      isDense: true,
+                                      contentPadding: const EdgeInsets.all(5),
+                                      prefixIcon: const Icon(Icons.search),
+                                      // icon: Icon(Icons.search),
+                                      // isCollapsed: true,
+                                    ),
+                                    onSubmitted: (value) async {
+                                      if (suggestArray.isEmpty){
+                                        // searchField.text = c.word.string;
+                                        if (Get.isSnackbarOpen) Get.closeAllSnackbars();
+                                        Get.snackbar(c.learnWrongTitle.string, c.notFound.string);
+                                      }else{
+                                        searchToHome(suggestArray[0]);
+                                      }
+                                    },
+                                  ),
+                                  suggestionsBoxVerticalOffset: 10,
+                                  noItemsFoundBuilder: (BuildContext context) => ListTile(
+                                    title: Text(
+                                      c.notFound.string,
+                                      style: const TextStyle(
+                                        fontSize: 15.0,
+                                        color: textColor,
+                                      ),
+                                    ),
+                                  ),
+                                  suggestionsCallback: (pattern) async {
+                                    suggestArray = [];
+                                    if (pattern == ''){
+                                      suggestArray = await getLastSearch();
+                                    }
+                                    for (var i = 0; i < c.wordArray.length; i++){
+                                      if (suggestArray.length > 9){
+                                        break;
+                                      }
+                                      if (c.wordArray[i].toString().toLowerCase().startsWith(pattern.toLowerCase())){
+                                        if (!suggestArray.contains(c.wordArray[i])){
+                                          suggestArray.add(c.wordArray[i]);
+                                        }
+                                      }
+                                    }
+                                    return suggestArray;
+                                  },
+                                  suggestionsBoxDecoration: SuggestionsBoxDecoration(
+                                    borderRadius: const BorderRadius.all(Radius.circular(15)),
+                                    color: Colors.white.withOpacity(1.0),
+                                  ),
+                                  itemBuilder: (context, suggestion) {
+                                    String mean = '';
+                                    String image = 'bedict.png';
+                                    var dataRaw = box.get(suggestion.toString());
+                                    List listMeans = jsonDecode(dataRaw['mean']);
+                                    List listMean = listMeans[0];
+                                    List meanENAdd = [];
+                                    List meanVNAdd = [];
+                                    for(var j = 0; j< listMean.length; j++) {
+                                      String meanENElement = '';
+                                      if(listMean[j].contains('#')){
+                                        meanENElement = listMean[j].split('#')[1];
+                                      }else{
+                                        meanENElement = listMean[j];
+                                      }
+                                      meanENAdd.add(meanENElement);
+                                      String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
+                                      meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
+                                      meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
+                                      meanVNAdd.add(meanVNElement);
+                                    }
+                                    String meanEN = '';
+                                    String meanVN = '';
+                                    for(var j = 0; j< meanENAdd.length; j++) {
+                                      if (j==0){
+                                        meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                                        meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                                      }else{
+                                        meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                                        meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                                      }
+                                    }
+                                    if (c.language.string == 'VN'){
+                                      mean = meanVN;
+                                    }else{
+                                      mean = meanEN;
+                                    }
+                                    if (jsonDecode(dataRaw['imageURL']).length>0){
+                                      image = jsonDecode(dataRaw['imageURL'])[0];
+                                    }
+                                    return Row(
+                                        children: [
+                                          const SizedBox(width:10),
+                                          Expanded(
+                                            child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children:[
+                                                  Text(
+                                                    suggestion.toString(),
+                                                    style: const TextStyle(
+                                                      fontSize: 18.0,
+                                                      color: textColor,
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                  const SizedBox(height:5),
+                                                  Text(
+                                                    mean,
+                                                    style: const TextStyle(
+                                                      fontSize: 14.0,
+                                                      color: textColor,
+                                                    ),
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                ]
+                                            ),
+                                          ),
+                                          Container(
+                                              margin: const EdgeInsets.all(10),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: const BorderRadius.all(
+                                                    Radius.circular(8)
+                                                ),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black.withOpacity(0.6),
+                                                    spreadRadius: 0,
+                                                    blurRadius: 3,
+                                                    offset: const Offset(3, 3), // changes position of shadow
+                                                  ),
+                                                ],
+                                              ),
+                                              width: 70,
+                                              height: 50,
+                                              child: Stack(
+                                                  children:[
+                                                    ClipRRect(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      child: ImageFiltered(
+                                                        imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                                        child: Opacity(
+                                                          opacity: 0.8,
+                                                          child: Image(
+                                                            image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                            fit: BoxFit.cover,
+                                                            width: 70,
+                                                            height: 50,
+                                                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                              return const SizedBox();
+                                                            },
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    ClipRRect(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      child: Image(
+                                                        image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                        fit: BoxFit.contain,
+                                                        width: 70,
+                                                        height: 50,
+                                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                          return const SizedBox();
+                                                        },
+                                                      ),
+                                                    ),
+                                                    listMeans.length>1?
+                                                    Positioned(
+                                                        right: 4,
+                                                        bottom: 4,
+                                                        child: Container(
+                                                            alignment: Alignment.center,
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.white.withOpacity(0.7),
+                                                              borderRadius: const BorderRadius.all(
+                                                                  Radius.circular(20)
+                                                              ),
+                                                            ),
+                                                            height: 20,
+                                                            width: 20,
+                                                            child: Text(
+                                                              '+ ' + (listMeans.length-1).toString(),
+                                                              style: const TextStyle(
+                                                                fontSize: 9,
+                                                              ),
+                                                            )
+                                                        )
+                                                    )
+                                                        : const SizedBox(),
+                                                  ]
+                                              )
+                                          ),
+                                        ]
+                                    );
+                                  },
+                                  onSuggestionSelected: (suggestion) async {
+                                    // searchField.text = suggestion.toString();
+                                    searchToHome(suggestion.toString());
+                                  },
+                                  animationDuration: Duration.zero,
+                                  debounceDuration: Duration.zero,
+                                ),
+                              ),
+                              const SizedBox(width:15),
+                            ]
+                        ),
+                      ),
+                    ),
+                    GetBuilder<Controller>(
+                      builder: (_) => Visibility(
+                        visible: !c.isSearch.value,
+                        child: Row(
+                          children:[
+                            const SizedBox(width: 20),
+                            OutlinedButton(
+                              style: ButtonStyle(
+                                // backgroundColor: MaterialStateProperty.all<Color>(backgroundColor.withOpacity(0.2)),
+                                // foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                                padding: MaterialStateProperty.all<EdgeInsets>(
+                                    const EdgeInsets.all(12)
+                                ),
+                                shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30.0),
+                                    )
+                                ),
+                              ),
+                              onPressed: () {
+                                getToCategory();
+                              },
+                              child: Text(
+                                  c.language.string == 'VN'? 'Chủ đề':'Category',
+                                  style: const TextStyle(
+                                    color: textColor,
+                                  )
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            OutlinedButton(
+                              style: ButtonStyle(
+                                // backgroundColor: MaterialStateProperty.all<Color>(backgroundColor.withOpacity(0.2)),
+                                // foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                                padding: MaterialStateProperty.all<EdgeInsets>(
+                                    const EdgeInsets.all(12)
+                                ),
+                                shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30.0),
+                                    )
+                                ),
+                              ),
+                              onPressed: () {
+                                getToType();
+                              },
+                              child: Text(
+                                  c.language.string == 'VN'? 'Từ loại':'Type',
+                                  style: const TextStyle(
+                                    color: textColor,
+                                  )
+                              ),
+                            ),
+                            const Expanded(child:SizedBox()),
+                            TextButton(
+                              style: ButtonStyle(
+                                backgroundColor: MaterialStateProperty.all<Color>(backgroundColor.withOpacity(0.5)),
+                                foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                                padding: MaterialStateProperty.all<EdgeInsets>(
+                                    const EdgeInsets.fromLTRB(0, 10, 0, 10)
+                                ),
+                                shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15.0),
+                                    )
+                                ),
+                              ),
+                              onPressed: () {
+                                c.isSearch = true.obs;
+                                c.update();
+                                searchFocusNode.requestFocus();
+                              },
+                              child: const Icon(
+                                Icons.search,
+                                size: 20,
+                                color: textColor,
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ]
+              ),
+            ),
+            Expanded(
+              child: GetBuilder<Controller>(
+                builder: (_) => Visibility(
+                  visible: !c.isSearch.value,
+                  child: ListView(
+                    padding: const EdgeInsets.all(0),
+                    children:[
+                      const SizedBox(height: 5),
+                      Row(
+                        // crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            const SizedBox(width: 20),
+                            CircularPercentIndicator(
+                              radius: 20,
+                              lineWidth: 3.0,
+                              animation: true,
+                              percent: essentialCount/essentialList.length,
+                              backgroundColor: const Color.fromRGBO(240, 240, 240, 1),
+                              progressColor: backgroundColor,
+                              // center: Text(
+                              //   c.learnedIelts.length.toString(),
+                              //   style: const TextStyle(
+                              //     fontSize: 9,
+                              //     color: textColor,
+                              //   ),
+                              // ),
+                              circularStrokeCap: CircularStrokeCap.round,
+                            ),
+                            const SizedBox(width: 15),
+                            GestureDetector(
+                              onTap: () {
+                                if (c.language.string == 'VN'){
+                                  getToScore('CƠ BẢN');
+                                }else{
+                                  getToScore('ESSENTIAL');
+                                }
+                              },
+                              child: Text(
+                                c.language.string == 'VN'?'CƠ BẢN':'ESSENTIAL',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  color: textColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const Expanded(child: SizedBox(),),
+                            IconButton(
+                              icon: const Icon(Icons.arrow_forward),
+                              onPressed: () {
+                                if (c.language.string == 'VN'){
+                                  getToScore('CƠ BẢN');
+                                }else{
+                                  getToScore('ESSENTIAL');
+                                }
+                              },
+                            ),
+                            const SizedBox(width: 10),
+                          ]
+                      ),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2 + 80,
+                        child: Row(
+                          children: [
+                            // const SizedBox(width: 10),
+                            Expanded(
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: listShowEssential.length + 1,
+                                addAutomaticKeepAlives: false,
+                                itemBuilder: (BuildContext context, int index) {
+                                  late var dataRaw;
+                                  String mean = '';
+                                  String image = 'bedict.png';
+                                  if (index<listShowEssential.length){
+                                    dataRaw = listShowEssential[index];
+                                    List listMean = jsonDecode(dataRaw['mean'])[0];
+                                    List meanENAdd = [];
+                                    List meanVNAdd = [];
+                                    for(var j = 0; j< listMean.length; j++) {
+                                      String meanENElement = '';
+                                      if(listMean[j].contains('#')){
+                                        meanENElement = listMean[j].split('#')[1];
+                                      }else{
+                                        meanENElement = listMean[j];
+                                      }
+                                      meanENAdd.add(meanENElement);
+                                      String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
+                                      meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
+                                      meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
+                                      meanVNAdd.add(meanVNElement);
+                                    }
+                                    String meanEN = '';
+                                    String meanVN = '';
+                                    for(var j = 0; j< meanENAdd.length; j++) {
+                                      if (j==0){
+                                        meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                                        meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                                      }else{
+                                        meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                                        meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                                      }
+                                    }
+                                    if (c.language.string == 'VN'){
+                                      mean = meanVN;
+                                    }else{
+                                      mean = meanEN;
+                                    }
+                                    if (jsonDecode(dataRaw['imageURL']).length>0){
+                                      image = jsonDecode(dataRaw['imageURL'])[0];
+                                    }
+                                  }
+                                  return index<listShowEssential.length?
+                                  GestureDetector(
+                                    onTap: () async {
+                                      c.part = RxInt(essentialList.indexOf(dataRaw['word'])~/50);
+                                      c.listWordScorePage.clear();
+                                      for (var j=0;j<(c.part.value<(essentialList.length/50).ceil()-1?50:(essentialList.length-50*c.part.value));j++){
+                                        c.listWordScorePage.add(essentialList[c.part.value*50+j]);
+                                      }
+                                      c.nowWord = RxInt(c.listWordScorePage.indexOf(dataRaw['word']));
+                                      if (c.language.string == 'VN'){
+                                        getToHome('CƠ BẢN',dataRaw['word']);
+                                      }else{
+                                        getToHome('ESSENTIAL',dataRaw['word']);
+                                      }
+                                    },
+                                    child: Column(
+                                        children: [
+                                          Container(
+                                              margin: const EdgeInsets.all(10),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: const BorderRadius.all(
+                                                    Radius.circular(8)
+                                                ),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black.withOpacity(0.6),
+                                                    spreadRadius: 0,
+                                                    blurRadius: 5,
+                                                    offset: const Offset(5, 5), // changes position of shadow
+                                                  ),
+                                                ],
+                                              ),
+                                              width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                              height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                              child: Stack(
+                                                  children:[
+                                                    ClipRRect(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      child: ImageFiltered(
+                                                        imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                                        child: Opacity(
+                                                          opacity: 0.8,
+                                                          child: Image(
+                                                            image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                            fit: BoxFit.cover,
+                                                            width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                                            height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                              return const SizedBox();
+                                                            },
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    ClipRRect(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      child: Image(
+                                                        image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                        fit: BoxFit.contain,
+                                                        width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                                        height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                          return const SizedBox();
+                                                        },
+                                                      ),
+                                                    ),
+                                                    jsonDecode(dataRaw['meanVN']).length>1?
+                                                    Positioned(
+                                                        right: 7,
+                                                        bottom: 7,
+                                                        child: Container(
+                                                            alignment: Alignment.center,
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.white.withOpacity(0.7),
+                                                              borderRadius: const BorderRadius.all(
+                                                                  Radius.circular(20)
+                                                              ),
+                                                            ),
+                                                            height: 40,
+                                                            width: 40,
+                                                            child: Text(
+                                                              '+ ' + (jsonDecode(dataRaw['meanVN']).length-1).toString(),
+                                                            )
+                                                        )
+                                                    )
+                                                        : const SizedBox(),
+                                                  ]
+                                              )
+                                          ),
+                                          const SizedBox(height: 7),
+                                          Container(
+                                            alignment: Alignment.centerLeft,
+                                            width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                            child: Text(
+                                              dataRaw['word'],
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w600,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 5),
+                                          Container(
+                                            alignment: Alignment.centerLeft,
+                                            width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                            child: Text(
+                                              mean,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w400,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10),
+                                        ]
+                                    ),
+                                  )
+                                  :GestureDetector(
+                                    onTap: () {
+                                      if (c.language.string == 'VN'){
+                                        getToScore('CƠ BẢN');
+                                      }else{
+                                        getToScore('ESSENTIAL');
+                                      }
+                                    },
+                                    child: Column(
+                                      children: [
+                                        Container(
+                                          alignment: Alignment.center,
+                                          margin: const EdgeInsets.all(10),
+                                          // decoration: BoxDecoration(
+                                          //   color: Colors.white,
+                                          //   borderRadius: const BorderRadius.all(
+                                          //       Radius.circular(8)
+                                          //   ),
+                                          //   boxShadow: [
+                                          //     BoxShadow(
+                                          //       color: Colors.black.withOpacity(0.6),
+                                          //       spreadRadius: 0,
+                                          //       blurRadius: 5,
+                                          //       offset: const Offset(5, 5), // changes position of shadow
+                                          //     ),
+                                          //   ],
+                                          // ),
+                                          width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                          height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2+60,
+                                          child: const Text(
+                                              '+ 2948',
+                                              style: TextStyle(
+                                                fontSize: 30,
+                                              )
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            // const SizedBox(width: 10),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      Row(
+                        // crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          const SizedBox(width: 20),
+                          CircularPercentIndicator(
+                            radius: 20,
+                            lineWidth: 3.0,
+                            animation: true,
+                            percent: ieltsCount/ieltsList.length,
+                            backgroundColor: const Color.fromRGBO(240, 240, 240, 1),
+                            progressColor: backgroundColor,
+                            // center: Text(
+                            //   c.learnedIelts.length.toString(),
+                            //   style: const TextStyle(
+                            //     fontSize: 9,
+                            //     color: textColor,
+                            //   ),
+                            // ),
+                            circularStrokeCap: CircularStrokeCap.round,
+                          ),
+                          const SizedBox(width: 15),
+                          GestureDetector(
+                            onTap: () {
+                              getToScore('IELTS');
+                            },
+                            child: const Text(
+                              'IELTS',
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: textColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const Expanded(child: SizedBox(),),
+                          IconButton(
+                            icon: const Icon(Icons.arrow_forward),
+                            onPressed: () {
+                              getToScore('IELTS');
+                            },
+                          ),
+                          const SizedBox(width: 10),
+                        ]
+                      ),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2 + 80,
+                        child: Row(
+                          children: [
+                            // const SizedBox(width: 10),
+                            Expanded(
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: listShowIelts.length + 1,
+                                addAutomaticKeepAlives: false,
+                                itemBuilder: (BuildContext context, int index) {
+                                  late var dataRaw;
+                                  String mean = '';
+                                  String image = 'bedict.png';
+                                  if (index<listShowIelts.length){
+                                    dataRaw = listShowIelts[index];
+                                    List listMean = jsonDecode(dataRaw['mean'])[0];
+                                    List meanENAdd = [];
+                                    List meanVNAdd = [];
+                                    for(var j = 0; j< listMean.length; j++) {
+                                      String meanENElement = '';
+                                      if(listMean[j].contains('#')){
+                                        meanENElement = listMean[j].split('#')[1];
+                                      }else{
+                                        meanENElement = listMean[j];
+                                      }
+                                      meanENAdd.add(meanENElement);
+                                      String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
+                                      meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
+                                      meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
+                                      meanVNAdd.add(meanVNElement);
+                                    }
+                                    String meanEN = '';
+                                    String meanVN = '';
+                                    for(var j = 0; j< meanENAdd.length; j++) {
+                                      if (j==0){
+                                        meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                                        meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                                      }else{
+                                        meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                                        meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                                      }
+                                    }
+                                    if (c.language.string == 'VN'){
+                                      mean = meanVN;
+                                    }else{
+                                      mean = meanEN;
+                                    }
+                                    if (jsonDecode(dataRaw['imageURL']).length>0){
+                                      image = jsonDecode(dataRaw['imageURL'])[0];
+                                    }
+                                  }
+                                  return index<listShowIelts.length?
+                                  GestureDetector(
+                                    onTap: () async {
+                                      c.part = RxInt(ieltsList.indexOf(dataRaw['word'])~/50);
+                                      c.listWordScorePage.clear();
+                                      for (var j=0;j<(c.part.value<(ieltsList.length/50).ceil()-1?50:(ieltsList.length-50*c.part.value));j++){
+                                        c.listWordScorePage.add(ieltsList[c.part.value*50+j]);
+                                      }
+                                      c.nowWord = RxInt(c.listWordScorePage.indexOf(dataRaw['word']));
+                                      getToHome('IELTS',dataRaw['word']);
+                                    },
+                                    child: Column(
+                                        children: [
+                                          Container(
+                                              margin: const EdgeInsets.all(10),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: const BorderRadius.all(
+                                                    Radius.circular(8)
+                                                ),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black.withOpacity(0.6),
+                                                    spreadRadius: 0,
+                                                    blurRadius: 5,
+                                                    offset: const Offset(5, 5), // changes position of shadow
+                                                  ),
+                                                ],
+                                              ),
+                                              width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                              height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                              child: Stack(
+                                                  children:[
+                                                    ClipRRect(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      child: ImageFiltered(
+                                                        imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                                        child: Opacity(
+                                                          opacity: 0.8,
+                                                          child: Image(
+                                                            image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                            fit: BoxFit.cover,
+                                                            width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                                            height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                              return const SizedBox();
+                                                            },
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    ClipRRect(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      child: Image(
+                                                        image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                        fit: BoxFit.contain,
+                                                        width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                                        height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                          return const SizedBox();
+                                                        },
+                                                      ),
+                                                    ),
+                                                    jsonDecode(dataRaw['meanVN']).length>1?
+                                                    Positioned(
+                                                        right: 7,
+                                                        bottom: 7,
+                                                        child: Container(
+                                                            alignment: Alignment.center,
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.white.withOpacity(0.7),
+                                                              borderRadius: const BorderRadius.all(
+                                                                  Radius.circular(20)
+                                                              ),
+                                                            ),
+                                                            height: 40,
+                                                            width: 40,
+                                                            child: Text(
+                                                              '+ ' + (jsonDecode(dataRaw['meanVN']).length-1).toString(),
+                                                            )
+                                                        )
+                                                    )
+                                                        : const SizedBox(),
+                                                  ]
+                                              )
+                                          ),
+                                          const SizedBox(height: 7),
+                                          Container(
+                                            alignment: Alignment.centerLeft,
+                                            width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                            child: Text(
+                                              dataRaw['word'],
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w600,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 5),
+                                          Container(
+                                            alignment: Alignment.centerLeft,
+                                            width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                            child: Text(
+                                              mean,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w400,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10),
+                                        ]
+                                    ),
+                                  )
+                                  :GestureDetector(
+                                    onTap: () {
+                                      getToScore('IELTS');
+                                    },
+                                    child: Column(
+                                      children: [
+                                        Container(
+                                          alignment: Alignment.center,
+                                          margin: const EdgeInsets.all(10),
+                                          // decoration: BoxDecoration(
+                                          //   color: Colors.white,
+                                          //   borderRadius: const BorderRadius.all(
+                                          //       Radius.circular(8)
+                                          //   ),
+                                          //   boxShadow: [
+                                          //     BoxShadow(
+                                          //       color: Colors.black.withOpacity(0.6),
+                                          //       spreadRadius: 0,
+                                          //       blurRadius: 5,
+                                          //       offset: const Offset(5, 5), // changes position of shadow
+                                          //     ),
+                                          //   ],
+                                          // ),
+                                          width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                          height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2+60,
+                                          child: const Text(
+                                              '+ 545',
+                                              style: TextStyle(
+                                                fontSize: 30,
+                                              )
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            // const SizedBox(width: 10),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      Row(
+                        // crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            const SizedBox(width: 20),
+                            CircularPercentIndicator(
+                              radius: 20,
+                              lineWidth: 3.0,
+                              animation: true,
+                              percent: toeicCount/toeicList.length,
+                              backgroundColor: const Color.fromRGBO(240, 240, 240, 1),
+                              progressColor: backgroundColor,
+                              // center: Text(
+                              //   c.learnedIelts.length.toString(),
+                              //   style: const TextStyle(
+                              //     fontSize: 9,
+                              //     color: textColor,
+                              //   ),
+                              // ),
+                              circularStrokeCap: CircularStrokeCap.round,
+                            ),
+                            const SizedBox(width: 15),
+                            GestureDetector(
+                              onTap: () {
+                                getToScore('TOEIC');
+                              },
+                              child: const Text(
+                                'TOEIC',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  color: textColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const Expanded(child: SizedBox(),),
+                            IconButton(
+                              icon: const Icon(Icons.arrow_forward),
+                              onPressed: () {
+                                getToScore('TOEIC');
+                              },
+                            ),
+                            const SizedBox(width: 10),
+                          ]
+                      ),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2 + 80,
+                        child: Row(
+                          children: [
+                            // const SizedBox(width: 10),
+                            Expanded(
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: listShowToeic.length + 1,
+                                addAutomaticKeepAlives: false,
+                                itemBuilder: (BuildContext context, int index) {
+                                  late var dataRaw;
+                                  String mean = '';
+                                  String image = 'bedict.png';
+                                  if (index<listShowToeic.length){
+                                    dataRaw = listShowToeic[index];
+                                    List listMean = jsonDecode(dataRaw['mean'])[0];
+                                    List meanENAdd = [];
+                                    List meanVNAdd = [];
+                                    for(var j = 0; j< listMean.length; j++) {
+                                      String meanENElement = '';
+                                      if(listMean[j].contains('#')){
+                                        meanENElement = listMean[j].split('#')[1];
+                                      }else{
+                                        meanENElement = listMean[j];
+                                      }
+                                      meanENAdd.add(meanENElement);
+                                      String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
+                                      meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
+                                      meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
+                                      meanVNAdd.add(meanVNElement);
+                                    }
+                                    String meanEN = '';
+                                    String meanVN = '';
+                                    for(var j = 0; j< meanENAdd.length; j++) {
+                                      if (j==0){
+                                        meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                                        meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                                      }else{
+                                        meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                                        meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                                      }
+                                    }
+                                    if (c.language.string == 'VN'){
+                                      mean = meanVN;
+                                    }else{
+                                      mean = meanEN;
+                                    }
+                                    if (jsonDecode(dataRaw['imageURL']).length>0){
+                                      image = jsonDecode(dataRaw['imageURL'])[0];
+                                    }
+                                  }
+                                  return index<listShowToeic.length?
+                                  GestureDetector(
+                                    onTap: () async {
+                                      c.part = RxInt(toeicList.indexOf(dataRaw['word'])~/50);
+                                      c.listWordScorePage.clear();
+                                      for (var j=0;j<(c.part.value<(toeicList.length/50).ceil()-1?50:(toeicList.length-50*c.part.value));j++){
+                                        c.listWordScorePage.add(toeicList[c.part.value*50+j]);
+                                      }
+                                      c.nowWord = RxInt(c.listWordScorePage.indexOf(dataRaw['word']));
+                                      getToHome('TOEIC',dataRaw['word']);
+                                    },
+                                    child: Column(
+                                        children: [
+                                          Container(
+                                              margin: const EdgeInsets.all(10),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: const BorderRadius.all(
+                                                    Radius.circular(8)
+                                                ),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black.withOpacity(0.6),
+                                                    spreadRadius: 0,
+                                                    blurRadius: 5,
+                                                    offset: const Offset(5, 5), // changes position of shadow
+                                                  ),
+                                                ],
+                                              ),
+                                              width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                              height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                              child: Stack(
+                                                  children:[
+                                                    ClipRRect(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      child: ImageFiltered(
+                                                        imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                                        child: Opacity(
+                                                          opacity: 0.8,
+                                                          child: Image(
+                                                            image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                            fit: BoxFit.cover,
+                                                            width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                                            height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                              return const SizedBox();
+                                                            },
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    ClipRRect(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      child: Image(
+                                                        image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                        fit: BoxFit.contain,
+                                                        width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                                        height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                          return const SizedBox();
+                                                        },
+                                                      ),
+                                                    ),
+                                                    jsonDecode(dataRaw['meanVN']).length>1?
+                                                    Positioned(
+                                                        right: 7,
+                                                        bottom: 7,
+                                                        child: Container(
+                                                            alignment: Alignment.center,
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.white.withOpacity(0.7),
+                                                              borderRadius: const BorderRadius.all(
+                                                                  Radius.circular(20)
+                                                              ),
+                                                            ),
+                                                            height: 40,
+                                                            width: 40,
+                                                            child: Text(
+                                                              '+ ' + (jsonDecode(dataRaw['meanVN']).length-1).toString(),
+                                                            )
+                                                        )
+                                                    )
+                                                        : const SizedBox(),
+                                                  ]
+                                              )
+                                          ),
+                                          const SizedBox(height: 7),
+                                          Container(
+                                            alignment: Alignment.centerLeft,
+                                            width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                            child: Text(
+                                              dataRaw['word'],
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w600,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 5),
+                                          Container(
+                                            alignment: Alignment.centerLeft,
+                                            width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                            child: Text(
+                                              mean,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w400,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10),
+                                        ]
+                                    ),
+                                  )
+                                  :GestureDetector(
+                                    onTap: () {
+                                      getToScore('TOEIC');
+                                    },
+                                    child: Column(
+                                      children: [
+                                        Container(
+                                          alignment: Alignment.center,
+                                          margin: const EdgeInsets.all(10),
+                                          // decoration: BoxDecoration(
+                                          //   color: Colors.white,
+                                          //   borderRadius: const BorderRadius.all(
+                                          //       Radius.circular(8)
+                                          //   ),
+                                          //   boxShadow: [
+                                          //     BoxShadow(
+                                          //       color: Colors.black.withOpacity(0.6),
+                                          //       spreadRadius: 0,
+                                          //       blurRadius: 5,
+                                          //       offset: const Offset(5, 5), // changes position of shadow
+                                          //     ),
+                                          //   ],
+                                          // ),
+                                          width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                          height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2+60,
+                                          child: const Text(
+                                              '+ 1014',
+                                              style: TextStyle(
+                                                fontSize: 30,
+                                              )
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            // const SizedBox(width: 10),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      Row(
+                        // crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            const SizedBox(width: 20),
+                            CircularPercentIndicator(
+                              radius: 20,
+                              lineWidth: 3.0,
+                              animation: true,
+                              percent: toeflCount/toeflList.length,
+                              backgroundColor: const Color.fromRGBO(240, 240, 240, 1),
+                              progressColor: backgroundColor,
+                              // center: Text(
+                              //   c.learnedIelts.length.toString(),
+                              //   style: const TextStyle(
+                              //     fontSize: 9,
+                              //     color: textColor,
+                              //   ),
+                              // ),
+                              circularStrokeCap: CircularStrokeCap.round,
+                            ),
+                            const SizedBox(width: 15),
+                            GestureDetector(
+                              onTap: () {
+                                getToScore('TOEFL');
+                              },
+                              child: const Text(
+                                'TOEFL',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  color: textColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const Expanded(child: SizedBox(),),
+                            IconButton(
+                              icon: const Icon(Icons.arrow_forward),
+                              onPressed: () {
+                                getToScore('TOEFL');
+                              },
+                            ),
+                            const SizedBox(width: 10),
+                          ]
+                      ),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2 + 80,
+                        child: Row(
+                          children: [
+                            // const SizedBox(width: 10),
+                            Expanded(
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: listShowToefl.length + 1,
+                                addAutomaticKeepAlives: false,
+                                itemBuilder: (BuildContext context, int index) {
+                                  late var dataRaw;
+                                  String mean = '';
+                                  String image = 'bedict.png';
+                                  if (index<listShowToefl.length){
+                                    dataRaw = listShowToefl[index];
+                                    List listMean = jsonDecode(dataRaw['mean'])[0];
+                                    List meanENAdd = [];
+                                    List meanVNAdd = [];
+                                    for(var j = 0; j< listMean.length; j++) {
+                                      String meanENElement = '';
+                                      if(listMean[j].contains('#')){
+                                        meanENElement = listMean[j].split('#')[1];
+                                      }else{
+                                        meanENElement = listMean[j];
+                                      }
+                                      meanENAdd.add(meanENElement);
+                                      String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
+                                      meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
+                                      meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
+                                      meanVNAdd.add(meanVNElement);
+                                    }
+                                    String meanEN = '';
+                                    String meanVN = '';
+                                    for(var j = 0; j< meanENAdd.length; j++) {
+                                      if (j==0){
+                                        meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                                        meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                                      }else{
+                                        meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                                        meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                                      }
+                                    }
+                                    if (c.language.string == 'VN'){
+                                      mean = meanVN;
+                                    }else{
+                                      mean = meanEN;
+                                    }
+                                    if (jsonDecode(dataRaw['imageURL']).length>0){
+                                      image = jsonDecode(dataRaw['imageURL'])[0];
+                                    }
+                                  }
+                                  return index<listShowToefl.length?
+                                  GestureDetector(
+                                    onTap: () async {
+                                      c.part = RxInt(toeflList.indexOf(dataRaw['word'])~/50);
+                                      c.listWordScorePage.clear();
+                                      for (var j=0;j<(c.part.value<(toeflList.length/50).ceil()-1?50:(toeflList.length-50*c.part.value));j++){
+                                        c.listWordScorePage.add(toeflList[c.part.value*50+j]);
+                                      }
+                                      c.nowWord = RxInt(c.listWordScorePage.indexOf(dataRaw['word']));
+                                      getToHome('TOEFL',dataRaw['word']);
+                                    },
+                                    child: Column(
+                                        children: [
+                                          Container(
+                                              margin: const EdgeInsets.all(10),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: const BorderRadius.all(
+                                                    Radius.circular(8)
+                                                ),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black.withOpacity(0.6),
+                                                    spreadRadius: 0,
+                                                    blurRadius: 5,
+                                                    offset: const Offset(5, 5), // changes position of shadow
+                                                  ),
+                                                ],
+                                              ),
+                                              width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                              height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                              child: Stack(
+                                                  children:[
+                                                    ClipRRect(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      child: ImageFiltered(
+                                                        imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                                        child: Opacity(
+                                                          opacity: 0.8,
+                                                          child: Image(
+                                                            image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                            fit: BoxFit.cover,
+                                                            width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                                            height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                              return const SizedBox();
+                                                            },
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    ClipRRect(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      child: Image(
+                                                        image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                        fit: BoxFit.contain,
+                                                        width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                                        height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                          return const SizedBox();
+                                                        },
+                                                      ),
+                                                    ),
+                                                    jsonDecode(dataRaw['meanVN']).length>1?
+                                                    Positioned(
+                                                        right: 7,
+                                                        bottom: 7,
+                                                        child: Container(
+                                                            alignment: Alignment.center,
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.white.withOpacity(0.7),
+                                                              borderRadius: const BorderRadius.all(
+                                                                  Radius.circular(20)
+                                                              ),
+                                                            ),
+                                                            height: 40,
+                                                            width: 40,
+                                                            child: Text(
+                                                              '+ ' + (jsonDecode(dataRaw['meanVN']).length-1).toString(),
+                                                            )
+                                                        )
+                                                    )
+                                                        : const SizedBox(),
+                                                  ]
+                                              )
+                                          ),
+                                          const SizedBox(height: 7),
+                                          Container(
+                                            alignment: Alignment.centerLeft,
+                                            width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                            child: Text(
+                                              dataRaw['word'],
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w600,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 5),
+                                          Container(
+                                            alignment: Alignment.centerLeft,
+                                            width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                            child: Text(
+                                              mean,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w400,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10),
+                                        ]
+                                    ),
+                                  )
+                                  :GestureDetector(
+                                    onTap: () {
+                                      getToScore('TOEFL');
+                                    },
+                                    child: Column(
+                                      children: [
+                                        Container(
+                                          alignment: Alignment.center,
+                                          margin: const EdgeInsets.all(10),
+                                          // decoration: BoxDecoration(
+                                          //   color: Colors.white,
+                                          //   borderRadius: const BorderRadius.all(
+                                          //       Radius.circular(8)
+                                          //   ),
+                                          //   boxShadow: [
+                                          //     BoxShadow(
+                                          //       color: Colors.black.withOpacity(0.6),
+                                          //       spreadRadius: 0,
+                                          //       blurRadius: 5,
+                                          //       offset: const Offset(5, 5), // changes position of shadow
+                                          //     ),
+                                          //   ],
+                                          // ),
+                                          width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                          height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2+60,
+                                          child: const Text(
+                                              '+ 365',
+                                              style: TextStyle(
+                                                fontSize: 30,
+                                              )
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            // const SizedBox(width: 10),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      // Row(
+                      //     children: [
+                      //       const SizedBox(width:10),
+                      //       Expanded(
+                      //         child: TextButton(
+                      //           style: ButtonStyle(
+                      //             backgroundColor: MaterialStateProperty.all<Color>(
+                      //                 themeColor
+                      //             ),
+                      //             foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                      //             padding: MaterialStateProperty.all<EdgeInsets>(
+                      //                 const EdgeInsets.all(0)
+                      //             ),
+                      //             shape: MaterialStateProperty.all<OutlinedBorder?>(
+                      //                 RoundedRectangleBorder(
+                      //                   borderRadius: BorderRadius.circular(20.0),
+                      //                 )
+                      //             ),
+                      //           ),
+                      //           child: Column(
+                      //               children: [
+                      //                 const SizedBox(height:15),
+                      //                 Text(
+                      //                   c.language.string == 'VN'? 'PHÂN LOẠI': 'SORT',
+                      //                   style: const TextStyle(
+                      //                     fontSize: 20,
+                      //                     color: textColor,
+                      //                   ),
+                      //                 ),
+                      //                 const SizedBox(height: 15),
+                      //                 GetBuilder<Controller>(
+                      //                   builder: (_) => Column(
+                      //                       children: [
+                      //                         Row(
+                      //                           children: [
+                      //                             const SizedBox(width: 10),
+                      //                             Container(
+                      //                               alignment: Alignment.center,
+                      //                               height: 40,
+                      //                               child: ToggleButtons(
+                      //                                 fillColor: backgroundColor,
+                      //                                 borderRadius: const BorderRadius.all(
+                      //                                     Radius.circular(10)
+                      //                                 ),
+                      //                                 children: <Widget>[
+                      //                                   SizedBox(
+                      //                                     width: 70,
+                      //                                     child: Text(
+                      //                                       c.language.string == 'VN'? 'chủ đề':'category',
+                      //                                       style: const TextStyle(
+                      //                                         color: textColor,
+                      //                                       ),
+                      //                                       textAlign: TextAlign.center,
+                      //                                       overflow: TextOverflow.ellipsis,
+                      //                                     ),
+                      //                                   ),
+                      //                                   SizedBox(
+                      //                                     width: 70,
+                      //                                     child: Text(
+                      //                                       c.language.string == 'VN'? 'từ loại':'type',
+                      //                                       style: const TextStyle(
+                      //                                         color: textColor,
+                      //                                       ),
+                      //                                       textAlign: TextAlign.center,
+                      //                                       overflow: TextOverflow.ellipsis,
+                      //                                     ),
+                      //                                   ),
+                      //                                 ],
+                      //                                 onPressed: (int index) async {
+                      //                                   for (var i=0;i<2;i++){
+                      //                                     i!=index? c.isSelectedSortScore[i] = false
+                      //                                         : c.isSelectedSortScore[i] = true;
+                      //                                   }
+                      //                                   if (c.isSelectedSortScore[0]){
+                      //                                     c.typeIndexScore = 0.obs;
+                      //                                   }else{
+                      //                                     c.categoryIndexScore = 0.obs;
+                      //                                   }
+                      //                                   await findScore();
+                      //                                 },
+                      //                                 isSelected: c.isSelectedSortScore,
+                      //                               ),
+                      //                             ),
+                      //                             const SizedBox(width: 10),
+                      //                             PopupMenuButton<String>(
+                      //                               onSelected: (String word) async {
+                      //                                 if (c.isSelectedSortScore[0]){
+                      //                                   c.categoryIndexScore = RxInt(c.listCategory.indexOf(word));
+                      //                                   c.typeIndexScore = 0.obs;
+                      //                                 }else{
+                      //                                   c.typeIndexScore = RxInt(c.listType.indexOf(word));
+                      //                                   c.categoryIndexScore = 0.obs;
+                      //                                 }
+                      //                                 await findScore();
+                      //                               },
+                      //                               padding: const EdgeInsets.all(0),
+                      //                               itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                      //                                 for (int i=0; i<(c.isSelectedSortScore[0]? c.listCategory.length:c.listType.length); i++)
+                      //                                   PopupMenuItem<String>(
+                      //                                       value: c.isSelectedSortScore[0]? c.listCategory[i]:c.listType[i],
+                      //                                       padding: const EdgeInsets.fromLTRB(6,0,6,0),
+                      //                                       child: Row(
+                      //                                           mainAxisAlignment: MainAxisAlignment.center,
+                      //                                           children: [
+                      //                                             Text(
+                      //                                               c.isSelectedSortScore[0]? c.listCategory[i]:c.listType[i],
+                      //                                               style: const TextStyle(
+                      //                                                 fontSize: 15,
+                      //                                                 color: textColor,
+                      //                                               ),
+                      //                                               textAlign: TextAlign.center,
+                      //                                             ),
+                      //                                           ]
+                      //                                       )
+                      //                                   ),
+                      //                               ],
+                      //                               // color: themeColor,
+                      //                               child: Row(
+                      //                                   children: [
+                      //                                     Text(
+                      //                                       c.isSelectedSortScore[0]? c.listCategory[c.categoryIndexScore.value]:c.listType[c.typeIndexScore.value],
+                      //                                       style: const TextStyle(
+                      //                                         fontSize: 14,
+                      //                                         color: textColor,
+                      //                                       ),
+                      //                                       overflow: TextOverflow.ellipsis,
+                      //                                       textAlign: TextAlign.left,
+                      //                                     ),
+                      //                                     const Icon(
+                      //                                       Icons.keyboard_arrow_down,
+                      //                                       size: 25,
+                      //                                     ),
+                      //                                   ]
+                      //                               ),
+                      //                               shape: const RoundedRectangleBorder(
+                      //                                   borderRadius: BorderRadius.all(Radius.circular(20.0))
+                      //                               ),
+                      //                             ),
+                      //                             Expanded(
+                      //                               child: PopupMenuButton<String>(
+                      //                                 onSelected: (String word) async {
+                      //                                   c.levelIndexScore = RxInt(c.listLevel.indexOf(word));
+                      //                                   await findScore();
+                      //                                 },
+                      //                                 padding: const EdgeInsets.all(0),
+                      //                                 itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                      //                                   for (int i=0; i<c.listLevel.length; i++)
+                      //                                     PopupMenuItem<String>(
+                      //                                         value: c.listLevel[i],
+                      //                                         padding: const EdgeInsets.fromLTRB(6,0,6,0),
+                      //                                         child: Row(
+                      //                                             mainAxisAlignment: MainAxisAlignment.center,
+                      //                                             children: [
+                      //                                               Text(
+                      //                                                 c.listLevel[i],
+                      //                                                 style: const TextStyle(
+                      //                                                   fontSize: 15,
+                      //                                                   color: textColor,
+                      //                                                 ),
+                      //                                                 textAlign: TextAlign.center,
+                      //                                               ),
+                      //                                             ]
+                      //                                         )
+                      //                                     ),
+                      //                                 ],
+                      //                                 // color: themeColor,
+                      //                                 child: Row(
+                      //                                     mainAxisAlignment: MainAxisAlignment.center,
+                      //                                     children: [
+                      //                                       Text(
+                      //                                         c.listLevel[c.levelIndexScore.value],
+                      //                                         style: const TextStyle(
+                      //                                           fontSize: 14,
+                      //                                           color: textColor,
+                      //                                         ),
+                      //                                         overflow: TextOverflow.ellipsis,
+                      //                                         textAlign: TextAlign.right,
+                      //                                       ),
+                      //                                       const Icon(
+                      //                                         Icons.keyboard_arrow_down,
+                      //                                         size: 25,
+                      //                                       ),
+                      //                                     ]
+                      //                                 ),
+                      //                                 shape: const RoundedRectangleBorder(
+                      //                                     borderRadius: BorderRadius.all(Radius.circular(20.0))
+                      //                                 ),
+                      //                               ),
+                      //                             ),
+                      //                           ],
+                      //                         ),
+                      //                         const SizedBox(height: 10),
+                      //                         Row(
+                      //                             children:[
+                      //                               const SizedBox(width: 13),
+                      //                               Expanded(
+                      //                                 child: GetBuilder<Controller>(
+                      //                                   builder: (_) => Text(
+                      //                                     (c.language.string == 'VN'? 'đã học ' : 'learned ')
+                      //                                         + c.listLearned.length.toString(),
+                      //                                     style: TextStyle(
+                      //                                       fontSize: 12,
+                      //                                       color: textColor.withOpacity(0.5),
+                      //                                     ),
+                      //                                     overflow: TextOverflow.ellipsis,
+                      //                                     textAlign: TextAlign.left,
+                      //                                   ),
+                      //                                 ),
+                      //                               ),
+                      //                               const SizedBox(width: 13),
+                      //                             ]
+                      //                         ),
+                      //                         const SizedBox(height: 3),
+                      //                         Row(
+                      //                             children: [
+                      //                               const SizedBox(width: 10),
+                      //                               Expanded(
+                      //                                 child: GetBuilder<Controller>(
+                      //                                   builder: (_) => LinearPercentIndicator(
+                      //                                     alignment: MainAxisAlignment.center,
+                      //                                     // width: MediaQuery.of(context).size.width-20,
+                      //                                     lineHeight: 18,
+                      //                                     percent: c.listLearned.length/c.listWordScore.length,
+                      //                                     backgroundColor: Colors.black.withOpacity(0.06),
+                      //                                     progressColor: backgroundColor,
+                      //                                     // padding: const EdgeInsets.all(5),
+                      //                                     animation: true,
+                      //                                     center: Text(
+                      //                                         c.listWordScore.length.toString() +
+                      //                                             (c.language.string == 'VN'? ' từ' : ' words'),
+                      //                                         style: const TextStyle(
+                      //                                           fontSize: 10,
+                      //                                         )
+                      //                                     ),
+                      //                                   ),
+                      //                                 ),
+                      //                               ),
+                      //                               const SizedBox(width: 10),
+                      //                             ]
+                      //                         ),
+                      //                       ]
+                      //                   ),
+                      //                 ),
+                      //                 const SizedBox(height:15),
+                      //               ]
+                      //           ),
+                      //           onPressed: () async {
+                      //             if (c.isSelectedSortScore[0]){
+                      //               if (c.language.string == 'VN'){
+                      //                 c.bundle = RxString(listCategoryVN[c.categoryIndexScore.value]);
+                      //               }else{
+                      //                 c.bundle = RxString(listCategoryEN[c.categoryIndexScore.value]);
+                      //               }
+                      //             }else{
+                      //               if (c.language.string == 'VN'){
+                      //                 c.bundle = RxString(listTypeVN[c.typeIndexScore.value]);
+                      //               }else{
+                      //                 c.bundle = RxString(listTypeEN[c.typeIndexScore.value]);
+                      //               }
+                      //             }
+                      //             Get.offAll(()=> const BundlePage());
+                      //           },
+                      //         ),
+                      //       ),
+                      //       const SizedBox(width:10),
+                      //     ]
+                      // ),
+                      // const SizedBox(height:10),
+                      // Row(
+                      //     children: [
+                      //       const SizedBox(width:10),
+                      //       Expanded(
+                      //         child: Container(
+                      //           height: (MediaQuery.of(context).size.width - 20)/3.2,
+                      //           width: MediaQuery.of(context).size.width - 20,
+                      //           decoration: const BoxDecoration(
+                      //             // color: Colors.red.withOpacity(0.3),
+                      //             borderRadius: BorderRadius.all(
+                      //                 Radius.circular(20)
+                      //             ),
+                      //           ),
+                      //           child: BannerAdWidget(
+                      //             adWidth: MediaQuery.of(context).size.width - 20,
+                      //             adHeight: (MediaQuery.of(context).size.width - 20)/3.2,
+                      //           ),
+                      //         ),
+                      //       ),
+                      //       const SizedBox(width:10),
+                      //     ]
+                      // ),
+                    ]
+                  ),
+                ),
+              ),
+            ),
+          ]
+        ),
+      )
+    );
+  }
+}
+
+class TranslatePage extends StatelessWidget {
+  TranslatePage({Key? key}) : super(key: key);
+  final inController = TextEditingController();
+  final FocusNode inFocusNode = FocusNode();
+
+  @override
+  Widget build(BuildContext context) {
+    final Controller c = Get.put(Controller());
+
+    Future translation() async {
+      if (inFocusNode.hasFocus){
+        inFocusNode.unfocus();
+      }
+      if (inController.value.text != ''){
+        if (c.languageIn.string == 'English'){
+          var translation = await inController.value.text.translate(from:'en',to:'vi');
+          c.translateOut = RxString(translation.text);
+        }else{
+          var translation = await inController.value.text.translate(from:'vi',to:'en');
+          c.translateOut = RxString(translation.text);
+        }
+      }else{
+        c.translateOut = ''.obs;
+      }
+      c.update();
+    }
+
+    void onSpeechResult(SpeechRecognitionResult result) async {
+      inController.text = result.recognizedWords;
+      if (result.finalResult){
+        await translation();
+      }
+    }
+
+    Future startListening(String locale) async {
+      await stt.listen(
+        onResult: onSpeechResult,
+        localeId: locale,
+        // partialResults: false,
+      );
+    }
+
+    void stopListening() async {
+      await stt.stop();
+    }
+
+    WidgetsBinding.instance?.addPostFrameCallback((_) async {
+
+    });
+
+    return GestureDetector(
+      onTap: () {
+        if (inFocusNode.hasFocus){
+          inFocusNode.unfocus();
+        }
+      },
+      child: Container(
+        color: Colors.white,
+        child: Column(
+          children:[
+            SizedBox(height: MediaQuery.of(context).padding.top+10),
+            Row(
+              children: [
+                Expanded(
+                  child: GetBuilder<Controller>(
+                    builder: (_) => Text(
+                      c.languageIn.string,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 20,
+                      ),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.compare_arrows_rounded),
+                  onPressed: (){
+                    String newLanguage = c.languageIn.string;
+                    c.languageIn = RxString(c.languageOut.string);
+                    c.languageOut = RxString(newLanguage);
+                    c.update();
+                  },
+                ),
+                Expanded(
+                  child: GetBuilder<Controller>(
+                    builder: (_) => Text(
+                      c.languageOut.string,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 20,
+                      ),
+                    ),
+                  ),
+                ),
+              ]
+            ),
+            Row(
+              children:[
+                const SizedBox(width:10),
+                Expanded(
+                  child: TextFormField(
+                    controller: inController,
+                    textInputAction: TextInputAction.done,
+                    focusNode: inFocusNode,
+                    autocorrect: false,
+                    maxLines: null,
+                    minLines: null,
+                    style: const TextStyle(
+                      fontSize: 20,
+                    ),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      hintText: '...',
+                      isDense: true,
+                      contentPadding: EdgeInsets.all(5),
+                    ),
+                    // onChanged: (text) async {
+                    //   await translation();
+                    // },
+                    // onSubmitted: (text) async {
+                    //   await translation();
+                    // },
+                    onEditingComplete: () async {
+                      await translation();
+                    },
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close_rounded),
+                  onPressed: (){
+                    inController.text = '';
+                    c.translateOut = ''.obs;
+                    c.update();
+                  },
+                ),
+                TextButton(
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(backgroundColor.withOpacity(0.5)),
+                    foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                    padding: MaterialStateProperty.all<EdgeInsets>(
+                      const EdgeInsets.all(0)
+                    ),
+                    shape: MaterialStateProperty.all<OutlinedBorder?>(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                      )
+                    ),
+                  ),
+                  child: const Icon(Icons.arrow_forward_rounded,color:textColor),
+                  onPressed: () async {
+                    await translation();
+                  },
+                ),
+                const SizedBox(width:10),
+              ]
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children:[
+                GetBuilder<Controller>(
+                  builder: (_) => IconButton(
+                    icon: Icon(
+                      c.speechEnabled.value?
+                      c.isListening.value? Icons.mic
+                          : Icons.mic_none : Icons.mic_off,
+                      size: 35,
+                    ),
+                    onPressed: () {
+                      if (stt.isNotListening){
+                        if (c.languageIn.string == 'English'){
+                          startListening(c.locale.string);
+                        }else{
+                          startListening('vi-VN');
+                        }
+                      }else{
+                        stopListening();
+                      }
+                    },
+                ),
+                ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.volume_up_outlined,
+                    size: 35,
+                  ),
+                  onPressed: () {
+                    if (c.languageIn.string == 'English'){
+                      _speak(inController.value.text);
+                    }else{
+                      _speak(c.translateOut.string);
+                    }
+                  },
+                ),
+                const Expanded(child:SizedBox()),
+              ]
+            ),
+            Row(
+              children:[
+                const SizedBox(width:10),
+                Expanded(
+                  child: Container(
+                    color: backgroundColor.withOpacity(0.5),
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
+                      children: [
+                        Flexible(
+                          child: GetBuilder<Controller>(
+                            builder: (_) => Text(
+                              c.translateOut.string,
+                              style: const TextStyle(
+                                fontSize: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ]
+                    )
+                  ),
+                ),
+                const SizedBox(width:10),
+              ]
+            ),
+          ]
+        ),
+      ),
+    );
+  }
+}
+
+class SettingPage extends StatelessWidget {
+  const SettingPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final Controller c = Get.put(Controller());
 
     Future<void> showTime() async {
       final TimeOfDay? result =
@@ -838,1514 +3123,2008 @@ class Home extends StatelessWidget {
       }
     }
 
-    Future.delayed(Duration.zero, () async {
-      if (c.initState.value){
-        soundId = await rootBundle.load("assets/tap.mp3").then((ByteData soundData) {
-          return pool.load(soundData);
-        });
-        soundIdRight = await rootBundle.load("assets/right.mp3").then((ByteData soundData) {
-          return pool.load(soundData);
-        });
-        soundIdWrong = await rootBundle.load("assets/wrong.mp3").then((ByteData soundData) {
-          return pool.load(soundData);
-        });
-        c.initState = false.obs;
-        List<String> listWord = await getListWords(c.level.string,c.category.string,c.type.string);
-        if (listWord.isEmpty){
-          if (Get.isSnackbarOpen) Get.closeAllSnackbars();
-          Get.snackbar(c.learnWrongTitle.string,c.notFound.string);
-        }else{
-          c.wordArray = RxList(listWord);
-          await c.layWord(c.word.string);
-        }
-        await updateToday();
-      }
+    WidgetsBinding.instance?.addPostFrameCallback((_) async {
+
     });
 
-    return Scaffold(
-      key: _key,
-      resizeToAvoidBottomInset: false,
-      backgroundColor: Colors.white,
-      drawer: SizedBox(
-        width: MediaQuery.of(context).size.width*0.7,
-        child: Drawer(
-          backgroundColor: Colors.white.withOpacity(0.8),
-            child: Column(
+    return Container(
+      color: Colors.white,
+      child: Column(
+        children:[
+          SizedBox(height: MediaQuery.of(context).padding.top+10),
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
               children: [
-                DrawerHeader(
-                  margin: const EdgeInsets.all(0),
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-                  decoration: BoxDecoration(
-                    color: backgroundColor.withOpacity(0.4),
-                  ),
-                  child: Container(
-                    alignment: Alignment.center,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          'BeDict',
-                          style: TextStyle(
-                              fontSize: 50,
-                              foreground: Paint()..shader = linearGradient
-                          ),
-                        ),
-                        Text(
-                          'Pictorial Dictionary',
-                          style: TextStyle(
-                              fontSize: 16.7,
-                              foreground: Paint()..shader = linearGradient
-                          ),
-                        ),
-                      ],
+                ListTile(
+                  title: GetBuilder<Controller>(
+                    builder: (_) => Text(
+                      c.isVip.value? 'VIP' : c.drawerUpgrade.string,
+                      style: const TextStyle(
+                        color: textColor,
+                        fontSize: 16,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Get.offAll(()=>const MyUpgradePage());
+                  },
                 ),
-                const SizedBox(height: 15),
+                const Divider(height:1),
+                ListTile(
+                  title: GetBuilder<Controller>(
+                    builder: (_) => Text(
+                      c.drawerHistory.string,
+                      style: const TextStyle(
+                        color: textColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Get.offAll(()=>const HistoryPage());
+                  },
+                ),
+                const Divider(height:1,),
+                ListTile(
+                  title: GetBuilder<Controller>(
+                    builder: (_) => Text(
+                      c.drawerScore.string,
+                      style: const TextStyle(
+                        color: textColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Get.offAll(()=> const SortPage());
+                  },
+                ),
+                const Divider(height:1,),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Expanded(
-                      child: Container(
-                        alignment: Alignment.center,
-                        height: 45,
-                        child: GetBuilder<Controller>(
-                          builder: (_) => ToggleButtons(
-                            fillColor: backgroundColor.withOpacity(0.6),
-                            borderRadius: const BorderRadius.all(
-                                Radius.circular(30)
-                            ),
-                            disabledColor: themeColor,
-                            children: <Widget>[
-                              SizedBox(
-                                width: (MediaQuery.of(context).size.width*0.7-25)*3/9,
-                                child: Text(
-                                  c.language.string == 'VN'? 'tất cả từ': 'all words',
-                                  style: const TextStyle(
-                                    color: textColor,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              SizedBox(
-                                width: (MediaQuery.of(context).size.width*0.7-25)*2/9,
-                                child: const Text(
-                                  '8.000',
-                                  style: TextStyle(
-                                    color: textColor,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              SizedBox(
-                                width: (MediaQuery.of(context).size.width*0.7-25)*2/9,
-                                child: const Text(
-                                  '5.000',
-                                  style: TextStyle(
-                                    color: textColor,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              SizedBox(
-                                width: (MediaQuery.of(context).size.width*0.7-25)*2/9,
-                                child: const Text(
-                                  '3.000',
-                                  style: TextStyle(
-                                    color: textColor,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                            onPressed: (int index) {
-                              for (var i=0;i<4;i++){
-                                i!=index? c.isSelectedBundle[i] = false
-                                    : c.isSelectedBundle[i] = true;
-                              }
-                              c.changeLevel(index);
-                              Navigator.pop(context);
-                            },
-                            isSelected: c.isSelectedBundle,
-                          ),
+                    GetBuilder<Controller>(
+                      builder: (_) => Text(
+                        c.drawerDaily.string,
+                        style: const TextStyle(
+                          color: textColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
-                  ]
-                ),
-                const SizedBox(height: 10),
-                Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          alignment: Alignment.center,
-                          height: 45,
-                          child: GetBuilder<Controller>(
-                            builder: (_) => ToggleButtons(
-                              fillColor: backgroundColor.withOpacity(0.6),
-                              borderRadius: const BorderRadius.all(
-                                  Radius.circular(30)
-                              ),
-                              disabledColor: themeColor,
-                              children: <Widget>[
-                                SizedBox(
-                                  width: (MediaQuery.of(context).size.width*0.7-23)/2,
-                                  child: Text(
-                                    c.language.string == 'VN'? 'chủ đề':'category',
-                                    style: const TextStyle(
-                                      color: textColor,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: (MediaQuery.of(context).size.width*0.7-23)/2,
-                                  child: Text(
-                                    c.language.string == 'VN'? 'từ loại':'type',
-                                    style: const TextStyle(
-                                      color: textColor,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                              onPressed: (int index) {
-                                for (var i=0;i<2;i++){
-                                  i!=index? c.isSelectedSort[i] = false
-                                      : c.isSelectedSort[i] = true;
-                                }
-                                c.update();
-                              },
-                              isSelected: c.isSelectedSort,
-                            ),
-                          ),
-                        ),
+                    GetBuilder<Controller>(
+                      builder: (_) => Switch(
+                        value: c.notifyDaily.value,
+                        onChanged: (value) async {
+                          c.notifyDaily = RxBool(value);
+                          c.update();
+                          await boxSetting.put('notifyDaily',value);
+                          if (value) {
+                            showNotification();
+                          }else{
+                            await AwesomeNotifications().dismiss(0);
+                            await AwesomeNotifications().cancelSchedule(0);
+                          }
+                        },
+                        activeTrackColor: themeColor,
+                        activeColor: backgroundColor,
                       ),
-                    ]
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: GetBuilder<Controller>(
-                    builder: (_) => ListView.builder(
-                      // Important: Remove any padding from the ListView.
-                        padding: EdgeInsets.zero,
-                        itemCount: c.isSelectedSort[0]?c.listCategory.length:c.listType.length,
-                        addAutomaticKeepAlives: false,
-                        itemBuilder: (BuildContext context, int i) {
-                          return Column(
+                GetBuilder<Controller>(
+                  builder: (_) => Visibility(
+                      visible: c.notifyDaily.value,
+                      child: Column(
+                          children:[
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children:[
-                                ListTile(
-                                  title: GetBuilder<Controller>(
-                                    builder: (_) => Text(
-                                      c.isSelectedSort[0]?c.listCategory[i]:c.listType[i],
-                                      style: const TextStyle(
-                                        color: textColor,
-                                      ),
-                                      textAlign: TextAlign.center,
+                                Text(
+                                  c.drawerTime.string,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: textColor,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(width: 10,),
+                                TextButton(
+                                  style: ButtonStyle(
+                                    backgroundColor: MaterialStateProperty.all<Color>(themeColor),
+                                    foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                                    padding: MaterialStateProperty.all<EdgeInsets>(
+                                        const EdgeInsets.all(0)
                                     ),
                                   ),
-                                  onTap: () {
-                                    c.isSelectedSort[0]?c.changeCategory(i):c.changeType(i);
-                                    Navigator.pop(context);
+                                  child: Row(
+                                      children: [
+                                        const SizedBox(
+                                          width: 10,
+                                        ),
+                                        GetBuilder<Controller>(
+                                          builder: (_) => Text(
+                                            c.selectedTime.string,
+                                            style: const TextStyle(
+                                              fontSize: 15,
+                                              color: textColor,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          width: 10,
+                                        ),
+                                      ]
+                                  ),
+                                  onPressed: () async {
+                                    await showTime();
                                   },
                                 ),
-                                const Divider(height:1),
-                              ]
-                          );
+                              ],
+                            ),
+                            const SizedBox(height: 10,),
+                            GetBuilder<Controller>(
+                              builder: (_) => Text(
+                                c.drawerTarget.string,
+                                style: const TextStyle(
+                                  color: textColor,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),),
+                            GetBuilder<Controller>(
+                              builder: (_) => Slider(
+                                value: c.target.value.toDouble(),
+                                min: 5,
+                                max: 50,
+                                divisions: 9,
+                                activeColor: backgroundColor,
+                                inactiveColor: themeColor,
+                                thumbColor: backgroundColor,
+                                label: c.target.value.toString(),
+                                onChanged: (double value) async {
+                                  c.target = RxInt(value.toInt());
+                                  await boxSetting.put('target',value.toInt());
+                                  c.update();
+                                },
+                              ),
+                            ),
+                          ]
+                      )
+                  ),
+                ),
+                const Divider(height:1),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GetBuilder<Controller>(
+                      builder: (_) => Text(
+                        c.drawerWord.string,
+                        style: const TextStyle(
+                          color: textColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    GetBuilder<Controller>(
+                      builder: (_) => Switch(
+                        value: c.notifyWord.value,
+                        onChanged: (value) async {
+                          c.notifyWord = RxBool(value);
+                          c.update();
+                          await boxSetting.put('notifyWord',value);
+                          if (value) {
+                            showNotificationWord();
+                          }else{
+                            await AwesomeNotifications().dismissNotificationsByChannelKey('word');
+                            await AwesomeNotifications().cancelSchedulesByChannelKey('word');
+                          }
+                        },
+                        activeTrackColor: themeColor,
+                        activeColor: backgroundColor,
+                      ),
+                    ),
+                  ],
+                ),
+                GetBuilder<Controller>(
+                  builder: (_) => Visibility(
+                      visible: c.notifyWord.value,
+                      child: Column(
+                          children:[
+                            GetBuilder<Controller>(
+                              builder: (_) => Text(
+                                c.language.string == 'VN'?
+                                'Thông báo sau mỗi (phút):':
+                                'Notify interval (minutes)',
+                                style: const TextStyle(
+                                  color: textColor,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            GetBuilder<Controller>(
+                              builder: (_) => Slider(
+                                value: c.notificationInterval.value.toDouble(),
+                                min: 15,
+                                max: 120,
+                                divisions: 7,
+                                activeColor: backgroundColor,
+                                inactiveColor: themeColor,
+                                thumbColor: backgroundColor,
+                                label: c.notificationInterval.value.toString()
+                                    + (c.language.string == 'VN'? ' phút':' minutes'),
+                                onChanged: (double value) async {
+                                  c.notificationInterval = RxInt(value.toInt());
+                                  await boxSetting.put('notificationInterval',value.toInt());
+                                  c.update();
+                                  await AwesomeNotifications().dismissNotificationsByChannelKey('word');
+                                  await AwesomeNotifications().cancelSchedulesByChannelKey('word');
+                                  showNotificationWord();
+                                },
+                              ),
+                            ),
+                          ]
+                      )
+                  ),
+                ),
+                const Divider(height:1,),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 15,),
+                    GetBuilder<Controller>(
+                      builder: (_) => Text(
+                        c.drawerSpeech.string,
+                        style: const TextStyle(
+                          color: textColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),),
+                    GetBuilder<Controller>(
+                      builder: (_) => Slider(
+                        value: c.speakSpeed.value,
+                        min: 0.1,
+                        max: 1,
+                        divisions: 9,
+                        activeColor: backgroundColor,
+                        inactiveColor: themeColor,
+                        thumbColor: backgroundColor,
+                        label: double.parse((c.speakSpeed.value).toStringAsFixed(1)).toString(),
+                        onChanged: (double value) async {
+                          c.speakSpeed = RxDouble(value);
+                          await boxSetting.put('speakSpeed',value);
+                          c.update();
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const Divider(height:1,),
+                const SizedBox(height:5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GetBuilder<Controller>(
+                      builder: (_) => Text(
+                        c.drawerInitSpeak.string,
+                        style: const TextStyle(
+                          color: textColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),),
+                    const SizedBox(width:10),
+                    GetBuilder<Controller>(
+                      builder: (_) => Switch(
+                        activeColor: backgroundColor,
+                        activeTrackColor: themeColor,
+                        value: c.initSpeak.value,
+                        onChanged: (value) async {
+                          c.initSpeak = value.obs;
+                          c.update();
+                          await boxSetting.put('initSpeak',value);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height:5),
+                const Divider(height:1,),
+                const SizedBox(height:5),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GetBuilder<Controller>(
+                      builder: (_) => Text(
+                        c.drawerEnableSound.string,
+                        style: const TextStyle(
+                          color: textColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),),
+                    const SizedBox(width:10),
+                    GetBuilder<Controller>(
+                      builder: (_) => Switch(
+                        activeColor: backgroundColor,
+                        activeTrackColor: themeColor,
+                        value: c.enableSound.value,
+                        onChanged: (value) async {
+                          c.enableSound = value.obs;
+                          c.update();
+                          await boxSetting.put('enableSound',value);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height:5),
+                const Divider(height:1,),
+                const SizedBox(height:12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GetBuilder<Controller>(
+                      builder: (_) =>  Text(
+                        c.drawerLanguage.string,
+                        style: const TextStyle(
+                          color: textColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),),
+                    const SizedBox(width:10),
+                    ToggleSwitch(
+                      minWidth: 50.0,
+                      minHeight: 30.0,
+                      fontSize: 14.0,
+                      initialLabelIndex: initLanguageIndex,
+                      activeBgColor: const [backgroundColor],
+                      activeFgColor: Colors.white,
+                      inactiveBgColor: const Color.fromRGBO(240, 240, 240, 1),
+                      inactiveFgColor: textColor,
+                      totalSwitches: 2,
+                      changeOnTap: true,
+                      labels: const ['VN', 'EN'],
+                      onToggle: (index) async {
+                        if (index == 0){
+                          c.changeLanguage('VN');
+                        }else{
+                          c.changeLanguage('EN');
                         }
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height:12),
+                const Divider(height:1),
+                ListTile(
+                  title: GetBuilder<Controller>(
+                    builder: (_) =>  Text(
+                      c.language.string == 'VN'? 'Tải lại dữ liệu':'Reload data',
+                      style: const TextStyle(
+                        color: textColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Get.offAll(()=>const LoadingPage());
+                  },
+                ),
+                const Divider(height:1),
+                ListTile(
+                  title: GetBuilder<Controller>(
+                    builder: (_) =>  Text(
+                      c.drawerPolicy.string,
+                      style: const TextStyle(
+                        color: textColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Get.offAll(()=>const PolicyPage());
+                  },
+                ),
+                const Divider(height:1),
+                ListTile(
+                  title: GetBuilder<Controller>(
+                    builder: (_) =>  Text(
+                      c.drawerContact.string,
+                      style: const TextStyle(
+                        color: textColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Get.offAll(()=>const ContactPage());
+                  },
+                ),
+                const Divider(height:1),
+              ],
+            ),
+          ),
+        ]
+      ),
+    );
+  }
+}
+
+class CategoryScreen extends StatelessWidget {
+  const CategoryScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final Controller c = Get.put(Controller());
+
+    void getToScore(int i) {
+      if (!c.isAdShowing.value){
+        void toScore() async {
+          c.isAdShowing = false.obs;
+          if (c.language.string == 'VN'){
+            c.bundle = RxString(listCategoryVN[i]);
+          }else{
+            c.bundle = RxString(listCategoryEN[i]);
+          }
+          c.listWordScore = RxList(await getListCategory(listCategoryEN[i]));
+          c.category = RxString(listCategoryEN[i]);
+          c.type = 'all type'.obs;
+          c.part = 0.obs;
+          Get.offAll(()=> const ScorePage());
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
+
+    void getToMainScreen() {
+      if (!c.isAdShowing.value){
+        void toScore() async {
+          c.isAdShowing = false.obs;
+          Get.offAll(()=> MainScreen());
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
+
+    return WillPopScope(
+      onWillPop: () async {
+        Get.offAll(()=>MainScreen());
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            c.language.string == 'VN'?'Chủ đề':'Category',
+            style: TextStyle(
+              fontSize: 18,
+              color: textColor.withOpacity(0.7),
+            ),
+            overflow: TextOverflow.ellipsis,
+            // textAlign: TextAlign.left,
+          ),
+          leading: IconButton(
+            padding: const EdgeInsets.all(0.0),
+            icon: Icon(
+              Icons.arrow_back_ios_rounded, size: 20,
+              color: textColor.withOpacity(0.7),
+            ),
+            tooltip: 'Back to MainScreen',
+            onPressed: () {
+              getToMainScreen();
+            },
+          ),
+          centerTitle: true,
+          backgroundColor: Colors.white,
+          bottomOpacity: 0.0,
+          elevation: 0.0,
+        ),
+        body: Container(
+          color: Colors.white,
+          child: Column(
+              children:[
+                // const SizedBox(height: 10),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Wrap(
+                        spacing: 5,
+                        runSpacing: 5,
+                        runAlignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        direction: Axis.horizontal,
+                        alignment: WrapAlignment.center,
+                        children:[
+                          for (int i=0;i<listCategoryEN.length;i++)
+                            GestureDetector(
+                                onTap: () {
+                                  getToScore(i);
+                                },
+                                child: Container(
+                                  // width: (MediaQuery.of(context).size.width-50)/3,
+                                    decoration: BoxDecoration(
+                                      color: Color.fromRGBO(
+                                          150+Random().nextInt(55),
+                                          201+Random().nextInt(55),
+                                          150+Random().nextInt(55),
+                                          1
+                                      ),
+                                      borderRadius: const BorderRadius.all(
+                                          Radius.circular(20)
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.6),
+                                          spreadRadius: 0,
+                                          blurRadius: 3,
+                                          offset: const Offset(0, 0), // changes position of shadow
+                                        ),
+                                      ],
+                                    ),
+                                    padding: const EdgeInsets.all(10),
+                                    margin: const EdgeInsets.all(5),
+                                    child: Text(
+                                      c.language.string == 'VN'?listCategoryVN[i]:listCategoryEN[i],
+                                      style: const TextStyle(
+                                          fontSize: 18
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    )
+                                )
+                            ),
+                        ]
                     ),
                   ),
                 ),
               ]
-            )
-        ),
-      ),
-      endDrawer: SizedBox(
-        width: MediaQuery.of(context).size.width*0.7,
-        child: Drawer(
-          backgroundColor: Colors.white.withOpacity(0.8),
-          child: Column(
-            children: [
-              DrawerHeader(
-                margin: const EdgeInsets.all(0),
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-                decoration: BoxDecoration(
-                  color: backgroundColor.withOpacity(0.4),
-                ),
-                child: Container(
-                  alignment: Alignment.center,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        'BeDict',
-                        style: TextStyle(
-                            fontSize: 50,
-                            foreground: Paint()..shader = linearGradient
-                        ),
-                      ),
-                      Text(
-                        'Pictorial Dictionary',
-                        style: TextStyle(
-                            fontSize: 16.7,
-                            foreground: Paint()..shader = linearGradient
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Expanded(
-                child: ListView(
-                  // Important: Remove any padding from the ListView.
-                  padding: EdgeInsets.zero,
-                  children: [
-                    ListTile(
-                      title: GetBuilder<Controller>(
-                        builder: (_) => Text(
-                          c.isVip.value? 'VIP' : c.drawerUpgrade.string,
-                          style: const TextStyle(
-                            color: textColor,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),),
-                      onTap: () {
-                        Navigator.pop(context);
-                        Get.to(()=>const MyUpgradePage());
-                      },
-                    ),
-                    const Divider(height:1),
-                    ListTile(
-                      title: GetBuilder<Controller>(
-                        builder: (_) => Text(
-                          c.drawerHistory.string,
-                          style: const TextStyle(
-                            color: textColor,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),),
-                      onTap: () {
-                        Navigator.pop(context);
-                        Get.to(()=>const HistoryPage());
-                      },
-                    ),
-                    const Divider(height:1,),
-                    ListTile(
-                      title: GetBuilder<Controller>(
-                        builder: (_) => Text(
-                          c.drawerScore.string,
-                          style: const TextStyle(
-                            color: textColor,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),),
-                      onTap: () {
-                        Navigator.pop(context);
-                        Get.to(()=> const ScorePage());
-                      },
-                    ),
-                    const Divider(height:1,),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        GetBuilder<Controller>(
-                          builder: (_) => Text(
-                            c.drawerDaily.string,
-                            style: const TextStyle(
-                              color: textColor,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),),
-                        GetBuilder<Controller>(
-                          builder: (_) => Switch(
-                            value: c.notifyDaily.value,
-                            onChanged: (value) async {
-                              c.notifyDaily = RxBool(value);
-                              c.update();
-                              await boxSetting.put('notifyDaily',value);
-                              if (value) {
-                                showNotification();
-                              }else{
-                                await AwesomeNotifications().dismiss(0);
-                                await AwesomeNotifications().cancelSchedule(0);
-                              }
-                            },
-                            activeTrackColor: themeColor,
-                            activeColor: backgroundColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                    GetBuilder<Controller>(
-                      builder: (_) => Visibility(
-                          visible: c.notifyDaily.value,
-                          child: Column(
-                              children:[
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children:[
-                                    Text(
-                                      c.drawerTime.string,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        color: textColor,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(width: 10,),
-                                    TextButton(
-                                      style: ButtonStyle(
-                                        backgroundColor: MaterialStateProperty.all<Color>(themeColor),
-                                        foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                                        padding: MaterialStateProperty.all<EdgeInsets>(
-                                            const EdgeInsets.all(0)
-                                        ),
-                                      ),
-                                      child: Row(
-                                          children: [
-                                            const SizedBox(
-                                              width: 10,
-                                            ),
-                                            GetBuilder<Controller>(
-                                              builder: (_) => Text(
-                                                c.selectedTime.string,
-                                                style: const TextStyle(
-                                                  fontSize: 15,
-                                                  color: textColor,
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(
-                                              width: 10,
-                                            ),
-                                          ]
-                                      ),
-                                      onPressed: () async {
-                                        await showTime();
-                                      },
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 10,),
-                                GetBuilder<Controller>(
-                                  builder: (_) => Text(
-                                    c.drawerTarget.string,
-                                    style: const TextStyle(
-                                      color: textColor,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),),
-                                GetBuilder<Controller>(
-                                  builder: (_) => Slider(
-                                    value: c.target.value.toDouble(),
-                                    min: 5,
-                                    max: 50,
-                                    divisions: 9,
-                                    activeColor: backgroundColor,
-                                    inactiveColor: themeColor,
-                                    thumbColor: backgroundColor,
-                                    label: c.target.value.toString(),
-                                    onChanged: (double value) async {
-                                      c.target = RxInt(value.toInt());
-                                      await boxSetting.put('target',value.toInt());
-                                      c.update();
-                                    },
-                                  ),
-                                ),
-                              ]
-                          )
-                      ),
-                    ),
-                    const Divider(height:1),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        GetBuilder<Controller>(
-                          builder: (_) => Text(
-                            c.drawerWord.string,
-                            style: const TextStyle(
-                              color: textColor,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        GetBuilder<Controller>(
-                          builder: (_) => Switch(
-                            value: c.notifyWord.value,
-                            onChanged: (value) async {
-                              c.notifyWord = RxBool(value);
-                              c.update();
-                              await boxSetting.put('notifyWord',value);
-                              if (value) {
-                                showNotificationWord();
-                              }else{
-                                await AwesomeNotifications().dismissNotificationsByChannelKey('word');
-                                await AwesomeNotifications().cancelSchedulesByChannelKey('word');
-                              }
-                            },
-                            activeTrackColor: themeColor,
-                            activeColor: backgroundColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                    GetBuilder<Controller>(
-                      builder: (_) => Visibility(
-                          visible: c.notifyWord.value,
-                          child: Column(
-                              children:[
-                                GetBuilder<Controller>(
-                                  builder: (_) => Text(
-                                    c.language.string == 'VN'?
-                                    'Thông báo sau mỗi (phút):':
-                                    'Notify interval (minutes)',
-                                    style: const TextStyle(
-                                      color: textColor,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                                GetBuilder<Controller>(
-                                  builder: (_) => Slider(
-                                    value: c.notificationInterval.value.toDouble(),
-                                    min: 15,
-                                    max: 120,
-                                    divisions: 7,
-                                    activeColor: backgroundColor,
-                                    inactiveColor: themeColor,
-                                    thumbColor: backgroundColor,
-                                    label: c.notificationInterval.value.toString()
-                                        + (c.language.string == 'VN'? ' phút':' minutes'),
-                                    onChanged: (double value) async {
-                                      c.notificationInterval = RxInt(value.toInt());
-                                      await boxSetting.put('notificationInterval',value.toInt());
-                                      c.update();
-                                      await AwesomeNotifications().dismissNotificationsByChannelKey('word');
-                                      await AwesomeNotifications().cancelSchedulesByChannelKey('word');
-                                      showNotificationWord();
-                                    },
-                                  ),
-                                ),
-                              ]
-                          )
-                      ),
-                    ),
-                    const Divider(height:1,),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 15,),
-                        GetBuilder<Controller>(
-                          builder: (_) => Text(
-                            c.drawerSpeech.string,
-                            style: const TextStyle(
-                              color: textColor,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),),
-                        GetBuilder<Controller>(
-                          builder: (_) => Slider(
-                            value: c.speakSpeed.value,
-                            min: 0.1,
-                            max: 1,
-                            divisions: 9,
-                            activeColor: backgroundColor,
-                            inactiveColor: themeColor,
-                            thumbColor: backgroundColor,
-                            label: double.parse((c.speakSpeed.value).toStringAsFixed(1)).toString(),
-                            onChanged: (double value) async {
-                              c.speakSpeed = RxDouble(value);
-                              await boxSetting.put('speakSpeed',value);
-                              c.update();
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Divider(height:1,),
-                    const SizedBox(height:5),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        GetBuilder<Controller>(
-                          builder: (_) => Text(
-                            c.drawerInitSpeak.string,
-                            style: const TextStyle(
-                              color: textColor,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),),
-                        const SizedBox(width:10),
-                        GetBuilder<Controller>(
-                          builder: (_) => Switch(
-                            activeColor: backgroundColor,
-                            activeTrackColor: themeColor,
-                            value: c.initSpeak.value,
-                            onChanged: (value) async {
-                              c.initSpeak = value.obs;
-                              c.update();
-                              await boxSetting.put('initSpeak',value);
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height:5),
-                    const Divider(height:1,),
-                    const SizedBox(height:5),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        GetBuilder<Controller>(
-                          builder: (_) => Text(
-                            c.drawerEnableSound.string,
-                            style: const TextStyle(
-                              color: textColor,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),),
-                        const SizedBox(width:10),
-                        GetBuilder<Controller>(
-                          builder: (_) => Switch(
-                            activeColor: backgroundColor,
-                            activeTrackColor: themeColor,
-                            value: c.enableSound.value,
-                            onChanged: (value) async {
-                              c.enableSound = value.obs;
-                              c.update();
-                              await boxSetting.put('enableSound',value);
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height:5),
-                    const Divider(height:1,),
-                    const SizedBox(height:12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        GetBuilder<Controller>(
-                          builder: (_) =>  Text(
-                            c.drawerLanguage.string,
-                            style: const TextStyle(
-                              color: textColor,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),),
-                        const SizedBox(width:10),
-                        ToggleSwitch(
-                          minWidth: 50.0,
-                          minHeight: 30.0,
-                          fontSize: 14.0,
-                          initialLabelIndex: initLanguageIndex,
-                          activeBgColor: const [backgroundColor],
-                          activeFgColor: Colors.white,
-                          inactiveBgColor: const Color.fromRGBO(240, 240, 240, 1),
-                          inactiveFgColor: textColor,
-                          totalSwitches: 2,
-                          changeOnTap: true,
-                          labels: const ['VN', 'EN'],
-                          onToggle: (index) async {
-                            if (index == 0){
-                              c.changeLanguage('VN');
-                            }else{
-                              c.changeLanguage('EN');
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height:12),
-                    const Divider(height:1),
-                    ListTile(
-                      title: GetBuilder<Controller>(
-                        builder: (_) =>  Text(
-                          c.drawerPolicy.string,
-                          style: const TextStyle(
-                            color: textColor,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),),
-                      onTap: () {
-                        Navigator.pop(context);
-                        Get.to(()=>const PolicyPage());
-                      },
-                    ),
-                    const Divider(height:1),
-                    ListTile(
-                      title: GetBuilder<Controller>(
-                        builder: (_) =>  Text(
-                          c.drawerContact.string,
-                          style: const TextStyle(
-                            color: textColor,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),),
-                      onTap: () {
-                        Navigator.pop(context);
-                        Get.to(()=>const ContactPage());
-                      },
-                    ),
-                    const Divider(height:1),
-                  ],
-                ),
-              ),
-            ]
           ),
         ),
       ),
-      body: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: const SystemUiOverlayStyle(
-          statusBarColor: Colors.transparent, //i like transaparent :-)
-          systemNavigationBarColor: Colors.transparent, // navigation bar color
-          statusBarIconBrightness: Brightness.light, // status bar icons' color
-          systemNavigationBarIconBrightness: Brightness.light, //navigation bar icons' color
+    );
+  }
+}
+
+class TypeScreen extends StatelessWidget {
+  const TypeScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final Controller c = Get.put(Controller());
+
+    void getToScore(int i) {
+      if (!c.isAdShowing.value){
+        void toScore() async {
+          c.isAdShowing = false.obs;
+          if (c.language.string == 'VN'){
+            c.bundle = RxString(listTypeVN[i]);
+          }else{
+            c.bundle = RxString(listTypeEN[i]);
+          }
+          c.listWordScore = RxList(await getListType(listTypeEN[i]));
+          c.category = 'all category'.obs;
+          c.type = RxString(listTypeEN[i]);
+          c.part = 0.obs;
+          Get.offAll(()=> const ScorePage());
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
+
+    void getToMainScreen() {
+      if (!c.isAdShowing.value){
+        void toScore() async {
+          c.isAdShowing = false.obs;
+          Get.offAll(()=> MainScreen());
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
+
+    return WillPopScope(
+      onWillPop: () async {
+        Get.offAll(()=>MainScreen());
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            c.language.string == 'VN'?'Từ loại':'Type',
+            style: TextStyle(
+              fontSize: 18,
+              color: textColor.withOpacity(0.7),
+            ),
+            overflow: TextOverflow.ellipsis,
+            // textAlign: TextAlign.left,
+          ),
+          leading: IconButton(
+            padding: const EdgeInsets.all(0.0),
+            icon: Icon(
+              Icons.arrow_back_ios_rounded, size: 20,
+              color: textColor.withOpacity(0.7),
+            ),
+            tooltip: 'Back to MainScreen',
+            onPressed: () {
+              getToMainScreen();
+            },
+          ),
+          centerTitle: true,
+          backgroundColor: Colors.white,
+          bottomOpacity: 0.0,
+          elevation: 0.0,
         ),
-        child: Screenshot(
-          controller: screenshotController,
-          child: Stack(
-            children: [
-              GetBuilder<Controller>(
-                builder: (_) => c.imageURL.isNotEmpty?
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(0),
-                  child: ImageFiltered(
-                    imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                    child: Opacity(
-                      opacity: 0.8,
-                      child: Image(
-                        image: NetworkImage('https://bedict.com/' + c.imageURL[c.nowMean.value].replaceAll('\\','')),
-                        fit: BoxFit.cover,
-                        width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height,
-                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                          return const SizedBox();
-                        },
-                      ),
+        body: Container(
+          color: Colors.white,
+          child: Column(
+              children:[
+                // const SizedBox(height: 10),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Wrap(
+                        spacing: 5,
+                        runSpacing: 5,
+                        runAlignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        direction: Axis.horizontal,
+                        alignment: WrapAlignment.center,
+                        children:[
+                          for (int i=0;i<listTypeEN.length;i++)
+                            GestureDetector(
+                                onTap: () {
+                                  getToScore(i);
+                                },
+                                child: Container(
+                                  // width: (MediaQuery.of(context).size.width-50)/3,
+                                    decoration: BoxDecoration(
+                                      color: Color.fromRGBO(
+                                          150+Random().nextInt(55),
+                                          201+Random().nextInt(55),
+                                          150+Random().nextInt(55),
+                                          1
+                                      ),
+                                      borderRadius: const BorderRadius.all(
+                                          Radius.circular(20)
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.6),
+                                          spreadRadius: 0,
+                                          blurRadius: 3,
+                                          offset: const Offset(0, 0), // changes position of shadow
+                                        ),
+                                      ],
+                                    ),
+                                    padding: const EdgeInsets.all(10),
+                                    margin: const EdgeInsets.all(5),
+                                    child: Text(
+                                      c.language.string == 'VN'?listTypeVN[i]:listTypeEN[i],
+                                      style: const TextStyle(
+                                          fontSize: 18
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    )
+                                )
+                            ),
+                        ]
                     ),
                   ),
-                )
-                    : const SizedBox(),
-              ),
-              GetBuilder<Controller>(
-                builder: (_) => AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 500),
-                  transitionBuilder: (Widget child, Animation<double> animation) {
-                    return ScaleTransition(child: child, scale: animation);
-                  },
-                  child: Container(
-                    key: ValueKey<String>(c.nowMean.value.toString()),
-                    alignment: Alignment.center,
-                    color: Colors.transparent,
-                    child:c.imageURL.isNotEmpty?
-                    SingleChildScrollView(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: const BorderRadius.all(
-                              Radius.circular(20)
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.6),
-                              spreadRadius: 0,
-                              blurRadius: 5,
-                              offset: const Offset(5, 5), // changes position of shadow
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: Image(
-                            image: NetworkImage('https://bedict.com/' + c.imageURL[c.nowMean.value].replaceAll('\\','')),
-                            fit: BoxFit.contain,
-                            width: MediaQuery.of(context).size.width<500? MediaQuery.of(context).size.width-100:400,
-                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                              return const SizedBox();
-                            },
-                          ),
+                ),
+              ]
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class Home extends StatelessWidget {
+  Home({Key? key}) : super(key: key);
+  final GlobalKey<ProcessWidgetState> processKey = GlobalKey<ProcessWidgetState>();
+
+  final ScreenshotController screenshotController = ScreenshotController();
+
+  @override
+  Widget build(BuildContext context) {
+    final Controller c = Get.put(Controller());
+    List<String> suggestArray = [];
+
+    void getBack() {
+      if (!c.isAdShowing.value){
+        void toScore() {
+          c.isAdShowing = false.obs;
+          switch (c.fromScreen.value){
+            case 0:
+              Get.offAll(()=> MainScreen());
+              break;
+            default:
+              Get.offAll(()=> const ScorePage());
+          }
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
+
+    void getSearch(String word) {
+      if (!c.isAdShowing.value){
+        void toScore() async {
+          c.isAdShowing = false.obs;
+          c.isSearch = false.obs;
+          c.category = 'all category'.obs;
+          c.type = 'all type'.obs;
+          c.fromScreen = 0.obs;
+          c.nowWord = RxInt(c.wordArray.indexOf(word));
+          await c.layWord(word);
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
+
+    void getToLearn() {
+      if (!c.isAdShowing.value){
+        void toScore() {
+          c.isAdShowing = false.obs;
+          c.currentTab = 0.obs;
+          Get.to(()=>const LearnWord());
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
+
+    void getNext() {
+      if (!c.isAdShowing.value){
+        void toScore() async {
+          c.isAdShowing = false.obs;
+          if (c.fromScreen.value ==0){
+            if (c.nowWord.value<(c.wordArray.length-1)){
+              c.nowWord = RxInt(c.nowWord.value+1);
+            }else{
+              c.nowWord = 0.obs;
+            }
+            await c.layWord(c.wordArray[c.nowWord.value]);
+          }else{
+            if (c.nowWord.value<(c.listWordScorePage.length-1)){
+              c.nowWord = RxInt(c.nowWord.value+1);
+            }else{
+              c.nowWord = 0.obs;
+            }
+            await c.layWord(c.listWordScorePage[c.nowWord.value]);
+          }
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
+
+    void getPrevious() {
+      if (!c.isAdShowing.value){
+        void toScore() async {
+          c.isAdShowing = false.obs;
+          if (c.fromScreen.value == 0){
+            if (c.nowWord.value>0){
+              c.nowWord = RxInt(c.nowWord.value-1);
+            }else{
+              c.nowWord = RxInt(c.wordArray.length-1);
+            }
+            await c.layWord(c.wordArray[c.nowWord.value]);
+          }else{
+            if (c.nowWord.value>0){
+              c.nowWord = RxInt(c.nowWord.value-1);
+            }else{
+              c.nowWord = RxInt(c.listWordScorePage.length-1);
+            }
+            await c.layWord(c.listWordScorePage[c.nowWord.value]);
+          }
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
+
+    void getRandom() {
+      if (!c.isAdShowing.value){
+        void toScore() async {
+          c.isAdShowing = false.obs;
+          if (c.fromScreen.value == 0){
+            c.nowWord = RxInt(Random().nextInt(c.wordArray.length));
+            await c.layWord(c.wordArray[c.nowWord.value]);
+          }else{
+            c.nowWord = RxInt(Random().nextInt(c.listWordScorePage.length));
+            await c.layWord(c.listWordScorePage[c.nowWord.value]);
+          }
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
+
+    void getNextMean() {
+      if (!c.isAdShowing.value){
+        void toScore() {
+          c.isAdShowing = false.obs;
+          if (c.nowMean.value<(c.mean.length-1)){
+            c.nowMean = RxInt(c.nowMean.value+1);
+            c.update();
+          }else{
+            c.nowMean = 0.obs;
+            c.update();
+          }
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
+
+    void getPreviousMean() {
+      if (!c.isAdShowing.value){
+        void toScore() {
+          c.isAdShowing = false.obs;
+          if (c.nowMean.value>0){
+            c.nowMean = RxInt(c.nowMean.value-1);
+            c.update();
+          }else{
+            c.nowMean = RxInt(c.imageURL.length-1);
+            c.update();
+          }
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
+
+    return WillPopScope(
+      onWillPop: () async {
+        getBack();
+        return false;
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        backgroundColor: Colors.white,
+        body: AnnotatedRegion<SystemUiOverlayStyle>(
+          value: const SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent, //i like transaparent :-)
+            systemNavigationBarColor: Colors.transparent, // navigation bar color
+            statusBarIconBrightness: Brightness.light, // status bar icons' color
+            systemNavigationBarIconBrightness: Brightness.light, //navigation bar icons' color
+          ),
+          child: Screenshot(
+            controller: screenshotController,
+            child: Stack(
+              children: [
+                GetBuilder<Controller>(
+                  builder: (_) => c.imageURL.isNotEmpty?
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(0),
+                    child: ImageFiltered(
+                      imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                      child: Opacity(
+                        opacity: 0.8,
+                        child: Image(
+                          image: NetworkImage('https://bedict.com/' + c.imageURL[c.nowMean.value].replaceAll('\\','')),
+                          fit: BoxFit.cover,
+                          width: MediaQuery.of(context).size.width,
+                          height: MediaQuery.of(context).size.height,
+                          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                            return const SizedBox();
+                          },
                         ),
                       ),
-                    )
-                        :const SizedBox(),
+                    ),
+                  )
+                      : const SizedBox(),
+                ),
+                GetBuilder<Controller>(
+                  builder: (_) => AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 500),
+                    transitionBuilder: (Widget child, Animation<double> animation) {
+                      return ScaleTransition(child: child, scale: animation);
+                    },
+                    child: Container(
+                      key: ValueKey<String>(c.nowMean.value.toString()),
+                      alignment: Alignment.center,
+                      color: Colors.transparent,
+                      child:c.imageURL.isNotEmpty?
+                      SingleChildScrollView(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: const BorderRadius.all(
+                                Radius.circular(20)
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.6),
+                                spreadRadius: 0,
+                                blurRadius: 5,
+                                offset: const Offset(5, 5), // changes position of shadow
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Image(
+                              image: NetworkImage('https://bedict.com/' + c.imageURL[c.nowMean.value].replaceAll('\\','')),
+                              fit: BoxFit.contain,
+                              width: MediaQuery.of(context).size.width<500? MediaQuery.of(context).size.width-100:400,
+                              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                return const SizedBox();
+                              },
+                            ),
+                          ),
+                        ),
+                      )
+                          :const SizedBox(),
+                    ),
                   ),
                 ),
-              ),
-              Column (
-                mainAxisAlignment: MainAxisAlignment.start,
-                children:<Widget> [
-                  SizedBox(height: MediaQuery.of(context).padding.top),
-                  Row(
-                    children: [
-                      IconButton(
-                        padding: const EdgeInsets.all(0.0),
-                        icon: const Icon(Icons.arrow_forward_ios_rounded, size: 20,),
-                        tooltip: 'Open Sort',
-                        onPressed: () {
-                          _key.currentState!.openDrawer();
-                        },
-                      ),
-                      GetBuilder<Controller>(
-                        builder: (_) => Expanded(
-                          child: !c.isSearch.value?
-                          Row(
-                              children:[
-                                Expanded(
-                                  child: Text(
-                                    c.categoryIndex.value!=0? c.listCategory[c.categoryIndex.value]
-                                        : c.typeIndex.value!=0? c.listType[c.typeIndex.value]:'',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: textColor,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                    textAlign: TextAlign.left,
-                                  ),
-                                ),
-                                IconButton(
-                                  padding: const EdgeInsets.all(0.0),
-                                  icon: const Icon(Icons.search_rounded, size: 20,),
-                                  tooltip: 'search',
-                                  onPressed: () {
-                                    c.isSearch = true.obs;
-                                    searchFocusNode.requestFocus();
-                                    c.update();
-                                  },
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    c.levelIndex.value!=0?c.listLevel[c.levelIndex.value]:'',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: textColor,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                    textAlign: TextAlign.right,
-                                  ),
-                                ),
-                              ]
-                          ):
-                          Row(
-                              children:[
-                                Expanded(
-                                  child: TypeAheadField(
-                                    textFieldConfiguration: TextFieldConfiguration(
-                                      controller: searchField,
-                                      autofocus: false,
-                                      autocorrect: false,
-                                      focusNode: searchFocusNode,
-                                      style: const TextStyle(
-                                        fontSize: 15.0,
-                                        color: textColor,
-                                      ),
-                                      decoration: InputDecoration(
-                                        border: const OutlineInputBorder(
-                                          borderSide: BorderSide(color: Colors.black, width:1),
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(30)
-                                          ),
-                                        ),
-                                        focusedBorder: const OutlineInputBorder(
-                                          borderSide: BorderSide(color: Colors.black, width: 1),
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(30)
-                                          ),
-                                        ),
-                                        enabledBorder: const OutlineInputBorder(
-                                          borderSide: BorderSide(color: Colors.black, width: 1),
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(30)
-                                          ),
-                                        ),
-                                        // prefixIcon: Icon(Icons.search_outlined,size:15),
-                                        hintText: c.hint.string,
-                                        isDense: true,
-                                        contentPadding: const EdgeInsets.all(5),
-                                        prefixIcon: const Icon(Icons.search),
-                                        // icon: Icon(Icons.search),
-                                        // isCollapsed: true,
-                                      ),
-                                      onSubmitted: (value) async {
-                                        if (suggestArray.isEmpty){
-                                          searchField.text = c.word.string;
-                                          if (Get.isSnackbarOpen) Get.closeAllSnackbars();
-                                          Get.snackbar(c.learnWrongTitle.string, c.notFound.string);
-                                        }else{
-                                          c.isSearch = false.obs;
-                                          await getWord(suggestArray[0]);
-                                        }
+                GestureDetector(
+                  onVerticalDragEnd: (details) {
+                    if (details.primaryVelocity! > 0) {
+                      getPrevious();
+                    }
+                    if (details.primaryVelocity! < -0) {
+                      getNext();
+                    }
+                  },
+                  onHorizontalDragEnd: (details) {
+                    if (details.primaryVelocity! > 0) {
+                      getPreviousMean();
+                    }
+                    if (details.primaryVelocity! < 0) {
+                      getNextMean();
+                    }
+                  },
+                  onDoubleTap: () {
+                    getRandom();
+                  },
+                  onTap:(){
+                    if (searchFocusNode.hasFocus){
+                      searchFocusNode.unfocus();
+                    }
+                    if (c.isSearch.value){
+                      c.isSearch = false.obs;
+                      c.update();
+                    }
+                    if (processKey.currentState!.controller.isAnimating){
+                      processKey.currentState!.controller.stop();
+                    }else{
+                      processKey.currentState!.controller.forward();
+                    }
+                  },
+                  child: Column (
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children:<Widget> [
+                      SizedBox(height: MediaQuery.of(context).padding.top),
+                      Row(
+                        children: [
+                          GetBuilder<Controller>(
+                            builder: (_) => Expanded(
+                              child: !c.isSearch.value?
+                              Row(
+                                  children:[
+                                    IconButton(
+                                      padding: const EdgeInsets.all(0.0),
+                                      icon: const Icon(Icons.arrow_back_ios_rounded, size: 20,),
+                                      tooltip: 'Back',
+                                      onPressed: () {
+                                        getBack();
                                       },
                                     ),
-                                    suggestionsBoxVerticalOffset: 10,
-                                    noItemsFoundBuilder: (BuildContext context) => ListTile(
-                                      title: Text(
-                                        c.notFound.string,
+                                    Expanded(
+                                      child: Text(
+                                        c.fromScreen.value == 0?'':
+                                        c.bundle.string.toLowerCase()
+                                            + (c.language.string == 'VN'?' - phần ':' - part ')
+                                            + (c.part.value+1).toString(),
                                         style: const TextStyle(
-                                          fontSize: 15.0,
+                                          fontSize: 12,
                                           color: textColor,
                                         ),
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.left,
                                       ),
                                     ),
-                                    suggestionsCallback: (pattern) async {
-                                      suggestArray = [];
-                                      if (pattern == ''){
-                                        suggestArray = await getLastSearch();
-                                      }
-                                      for (var i = 0; i < c.wordArray.length; i++){
-                                        if (suggestArray.length > 9){
-                                          break;
-                                        }
-                                        if (c.wordArray[i].toString().toLowerCase().startsWith(pattern.toLowerCase())){
-                                          if (!suggestArray.contains(c.wordArray[i])){
-                                            suggestArray.add(c.wordArray[i]);
-                                          }
-                                        }
-                                      }
-                                      return suggestArray;
-                                    },
-                                    suggestionsBoxDecoration: SuggestionsBoxDecoration(
-                                      borderRadius: const BorderRadius.all(Radius.circular(15)),
-                                      color: Colors.white.withOpacity(1.0),
+                                    IconButton(
+                                      padding: const EdgeInsets.all(0.0),
+                                      icon: const Icon(Icons.search_rounded, size: 20,),
+                                      tooltip: 'search',
+                                      onPressed: () {
+                                        c.isSearch = true.obs;
+                                        searchFocusNode.requestFocus();
+                                        c.update();
+                                      },
                                     ),
-                                    itemBuilder: (context, suggestion) {
-                                      return ListTile(
-                                        title: Text(
-                                          suggestion.toString(),
+                                  ]
+                              ):
+                              Row(
+                                  children:[
+                                    const SizedBox(width:20),
+                                    Expanded(
+                                      child: TypeAheadField(
+                                        textFieldConfiguration: TextFieldConfiguration(
+                                          // controller: searchField,
+                                          autofocus: false,
+                                          autocorrect: false,
+                                          textInputAction: TextInputAction.done,
+                                          focusNode: searchFocusNode,
                                           style: const TextStyle(
                                             fontSize: 15.0,
                                             color: textColor,
                                           ),
-                                        ),
-                                      );
-                                    },
-                                    onSuggestionSelected: (suggestion) async {
-                                      searchField.text = suggestion.toString();
-                                      c.isSearch = false.obs;
-                                      await getWord(suggestion.toString());
-                                    },
-                                    animationDuration: Duration.zero,
-                                    debounceDuration: Duration.zero,
-                                  ),
-                                )
-                              ]
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        padding: const EdgeInsets.all(0.0),
-                        icon: const Icon(Icons.more_vert, size: 25,),
-                        tooltip: 'Open Menu',
-                        onPressed: () {
-                          _key.currentState!.openEndDrawer();
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height:5),
-                  Expanded(
-                    child: GestureDetector(
-                      onVerticalDragEnd: (details) async {
-                        if (details.primaryVelocity! > 0) {
-                          await getWord(c.wordPrevious.string);
-                        }
-                        if (details.primaryVelocity! < -0) {
-                          await getWord(c.wordNext.string);
-                        }
-                      },
-                      onHorizontalDragEnd: (details) async {
-                        if (details.primaryVelocity! > 0) {
-                          if (c.nowMean.value>0){
-                            c.nowMean = RxInt(c.nowMean.value-1);
-                            c.update();
-                          }else{
-                            c.nowMean = RxInt(c.imageURL.length-1);
-                            c.update();
-                          }
-                        }
-                        if (details.primaryVelocity! < -0) {
-                          if (c.nowMean.value<(c.mean.length-1)){
-                            c.nowMean = RxInt(c.nowMean.value+1);
-                            c.update();
-                          }else{
-                            c.nowMean = 0.obs;
-                            c.update();
-                          }
-                        }
-                      },
-                      onDoubleTap: () async {
-                        await getNewWord();
-                      },
-                      onTap:(){
-                        if (controller.isAnimating){
-                          controller.stop();
-                        }else{
-                          controller.forward();
-                        }
-                        if (searchFocusNode.hasFocus){
-                          searchFocusNode.unfocus();
-                          c.isSearch = false.obs;
-                          c.update();
-                        }
-                      },
-                      child: Column(
-                        children:[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              GetBuilder<Controller>(
-                                builder: (_) => Flexible(
-                                  child: AnimatedTextKit(
-                                    key: ValueKey<String> (c.word.string),
-                                    animatedTexts: [
-                                      ColorizeAnimatedText(
-                                        c.word.string,
-                                        textAlign: TextAlign.center,
-                                        speed: const Duration(milliseconds: 300),
-                                        textStyle: TextStyle(
-                                          fontSize: 50,
-                                          letterSpacing: 1,
-                                          fontWeight: FontWeight.w600,
-                                          shadows: [
-                                            Shadow(
-                                              blurRadius: 15,
-                                              color: Colors.black.withOpacity(0.5),
-                                              offset: const Offset(3, 3),
+                                          decoration: InputDecoration(
+                                            border: const OutlineInputBorder(
+                                              borderSide: BorderSide(color: Colors.black, width:1),
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(30)
+                                              ),
                                             ),
-                                          ],
-                                        ),
-                                        colors: colorizeColors,
-                                      ),
-                                      ColorizeAnimatedText(
-                                        c.pronun.string,
-                                        textAlign: TextAlign.center,
-                                        speed: const Duration(milliseconds: 300),
-                                        textStyle: TextStyle(
-                                          fontSize: 50,
-                                          letterSpacing: 1,
-                                          fontWeight: FontWeight.w600,
-                                          shadows: [
-                                            Shadow(
-                                              blurRadius: 15,
-                                              color: Colors.black.withOpacity(0.5),
-                                              offset: const Offset(3, 3),
+                                            focusedBorder: const OutlineInputBorder(
+                                              borderSide: BorderSide(color: Colors.black, width: 1),
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(30)
+                                              ),
                                             ),
-                                          ],
+                                            enabledBorder: const OutlineInputBorder(
+                                              borderSide: BorderSide(color: Colors.black, width: 1),
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(30)
+                                              ),
+                                            ),
+                                            // prefixIcon: Icon(Icons.search_outlined,size:15),
+                                            hintText: c.hint.string,
+                                            isDense: true,
+                                            contentPadding: const EdgeInsets.all(5),
+                                            prefixIcon: const Icon(Icons.search),
+                                            // icon: Icon(Icons.search),
+                                            // isCollapsed: true,
+                                          ),
+                                          onSubmitted: (value) {
+                                            if (suggestArray.isEmpty){
+                                              // searchField.text = c.word.string;
+                                              if (Get.isSnackbarOpen) Get.closeAllSnackbars();
+                                              Get.snackbar(c.learnWrongTitle.string, c.notFound.string);
+                                            }else{
+                                              getSearch(suggestArray[0]);
+                                            }
+                                          },
                                         ),
-                                        colors: colorizeColors,
-                                      ),
-                                    ],
-                                    isRepeatingAnimation: true,
-                                    repeatForever: true,
-                                    onTap: () {},
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          Expanded(
-                            child: Container(color: Colors.transparent),
-                          ),
-                          GetBuilder<Controller>(
-                            builder: (_) => Row(
-                                children:[
-                                  const SizedBox(width:10),
-                                  c.mean.isNotEmpty?
-                                  Flexible(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: c.mean[c.nowMean.value].asMap().entries.map<Widget>((subMean) =>
-                                            FutureBuilder(
-                                              future: Future.delayed(Duration(milliseconds: (subMean.key+1)*1000)), // a previously-obtained Future<String> or null
-                                              builder: (context, snapshot) {
-                                                Widget child;
-                                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                                  child = const SizedBox();
-                                                } else {
-                                                  child = Container(
-                                                    margin: const EdgeInsets.fromLTRB(0, 0, 0, 5),
-                                                    padding: const EdgeInsets.all(5),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.white.withOpacity(0.3),
-                                                      borderRadius: const BorderRadius.all(
-                                                          Radius.circular(10)
-                                                      ),
-                                                    ),
-                                                    child: Column(
+                                        suggestionsBoxVerticalOffset: 10,
+                                        noItemsFoundBuilder: (BuildContext context) => ListTile(
+                                          title: Text(
+                                            c.notFound.string,
+                                            style: const TextStyle(
+                                              fontSize: 15.0,
+                                              color: textColor,
+                                            ),
+                                          ),
+                                        ),
+                                        suggestionsCallback: (pattern) async {
+                                          suggestArray = [];
+                                          if (pattern == ''){
+                                            suggestArray = await getLastSearch();
+                                          }
+                                          for (var i = 0; i < c.wordArray.length; i++){
+                                            if (suggestArray.length > 9){
+                                              break;
+                                            }
+                                            if (c.wordArray[i].toString().toLowerCase().startsWith(pattern.toLowerCase())){
+                                              if (!suggestArray.contains(c.wordArray[i])){
+                                                suggestArray.add(c.wordArray[i]);
+                                              }
+                                            }
+                                          }
+                                          return suggestArray;
+                                        },
+                                        suggestionsBoxDecoration: SuggestionsBoxDecoration(
+                                          borderRadius: const BorderRadius.all(Radius.circular(15)),
+                                          color: Colors.white.withOpacity(0.95),
+                                        ),
+                                        itemBuilder: (context, suggestion) {
+                                          String mean = '';
+                                          String image = 'bedict.png';
+                                          var dataRaw = box.get(suggestion.toString());
+                                          List listMeans = jsonDecode(dataRaw['mean']);
+                                          List listMean = listMeans[0];
+                                          List meanENAdd = [];
+                                          List meanVNAdd = [];
+                                          for(var j = 0; j< listMean.length; j++) {
+                                            String meanENElement = '';
+                                            if(listMean[j].contains('#')){
+                                              meanENElement = listMean[j].split('#')[1];
+                                            }else{
+                                              meanENElement = listMean[j];
+                                            }
+                                            meanENAdd.add(meanENElement);
+                                            String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
+                                            meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
+                                            meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
+                                            meanVNAdd.add(meanVNElement);
+                                          }
+                                          String meanEN = '';
+                                          String meanVN = '';
+                                          for(var j = 0; j< meanENAdd.length; j++) {
+                                            if (j==0){
+                                              meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                                              meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                                            }else{
+                                              meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                                              meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                                            }
+                                          }
+                                          if (c.language.string == 'VN'){
+                                            mean = meanVN;
+                                          }else{
+                                            mean = meanEN;
+                                          }
+                                          if (jsonDecode(dataRaw['imageURL']).length>0){
+                                            image = jsonDecode(dataRaw['imageURL'])[0];
+                                          }
+                                          return Row(
+                                              children: [
+                                                const SizedBox(width:10),
+                                                Expanded(
+                                                  child: Column(
                                                       crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                                                        const SizedBox(height: 3,),
-                                                        Opacity(
-                                                          opacity: 0.3,
-                                                          child: Text(
-                                                            laytuloai(subMean.value.substring(subMean.value.length - 1))[c.typeState.value],
-                                                            style: const TextStyle(
-                                                              fontSize: 11,
-                                                              color: textColor,
-                                                            ),
-                                                            textAlign: TextAlign.left,
-                                                          ),
-                                                        ),
-                                                        const SizedBox(height: 2),
+                                                      children:[
                                                         Text(
-                                                          subMean.value.substring(0,subMean.value.length-1),
+                                                          suggestion.toString(),
                                                           style: const TextStyle(
-                                                            fontSize: 18,
+                                                            fontSize: 18.0,
+                                                            color: textColor,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                          overflow: TextOverflow.ellipsis,
+                                                        ),
+                                                        const SizedBox(height:5),
+                                                        Text(
+                                                          mean,
+                                                          style: const TextStyle(
+                                                            fontSize: 14.0,
                                                             color: textColor,
                                                           ),
-                                                          textAlign: TextAlign.left,
+                                                          overflow: TextOverflow.ellipsis,
                                                         ),
-                                                        const SizedBox(height: 3),
+                                                      ]
+                                                  ),
+                                                ),
+                                                Container(
+                                                    margin: const EdgeInsets.all(10),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      borderRadius: const BorderRadius.all(
+                                                          Radius.circular(8)
+                                                      ),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: Colors.black.withOpacity(0.6),
+                                                          spreadRadius: 0,
+                                                          blurRadius: 3,
+                                                          offset: const Offset(3, 3), // changes position of shadow
+                                                        ),
                                                       ],
                                                     ),
-                                                  );
-                                                }
-                                                return AnimatedSwitcher(
-                                                  duration: const Duration(milliseconds: 500),
-                                                  child: child,
-                                                );
-                                              },
-                                            ),
-                                        ).toList(),
-                                      )
-                                  )
-                                      :const SizedBox(),
-                                  const SizedBox(width:10),
-                                ]
+                                                    width: 70,
+                                                    height: 50,
+                                                    child: Stack(
+                                                        children:[
+                                                          ClipRRect(
+                                                            borderRadius: BorderRadius.circular(8),
+                                                            child: ImageFiltered(
+                                                              imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                                              child: Opacity(
+                                                                opacity: 0.8,
+                                                                child: Image(
+                                                                  image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                                  fit: BoxFit.cover,
+                                                                  width: 70,
+                                                                  height: 50,
+                                                                  errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                                    return const SizedBox();
+                                                                  },
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          ClipRRect(
+                                                            borderRadius: BorderRadius.circular(8),
+                                                            child: Image(
+                                                              image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                              fit: BoxFit.contain,
+                                                              width: 70,
+                                                              height: 50,
+                                                              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                                return const SizedBox();
+                                                              },
+                                                            ),
+                                                          ),
+                                                          listMeans.length>1?
+                                                          Positioned(
+                                                              right: 4,
+                                                              bottom: 4,
+                                                              child: Container(
+                                                                  alignment: Alignment.center,
+                                                                  decoration: BoxDecoration(
+                                                                    color: Colors.white.withOpacity(0.7),
+                                                                    borderRadius: const BorderRadius.all(
+                                                                        Radius.circular(20)
+                                                                    ),
+                                                                  ),
+                                                                  height: 20,
+                                                                  width: 20,
+                                                                  child: Text(
+                                                                    '+ ' + (listMeans.length-1).toString(),
+                                                                    style: const TextStyle(
+                                                                      fontSize: 9,
+                                                                    ),
+                                                                  )
+                                                              )
+                                                          )
+                                                              : const SizedBox(),
+                                                        ]
+                                                    )
+                                                ),
+                                              ]
+                                          );
+                                        },
+                                        onSuggestionSelected: (suggestion) async {
+                                          getSearch(suggestion.toString());
+                                        },
+                                        animationDuration: Duration.zero,
+                                        debounceDuration: Duration.zero,
+                                      ),
+                                    ),
+                                    const SizedBox(width:20),
+                                  ]
+                              ),
                             ),
                           ),
-                        ]
+                        ],
                       ),
-                    )
-                  ),
-                  GetBuilder<Controller>(
-                    builder: (_) => Visibility(
-                      visible: c.notifyDaily.value,
-                      child: Opacity(
-                        opacity: 0.6,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            const SizedBox(width: 5),
-                            PopupMenuButton<Score>(
-                              onSelected: (Score score) async {
-                                await setDefault();
-                                await c.layWord(score.wordId);
-                              },
-                              padding: const EdgeInsets.all(0),
-                              itemBuilder: (BuildContext context) => <PopupMenuEntry<Score>>[
-                                for (int i=0; i<c.listLearnedToday.length; i++)
-                                  PopupMenuItem<Score>(
-                                    value: c.listLearnedToday[i],
-                                    padding: const EdgeInsets.fromLTRB(8,0,8,0),
-                                    // padding: const EdgeInsets.all(0),
-                                    child: Container(
-                                      margin: const EdgeInsets.fromLTRB(0,4,0,4),
-                                      // width: 180,
-                                      decoration: const BoxDecoration(
-                                        color: Color.fromRGBO(245, 245, 245, 1),
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(10)
-                                        ),
-                                      ),
-                                      child: Column(
-                                          children: [
-                                            const SizedBox(height:7),
-                                            Text(
-                                              c.listLearnedToday[i].wordId,
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                                color: textColor,
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            const SizedBox(height:7),
-                                            Row(
-                                              children: [
-                                                const SizedBox(width:5),
-                                                Expanded(
-                                                  child: CircularPercentIndicator(
-                                                    radius: 40,
-                                                    lineWidth: 1.0,
-                                                    animation: true,
-                                                    percent: c.listLearnedToday[i].word/25,
-                                                    backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
-                                                    progressColor: textColor,
-                                                    center: Text(
-                                                      c.scoreWord.string,
-                                                      style: const TextStyle(
-                                                        fontSize: 9,
-                                                        color: textColor,
-                                                      ),
-                                                    ),
-                                                    circularStrokeCap: CircularStrokeCap.round,
-                                                  ),
+                      const SizedBox(height:5),
+                      Expanded(
+                        child: Column(
+                            children:[
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  GetBuilder<Controller>(
+                                    builder: (_) => Flexible(
+                                      child: AnimatedTextKit(
+                                        key: ValueKey<String> (c.word.string),
+                                        animatedTexts: [
+                                          ColorizeAnimatedText(
+                                            c.word.string,
+                                            textAlign: TextAlign.center,
+                                            speed: const Duration(milliseconds: 300),
+                                            textStyle: TextStyle(
+                                              fontSize: 50,
+                                              letterSpacing: 1,
+                                              fontWeight: FontWeight.w600,
+                                              shadows: [
+                                                Shadow(
+                                                  blurRadius: 15,
+                                                  color: Colors.black.withOpacity(0.5),
+                                                  offset: const Offset(3, 3),
                                                 ),
-                                                Expanded(
-                                                  child: CircularPercentIndicator(
-                                                    radius: 40,
-                                                    lineWidth: 1.0,
-                                                    animation: true,
-                                                    percent: c.listLearnedToday[i].pronun/25,
-                                                    backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
-                                                    progressColor: textColor,
-                                                    center: Text(
-                                                      c.scorePronun.string,
-                                                      style: const TextStyle(
-                                                        fontSize: 9,
-                                                        color: textColor,
-                                                      ),
-                                                    ),
-                                                    circularStrokeCap: CircularStrokeCap.round,
-                                                  ),
-                                                ),
-                                                Expanded(
-                                                  child: CircularPercentIndicator(
-                                                    radius: 40,
-                                                    lineWidth: 1.0,
-                                                    animation: true,
-                                                    percent: c.listLearnedToday[i].speak/25,
-                                                    backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
-                                                    progressColor: textColor,
-                                                    center: Text(
-                                                      c.scoreSpeak.string,
-                                                      style: const TextStyle(
-                                                        fontSize: 9,
-                                                        color: textColor,
-                                                      ),
-                                                    ),
-                                                    circularStrokeCap: CircularStrokeCap.round,
-                                                  ),
-                                                ),
-                                                Expanded(
-                                                  child: CircularPercentIndicator(
-                                                    radius: 40,
-                                                    lineWidth: 1.0,
-                                                    animation: true,
-                                                    percent: c.listLearnedToday[i].mean/25,
-                                                    backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
-                                                    progressColor: textColor,
-                                                    center: Text(
-                                                      c.scoreMean.string,
-                                                      style: const TextStyle(
-                                                        fontSize: 9,
-                                                        color: textColor,
-                                                      ),
-                                                    ),
-                                                    circularStrokeCap: CircularStrokeCap.round,
-                                                  ),
-                                                ),
-                                                const SizedBox(width:5),
                                               ],
                                             ),
-                                            const SizedBox(height:7),
-                                          ]
+                                            colors: colorizeColors,
+                                          ),
+                                          ColorizeAnimatedText(
+                                            c.pronun.string,
+                                            textAlign: TextAlign.center,
+                                            speed: const Duration(milliseconds: 300),
+                                            textStyle: TextStyle(
+                                              fontSize: 50,
+                                              letterSpacing: 1,
+                                              fontWeight: FontWeight.w600,
+                                              shadows: [
+                                                Shadow(
+                                                  blurRadius: 15,
+                                                  color: Colors.black.withOpacity(0.5),
+                                                  offset: const Offset(3, 3),
+                                                ),
+                                              ],
+                                            ),
+                                            colors: colorizeColors,
+                                          ),
+                                        ],
+                                        isRepeatingAnimation: true,
+                                        repeatForever: true,
+                                        onTap: () {},
                                       ),
                                     ),
                                   ),
-                              ],
-                              // color: themeColor,
+                                ],
+                              ),
+                              Expanded(
+                                child: Container(color: Colors.transparent),
+                              ),
+                              GetBuilder<Controller>(
+                                builder: (_) => Row(
+                                    children:[
+                                      const SizedBox(width:10),
+                                      c.mean.isNotEmpty?
+                                      Flexible(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: c.mean[c.nowMean.value].asMap().entries.map<Widget>((subMean) =>
+                                                FutureBuilder(
+                                                  future: Future.delayed(Duration(milliseconds: (subMean.key+1)*1000)), // a previously-obtained Future<String> or null
+                                                  builder: (context, snapshot) {
+                                                    Widget child;
+                                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                                      child = const SizedBox();
+                                                    } else {
+                                                      child = Container(
+                                                        margin: const EdgeInsets.fromLTRB(0, 0, 0, 5),
+                                                        padding: const EdgeInsets.all(5),
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.white.withOpacity(0.3),
+                                                          borderRadius: const BorderRadius.all(
+                                                              Radius.circular(10)
+                                                          ),
+                                                        ),
+                                                        child: Column(
+                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          children: [
+                                                            const SizedBox(height: 3,),
+                                                            Opacity(
+                                                              opacity: 0.3,
+                                                              child: Text(
+                                                                laytuloai(subMean.value.substring(subMean.value.length - 1))[c.typeState.value],
+                                                                style: const TextStyle(
+                                                                  fontSize: 11,
+                                                                  color: textColor,
+                                                                ),
+                                                                textAlign: TextAlign.left,
+                                                              ),
+                                                            ),
+                                                            const SizedBox(height: 2),
+                                                            Text(
+                                                              subMean.value.substring(0,subMean.value.length-1),
+                                                              style: const TextStyle(
+                                                                fontSize: 18,
+                                                                color: textColor,
+                                                              ),
+                                                              textAlign: TextAlign.left,
+                                                            ),
+                                                            const SizedBox(height: 3),
+                                                          ],
+                                                        ),
+                                                      );
+                                                    }
+                                                    return AnimatedSwitcher(
+                                                      duration: const Duration(milliseconds: 500),
+                                                      child: child,
+                                                    );
+                                                  },
+                                                ),
+                                            ).toList(),
+                                          )
+                                      )
+                                      : const SizedBox(),
+                                      const SizedBox(width:10),
+                                    ]
+                                ),
+                              ),
+                            ]
+                        ),
+                      ),
+                      GetBuilder<Controller>(
+                        builder: (_) => c.mean.length>1?
+                        DotsIndicator(
+                            dotsCount: c.mean.length,
+                            position: c.nowMean.value.toDouble(),
+                            axis: Axis.horizontal,
+                            decorator: DotsDecorator(
+                              size: const Size.square(9.0),
+                              activeSize: const Size(14.0, 9.0),
+                              activeColor: Colors.black.withOpacity(0.4),
+                              color: Colors.black.withOpacity(0.1),
+                              activeShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
+                              spacing: 19*c.mean.length>MediaQuery.of(context).size.width - 20 ?
+                              EdgeInsets.fromLTRB(
+                                  ((MediaQuery.of(context).size.width-20)/c.mean.length-9)/2,
+                                  10,
+                                  ((MediaQuery.of(context).size.width-20)/c.mean.length-9)/2,
+                                  10
+                              )
+                                  : const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                            ),
+                            onTap: (index){
+                              c.nowMean = RxInt(index.toInt());
+                              c.update();
+                            }
+                        )
+                            : const SizedBox(),
+                      ),
+                      const SizedBox(height:5),
+                      GetBuilder<Controller>(
+                        builder: (_) => c.mean.isNotEmpty?
+                        ProcessWidget(
+                          meanLength:c.mean[c.nowMean.value].length,
+                          key: processKey,
+                        )
+                        :const SizedBox(),
+                      ),
+                      const SizedBox(height:5),
+                      Opacity(
+                        opacity: 0.6,
+                        child: Row(
+                          // crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(width:5),
+                            TextButton(
+                              style: ButtonStyle(
+                                backgroundColor: MaterialStateProperty.all<Color>(
+                                    Colors.white
+                                ),
+                                foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                                padding: MaterialStateProperty.all<EdgeInsets>(
+                                    const EdgeInsets.all(0)
+                                ),
+                                shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30.0),
+                                    )
+                                ),
+                                fixedSize: MaterialStateProperty.all<Size>(
+                                    const Size.fromHeight(40)
+                                ),
+                              ),
                               child: Row(
-                                children:[
-                                  Text(
-                                    c.learnedWordsTodayTitle.string
-                                        + ' ' + c.listLearnedToday.length.toString()
-                                        + '/' + c.target.value.toString(),
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      color: textColor,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  const SizedBox(width: 10),
+                                  const Icon(
+                                    Icons.volume_up_outlined,
+                                    size: 25,
+                                    color: textColor,
+                                  ),
+                                  GetBuilder<Controller>(
+                                    builder: (_) => Text(
+                                      c.pronun.string,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        overflow: TextOverflow.ellipsis,
+                                        color: textColor,
+                                      ),
                                     ),
                                   ),
-                                  // const Icon(
-                                  //   Icons.keyboard_arrow_down,
-                                  //   size: 25,
-                                  // ),
-                                ]
+                                  const SizedBox(width: 10),
+                                ],
                               ),
-                              shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.all(Radius.circular(10.0))
+                              onPressed: () {
+                                _speak(c.word.string);
+                              },
+                            ),
+                            const Expanded(child:SizedBox()),
+                            TextButton(
+                              style: ButtonStyle(
+                                backgroundColor: MaterialStateProperty.all<Color>(
+                                    themeColor
+                                ),
+                                foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                                padding: MaterialStateProperty.all<EdgeInsets>(
+                                    const EdgeInsets.all(0)
+                                ),
+                                shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30.0),
+                                    )
+                                ),
+                                fixedSize: MaterialStateProperty.all<Size>(
+                                    const Size.fromHeight(40)
+                                ),
+                              ),
+                              onPressed: () async {
+                                double pixelRatio = MediaQuery.of(context).devicePixelRatio;
+                                await screenshotController.capture(
+                                    delay: const Duration(milliseconds: 10),
+                                    pixelRatio: pixelRatio
+                                ).then((image) async {
+                                  if (image != null) {
+                                    final directory = await getApplicationDocumentsDirectory();
+                                    final imagePath = await File('${directory.path}/image.png').create();
+                                    await imagePath.writeAsBytes(image);
+                                    await Share.shareFiles([imagePath.path]);
+                                  }
+                                });
+                              },
+                              child: const Icon(
+                                FontAwesomeIcons.share,
+                                size: 15,
+                                color: Color.fromRGBO(150, 200, 160, 1),
+                              ),
+                            ),
+                            const SizedBox(width:5),
+                            TextButton(
+                              style: ButtonStyle(
+                                backgroundColor: MaterialStateProperty.all<Color>(
+                                    themeColor
+                                ),
+                                foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                                padding: MaterialStateProperty.all<EdgeInsets>(
+                                    const EdgeInsets.all(0)
+                                ),
+                                shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30.0),
+                                    )
+                                ),
+                                fixedSize: MaterialStateProperty.all<Size>(
+                                    const Size.fromHeight(40)
+                                ),
+                              ),
+                              onPressed: () async {
+                                getToLearn();
+                              },
+                              child: GetBuilder<Controller>(
+                                builder: (_) => Text(
+                                  c.language.string == 'VN'? 'chơi game':'play game',
+                                  style: const TextStyle(
+                                    color: textColor,
+                                    fontSize: 10,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
                             ),
                             const SizedBox(width:5),
                           ],
                         ),
                       ),
-                    ),
+                      SizedBox(height: MediaQuery.of(context).padding.bottom+5),
+                    ],
                   ),
-                  GetBuilder<Controller>(
-                    builder: (_) => c.mean.length>1?
-                    DotsIndicator(
-                        dotsCount: c.mean.length,
-                        position: c.nowMean.value.toDouble(),
-                        axis: Axis.horizontal,
-                        decorator: DotsDecorator(
-                          size: const Size.square(9.0),
-                          activeSize: const Size(14.0, 9.0),
-                          activeColor: Colors.black.withOpacity(0.4),
-                          color: Colors.black.withOpacity(0.1),
-                          activeShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
-                          spacing: 19*c.mean.length>MediaQuery.of(context).size.width - 20 ?
-                          EdgeInsets.fromLTRB(
-                              ((MediaQuery.of(context).size.width-20)/c.mean.length-9)/2,
-                              10,
-                              ((MediaQuery.of(context).size.width-20)/c.mean.length-9)/2,
-                              10
-                          )
-                              : const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                        ),
-                        onTap: (index){
-                          c.nowMean = RxInt(index.toInt());
-                          c.update();
-                        }
-                    )
-                        : const SizedBox(),
-                  ),
-                  const SizedBox(height:5),
-                  GetBuilder<Controller>(
-                    builder: (_) => c.mean.isNotEmpty?
-                    ProcessWidget(meanLength: c.mean[c.nowMean.value].length)
-                        :const SizedBox(),
-                  ),
-                  const SizedBox(height:5),
-                  Opacity(
-                    opacity: 0.6,
-                    child: Row(
-                      // crossAxisAlignment: CrossAxisAlignment.start,
+                ),
+                Container(
+                  alignment:Alignment.centerRight,
+                  child: Row(
                       children: [
-                        const SizedBox(width:5),
-                        TextButton(
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                                Colors.white
-                            ),
-                            foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                            padding: MaterialStateProperty.all<EdgeInsets>(
-                                const EdgeInsets.all(0)
-                            ),
-                            shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30.0),
-                                )
-                            ),
-                            fixedSize: MaterialStateProperty.all<Size>(
-                                const Size.fromHeight(40)
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              const SizedBox(width: 10),
-                              const Icon(
-                                Icons.volume_up_outlined,
-                                size: 25,
-                                color: textColor,
+                        Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children:[
+                              const Expanded(child: SizedBox()),
+                              IconButton(
+                                padding: const EdgeInsets.all(0.0),
+                                icon: Icon(
+                                  Icons.keyboard_arrow_up_rounded,
+                                  size: 25,
+                                  color: Colors.black.withOpacity(0.3),
+                                ),
+                                tooltip: 'next',
+                                onPressed: () {
+                                  getNext();
+                                },
                               ),
-                              GetBuilder<Controller>(
-                                builder: (_) => Text(
-                                  c.pronun.string,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    overflow: TextOverflow.ellipsis,
-                                    color: textColor,
+                              IconButton(
+                                padding: const EdgeInsets.all(0.0),
+                                icon: Icon(
+                                  Icons.refresh_rounded,
+                                  size: 25,
+                                  color: Colors.black.withOpacity(0.3),
+                                ),
+                                tooltip: 'next',
+                                onPressed: () {
+                                  getRandom();
+                                },
+                              ),
+                              IconButton(
+                                padding: const EdgeInsets.all(0.0),
+                                icon: Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                  size: 25,
+                                  color: Colors.black.withOpacity(0.3),
+                                ),
+                                tooltip: 'previous',
+                                onPressed: () {
+                                  getPrevious();
+                                },
+                              ),
+                              const Expanded(child: SizedBox()),
+                            ]
+                        ),
+                        const Expanded(child: SizedBox()),
+                        Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children:[
+                              const Expanded(child: SizedBox()),
+                              RotatedBox(
+                                quarterTurns: -1,
+                                child: GetBuilder<Controller>(
+                                  builder: (_) => LinearPercentIndicator(
+                                    alignment: MainAxisAlignment.center,
+                                    width: MediaQuery.of(context).size.height*0.2,
+                                    lineHeight: 5.0,
+                                    percent: (c.wordScore.value+c.pronunScore.value+c.speakScore.value+c.meanScore.value)/100,
+                                    backgroundColor: Colors.black.withOpacity(0.1),
+                                    progressColor: Colors.black.withOpacity(0.4),
+                                    padding: const EdgeInsets.all(0),
+                                    animation: true,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 10),
-                            ],
-                          ),
-                          onPressed: () {
-                            _speak(c.word.string);
-                          },
+                              const Expanded(child: SizedBox()),
+                            ]
                         ),
-                        const Expanded(child:SizedBox()),
-                        TextButton(
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                                themeColor
-                            ),
-                            foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                            padding: MaterialStateProperty.all<EdgeInsets>(
-                                const EdgeInsets.all(0)
-                            ),
-                            shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30.0),
-                                )
-                            ),
-                            fixedSize: MaterialStateProperty.all<Size>(
-                                const Size.fromHeight(40)
-                            ),
-                          ),
-                          onPressed: () async {
-                            double pixelRatio = MediaQuery.of(context).devicePixelRatio;
-                            await screenshotController.capture(
-                                delay: const Duration(milliseconds: 10),
-                                pixelRatio: pixelRatio
-                            ).then((image) async {
-                              if (image != null) {
-                                final directory = await getApplicationDocumentsDirectory();
-                                final imagePath = await File('${directory.path}/image.png').create();
-                                await imagePath.writeAsBytes(image);
-                                await Share.shareFiles([imagePath.path]);
-                              }
-                            });
-                          },
-                          child: const Icon(
-                            FontAwesomeIcons.share,
-                            size: 15,
-                            color: Color.fromRGBO(150, 200, 160, 1),
-                          ),
-                        ),
-                        const SizedBox(width:5),
-                        TextButton(
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                                themeColor
-                            ),
-                            foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                            padding: MaterialStateProperty.all<EdgeInsets>(
-                                const EdgeInsets.all(0)
-                            ),
-                            shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30.0),
-                                )
-                            ),
-                            fixedSize: MaterialStateProperty.all<Size>(
-                                const Size.fromHeight(40)
-                            ),
-                          ),
-                          onPressed: () async {
-                            if (c.word.string != ''){
-                              arrangeLearnMean();
-                              if (controller.isAnimating){
-                                controller.stop();
-                              }
-                              Get.to(()=>const LearnWord());
-                            }else{
-                              if (Get.isSnackbarOpen) Get.closeAllSnackbars();
-                              Get.snackbar(c.snackbarFindTitle.string,c.snackbarFindBody.string);
-                            }
-                          },
-                          child: GetBuilder<Controller>(
-                            builder: (_) => Text(
-                              c.language.string == 'VN'? 'chơi game':'play game',
-                              style: const TextStyle(
-                                color: textColor,
-                                fontSize: 10,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width:5),
-                      ],
-                    ),
+                        const SizedBox(width:7),
+                      ]
                   ),
-                  const SizedBox(height:5),
-                  SizedBox(height: MediaQuery.of(context).padding.bottom),
-                ],
-              ),
-              Container(
-                alignment:Alignment.centerRight,
-                child: Row(
-                    children: [
-                      Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children:[
-                            const Expanded(child: SizedBox()),
-                            IconButton(
-                              padding: const EdgeInsets.all(0.0),
-                              icon: Icon(
-                                Icons.keyboard_arrow_up_rounded,
-                                size: 25,
-                                color: Colors.black.withOpacity(0.3),
-                              ),
-                              tooltip: 'next',
-                              onPressed: () async {
-                                await getWord(c.wordNext.string);
-                              },
-                            ),
-                            IconButton(
-                              padding: const EdgeInsets.all(0.0),
-                              icon: Icon(
-                                Icons.refresh_rounded,
-                                size: 25,
-                                color: Colors.black.withOpacity(0.3),
-                              ),
-                              tooltip: 'next',
-                              onPressed: () async {
-                                await getNewWord();
-                              },
-                            ),
-                            IconButton(
-                              padding: const EdgeInsets.all(0.0),
-                              icon: Icon(
-                                Icons.keyboard_arrow_down_rounded,
-                                size: 25,
-                                color: Colors.black.withOpacity(0.3),
-                              ),
-                              tooltip: 'previous',
-                              onPressed: () async {
-                                await getWord(c.wordPrevious.string);
-                              },
-                            ),
-                            const Expanded(child: SizedBox()),
-                          ]
-                      ),
-                      const Expanded(child: SizedBox()),
-                      Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children:[
-                            const Expanded(child: SizedBox()),
-                            RotatedBox(
-                              quarterTurns: -1,
-                              child: GetBuilder<Controller>(
-                                builder: (_) => LinearPercentIndicator(
-                                  alignment: MainAxisAlignment.center,
-                                  width: MediaQuery.of(context).size.height*0.2,
-                                  lineHeight: 5.0,
-                                  percent: (c.wordScore.value+c.pronunScore.value+c.speakScore.value+c.meanScore.value)/100,
-                                  backgroundColor: Colors.black.withOpacity(0.1),
-                                  progressColor: Colors.black.withOpacity(0.4),
-                                  padding: const EdgeInsets.all(0),
-                                  animation: true,
-                                ),
-                              ),
-                            ),
-                            const Expanded(child: SizedBox()),
-                          ]
-                      ),
-                      const SizedBox(width:7),
-                    ]
                 ),
-              ),
-            ]
+              ]
+            ),
           ),
         ),
       ),
@@ -2361,6 +5140,7 @@ class ProcessWidget extends StatefulWidget {
   const ProcessWidget({Key? key,
     required this.meanLength
   }) : super(key: key);
+
   @override
 
   State<ProcessWidget> createState() => ProcessWidgetState();
@@ -2369,6 +5149,7 @@ class ProcessWidget extends StatefulWidget {
 class ProcessWidgetState extends State<ProcessWidget> with TickerProviderStateMixin {
 
   final Controller c = Get.put(Controller());
+  late AnimationController controller;
 
   @override
   void initState() {
@@ -2388,6 +5169,7 @@ class ProcessWidgetState extends State<ProcessWidget> with TickerProviderStateMi
     });
     // controller.repeat(reverse: false);
     controller.forward();
+    controller.duration = Duration(seconds: 4+widget.meanLength);
     super.initState();
   }
 
@@ -2400,23 +5182,25 @@ class ProcessWidgetState extends State<ProcessWidget> with TickerProviderStateMi
   @override
   void didUpdateWidget(ProcessWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (Get.currentRoute == '/Home' || Get.currentRoute == '/'){
-      controller = AnimationController(
-        vsync: this,
-        duration: Duration(seconds: 4+widget.meanLength),
-      )..addListener(() async {
-        if (controller.isCompleted){
-          if (c.nowMean.value<(c.mean.length-1)){
-            c.nowMean = RxInt(c.nowMean.value+1);
-          }else{
-            c.nowMean = 0.obs;
-          }
-          c.update();
-        }
-        setState(() {});
-      });
-      controller.forward();
-    }
+    // if (Get.currentRoute == '/Home' || Get.currentRoute == '/'){
+    //   controller = AnimationController(
+    //     vsync: this,
+    //     duration: Duration(seconds: 4+widget.meanLength),
+    //   )..addListener(() async {
+    //     if (controller.isCompleted){
+    //       if (c.nowMean.value<(c.mean.length-1)){
+    //         c.nowMean = RxInt(c.nowMean.value+1);
+    //       }else{
+    //         c.nowMean = 0.obs;
+    //       }
+    //       c.update();
+    //     }
+    //     setState(() {});
+    //   });
+    //   controller.forward();
+    // }
+    controller.reset();
+    controller.forward();
   }
 
   @override
@@ -2430,90 +5214,101 @@ class ProcessWidgetState extends State<ProcessWidget> with TickerProviderStateMi
   }
 }
 
-class WriteWidget extends StatelessWidget {
+class WriteWidget extends StatefulWidget {
   const WriteWidget({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final Controller c = Get.put(Controller());
-    void reset() {
-      c.listArrange = [for (int i=0; i<c.word.string.split('').length; i++)''];
-      c.listRandom = c.word.string.split('').obs;
-      c.listRandom.shuffle();
-      c.update();
-    }
+  State<WriteWidget> createState() => _WriteWidgetState();
+}
 
-    WidgetsBinding.instance?.addPostFrameCallback((_) {
-      reset();
+class _WriteWidgetState extends State<WriteWidget> {
+  final Controller c = Get.put(Controller());
+  List<String> listArrange = [];
+  List<String> listRandom = [];
+
+  @override
+  void initState() {
+    reset();
+    super.initState();
+  }
+
+  void reset() {
+    List<String> newRandom = c.word.string.split('').obs;
+    newRandom.shuffle();
+    setState((){
+      listArrange = [for (int i=0; i<c.word.string.split('').length; i++)''];
+      listRandom = newRandom;
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
 
     return Container(
       color: Colors.transparent,
       child: Column(
         children: [
           const SizedBox(height:10),
-          GetBuilder<Controller>(
-            builder: (_) => SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    for (int index=0; index<c.mean.length; index++)
-                      Container(
-                          margin: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: const BorderRadius.all(
-                                Radius.circular(8)
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.6),
-                                spreadRadius: 0,
-                                blurRadius: 5,
-                                offset: const Offset(5, 5), // changes position of shadow
-                              ),
-                            ],
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  for (int index=0; index<c.mean.length; index++)
+                    Container(
+                        margin: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: const BorderRadius.all(
+                              Radius.circular(8)
                           ),
-                          width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
-                          height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
-                          child: Stack(
-                              children:[
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: ImageFiltered(
-                                    imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                                    child: Opacity(
-                                      opacity: 0.8,
-                                      child: Image(
-                                        image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
-                                        fit: BoxFit.cover,
-                                        width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
-                                        height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
-                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                          return const SizedBox();
-                                        },
-                                      ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.6),
+                              spreadRadius: 0,
+                              blurRadius: 5,
+                              offset: const Offset(5, 5), // changes position of shadow
+                            ),
+                          ],
+                        ),
+                        width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                        height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                        child: Stack(
+                            children:[
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: ImageFiltered(
+                                  imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                  child: Opacity(
+                                    opacity: 0.8,
+                                    child: Image(
+                                      image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
+                                      fit: BoxFit.cover,
+                                      width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                      height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                        return const SizedBox();
+                                      },
                                     ),
                                   ),
                                 ),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image(
-                                    image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
-                                    fit: BoxFit.contain,
-                                    width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
-                                    height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
-                                    errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                      return const SizedBox();
-                                    },
-                                  ),
+                              ),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image(
+                                  image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
+                                  fit: BoxFit.contain,
+                                  width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                  height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                  errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                    return const SizedBox();
+                                  },
                                 ),
-                              ]
-                          )
-                      ),
-                  ]
-              ),
+                              ),
+                            ]
+                        )
+                    ),
+                ]
             ),
           ),
           const SizedBox(height:10),
@@ -2549,20 +5344,21 @@ class WriteWidget extends StatelessWidget {
                                       direction: Axis.horizontal,
                                       alignment: WrapAlignment.center,
                                       children: [
-                                        for (int i=0; i<c.listArrange.length; i++)
+                                        for (int i=0; i<listArrange.length; i++)
                                           GestureDetector(
                                             onTap: () async {
-                                              if (c.listArrange[i] != ''){
-                                                c.listRandom[c.listRandom.indexOf('')] = c.listArrange[i];
-                                                c.listArrange[i] = '';
-                                                c.update();
+                                              if (listArrange[i] != ''){
                                                 if (c.enableSound.value){
-                                                  await pool.play(soundId);
+                                                  pool.play(soundId);
                                                 }
+                                                setState((){
+                                                  listRandom[listRandom.indexOf('')] = listArrange[i];
+                                                  listArrange[i] = '';
+                                                });
                                               }
                                             },
                                             child: Neumorphic(
-                                              style: c.listArrange[i] == ''?
+                                              style: listArrange[i] == ''?
                                               NeumorphicStyle(
                                                 shape: NeumorphicShape.flat,
                                                 boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(5)),
@@ -2584,7 +5380,7 @@ class WriteWidget extends StatelessWidget {
                                                 height: 45,
                                                 width: 45,
                                                 child: Text(
-                                                  c.listArrange[i],
+                                                  listArrange[i],
                                                   style: const TextStyle(
                                                     fontSize: 27,
                                                     color: textColor, //customize color here
@@ -2612,18 +5408,19 @@ class WriteWidget extends StatelessWidget {
                                       direction: Axis.horizontal,
                                       alignment: WrapAlignment.center,
                                       children: [
-                                        for (int i=0; i<c.listRandom.length; i++)
+                                        for (int i=0; i<listRandom.length; i++)
                                           GestureDetector(
                                             onTap: () async {
-                                              if (c.listRandom[i] != ''){
+                                              if (listRandom[i] != ''){
                                                 if (c.enableSound.value){
-                                                  await pool.play(soundId);
+                                                  pool.play(soundId);
                                                 }
-                                                c.listArrange[c.listArrange.indexOf('')] = c.listRandom[i];
-                                                c.listRandom[i] = '';
-                                                c.update();
-                                                if (!c.listArrange.contains('')){
-                                                  if (listEquals(c.listArrange,c.word.string.split(''))){
+                                                setState((){
+                                                  listArrange[listArrange.indexOf('')] = listRandom[i];
+                                                  listRandom[i] = '';
+                                                });
+                                                if (!listArrange.contains('')){
+                                                  if (listEquals(listArrange,c.word.string.split(''))){
                                                     if (c.wordScore.value<25){
                                                       c.wordScore = RxInt(c.wordScore.value + 1);
                                                       c.update();
@@ -2639,8 +5436,7 @@ class WriteWidget extends StatelessWidget {
                                                       await updateScore(newScore);
                                                     }
                                                     await setRight();
-                                                    c.currentTab = 1.obs;
-                                                    c.update();
+                                                    getNextLearn();
                                                   }else{
                                                     if (c.wordScore.value>0){
                                                       c.wordScore = RxInt(c.wordScore.value - 1);
@@ -2662,7 +5458,7 @@ class WriteWidget extends StatelessWidget {
                                               }
                                             },
                                             child: Neumorphic(
-                                              style: c.listRandom[i] == ''?
+                                              style: listRandom[i] == ''?
                                               NeumorphicStyle(
                                                 shape: NeumorphicShape.flat,
                                                 boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(5)),
@@ -2684,7 +5480,7 @@ class WriteWidget extends StatelessWidget {
                                                 height: 45,
                                                 width: 45,
                                                 child: Text(
-                                                  c.listRandom[i],
+                                                  listRandom[i],
                                                   style: const TextStyle(
                                                     fontSize: 27,
                                                     color: textColor, //customize color here
@@ -2712,90 +5508,101 @@ class WriteWidget extends StatelessWidget {
   }
 }
 
-class PronunWidget extends StatelessWidget {
+class PronunWidget extends StatefulWidget {
   const PronunWidget({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final Controller c = Get.put(Controller());
-    void reset() {
-      c.listArrangePronun = [for (int i=0; i<c.pronun.string.split('').length; i++)''];
-      c.listRandomPronun = c.pronun.string.split('').obs;
-      c.listRandomPronun.shuffle();
-      c.update();
-    }
+  State<PronunWidget> createState() => _PronunWidgetState();
+}
 
-    WidgetsBinding.instance?.addPostFrameCallback((_) {
-      reset();
+class _PronunWidgetState extends State<PronunWidget> {
+  final Controller c = Get.put(Controller());
+  List<String> listArrange = [];
+  List<String> listRandom = [];
+
+  @override
+  void initState() {
+    reset();
+    super.initState();
+  }
+
+  void reset() {
+    List<String> newRandom = c.pronun.string.split('').obs;
+    newRandom.shuffle();
+    setState((){
+      listArrange = [for (int i=0; i<c.pronun.string.split('').length; i++)''];
+      listRandom = newRandom;
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
 
     return Container(
       color: Colors.transparent,
       child: Column(
         children: [
           const SizedBox(height:10),
-          GetBuilder<Controller>(
-            builder: (_) => SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    for (int index=0; index<c.mean.length; index++)
-                      Container(
-                          margin: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: const BorderRadius.all(
-                                Radius.circular(8)
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.6),
-                                spreadRadius: 0,
-                                blurRadius: 5,
-                                offset: const Offset(5, 5), // changes position of shadow
-                              ),
-                            ],
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  for (int index=0; index<c.mean.length; index++)
+                    Container(
+                        margin: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: const BorderRadius.all(
+                              Radius.circular(8)
                           ),
-                          width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                          height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
-                          child: Stack(
-                              children:[
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: ImageFiltered(
-                                    imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                                    child: Opacity(
-                                      opacity: 0.8,
-                                      child: Image(
-                                        image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
-                                        fit: BoxFit.cover,
-                                        width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                        height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
-                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                          return const SizedBox();
-                                        },
-                                      ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.6),
+                              spreadRadius: 0,
+                              blurRadius: 5,
+                              offset: const Offset(5, 5), // changes position of shadow
+                            ),
+                          ],
+                        ),
+                        width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                        height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                        child: Stack(
+                            children:[
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: ImageFiltered(
+                                  imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                  child: Opacity(
+                                    opacity: 0.8,
+                                    child: Image(
+                                      image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
+                                      fit: BoxFit.cover,
+                                      width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                      height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                        return const SizedBox();
+                                      },
                                     ),
                                   ),
                                 ),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image(
-                                    image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
-                                    fit: BoxFit.contain,
-                                    width: MediaQuery.of(context).size.width > 420? 180: (MediaQuery.of(context).size.width-60)/2,
-                                    height: MediaQuery.of(context).size.width > 420? 180*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
-                                    errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                      return const SizedBox();
-                                    },
-                                  ),
+                              ),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image(
+                                  image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\','')),
+                                  fit: BoxFit.contain,
+                                  width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                  height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                  errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                    return const SizedBox();
+                                  },
                                 ),
-                              ]
-                          )
-                      ),
-                  ]
-              ),
+                              ),
+                            ]
+                        )
+                    ),
+                ]
             ),
           ),
           const SizedBox(height:10),
@@ -2831,20 +5638,21 @@ class PronunWidget extends StatelessWidget {
                                       direction: Axis.horizontal,
                                       alignment: WrapAlignment.center,
                                       children: [
-                                        for (int i=0; i<c.listArrangePronun.length; i++)
+                                        for (int i=0; i<listArrange.length; i++)
                                           GestureDetector(
                                             onTap: () async {
-                                              if (c.listArrangePronun[i] != ''){
-                                                c.listRandomPronun[c.listRandomPronun.indexOf('')] = c.listArrangePronun[i];
-                                                c.listArrangePronun[i] = '';
-                                                c.update();
+                                              if (listArrange[i] != ''){
                                                 if (c.enableSound.value){
-                                                  await pool.play(soundId);
+                                                  pool.play(soundId);
                                                 }
+                                                setState((){
+                                                  listRandom[listRandom.indexOf('')] = listArrange[i];
+                                                  listArrange[i] = '';
+                                                });
                                               }
                                             },
                                             child: Neumorphic(
-                                              style: c.listArrangePronun[i] == ''?
+                                              style: listArrange[i] == ''?
                                               NeumorphicStyle(
                                                 shape: NeumorphicShape.flat,
                                                 boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(5)),
@@ -2866,10 +5674,10 @@ class PronunWidget extends StatelessWidget {
                                                 height: 45,
                                                 width: 45,
                                                 child: Text(
-                                                  c.listArrangePronun[i],
+                                                  listArrange[i],
                                                   style: const TextStyle(
                                                     fontSize: 27,
-                                                    color: textColor,
+                                                    color: textColor, //customize color here
                                                   ),
                                                 ),
                                               ),
@@ -2894,18 +5702,19 @@ class PronunWidget extends StatelessWidget {
                                       direction: Axis.horizontal,
                                       alignment: WrapAlignment.center,
                                       children: [
-                                        for (int i=0; i<c.listRandomPronun.length; i++)
+                                        for (int i=0; i<listRandom.length; i++)
                                           GestureDetector(
                                             onTap: () async {
-                                              if (c.listRandomPronun[i] != ''){
+                                              if (listRandom[i] != ''){
                                                 if (c.enableSound.value){
-                                                  await pool.play(soundId);
+                                                  pool.play(soundId);
                                                 }
-                                                c.listArrangePronun[c.listArrangePronun.indexOf('')] = c.listRandomPronun[i];
-                                                c.listRandomPronun[i] = '';
-                                                c.update();
-                                                if (!c.listArrangePronun.contains('')){
-                                                  if (listEquals(c.listArrangePronun,c.pronun.string.split(''))){
+                                                setState((){
+                                                  listArrange[listArrange.indexOf('')] = listRandom[i];
+                                                  listRandom[i] = '';
+                                                });
+                                                if (!listArrange.contains('')){
+                                                  if (listEquals(listArrange,c.pronun.string.split(''))){
                                                     if (c.pronunScore.value<25){
                                                       c.pronunScore = RxInt(c.pronunScore.value + 1);
                                                       c.update();
@@ -2921,8 +5730,7 @@ class PronunWidget extends StatelessWidget {
                                                       await updateScore(newScore);
                                                     }
                                                     await setRight();
-                                                    c.currentTab = 2.obs;
-                                                    c.update();
+                                                    getNextLearn();
                                                   }else{
                                                     if (c.pronunScore.value>0){
                                                       c.pronunScore = RxInt(c.pronunScore.value - 1);
@@ -2944,7 +5752,7 @@ class PronunWidget extends StatelessWidget {
                                               }
                                             },
                                             child: Neumorphic(
-                                              style: c.listRandomPronun[i] == ''?
+                                              style: listRandom[i] == ''?
                                               NeumorphicStyle(
                                                 shape: NeumorphicShape.flat,
                                                 boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(5)),
@@ -2966,10 +5774,10 @@ class PronunWidget extends StatelessWidget {
                                                 height: 45,
                                                 width: 45,
                                                 child: Text(
-                                                  c.listRandomPronun[i],
+                                                  listRandom[i],
                                                   style: const TextStyle(
                                                     fontSize: 27,
-                                                    color: textColor,
+                                                    color: textColor, //customize color here
                                                   ),
                                                 ),
                                               ),
@@ -3031,8 +5839,7 @@ class SpeakWidget extends StatelessWidget {
             await updateScore(newScore);
           }
           await setRight();
-          c.currentTab = 3.obs;
-          c.update();
+          getNextLearn();
         }else{
           if (c.speakScore.value>0){
             c.speakScore = RxInt(c.speakScore.value - 1);
@@ -3126,36 +5933,36 @@ class SpeakWidget extends StatelessWidget {
 
     Widget speedSpeakWidget() {
       return Row(
-        children: [
-          const SizedBox(width:20),
-          Text(
-            c.drawerSpeech.string.toLowerCase(),
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 16,
-              color: textColor,
+          children: [
+            const SizedBox(width:20),
+            Text(
+              c.drawerSpeech.string.toLowerCase(),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                color: textColor,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
-            overflow: TextOverflow.ellipsis,
-          ),
-          Expanded(
-            child: GetBuilder<Controller>(
-              builder: (_) => Slider(
-                value: c.speakSpeed.value,
-                min: 0.1,
-                max: 1,
-                divisions: 9,
-                activeColor: Colors.black.withOpacity(0.5),
-                inactiveColor: Colors.black.withOpacity(0.1),
-                thumbColor: Colors.black.withOpacity(0.1),
-                label: double.parse((c.speakSpeed.value).toStringAsFixed(1)).toString(),
-                onChanged: (double value) async {
-                  c.speakSpeed = RxDouble(value);
-                  c.update();
-                },
+            Expanded(
+              child: GetBuilder<Controller>(
+                builder: (_) => Slider(
+                  value: c.speakSpeed.value,
+                  min: 0.1,
+                  max: 1,
+                  divisions: 9,
+                  activeColor: Colors.black.withOpacity(0.5),
+                  inactiveColor: Colors.black.withOpacity(0.1),
+                  thumbColor: Colors.black.withOpacity(0.1),
+                  label: double.parse((c.speakSpeed.value).toStringAsFixed(1)).toString(),
+                  onChanged: (double value) async {
+                    c.speakSpeed = RxDouble(value);
+                    c.update();
+                  },
+                ),
               ),
             ),
-          ),
-        ]
+          ]
       );
     }
 
@@ -3201,8 +6008,8 @@ class SpeakWidget extends StatelessWidget {
             const SizedBox(width: 3),
           ],
         ),
-        onPressed: () async {
-          await _speak(c.word.string);
+        onPressed: () {
+          _speak(c.word.string);
         },
       );
     }
@@ -3377,13 +6184,98 @@ class SpeakWidget extends StatelessWidget {
   }
 }
 
-class MeanWidget extends StatelessWidget {
+class MeanWidget extends StatefulWidget {
   const MeanWidget({Key? key}) : super(key: key);
 
   @override
+  State<MeanWidget> createState() => _MeanWidgetState();
+}
+
+class _MeanWidgetState extends State<MeanWidget> {
+  final Controller c = Get.put(Controller());
+  List mean = [];
+  int nowIndex = 0;
+  List<List> listImage = [];
+  List imageURL = [];
+  List<int> listIndex = [];
+  List<bool> ktMean = [];
+
+  @override
+  void initState() {
+    getList();
+    super.initState();
+  }
+
+  Future getList() async {
+    var dataRaw = await box.get(c.word.string);
+    List meanEN = [];
+    List meanVN = [];
+    List _mean = [];
+    List<List> _listImage = [];
+    List _imageURL = [];
+    List<int> _listIndex = [];
+    List listMean = jsonDecode(dataRaw['mean']).toList();
+    for(var i = 0; i<listMean.length; i++) {
+      List meanENAdd = [];
+      List meanVNAdd = [];
+      for(var j = 0; j< listMean[i].length; j++) {
+        String meanENElement = '';
+        if (listMean[i][j].contains('#')){
+          meanENElement = listMean[i][j].split('#')[1];
+        }else{
+          meanENElement = listMean[i][j];
+        }
+        meanENAdd.add(meanENElement);
+        String meanVNElement = jsonDecode(dataRaw['meanVN'])[i][j];
+        meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
+        meanVNElement = meanVNElement + listMean[i][j].substring(listMean[i][j].length-1);
+        meanVNAdd.add(meanVNElement);
+      }
+      meanEN.add(meanENAdd);
+      meanVN.add(meanVNAdd);
+      if (i>=jsonDecode(dataRaw['imageURL']).length){
+        _imageURL.add('bedict.png');
+      }else{
+        _imageURL.add(jsonDecode(dataRaw['imageURL'])[i]);
+      }
+    }
+    if (c.language.string == 'VN'){
+      _mean = meanVN;
+    }else{
+      _mean = meanEN;
+    }
+    ktMean = [for (int i=0; i<_mean.length; i++)false];
+    for (var i=0; i<_mean.length; i++){
+      _listIndex.add(i);
+    }
+    _listIndex.shuffle();
+    for (var i=0; i<_mean.length; i++){
+      List<String> subListImage = <String>[];
+      subListImage.add(_imageURL[_listIndex[i]]);
+      for (var j=0;j<3;j++){
+        String newRandomImage = _imageURL[_listIndex[i]];
+        while (subListImage.contains(newRandomImage)){
+          var newWordData = await box.get(c.wordArray[Random().nextInt(c.wordArray.length)]);
+          var newRandomImages = jsonDecode(newWordData['imageURL']);
+          if (newRandomImages.length>0){
+            newRandomImage = newRandomImages[Random().nextInt(newRandomImages.length)];
+          }
+        }
+        subListImage.add(newRandomImage);
+      }
+      subListImage.shuffle();
+      _listImage.add(subListImage);
+    }
+    setState((){
+      mean = _mean;
+      imageURL = _imageURL;
+      listImage = _listImage;
+      listIndex = _listIndex;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final Controller c = Get.put(Controller());
-    List<bool> ktMean = <bool>[for (int i=0; i<c.mean.length; i++)false];
     const colorizeColors = [
       Colors.black,
       Colors.blue,
@@ -3391,108 +6283,105 @@ class MeanWidget extends StatelessWidget {
       Colors.green,
     ];
 
-    Future.delayed(Duration.zero, () async {
-      c.nowIndex = 0.obs;
-      ktMean.clear();
-      for (var i=0;i<c.mean.length;i++){
-        ktMean.add(false);
-      }
-      c.update();
-    });
-
     return GestureDetector(
       onHorizontalDragEnd: (details) async {
         if (details.primaryVelocity! > 0) {
-          if (c.nowIndex.value > 0){
-            c.nowIndex = RxInt(c.nowIndex.value - 1);
+          if (nowIndex > 0){
+            setState((){
+              nowIndex = nowIndex - 1;
+            });
           }else{
-            c.nowIndex = RxInt(c.imageURL.length-1);
+            setState((){
+              nowIndex = mean.length-1;
+            });
           }
-          c.update();
         }
         if (details.primaryVelocity! < 0) {
-          if (c.nowIndex.value < c.mean.length - 1){
-            c.nowIndex = RxInt(c.nowIndex.value + 1);
+          if (nowIndex < mean.length - 1){
+            setState((){
+              nowIndex = nowIndex + 1;
+            });
           }else{
-            c.nowIndex = RxInt(0);
+            setState((){
+              nowIndex = 0;
+            });
           }
-          c.update();
         }
       },
       child: Container(
         color: Colors.transparent,
-        child: Column(
+        child: mean.isNotEmpty?
+        Column(
           children: [
             const SizedBox(height: 20),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(width: 5),
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      GetBuilder<Controller>(
-                        builder: (_) => Flexible(
-                          child: AnimatedTextKit(
-                            key: ValueKey<String> (c.word.string),
-                            animatedTexts: [
-                              ColorizeAnimatedText(
-                                c.word.string,
-                                textAlign: TextAlign.center,
-                                speed: const Duration(milliseconds: 300),
-                                textStyle: TextStyle(
-                                  fontSize: 50,
-                                  letterSpacing: 1,
-                                  fontWeight: FontWeight.w600,
-                                  shadows: [
-                                    Shadow(
-                                      blurRadius: 15,
-                                      color: Colors.black.withOpacity(0.5),
-                                      offset: const Offset(3, 3),
-                                    ),
-                                  ],
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(width: 5),
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GetBuilder<Controller>(
+                          builder: (_) => Flexible(
+                            child: AnimatedTextKit(
+                              key: ValueKey<String> (c.word.string),
+                              animatedTexts: [
+                                ColorizeAnimatedText(
+                                  c.word.string,
+                                  textAlign: TextAlign.center,
+                                  speed: const Duration(milliseconds: 300),
+                                  textStyle: TextStyle(
+                                    fontSize: 50,
+                                    letterSpacing: 1,
+                                    fontWeight: FontWeight.w600,
+                                    shadows: [
+                                      Shadow(
+                                        blurRadius: 15,
+                                        color: Colors.black.withOpacity(0.5),
+                                        offset: const Offset(3, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  colors: colorizeColors,
                                 ),
-                                colors: colorizeColors,
-                              ),
-                              ColorizeAnimatedText(
-                                c.pronun.string,
-                                textAlign: TextAlign.center,
-                                speed: const Duration(milliseconds: 300),
-                                textStyle: TextStyle(
-                                  fontSize: 50,
-                                  letterSpacing: 1,
-                                  fontWeight: FontWeight.w600,
-                                  shadows: [
-                                    Shadow(
-                                      blurRadius: 15,
-                                      color: Colors.black.withOpacity(0.5),
-                                      offset: const Offset(3, 3),
-                                    ),
-                                  ],
+                                ColorizeAnimatedText(
+                                  c.pronun.string,
+                                  textAlign: TextAlign.center,
+                                  speed: const Duration(milliseconds: 300),
+                                  textStyle: TextStyle(
+                                    fontSize: 50,
+                                    letterSpacing: 1,
+                                    fontWeight: FontWeight.w600,
+                                    shadows: [
+                                      Shadow(
+                                        blurRadius: 15,
+                                        color: Colors.black.withOpacity(0.5),
+                                        offset: const Offset(3, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  colors: colorizeColors,
                                 ),
-                                colors: colorizeColors,
-                              ),
-                            ],
-                            isRepeatingAnimation: true,
-                            repeatForever: true,
-                            onTap: () {},
+                              ],
+                              isRepeatingAnimation: true,
+                              repeatForever: true,
+                              onTap: () {},
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(width: 5),
-              ]
+                  const SizedBox(width: 5),
+                ]
             ),
             const SizedBox(height: 20),
-            GetBuilder<Controller>(
-              builder: (_) => Container(
-                alignment: Alignment.center,
-                width: MediaQuery.of(context).size.width*0.95,
-                child: Column(
-                  children: c.mean[c.listIndex[c.nowIndex.value]].map<Widget>((subMean) =>
+            Container(
+              alignment: Alignment.center,
+              width: MediaQuery.of(context).size.width*0.95,
+              child: Column(
+                children: mean[listIndex[nowIndex]].map<Widget>((subMean) =>
                     Container(
                       margin: const EdgeInsets.fromLTRB(0, 0, 0, 5),
                       padding: const EdgeInsets.all(3),
@@ -3530,8 +6419,7 @@ class MeanWidget extends StatelessWidget {
                         ],
                       ),
                     ),
-                  ).toList(),
-                ),
+                ).toList(),
               ),
             ),
             const SizedBox(height: 10),
@@ -3548,175 +6436,178 @@ class MeanWidget extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: Row(
-                children:[
-                  const SizedBox(width:5),
-                  Expanded(
-                    child: Column(
-                      children:[
-                        Expanded(
-                          child: Container(
-                            alignment: Alignment.center,
-                            child: SingleChildScrollView(
-                              child: GetBuilder<Controller>(
-                                builder: (_) => Wrap(
-                                  spacing: 0,
-                                  runSpacing: 0,
-                                  runAlignment: WrapAlignment.center,
-                                  crossAxisAlignment: WrapCrossAlignment.center,
-                                  direction: Axis.horizontal,
-                                  alignment: WrapAlignment.center,
-                                  children: [
-                                    for (int index=0; index<(c.mean.length<4?c.mean.length:4); index++)
-                                      GestureDetector(
-                                        onTap: () async {
-                                          if (c.enableSound.value){
-                                            await pool.play(soundId);
-                                          }
-                                          if (c.listImage[c.nowIndex.value][index] == c.imageURL[c.listIndex[c.nowIndex.value]]){
-                                            ktMean[c.nowIndex.value] = true;
-                                            await setRight();
-                                            if (!ktMean.contains(false)){
-                                              if (c.meanScore.value<25){
-                                                c.meanScore = RxInt(c.meanScore.value + 1);
-                                                c.update();
-                                                var newScore = Score(
-                                                  wordId: c.word.value,
-                                                  word: c.wordScore.value,
-                                                  pronun: c.pronunScore.value,
-                                                  speak: c.speakScore.value,
-                                                  mean: c.meanScore.value,
-                                                  total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
-                                                  time: DateTime.now().millisecondsSinceEpoch,
-                                                );
-                                                await updateScore(newScore);
-                                              }
-                                              ktMean.clear();
-                                              for (var i=0;i<c.mean.length;i++){
-                                                ktMean.add(false);
-                                              }
-                                              c.currentTab = 0.obs;
-                                            }else{
-                                              if (c.nowIndex.value < c.mean.length - 1){
-                                                c.nowIndex = RxInt(c.nowIndex.value + 1);
-                                              }else{
-                                                c.nowIndex = 0.obs;
-                                              }
-                                            }
-                                            c.update();
-                                          }else{
-                                            ktMean[c.nowIndex.value] = false;
-                                            if (c.meanScore.value>0){
-                                              c.meanScore = RxInt(c.meanScore.value - 1);
-                                              c.update();
-                                              var newScore = Score(
-                                                wordId: c.word.value,
-                                                word: c.wordScore.value,
-                                                pronun: c.pronunScore.value,
-                                                speak: c.speakScore.value,
-                                                mean: c.meanScore.value,
-                                                total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
-                                                time: DateTime.now().millisecondsSinceEpoch,
-                                              );
-                                              await updateScore(newScore);
-                                            }
-                                            await setWrong();
-                                          }
-                                        },
-                                        child: Container(
-                                            margin: const EdgeInsets.all(10),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius: const BorderRadius.all(
-                                                  Radius.circular(8)
-                                              ),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.black.withOpacity(0.6),
-                                                  spreadRadius: 0,
-                                                  blurRadius: 5,
-                                                  offset: const Offset(5, 5), // changes position of shadow
-                                                ),
-                                              ],
-                                            ),
-                                            // alignment: Alignment.center,
-                                            width: MediaQuery.of(context).size.width > 505? 220: (MediaQuery.of(context).size.width-65)/2,
-                                            height: MediaQuery.of(context).size.width > 505? 220*250/300: (MediaQuery.of(context).size.width-65)*250/300/2,
-                                            child: Stack(
-                                                children:[
-                                                  ClipRRect(
-                                                    borderRadius: BorderRadius.circular(8),
-                                                    child: ImageFiltered(
-                                                      imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                                                      child: Opacity(
-                                                        opacity: 0.8,
-                                                        child: Image(
-                                                          image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index].replaceAll('\\','')),
-                                                          fit: BoxFit.cover,
-                                                          width: MediaQuery.of(context).size.width > 505? 220: (MediaQuery.of(context).size.width-65)/2,
-                                                          height: MediaQuery.of(context).size.width > 505? 220*250/300: (MediaQuery.of(context).size.width-65)*250/300/2,
-                                                          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                                            return const SizedBox();
-                                                          },
+                child: Row(
+                    children:[
+                      const SizedBox(width:5),
+                      Expanded(
+                          child: Column(
+                              children:[
+                                Expanded(
+                                  child: Container(
+                                    alignment: Alignment.center,
+                                    child: SingleChildScrollView(
+                                        child: Wrap(
+                                            spacing: 0,
+                                            runSpacing: 0,
+                                            runAlignment: WrapAlignment.center,
+                                            crossAxisAlignment: WrapCrossAlignment.center,
+                                            direction: Axis.horizontal,
+                                            alignment: WrapAlignment.center,
+                                            children: [
+                                              for (int index=0; index<listImage[nowIndex].length; index++)
+                                                GestureDetector(
+                                                  onTap: () async {
+                                                    if (c.enableSound.value){
+                                                      await pool.play(soundId);
+                                                    }
+                                                    if (listImage[nowIndex][index] == imageURL[listIndex[nowIndex]]){
+                                                      ktMean[nowIndex] = true;
+                                                      await setRight();
+                                                      if (!ktMean.contains(false)){
+                                                        if (c.meanScore.value<25){
+                                                          c.meanScore = RxInt(c.meanScore.value + 1);
+                                                          c.update();
+                                                          var newScore = Score(
+                                                            wordId: c.word.value,
+                                                            word: c.wordScore.value,
+                                                            pronun: c.pronunScore.value,
+                                                            speak: c.speakScore.value,
+                                                            mean: c.meanScore.value,
+                                                            total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
+                                                            time: DateTime.now().millisecondsSinceEpoch,
+                                                          );
+                                                          await updateScore(newScore);
+                                                        }
+                                                        ktMean.clear();
+                                                        for (var i=0;i<mean.length;i++){
+                                                          ktMean.add(false);
+                                                        }
+                                                        getNextLearn();
+                                                      }else{
+                                                        if (nowIndex < mean.length - 1){
+                                                          setState((){
+                                                            nowIndex = nowIndex + 1;
+                                                          });
+                                                        }else{
+                                                          setState((){
+                                                            nowIndex = 0;
+                                                          });
+                                                        }
+                                                      }
+                                                    }else{
+                                                      ktMean[nowIndex] = false;
+                                                      if (c.meanScore.value>0){
+                                                        c.meanScore = RxInt(c.meanScore.value - 1);
+                                                        c.update();
+                                                        var newScore = Score(
+                                                          wordId: c.word.value,
+                                                          word: c.wordScore.value,
+                                                          pronun: c.pronunScore.value,
+                                                          speak: c.speakScore.value,
+                                                          mean: c.meanScore.value,
+                                                          total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
+                                                          time: DateTime.now().millisecondsSinceEpoch,
+                                                        );
+                                                        await updateScore(newScore);
+                                                      }
+                                                      await setWrong();
+                                                    }
+                                                  },
+                                                  child: Container(
+                                                      margin: const EdgeInsets.all(10),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        borderRadius: const BorderRadius.all(
+                                                            Radius.circular(8)
                                                         ),
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color: Colors.black.withOpacity(0.6),
+                                                            spreadRadius: 0,
+                                                            blurRadius: 5,
+                                                            offset: const Offset(5, 5), // changes position of shadow
+                                                          ),
+                                                        ],
                                                       ),
-                                                    ),
-                                                  ),
-                                                  ClipRRect(
-                                                    borderRadius: BorderRadius.circular(8),
-                                                    child: Image(
-                                                      image: NetworkImage('https://bedict.com/' + c.listImage[c.nowIndex.value][index].replaceAll('\\','')),
-                                                      fit: BoxFit.contain,
+                                                      // alignment: Alignment.center,
                                                       width: MediaQuery.of(context).size.width > 505? 220: (MediaQuery.of(context).size.width-65)/2,
                                                       height: MediaQuery.of(context).size.width > 505? 220*250/300: (MediaQuery.of(context).size.width-65)*250/300/2,
-                                                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                                        return const SizedBox();
-                                                      },
-                                                    ),
+                                                      child: Stack(
+                                                          children:[
+                                                            ClipRRect(
+                                                              borderRadius: BorderRadius.circular(8),
+                                                              child: ImageFiltered(
+                                                                imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                                                child: Opacity(
+                                                                  opacity: 0.8,
+                                                                  child: Image(
+                                                                    image: NetworkImage('https://bedict.com/' + listImage[nowIndex][index].replaceAll('\\','')),
+                                                                    fit: BoxFit.cover,
+                                                                    width: MediaQuery.of(context).size.width > 505? 220: (MediaQuery.of(context).size.width-65)/2,
+                                                                    height: MediaQuery.of(context).size.width > 505? 220*250/300: (MediaQuery.of(context).size.width-65)*250/300/2,
+                                                                    errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                                      return const SizedBox();
+                                                                    },
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            ClipRRect(
+                                                              borderRadius: BorderRadius.circular(8),
+                                                              child: Image(
+                                                                image: NetworkImage('https://bedict.com/' + listImage[nowIndex][index].replaceAll('\\','')),
+                                                                fit: BoxFit.contain,
+                                                                width: MediaQuery.of(context).size.width > 505? 220: (MediaQuery.of(context).size.width-65)/2,
+                                                                height: MediaQuery.of(context).size.width > 505? 220*250/300: (MediaQuery.of(context).size.width-65)*250/300/2,
+                                                                errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                                  return const SizedBox();
+                                                                },
+                                                              ),
+                                                            ),
+                                                          ]
+                                                      )
                                                   ),
-                                                ]
-                                            )
-                                        ),
-                                      )
-                                  ]
+                                                )
+                                            ]
+                                        )
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ]
-                    )
-                  ),
-                ]
-              )
+                              ]
+                          )
+                      ),
+                    ]
+                )
             ),
             GetBuilder<Controller>(
               builder: (_) => DotsIndicator(
-                  dotsCount: c.mean.length,
-                  position: c.nowIndex.value.toDouble(),
+                  dotsCount: mean.length,
+                  position: nowIndex.toDouble(),
                   decorator: DotsDecorator(
                     size: const Size.square(9.0),
                     activeSize: const Size(18.0, 9.0),
                     activeColor: Colors.black.withOpacity(0.5),
                     color: Colors.black.withOpacity(0.1),
                     activeShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
-                    spacing: 19*c.mean.length>MediaQuery.of(context).size.width - 20 ?
+                    spacing: 19*mean.length>MediaQuery.of(context).size.width - 20 ?
                     EdgeInsets.fromLTRB(
-                        ((MediaQuery.of(context).size.width-20)/c.mean.length-9)/2,
+                        ((MediaQuery.of(context).size.width-20)/mean.length-9)/2,
                         10,
-                        ((MediaQuery.of(context).size.width-20)/c.mean.length-9)/2,
+                        ((MediaQuery.of(context).size.width-20)/mean.length-9)/2,
                         10
                     )
                         : const EdgeInsets.fromLTRB(5, 10, 5, 10),
                   ),
                   onTap: (index){
-                    c.nowIndex = RxInt(index.toInt());
-                    c.update();
+                    setState((){
+                      nowIndex = index.toInt();
+                    });
                   }
               ),
             ),
           ],
-        ),
+        )
+        : const SizedBox(),
       ),
     );
   }
@@ -3735,12 +6626,94 @@ class LearnWord extends StatelessWidget {
       const MeanWidget(),
     ];
 
-    WidgetsBinding.instance?.addPostFrameCallback((_) {
+    void getBack() {
+      if (!c.isAdShowing.value){
+        void toScore() {
+          c.isAdShowing = false.obs;
+          Get.offAll(()=>Home());
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
 
-    });
+    void getTab(int tab) {
+      if (!c.isAdShowing.value){
+        void toScore() {
+          c.isAdShowing = false.obs;
+          c.currentTab = RxInt(tab);
+          c.update();
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
 
-    return Scaffold(
-      body: Stack(
+    return WillPopScope(
+      onWillPop: () async {
+        Get.offAll(()=> Home());
+        return false;
+      },
+      child: Scaffold(
+        body: Stack(
           children: [
             GetBuilder<Controller>(
               builder: (_) => c.imageURL.isNotEmpty?
@@ -3767,65 +6740,57 @@ class LearnWord extends StatelessWidget {
             GestureDetector(
               onVerticalDragEnd: (details) async {
                 if (details.primaryVelocity! > 0) {
-                  if (c.currentTab.value>0){
-                    getTab(c.currentTab.value-1);
-                  }else{
-                    getTab(3);
-                  }
+                  getPreviousLearn();
                 }
                 if (details.primaryVelocity! < -0) {
-                  if (c.currentTab.value<3){
-                    getTab(c.currentTab.value+1);
-                  }else{
-                    getTab(0);
-                  }
+                  getNextLearn();
                 }
               },
               child: Container(
                 color: Colors.transparent,
                 child: Column(
-                    children: [
-                      SizedBox(height: MediaQuery.of(context).padding.top),
-                      Row(
-                          children:[
-                            IconButton(
-                              padding: const EdgeInsets.all(0.0),
-                              icon: const Icon(Icons.arrow_back_rounded, size: 20,),
-                              tooltip: 'Open Sort',
-                              onPressed: () {
-                                Get.to(()=> Home());
-                              },
-                            ),
-                            Expanded(
-                              child: GetBuilder<Controller>(
-                                builder: (_) => Text(
-                                  c.currentTab.value == 0?
-                                  c.learnWordGuide.string:
-                                  c.currentTab.value == 1?
-                                  c.learnPronunGuide.string:
-                                  c.currentTab.value == 2?
-                                  c.learnSpeakGuide.string + c.word.string:
-                                  c.learnMeanGuide.string,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: textColor,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                  children: [
+                    SizedBox(height: MediaQuery.of(context).padding.top),
+                    Row(
+                      children:[
+                        IconButton(
+                          padding: const EdgeInsets.all(0.0),
+                          icon: const Icon(Icons.arrow_back_rounded, size: 20,),
+                          tooltip: 'back',
+                          onPressed: () {
+                            getBack();
+                          },
+                        ),
+                        Expanded(
+                          child: GetBuilder<Controller>(
+                            builder: (_) => Text(
+                              c.currentTab.value == 0?
+                              c.learnWordGuide.string:
+                              c.currentTab.value == 1?
+                              c.learnPronunGuide.string:
+                              c.currentTab.value == 2?
+                              c.learnSpeakGuide.string + c.word.string:
+                              c.learnMeanGuide.string,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: textColor,
                               ),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ]
-                      ),
-                      Expanded(
-                        child: GetBuilder<Controller>(
-                          builder: (_) => Center(
-                            child: widgetOptions.elementAt(c.currentTab.value),
                           ),
                         ),
+                      ]
+                    ),
+                    Expanded(
+                      child: GetBuilder<Controller>(
+                        builder: (_) => Center(
+                          child: widgetOptions.elementAt(c.currentTab.value),
+                        ),
                       ),
-                      SizedBox(height: MediaQuery.of(context).padding.bottom),
-                    ]
+                    ),
+                    SizedBox(height: MediaQuery.of(context).padding.bottom),
+                  ]
                 ),
               ),
             ),
@@ -3868,12 +6833,13 @@ class LearnWord extends StatelessWidget {
                   child: Icon(
                     c.right.value?Icons.check_rounded:Icons.close_rounded,
                     size: 250,
-                    color: backgroundColor,
+                    color: c.right.value? backgroundColor: Colors.red,
                   ),
                 ),
               ),
             ),
           ]
+        ),
       ),
     );
   }
@@ -3897,220 +6863,206 @@ class HistoryPage extends StatelessWidget {
       await findHistory();
     });
 
-    return Scaffold(
-      appBar: AppBar(
-        title: GetBuilder<Controller>(
-          builder: (_) => Text(
-            c.drawerHistory.string.toUpperCase(),
-            style: const TextStyle(
-              color: Color.fromRGBO(255, 255, 255, 1),
+    void getSearch(String word) {
+      if (!c.isAdShowing.value){
+        void toScore() async {
+          c.isAdShowing = false.obs;
+          c.category = 'all category'.obs;
+          c.type = 'all type'.obs;
+          c.fromScreen = 0.obs;
+          c.nowWord = RxInt(c.wordArray.indexOf(word));
+          await c.layWord(word);
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
+
+    return WillPopScope(
+      onWillPop: () async {
+        Get.offAll(()=>MainScreen());
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: GetBuilder<Controller>(
+            builder: (_) => Text(
+              c.drawerHistory.string.toUpperCase(),
+              style: const TextStyle(
+                color: Color.fromRGBO(255, 255, 255, 1),
+              ),
             ),
           ),
-        ),
-        actions:[
-          PopupMenuButton<String>(
-            onSelected: (String word) async {
-              if (word == 'xóa' || word == 'delete'){
-                for (int i=0;i<c.listHistory.length;i++){
-                  await boxHistory.deleteAt(c.lastHistoryIndex.value-i);
-                }
-              }else{
-                await boxHistory.clear();
-              }
-              c.isStartDayHistory = false.obs;
-              c.isEndDayHistory = false.obs;
-              await findHistory();
+          leading: IconButton(
+            padding: const EdgeInsets.all(0.0),
+            icon: const Icon(
+              Icons.arrow_back_ios_rounded, size: 20,
+              // color: textColor.withOpacity(0.7),
+            ),
+            tooltip: 'Back to MainScreen',
+            onPressed: () {
+              Get.offAll(()=>MainScreen());
             },
-            padding: const EdgeInsets.all(0),
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              PopupMenuItem<String>(
-                value: c.language.string == 'VN'? 'xóa':'delete',
-                padding: const EdgeInsets.fromLTRB(6,0,6,0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      c.language.string == 'VN'? 'xóa':'delete',
-                      style: const TextStyle(
-                        fontSize: 15,
-                        color: textColor,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ]
-                )
-              ),
-              PopupMenuItem<String>(
-                value: c.language.string == 'VN'? 'xóa hết lịch sử':'delete all history',
-                padding: const EdgeInsets.fromLTRB(6,0,6,0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      c.language.string == 'VN'? 'xóa hết lịch sử':'delete all history',
-                      style: const TextStyle(
-                        fontSize: 15,
-                        color: textColor,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ]
-                )
-              ),
-            ],
-            // color: themeColor,
-            child: const Icon(
-              Icons.more_vert,
-              size: 25,
-            ),
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(20.0))
-            ),
           ),
-        ],
-        centerTitle: true,
-        backgroundColor: backgroundColor,
-      ),
-      body: GestureDetector(
-        onHorizontalDragEnd: (details) async {
-          if (details.primaryVelocity! > 0) {
-            if (c.indexHistoryPage.value>0){
-              c.indexHistoryPage = RxInt(c.indexHistoryPage.value-1);
-              c.update();
-            }
-          }
-          if (details.primaryVelocity! < -0) {
-            if (c.listHistory.length>pageCount*(c.indexHistoryPage.value+1)){
-              c.indexHistoryPage = RxInt(c.indexHistoryPage.value+1);
-              c.update();
-            }
-          }
-        },
-        child: Container(
-          color: Colors.white,
-          child: Column(
-            children:[
-              const SizedBox(height: 10),
-              Row(
-                  children:[
-                    const SizedBox(width:10),
-                    Expanded(
-                      child: OutlinedButton(
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              Colors.white
-                          ),
-                          foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                          padding: MaterialStateProperty.all<EdgeInsets>(
-                              const EdgeInsets.all(0)
-                          ),
-                          shape: MaterialStateProperty.all<OutlinedBorder?>(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                              )
-                          ),
-                          fixedSize: MaterialStateProperty.all<Size>(
-                              const Size.fromHeight(45)
-                          ),
-                        ),
-                        onPressed: () async {
-                          if (c.isEndDayHistory.value){
-                            c.isEndDayHistory = false.obs;
-                          }
-                          c.isStartDayHistory = RxBool(!c.isStartDayHistory.value);
-                          c.update();
-                        },
-                        child: GetBuilder<Controller>(
-                          builder: (_) => Text(
-                            DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(c.startDayHistory.value)),
+          actions:[
+            PopupMenuButton<String>(
+              onSelected: (String word) async {
+                if (word == 'xóa' || word == 'delete'){
+                  for (int i=0;i<c.listHistory.length;i++){
+                    await boxHistory.deleteAt(c.lastHistoryIndex.value-i);
+                  }
+                }else{
+                  await boxHistory.clear();
+                }
+                c.isStartDayHistory = false.obs;
+                c.isEndDayHistory = false.obs;
+                await findHistory();
+              },
+              padding: const EdgeInsets.all(0),
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                PopupMenuItem<String>(
+                    value: c.language.string == 'VN'? 'xóa':'delete',
+                    padding: const EdgeInsets.fromLTRB(6,0,6,0),
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            c.language.string == 'VN'? 'xóa':'delete',
                             style: const TextStyle(
-                              fontSize: 14,
+                              fontSize: 15,
                               color: textColor,
-                              fontWeight: FontWeight.w400,
                             ),
-                            overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.center,
                           ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width:10),
-                    const Text(
-                      '-',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: textColor,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(width:10),
-                    Expanded(
-                      child: OutlinedButton(
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              Colors.white
-                          ),
-                          foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                          padding: MaterialStateProperty.all<EdgeInsets>(
-                              const EdgeInsets.all(0)
-                          ),
-                          shape: MaterialStateProperty.all<OutlinedBorder?>(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                              )
-                          ),
-                          fixedSize: MaterialStateProperty.all<Size>(
-                              const Size.fromHeight(45)
-                          ),
-                        ),
-                        onPressed: () async {
-                          if (c.isStartDayHistory.value){
-                            c.isStartDayHistory = false.obs;
-                          }
-                          c.isEndDayHistory = RxBool(!c.isEndDayHistory.value);
-                          c.update();
-                        },
-                        child: GetBuilder<Controller>(
-                          builder: (_) => Text(
-                            DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(c.endDayHistory.value)),
+                        ]
+                    )
+                ),
+                PopupMenuItem<String>(
+                    value: c.language.string == 'VN'? 'xóa hết lịch sử':'delete all history',
+                    padding: const EdgeInsets.fromLTRB(6,0,6,0),
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            c.language.string == 'VN'? 'xóa hết lịch sử':'delete all history',
                             style: const TextStyle(
-                              fontSize: 14,
+                              fontSize: 15,
                               color: textColor,
-                              fontWeight: FontWeight.w400,
                             ),
-                            overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.center,
                           ),
+                        ]
+                    )
+                ),
+              ],
+              // color: themeColor,
+              child: const Icon(
+                Icons.more_vert,
+                size: 25,
+              ),
+              shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(20.0))
+              ),
+            ),
+          ],
+          centerTitle: true,
+          backgroundColor: backgroundColor,
+        ),
+        body: GestureDetector(
+          onHorizontalDragEnd: (details) async {
+            if (details.primaryVelocity! > 0) {
+              if (c.indexHistoryPage.value>0){
+                c.indexHistoryPage = RxInt(c.indexHistoryPage.value-1);
+                c.update();
+              }
+            }
+            if (details.primaryVelocity! < -0) {
+              if (c.listHistory.length>pageCount*(c.indexHistoryPage.value+1)){
+                c.indexHistoryPage = RxInt(c.indexHistoryPage.value+1);
+                c.update();
+              }
+            }
+          },
+          child: Container(
+            color: Colors.white,
+            child: Column(
+              children:[
+                const SizedBox(height: 10),
+                Row(
+                    children:[
+                      const SizedBox(width:10),
+                      Expanded(
+                        child: OutlinedButton(
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                Colors.white
+                            ),
+                            foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                            padding: MaterialStateProperty.all<EdgeInsets>(
+                                const EdgeInsets.all(0)
+                            ),
+                            shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                )
+                            ),
+                            fixedSize: MaterialStateProperty.all<Size>(
+                                const Size.fromHeight(45)
+                            ),
+                          ),
+                          onPressed: () async {
+                            if (c.isEndDayHistory.value){
+                              c.isEndDayHistory = false.obs;
+                            }
+                            c.isStartDayHistory = RxBool(!c.isStartDayHistory.value);
+                            c.update();
+                          },
+                          child: GetBuilder<Controller>(
+                            builder: (_) => Text(
+                              DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(c.startDayHistory.value)),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: textColor,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width:10),
-                    TextButton(
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            backgroundColor
-                        ),
-                        foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                        padding: MaterialStateProperty.all<EdgeInsets>(
-                            const EdgeInsets.all(0)
-                        ),
-                        shape: MaterialStateProperty.all<OutlinedBorder?>(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                            )
-                        ),
-                        fixedSize: MaterialStateProperty.all<Size>(
-                            const Size.fromHeight(45)
-                        ),
-                      ),
-                      onPressed: () async {
-                        c.isStartDayHistory = false.obs;
-                        c.isEndDayHistory = false.obs;
-                        await findHistory();
-                      },
-                      child: const Text(
-                        'ok',
+                      const SizedBox(width:10),
+                      const Text(
+                        '-',
                         style: TextStyle(
                           fontSize: 14,
                           color: textColor,
@@ -4118,235 +7070,308 @@ class HistoryPage extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
                       ),
-                    ),
-                    const SizedBox(width:10),
-                  ]
-              ),
-              GetBuilder<Controller>(
-                builder: (_) => Visibility(
-                  visible: c.isStartDayHistory.value,
-                  child: Column(
-                      children:[
-                        const SizedBox(height:10),
-                        SizedBox(
-                          height: 100,
-                          width: MediaQuery.of(context).size.width,
-                          child: CupertinoDatePicker(
-                            mode: CupertinoDatePickerMode.date,
-                            initialDateTime: DateTime.fromMillisecondsSinceEpoch(c.startDayHistory.value),
-                            minimumDate: DateTime(2021,12,25),
-                            maximumDate: DateTime.now().add(const Duration(days: 1)),
-                            onDateTimeChanged: (DateTime newDateTime) {
-                              c.startDayHistory = RxInt(newDateTime.millisecondsSinceEpoch);
-                              c.update();
-                            },
+                      const SizedBox(width:10),
+                      Expanded(
+                        child: OutlinedButton(
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                Colors.white
+                            ),
+                            foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                            padding: MaterialStateProperty.all<EdgeInsets>(
+                                const EdgeInsets.all(0)
+                            ),
+                            shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                )
+                            ),
+                            fixedSize: MaterialStateProperty.all<Size>(
+                                const Size.fromHeight(45)
+                            ),
                           ),
-                        ),
-                      ]
-                  ),
-                ),
-              ),
-              GetBuilder<Controller>(
-                builder: (_) => Visibility(
-                  visible: c.isEndDayHistory.value,
-                  child: Column(
-                      children:[
-                        const SizedBox(height:10),
-                        SizedBox(
-                          height: 100,
-                          width: MediaQuery.of(context).size.width,
-                          child: CupertinoDatePicker(
-                            mode: CupertinoDatePickerMode.date,
-                            initialDateTime: DateTime.fromMillisecondsSinceEpoch(c.endDayHistory.value),
-                            minimumDate: DateTime(2021,12,25),
-                            maximumDate: DateTime.now().add(const Duration(days: 1)),
-                            onDateTimeChanged: (DateTime newDateTime) {
-                              c.endDayHistory = RxInt(newDateTime.millisecondsSinceEpoch);
-                              c.update();
-                            },
-                          ),
-                        ),
-                      ]
-                  ),
-                ),
-              ),
-              Row(
-                  children:[
-                    GetBuilder<Controller>(
-                      builder: (_) => Opacity(
-                        opacity: c.indexHistoryPage.value>0? 1: 0.3,
-                        child: IconButton(
-                          padding: const EdgeInsets.all(0.0),
-                          icon: const Icon(
-                            Icons.arrow_back_ios,
-                            size: 20,
-                          ),
-                          tooltip: 'previous',
-                          onPressed: () {
-                            if (c.indexHistoryPage.value>0){
-                              c.indexHistoryPage = RxInt(c.indexHistoryPage.value-1);
-                              c.update();
+                          onPressed: () async {
+                            if (c.isStartDayHistory.value){
+                              c.isStartDayHistory = false.obs;
                             }
+                            c.isEndDayHistory = RxBool(!c.isEndDayHistory.value);
+                            c.update();
                           },
+                          child: GetBuilder<Controller>(
+                            builder: (_) => Text(
+                              DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(c.endDayHistory.value)),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: textColor,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                    const Expanded(child: SizedBox()),
-                    GetBuilder<Controller>(
-                      builder: (_) => PopupMenuButton<String>(
-                        onSelected: (String word) async {
-                          c.indexHistoryPage = RxInt(int.parse(word.split('-')[0])~/pageCount);
-                          c.update();
+                      const SizedBox(width:10),
+                      TextButton(
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              backgroundColor
+                          ),
+                          foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                          padding: MaterialStateProperty.all<EdgeInsets>(
+                              const EdgeInsets.all(0)
+                          ),
+                          shape: MaterialStateProperty.all<OutlinedBorder?>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10.0),
+                              )
+                          ),
+                          fixedSize: MaterialStateProperty.all<Size>(
+                              const Size.fromHeight(45)
+                          ),
+                        ),
+                        onPressed: () async {
+                          c.isStartDayHistory = false.obs;
+                          c.isEndDayHistory = false.obs;
+                          await findHistory();
                         },
-                        padding: const EdgeInsets.all(0),
-                        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                          for (int i=0; i<(c.listHistory.length/pageCount).abs(); i++)
-                            PopupMenuItem<String>(
-                                value: (pageCount*i+1).toString() + '-' +
-                                    (c.listHistory.length~/pageCount>i?
-                                    (pageCount*i+pageCount).toString():
-                                    (pageCount*i+c.listHistory.length%pageCount).toString()) +
-                                    '/' + c.listHistory.length.toString(),
-                                padding: const EdgeInsets.fromLTRB(6,0,6,0),
-                                child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        (pageCount*i+1).toString() + '-' +
-                                            (c.listHistory.length~/pageCount>i?
-                                            (pageCount*i+pageCount).toString():
-                                            (pageCount*i+c.listHistory.length%pageCount).toString()) +
-                                            '/' + c.listHistory.length.toString(),
+                        child: const Text(
+                          'ok',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: textColor,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(width:10),
+                    ]
+                ),
+                GetBuilder<Controller>(
+                  builder: (_) => Visibility(
+                    visible: c.isStartDayHistory.value,
+                    child: Column(
+                        children:[
+                          const SizedBox(height:10),
+                          SizedBox(
+                            height: 100,
+                            width: MediaQuery.of(context).size.width,
+                            child: CupertinoDatePicker(
+                              mode: CupertinoDatePickerMode.date,
+                              initialDateTime: DateTime.fromMillisecondsSinceEpoch(c.startDayHistory.value),
+                              minimumDate: DateTime(2021,12,25),
+                              maximumDate: DateTime.now().add(const Duration(days: 1)),
+                              onDateTimeChanged: (DateTime newDateTime) {
+                                c.startDayHistory = RxInt(newDateTime.millisecondsSinceEpoch);
+                                c.update();
+                              },
+                            ),
+                          ),
+                        ]
+                    ),
+                  ),
+                ),
+                GetBuilder<Controller>(
+                  builder: (_) => Visibility(
+                    visible: c.isEndDayHistory.value,
+                    child: Column(
+                        children:[
+                          const SizedBox(height:10),
+                          SizedBox(
+                            height: 100,
+                            width: MediaQuery.of(context).size.width,
+                            child: CupertinoDatePicker(
+                              mode: CupertinoDatePickerMode.date,
+                              initialDateTime: DateTime.fromMillisecondsSinceEpoch(c.endDayHistory.value),
+                              minimumDate: DateTime(2021,12,25),
+                              maximumDate: DateTime.now().add(const Duration(days: 1)),
+                              onDateTimeChanged: (DateTime newDateTime) {
+                                c.endDayHistory = RxInt(newDateTime.millisecondsSinceEpoch);
+                                c.update();
+                              },
+                            ),
+                          ),
+                        ]
+                    ),
+                  ),
+                ),
+                Row(
+                    children:[
+                      GetBuilder<Controller>(
+                        builder: (_) => Opacity(
+                          opacity: c.indexHistoryPage.value>0? 1: 0.3,
+                          child: IconButton(
+                            padding: const EdgeInsets.all(0.0),
+                            icon: const Icon(
+                              Icons.arrow_back_ios,
+                              size: 20,
+                            ),
+                            tooltip: 'previous',
+                            onPressed: () {
+                              if (c.indexHistoryPage.value>0){
+                                c.indexHistoryPage = RxInt(c.indexHistoryPage.value-1);
+                                c.update();
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                      const Expanded(child: SizedBox()),
+                      GetBuilder<Controller>(
+                        builder: (_) => PopupMenuButton<String>(
+                          onSelected: (String word) async {
+                            c.indexHistoryPage = RxInt(int.parse(word.split('-')[0])~/pageCount);
+                            c.update();
+                          },
+                          padding: const EdgeInsets.all(0),
+                          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                            for (int i=0; i<(c.listHistory.length/pageCount).abs(); i++)
+                              PopupMenuItem<String>(
+                                  value: (pageCount*i+1).toString() + '-' +
+                                      (c.listHistory.length~/pageCount>i?
+                                      (pageCount*i+pageCount).toString():
+                                      (pageCount*i+c.listHistory.length%pageCount).toString()) +
+                                      '/' + c.listHistory.length.toString(),
+                                  padding: const EdgeInsets.fromLTRB(6,0,6,0),
+                                  child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          (pageCount*i+1).toString() + '-' +
+                                              (c.listHistory.length~/pageCount>i?
+                                              (pageCount*i+pageCount).toString():
+                                              (pageCount*i+c.listHistory.length%pageCount).toString()) +
+                                              '/' + c.listHistory.length.toString(),
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                            color: textColor,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ]
+                                  )
+                              ),
+                          ],
+                          // color: themeColor,
+                          child: Row(
+                              children: [
+                                Text(
+                                  (pageCount*c.indexHistoryPage.value+(c.listHistory.isEmpty?0:1)).toString() + '-' +
+                                      (c.listHistory.length~/pageCount>c.indexHistoryPage.value?
+                                      (pageCount*c.indexHistoryPage.value+pageCount).toString():
+                                      (pageCount*c.indexHistoryPage.value+c.listHistory.length%pageCount).toString()) +
+                                      '/' + c.listHistory.length.toString(),
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: textColor,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.left,
+                                ),
+                              ]
+                          ),
+                          shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(20.0))
+                          ),
+                        ),
+                      ),
+                      const Expanded(child: SizedBox()),
+                      GetBuilder<Controller>(
+                        builder: (_) => Opacity(
+                          opacity: c.listHistory.length>pageCount*(c.indexHistoryPage.value+1)? 1: 0.3,
+                          child: IconButton(
+                            padding: const EdgeInsets.all(0.0),
+                            icon: const Icon(
+                              Icons.arrow_forward_ios,
+                              size: 20,
+                            ),
+                            tooltip: 'next',
+                            onPressed: () {
+                              if (c.listHistory.length>pageCount*(c.indexHistoryPage.value+1)){
+                                c.indexHistoryPage = RxInt(c.indexHistoryPage.value+1);
+                                c.update();
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                    ]
+                ),
+                Expanded(
+                  child: GetBuilder<Controller>(
+                    builder: (_) =>  ListView.builder(
+                        padding: const EdgeInsets.all(4),
+                        addAutomaticKeepAlives: false,
+                        itemCount: c.listHistory.length>(c.indexHistoryPage.value+1)*pageCount?
+                        pageCount:c.listHistory.length-c.indexHistoryPage.value*pageCount,
+                        itemBuilder: (BuildContext context, int index) {
+                          return SizedBox(
+                            height: 50,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex:3,
+                                  child: Container(
+                                    height: double.infinity,
+                                    alignment: Alignment.center,
+                                    decoration: const BoxDecoration(
+                                      color: Color.fromRGBO(240, 240, 240, 1),
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(8)
+                                      ),
+                                    ),
+                                    padding: const EdgeInsets.all(4),
+                                    margin: const EdgeInsets.all(4),
+                                    child: Text(
+                                      DateFormat('dd-MM-yyyy HH:mm').format(DateTime.fromMillisecondsSinceEpoch(c.listHistory[c.indexHistoryPage.value*pageCount+index].time)),
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        color: textColor,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex:3,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      getSearch(c.listHistory[c.indexHistoryPage.value*pageCount+index].word);
+                                    },
+                                    child: Container(
+                                      height: double.infinity,
+                                      alignment: Alignment.center,
+                                      decoration: const BoxDecoration(
+                                        color: Color.fromRGBO(240, 240, 240, 1),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(8)
+                                        ),
+                                      ),
+                                      padding: const EdgeInsets.all(4),
+                                      margin: const EdgeInsets.all(4),
+                                      child: Text(
+                                        c.listHistory[c.indexHistoryPage.value*pageCount+index].word,
                                         style: const TextStyle(
-                                          fontSize: 15,
+                                          fontSize: 16,
                                           color: textColor,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                         textAlign: TextAlign.center,
                                       ),
-                                    ]
-                                )
-                            ),
-                        ],
-                        // color: themeColor,
-                        child: Row(
-                            children: [
-                              Text(
-                                (pageCount*c.indexHistoryPage.value+(c.listHistory.isEmpty?0:1)).toString() + '-' +
-                                    (c.listHistory.length~/pageCount>c.indexHistoryPage.value?
-                                    (pageCount*c.indexHistoryPage.value+pageCount).toString():
-                                    (pageCount*c.indexHistoryPage.value+c.listHistory.length%pageCount).toString()) +
-                                    '/' + c.listHistory.length.toString(),
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: textColor,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.left,
-                              ),
-                            ]
-                        ),
-                        shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(20.0))
-                        ),
-                      ),
-                    ),
-                    const Expanded(child: SizedBox()),
-                    GetBuilder<Controller>(
-                      builder: (_) => Opacity(
-                        opacity: c.listHistory.length>pageCount*(c.indexHistoryPage.value+1)? 1: 0.3,
-                        child: IconButton(
-                          padding: const EdgeInsets.all(0.0),
-                          icon: const Icon(
-                            Icons.arrow_forward_ios,
-                            size: 20,
-                          ),
-                          tooltip: 'next',
-                          onPressed: () {
-                            if (c.listHistory.length>pageCount*(c.indexHistoryPage.value+1)){
-                              c.indexHistoryPage = RxInt(c.indexHistoryPage.value+1);
-                              c.update();
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                  ]
-              ),
-              Expanded(
-                child: GetBuilder<Controller>(
-                  builder: (_) =>  ListView.builder(
-                    padding: const EdgeInsets.all(4),
-                    addAutomaticKeepAlives: false,
-                    itemCount: c.listHistory.length>(c.indexHistoryPage.value+1)*pageCount?
-                    pageCount:c.listHistory.length-c.indexHistoryPage.value*pageCount,
-                    itemBuilder: (BuildContext context, int index) {
-                      return SizedBox(
-                        height: 50,
-                        child: Row(
-                          children: [
-                            Expanded(
-                              flex:3,
-                              child: Container(
-                                height: double.infinity,
-                                alignment: Alignment.center,
-                                decoration: const BoxDecoration(
-                                  color: Color.fromRGBO(240, 240, 240, 1),
-                                  borderRadius: BorderRadius.all(
-                                      Radius.circular(8)
-                                  ),
-                                ),
-                                padding: const EdgeInsets.all(4),
-                                margin: const EdgeInsets.all(4),
-                                child: Text(
-                                  DateFormat('dd-MM-yyyy HH:mm').format(DateTime.fromMillisecondsSinceEpoch(c.listHistory[c.indexHistoryPage.value*pageCount+index].time)),
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    color: textColor,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              flex:3,
-                              child: GestureDetector(
-                                onTap: () async {
-                                  await setDefault();
-                                  await getWord(c.listHistory[c.indexHistoryPage.value*pageCount+index].word);
-                                  Get.to(()=>Home());
-                                },
-                                child: Container(
-                                  height: double.infinity,
-                                  alignment: Alignment.center,
-                                  decoration: const BoxDecoration(
-                                    color: Color.fromRGBO(240, 240, 240, 1),
-                                    borderRadius: BorderRadius.all(
-                                        Radius.circular(8)
                                     ),
                                   ),
-                                  padding: const EdgeInsets.all(4),
-                                  margin: const EdgeInsets.all(4),
-                                  child: Text(
-                                    c.listHistory[c.indexHistoryPage.value*pageCount+index].word,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      color: textColor,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
-                        ),
-                      );
-                    }
+                          );
+                        }
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -4354,8 +7379,8 @@ class HistoryPage extends StatelessWidget {
   }
 }
 
-class ScorePage extends StatelessWidget {
-  const ScorePage({Key? key}) : super(key: key);
+class SortPage extends StatelessWidget {
+  const SortPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -4363,40 +7388,54 @@ class ScorePage extends StatelessWidget {
     final GlobalKey<ScaffoldState> _key = GlobalKey();
     const int pageCount = 200;
 
-    Future setHome() async {
-      if (c.isSortScore[0]){
-        c.level = RxString(listLevelEN[c.levelIndexScore.value]);
-        c.levelIndex = c.levelIndexScore;
-        c.type = RxString(listTypeEN[c.typeIndexScore.value]);
-        c.typeIndex = c.typeIndexScore;
-        c.category = RxString(listCategoryEN[c.categoryIndexScore.value]);
-        c.categoryIndex = c.categoryIndexScore;
-        c.wordArray = c.listWordScore;
-        await boxSetting.put('category',c.categoryIndexScore.value);
-        await boxSetting.put('type',c.typeIndexScore.value);
-        await boxSetting.put('level',c.levelIndexScore.value);
-      }else{
-        await setDefault();
-      }
-    }
-
     Future findScore() async {
-      if (c.isSortScore[0]){
-        List<String> listWord = [];
-        listWord = await getListWords(
-          listLevelEN[c.levelIndexScore.value],
-          listCategoryEN[c.categoryIndexScore.value],
-          listTypeEN[c.typeIndexScore.value],
-        );
-        if (listWord.isNotEmpty){
-          c.listWordScore = RxList(listWord);
-        }
-        c.listLearned = await getListScore();
-      }else{
-        c.listLearned = await getListScoreTime(c.startDay.value,c.endDay.value);
-      }
+      c.listLearned = await getListScoreTime(c.startDay.value,c.endDay.value);
       c.indexScorePage = 0.obs;
       c.update();
+    }
+
+    void getSearch(String word) {
+      if (!c.isAdShowing.value){
+        void toScore() async {
+          c.isAdShowing = false.obs;
+          c.category = 'all category'.obs;
+          c.type = 'all type'.obs;
+          c.fromScreen = 0.obs;
+          c.nowWord = RxInt(c.wordArray.indexOf(word));
+          await c.layWord(word);
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
     }
 
     Future.delayed(Duration.zero, () async {
@@ -4416,6 +7455,17 @@ class ScorePage extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             // textAlign: TextAlign.left,
           ),
+        ),
+        leading: IconButton(
+          padding: const EdgeInsets.all(0.0),
+          icon: const Icon(
+            Icons.arrow_back_ios_rounded, size: 20,
+            // color: textColor.withOpacity(0.7),
+          ),
+          tooltip: 'Back to MainScreen',
+          onPressed: () {
+            Get.offAll(()=>MainScreen());
+          },
         ),
         actions:[
           PopupMenuButton<String>(
@@ -4517,457 +7567,180 @@ class ScorePage extends StatelessWidget {
             children:[
               const SizedBox(height: 15),
               GetBuilder<Controller>(
-                builder: (_) => Container(
-                  alignment: Alignment.center,
-                  height: 45,
-                  child: ToggleButtons(
-                    fillColor: backgroundColor,
-                    borderRadius: const BorderRadius.all(
-                        Radius.circular(10)
-                    ),
-                    children: <Widget>[
-                      SizedBox(
-                        width: (MediaQuery.of(context).size.width-23)/2,
-                        child: Text(
-                          c.language.string == 'VN'? 'Theo phân loại'
-                              : 'By distinguishing',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: textColor,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      SizedBox(
-                        width: (MediaQuery.of(context).size.width-23)/2,
-                        child: Text(
-                          c.language.string == 'VN'? 'Theo thời gian'
-                              : 'By time',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: textColor,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
-                    onPressed: (int index) async {
-                      for (var i=0;i<2;i++){
-                        i!=index? c.isSortScore[i] = false
-                            : c.isSortScore[i] = true;
-                      }
-                      await findScore();
-                    },
-                    isSelected: c.isSortScore,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              GetBuilder<Controller>(
-                builder: (_) => Visibility(
-                    visible: c.isSortScore[0],
-                    child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              const SizedBox(width: 10),
-                              Container(
-                                alignment: Alignment.center,
-                                height: 40,
-                                child: ToggleButtons(
-                                  fillColor: backgroundColor,
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(10)
+                builder: (_) => Column(
+                    children: [
+                      Row(
+                          children:[
+                            const SizedBox(width:10),
+                            Expanded(
+                              child: OutlinedButton(
+                                style: ButtonStyle(
+                                  backgroundColor: MaterialStateProperty.all<Color>(
+                                      Colors.white
                                   ),
-                                  children: <Widget>[
-                                    SizedBox(
-                                      width: 70,
-                                      child: Text(
-                                        c.language.string == 'VN'? 'chủ đề':'category',
-                                        style: const TextStyle(
-                                          color: textColor,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: 70,
-                                      child: Text(
-                                        c.language.string == 'VN'? 'từ loại':'type',
-                                        style: const TextStyle(
-                                          color: textColor,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                  onPressed: (int index) {
-                                    for (var i=0;i<2;i++){
-                                      i!=index? c.isSelectedSortScore[i] = false
-                                          : c.isSelectedSortScore[i] = true;
-                                    }
-                                    c.update();
-                                  },
-                                  isSelected: c.isSelectedSortScore,
+                                  foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                                  padding: MaterialStateProperty.all<EdgeInsets>(
+                                      const EdgeInsets.all(0)
+                                  ),
+                                  shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                      RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10.0),
+                                      )
+                                  ),
+                                  fixedSize: MaterialStateProperty.all<Size>(
+                                      const Size.fromHeight(45)
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 10),
-                              PopupMenuButton<String>(
-                                onSelected: (String word) async {
-                                  if (c.isSelectedSortScore[0]){
-                                    c.categoryIndexScore = RxInt(c.listCategory.indexOf(word));
-                                    c.typeIndexScore = 0.obs;
-                                  }else{
-                                    c.typeIndexScore = RxInt(c.listType.indexOf(word));
-                                    c.categoryIndexScore = 0.obs;
+                                onPressed: () async {
+                                  if (c.isEndDayOpen.value){
+                                    c.isEndDayOpen = false.obs;
                                   }
-                                  await findScore();
+                                  c.isStartDayOpen = RxBool(!c.isStartDayOpen.value);
+                                  c.update();
                                 },
-                                padding: const EdgeInsets.all(0),
-                                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                                  for (int i=0; i<(c.isSelectedSortScore[0]? c.listCategory.length:c.listType.length); i++)
-                                    PopupMenuItem<String>(
-                                        value: c.isSelectedSortScore[0]? c.listCategory[i]:c.listType[i],
-                                        padding: const EdgeInsets.fromLTRB(6,0,6,0),
-                                        child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                c.isSelectedSortScore[0]? c.listCategory[i]:c.listType[i],
-                                                style: const TextStyle(
-                                                  fontSize: 15,
-                                                  color: textColor,
-                                                ),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ]
-                                        )
-                                    ),
-                                ],
-                                // color: themeColor,
-                                child: Row(
-                                    children: [
-                                      Text(
-                                        c.isSelectedSortScore[0]? c.listCategory[c.categoryIndexScore.value]:c.listType[c.typeIndexScore.value],
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          color: textColor,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                        textAlign: TextAlign.left,
-                                      ),
-                                      const Icon(
-                                        Icons.keyboard_arrow_down,
-                                        size: 25,
-                                      ),
-                                    ]
-                                ),
-                                shape: const RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.all(Radius.circular(20.0))
-                                ),
-                              ),
-                              Expanded(
-                                child: PopupMenuButton<String>(
-                                  onSelected: (String word) async {
-                                    c.levelIndexScore = RxInt(c.listLevel.indexOf(word));
-                                    await findScore();
-                                  },
-                                  padding: const EdgeInsets.all(0),
-                                  itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                                    for (int i=0; i<c.listLevel.length; i++)
-                                      PopupMenuItem<String>(
-                                          value: c.listLevel[i],
-                                          padding: const EdgeInsets.fromLTRB(6,0,6,0),
-                                          child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                Text(
-                                                  c.listLevel[i],
-                                                  style: const TextStyle(
-                                                    fontSize: 15,
-                                                    color: textColor,
-                                                  ),
-                                                  textAlign: TextAlign.center,
-                                                ),
-                                              ]
-                                          )
-                                      ),
-                                  ],
-                                  // color: themeColor,
-                                  child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          c.listLevel[c.levelIndexScore.value],
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            color: textColor,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                          textAlign: TextAlign.right,
-                                        ),
-                                        const Icon(
-                                          Icons.keyboard_arrow_down,
-                                          size: 25,
-                                        ),
-                                      ]
-                                  ),
-                                  shape: const RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.all(Radius.circular(20.0))
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                              children:[
-                                const SizedBox(width: 13),
-                                Expanded(
-                                  child: GetBuilder<Controller>(
-                                    builder: (_) => Text(
-                                      (c.language.string == 'VN'? 'đã học (' : 'learned (')
-                                          + c.listLearned.length.toString() + ')',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: textColor,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                      textAlign: TextAlign.left,
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: GetBuilder<Controller>(
-                                    builder: (_) => Text(
-                                      (c.language.string == 'VN'? 'chưa học (' : 'not yet (')
-                                          + (c.listWordScore.length - c.listLearned.length).toString() + ')',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: textColor,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                      textAlign: TextAlign.right,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 13),
-                              ]
-                          ),
-                          const SizedBox(height: 3),
-                          Row(
-                              children: [
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: GetBuilder<Controller>(
-                                    builder: (_) => LinearPercentIndicator(
-                                      alignment: MainAxisAlignment.center,
-                                      // width: MediaQuery.of(context).size.width-20,
-                                      lineHeight: 18,
-                                      percent: c.listLearned.length/c.listWordScore.length,
-                                      backgroundColor: const Color.fromRGBO(235, 235, 235, 1),
-                                      progressColor: backgroundColor,
-                                      // padding: const EdgeInsets.all(5),
-                                      animation: true,
-                                      center: Text(
-                                          c.listWordScore.length.toString() +
-                                              (c.language.string == 'VN'? ' từ' : ' words'),
-                                          style: const TextStyle(
-                                            fontSize: 10,
-                                          )
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                              ]
-                          ),
-                        ]
-                    )
-                ),
-              ),
-              GetBuilder<Controller>(
-                builder: (_) => Visibility(
-                    visible: c.isSortScore[1],
-                    child: Column(
-                        children: [
-                          Row(
-                              children:[
-                                const SizedBox(width:10),
-                                Expanded(
-                                  child: OutlinedButton(
-                                    style: ButtonStyle(
-                                      backgroundColor: MaterialStateProperty.all<Color>(
-                                          Colors.white
-                                      ),
-                                      foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                                      padding: MaterialStateProperty.all<EdgeInsets>(
-                                          const EdgeInsets.all(0)
-                                      ),
-                                      shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                          RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(10.0),
-                                          )
-                                      ),
-                                      fixedSize: MaterialStateProperty.all<Size>(
-                                          const Size.fromHeight(45)
-                                      ),
-                                    ),
-                                    onPressed: () async {
-                                      if (c.isEndDayOpen.value){
-                                        c.isEndDayOpen = false.obs;
-                                      }
-                                      c.isStartDayOpen = RxBool(!c.isStartDayOpen.value);
-                                      c.update();
-                                    },
-                                    child: Text(
-                                      DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(c.startDay.value)),
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        color: textColor,
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width:10),
-                                const Text(
-                                  '-',
-                                  style: TextStyle(
+                                child: Text(
+                                  DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(c.startDay.value)),
+                                  style: const TextStyle(
                                     fontSize: 14,
                                     color: textColor,
+                                    fontWeight: FontWeight.w400,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                   textAlign: TextAlign.center,
                                 ),
-                                const SizedBox(width:10),
-                                Expanded(
-                                  child: OutlinedButton(
-                                    style: ButtonStyle(
-                                      backgroundColor: MaterialStateProperty.all<Color>(
-                                          Colors.white
-                                      ),
-                                      foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                                      padding: MaterialStateProperty.all<EdgeInsets>(
-                                          const EdgeInsets.all(0)
-                                      ),
-                                      shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                          RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(10.0),
-                                          )
-                                      ),
-                                      fixedSize: MaterialStateProperty.all<Size>(
-                                          const Size.fromHeight(45)
-                                      ),
-                                    ),
-                                    onPressed: () async {
-                                      if (c.isStartDayOpen.value){
-                                        c.isStartDayOpen = false.obs;
-                                      }
-                                      c.isEndDayOpen = RxBool(!c.isEndDayOpen.value);
-                                      c.update();
-                                    },
-                                    child: Text(
-                                      DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(c.endDay.value)),
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        color: textColor,
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                      textAlign: TextAlign.center,
-                                    ),
+                              ),
+                            ),
+                            const SizedBox(width:10),
+                            const Text(
+                              '-',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: textColor,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(width:10),
+                            Expanded(
+                              child: OutlinedButton(
+                                style: ButtonStyle(
+                                  backgroundColor: MaterialStateProperty.all<Color>(
+                                      Colors.white
+                                  ),
+                                  foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                                  padding: MaterialStateProperty.all<EdgeInsets>(
+                                      const EdgeInsets.all(0)
+                                  ),
+                                  shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                      RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10.0),
+                                      )
+                                  ),
+                                  fixedSize: MaterialStateProperty.all<Size>(
+                                      const Size.fromHeight(45)
                                   ),
                                 ),
-                                const SizedBox(width:10),
-                                TextButton(
-                                  style: ButtonStyle(
-                                    backgroundColor: MaterialStateProperty.all<Color>(
-                                        backgroundColor
-                                    ),
-                                    foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                                    padding: MaterialStateProperty.all<EdgeInsets>(
-                                        const EdgeInsets.all(0)
-                                    ),
-                                    shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                        RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10.0),
-                                        )
-                                    ),
-                                    fixedSize: MaterialStateProperty.all<Size>(
-                                        const Size.fromHeight(45)
-                                    ),
-                                  ),
-                                  onPressed: () async {
+                                onPressed: () async {
+                                  if (c.isStartDayOpen.value){
                                     c.isStartDayOpen = false.obs;
-                                    c.isEndDayOpen = false.obs;
-                                    await findScore();
-                                  },
-                                  child: const Text(
-                                    'ok',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: textColor,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                    textAlign: TextAlign.center,
+                                  }
+                                  c.isEndDayOpen = RxBool(!c.isEndDayOpen.value);
+                                  c.update();
+                                },
+                                child: Text(
+                                  DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(c.endDay.value)),
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: textColor,
+                                    fontWeight: FontWeight.w400,
                                   ),
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
                                 ),
-                                const SizedBox(width:10),
-                              ]
-                          ),
-                          Visibility(
-                            visible: c.isStartDayOpen.value,
-                            child: Column(
-                                children:[
-                                  const SizedBox(height:10),
-                                  SizedBox(
-                                    height: 100,
-                                    width: MediaQuery.of(context).size.width,
-                                    child: CupertinoDatePicker(
-                                      mode: CupertinoDatePickerMode.date,
-                                      initialDateTime: DateTime.fromMillisecondsSinceEpoch(c.startDay.value),
-                                      minimumDate: DateTime(2021,12,25),
-                                      maximumDate: DateTime.now().add(const Duration(days: 1)),
-                                      onDateTimeChanged: (DateTime newDateTime) {
-                                        c.startDay = RxInt(newDateTime.millisecondsSinceEpoch);
-                                        c.update();
-                                      },
-                                    ),
-                                  ),
-                                ]
+                              ),
                             ),
-                          ),
-                          Visibility(
-                            visible: c.isEndDayOpen.value,
-                            child: Column(
-                                children:[
-                                  const SizedBox(height:10),
-                                  SizedBox(
-                                    height: 100,
-                                    width: MediaQuery.of(context).size.width,
-                                    child: CupertinoDatePicker(
-                                      mode: CupertinoDatePickerMode.date,
-                                      initialDateTime: DateTime.fromMillisecondsSinceEpoch(c.endDay.value),
-                                      minimumDate: DateTime(2021,12,25),
-                                      maximumDate: DateTime.now().add(const Duration(days: 1)),
-                                      onDateTimeChanged: (DateTime newDateTime) {
-                                        c.endDay = RxInt(newDateTime.millisecondsSinceEpoch);
-                                        c.update();
-                                      },
-                                    ),
-                                  ),
-                                ]
+                            const SizedBox(width:10),
+                            TextButton(
+                              style: ButtonStyle(
+                                backgroundColor: MaterialStateProperty.all<Color>(
+                                    backgroundColor
+                                ),
+                                foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                                padding: MaterialStateProperty.all<EdgeInsets>(
+                                    const EdgeInsets.all(0)
+                                ),
+                                shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10.0),
+                                    )
+                                ),
+                                fixedSize: MaterialStateProperty.all<Size>(
+                                    const Size.fromHeight(45)
+                                ),
+                              ),
+                              onPressed: () async {
+                                c.isStartDayOpen = false.obs;
+                                c.isEndDayOpen = false.obs;
+                                await findScore();
+                              },
+                              child: const Text(
+                                'ok',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: textColor,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                              ),
                             ),
-                          ),
-                        ]
-                    )
+                            const SizedBox(width:10),
+                          ]
+                      ),
+                      Visibility(
+                        visible: c.isStartDayOpen.value,
+                        child: Column(
+                            children:[
+                              const SizedBox(height:10),
+                              SizedBox(
+                                height: 100,
+                                width: MediaQuery.of(context).size.width,
+                                child: CupertinoDatePicker(
+                                  mode: CupertinoDatePickerMode.date,
+                                  initialDateTime: DateTime.fromMillisecondsSinceEpoch(c.startDay.value),
+                                  minimumDate: DateTime(2021,12,25),
+                                  maximumDate: DateTime.now().add(const Duration(days: 1)),
+                                  onDateTimeChanged: (DateTime newDateTime) {
+                                    c.startDay = RxInt(newDateTime.millisecondsSinceEpoch);
+                                    c.update();
+                                  },
+                                ),
+                              ),
+                            ]
+                        ),
+                      ),
+                      Visibility(
+                        visible: c.isEndDayOpen.value,
+                        child: Column(
+                            children:[
+                              const SizedBox(height:10),
+                              SizedBox(
+                                height: 100,
+                                width: MediaQuery.of(context).size.width,
+                                child: CupertinoDatePicker(
+                                  mode: CupertinoDatePickerMode.date,
+                                  initialDateTime: DateTime.fromMillisecondsSinceEpoch(c.endDay.value),
+                                  minimumDate: DateTime(2021,12,25),
+                                  maximumDate: DateTime.now().add(const Duration(days: 1)),
+                                  onDateTimeChanged: (DateTime newDateTime) {
+                                    c.endDay = RxInt(newDateTime.millisecondsSinceEpoch);
+                                    c.update();
+                                  },
+                                ),
+                              ),
+                            ]
+                        ),
+                      ),
+                    ]
                 ),
               ),
               Row(
@@ -5090,10 +7863,8 @@ class ScorePage extends StatelessWidget {
                               pageCount*c.indexScorePage.value+pageCount:
                               pageCount*c.indexScorePage.value+c.listLearned.length%pageCount); i++)
                                 GestureDetector(
-                                  onTap: () async{
-                                    await setHome();
-                                    await getWord(c.listLearned[i].wordId);
-                                    Get.to(()=>Home());
+                                  onTap: () {
+                                    getSearch(c.listLearned[i].wordId);
                                   },
                                   child: Container(
                                     // height: 105,
@@ -5231,27 +8002,958 @@ class ScorePage extends StatelessWidget {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: backgroundColor,
-        child: GetBuilder<Controller>(
-          builder: (_) => Text(
-            c.newRandomWordTitle.string,
-            style: const TextStyle(
-              color: textColor,
-              fontSize: 10,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-        onPressed: () async {
-          if (c.listWordScore.isNotEmpty){
-            await setHome();
-            await getNewWord();
-            Get.to(()=>Home());
+    );
+  }
+}
+
+class ScorePage extends StatefulWidget {
+  const ScorePage({Key? key}) : super(key: key);
+
+  @override
+  State<ScorePage> createState() => _ScorePageState();
+}
+
+class _ScorePageState extends State<ScorePage> {
+  final Controller c = Get.put(Controller());
+  final int pageCount = 50;
+  List<String> listWord = [];
+  List listShow = [];
+  List<Score> listScore = [];
+  int count = 0;
+
+  @override
+  void initState() {
+    getList(c.part.value);
+    super.initState();
+  }
+
+  Future getList(int i) async {
+    switch(c.bundle.string) {
+      case 'IELTS':
+        listWord = ieltsList;
+        break;
+      case 'TOEIC':
+        listWord = toeicList;
+        break;
+      case 'TOEFL':
+        listWord = toeflList;
+        break;
+      case 'ESSENTIAL':
+        listWord = essentialList;
+        break;
+      case 'CƠ BẢN':
+        listWord = essentialList;
+        break;
+      default:
+        listWord = c.listWordScore.toList();
+    }
+    c.listWordScorePage.clear();
+    for (var j=0;j<(i<(listWord.length/pageCount).ceil()-1?pageCount:(listWord.length-pageCount*i));j++){
+      c.listWordScorePage.add(listWord[i*pageCount+j]);
+    }
+    // print(c.listWordScorePage);
+    c.part = RxInt(i);
+    List _listShow = [];
+    List<Score> _listScore = [];
+    int _count = 0;
+    for (int i=0;i<c.listWordScorePage.length;i++){
+      var dataRaw = await box.get(c.listWordScorePage[i]);
+      var nowWord = await boxScore.get(c.listWordScorePage[i]);
+      if (nowWord[5]>0) _count++;
+      _listShow.add(dataRaw);
+      _listScore.add(Score(
+          wordId: nowWord[0],
+          word: nowWord[1],
+          pronun: nowWord[2],
+          speak: nowWord[3],
+          mean: nowWord[4],
+          total: nowWord[5],
+          time: nowWord[6])
+      );
+    }
+    setState((){
+      listShow = _listShow;
+      listScore = _listScore;
+      count = _count;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    void getToHome(String word) {
+      if (!c.isAdShowing.value){
+        void toScore() async {
+          c.isAdShowing = false.obs;
+          await c.layWord(word);
+          c.fromScreen = 1.obs;
+          Get.offAll(()=>Home());
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
+
+    void getBack() {
+      if (!c.isAdShowing.value){
+        void toScore() {
+          c.isAdShowing = false.obs;
+          if (c.category.string != 'all category'){
+            Get.offAll(()=> const CategoryScreen());
           }else{
-            Get.to(()=>Home());
+            if (c.type.string != 'all type'){
+              Get.offAll(()=> const TypeScreen());
+            }else{
+              Get.offAll(()=> MainScreen());
+            }
           }
         }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
+
+    void getNext() {
+      if (!c.isAdShowing.value){
+        void toScore() {
+          c.isAdShowing = false.obs;
+          if (listWord.length>pageCount*(c.part.value+1)){
+            c.part = RxInt(c.part.value+1);
+            getList(c.part.value);
+          }
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
+
+    void getPrevious() {
+      if (!c.isAdShowing.value){
+        void toScore() {
+          c.isAdShowing = false.obs;
+          if (c.part.value>0){
+            c.part = RxInt(c.part.value-1);
+            getList(c.part.value);
+          }
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
+
+    return AnnotatedRegion(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent, //i like transaparent :-)
+        systemNavigationBarColor: Colors.white, // navigation bar color
+        statusBarIconBrightness: Brightness.light, // status bar icons' color
+        systemNavigationBarIconBrightness: Brightness.light, //navigation bar icons' color
+      ),
+      child: WillPopScope(
+        onWillPop: () async {
+          getBack();
+          return false;
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(
+              c.bundle.string,
+              style: TextStyle(
+                fontSize: 18,
+                color: textColor.withOpacity(0.7),
+              ),
+              overflow: TextOverflow.ellipsis,
+              // textAlign: TextAlign.left,
+            ),
+            leading: IconButton(
+              padding: const EdgeInsets.all(0.0),
+              icon: Icon(
+                Icons.arrow_back_ios_rounded, size: 20,
+                color: textColor.withOpacity(0.7),
+              ),
+              tooltip: 'Back',
+              onPressed: () {
+                getBack();
+              },
+            ),
+            centerTitle: true,
+            backgroundColor: Colors.white,
+            bottomOpacity: 0.0,
+            elevation: 0.0,
+          ),
+          body: GestureDetector(
+            onHorizontalDragEnd: (details) async {
+              if (details.primaryVelocity! > 0) {
+                getPrevious();
+              }
+              if (details.primaryVelocity! < -0) {
+                getNext();
+              }
+            },
+            child: Container(
+              color: Colors.white,
+              // width: MediaQuery.of(context).size.width,
+              alignment: Alignment.center,
+              child: Column(
+                children:[
+                  // const SizedBox(height: 5),
+                  Row(
+                      children:[
+                        const SizedBox(width: 20),
+                        GetBuilder<Controller>(
+                          builder: (_) => CircularPercentIndicator(
+                            radius: 20,
+                            lineWidth: 3.0,
+                            animation: true,
+                            percent: count/c.listWordScorePage.length,
+                            backgroundColor: const Color.fromRGBO(240, 240, 240, 1),
+                            progressColor: backgroundColor,
+                            // center: Text(
+                            //   c.learnedIelts.length.toString(),
+                            //   style: const TextStyle(
+                            //     fontSize: 9,
+                            //     color: textColor,
+                            //   ),
+                            // ),
+                            circularStrokeCap: CircularStrokeCap.round,
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        GetBuilder<Controller>(
+                          builder: (_) => PopupMenuButton<String>(
+                            onSelected: (String word) async {
+                              c.part = RxInt(int.parse(word.substring(5,word.indexOf('/')))-1);
+                              c.update();
+                              getList(c.part.value);
+                            },
+                            padding: const EdgeInsets.all(0),
+                            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                              for (int i=0; i<(listWord.length/pageCount).ceil(); i++)
+                                PopupMenuItem<String>(
+                                    value: (c.language.string == 'VN'? 'Phần ':'Part ')
+                                        + (i+1).toString()
+                                        + '/' + (listWord.length/pageCount).ceil().toString(),
+                                    padding: const EdgeInsets.fromLTRB(5,0,5,0),
+                                    child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            (c.language.string == 'VN'? 'Phần ':'Part ') + (i+1).toString()
+                                                + '/' + (listWord.length/pageCount).ceil().toString(),
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              color: textColor,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ]
+                                    )
+                                ),
+                            ],
+                            // color: themeColor,
+                            child: Row(
+                                children: [
+                                  Text(
+                                    (c.language.string == 'VN'? 'Phần ':'Part ') + (c.part.value+1).toString()
+                                        + '/' + (listWord.length/pageCount).ceil().toString(),
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      color: textColor,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.left,
+                                  ),
+                                ]
+                            ),
+                            shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(Radius.circular(20.0))
+                            ),
+                          ),
+                        ),
+                        const Expanded(child: SizedBox()),
+                        GetBuilder<Controller>(
+                          builder: (_) => Opacity(
+                            opacity: c.part.value>0? 1: 0.3,
+                            child: IconButton(
+                              padding: const EdgeInsets.all(0.0),
+                              icon: const Icon(
+                                Icons.arrow_back_ios,
+                                size: 20,
+                              ),
+                              tooltip: 'previous',
+                              onPressed: () {
+                                getPrevious();
+                              },
+                            ),
+                          ),
+                        ),
+                        GetBuilder<Controller>(
+                          builder: (_) => Opacity(
+                            opacity: listWord.length>pageCount*(c.part.value+1)? 1: 0.3,
+                            child: IconButton(
+                              padding: const EdgeInsets.all(0.0),
+                              icon: const Icon(
+                                Icons.arrow_forward_ios,
+                                size: 20,
+                              ),
+                              tooltip: 'next',
+                              onPressed: () {
+                                getNext();
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                      ]
+                  ),
+                  Expanded(
+                    child: GetBuilder<Controller>(
+                      builder: (_) => MediaQuery.of(context).size.width<600?
+                      ListView.builder(
+                        padding: const EdgeInsets.all(0),
+                        addAutomaticKeepAlives: false,
+                        itemCount: listShow.length,
+                        itemBuilder: (BuildContext context, int i) {
+                          String mean = '';
+                          String image = 'bedict.png';
+                          var dataRaw = listShow[i];
+                          List listMeans = jsonDecode(dataRaw['mean']);
+                          int count = 0;
+                          int firstMean = 0;
+                          for (var j=listMeans.length-1;j>=0;j--){
+                            if (checkSubMean(listMeans[j].cast<String>())){
+                              count++;
+                              firstMean = j;
+                            }
+                          }
+                          List listMean = listMeans[firstMean];
+                          List meanENAdd = [];
+                          List meanVNAdd = [];
+                          for(var j = 0; j< listMean.length; j++) {
+                            String meanENElement = '';
+                            if(listMean[j].contains('#')){
+                              meanENElement = listMean[j].split('#')[1];
+                            }else{
+                              meanENElement = listMean[j];
+                            }
+                            meanENAdd.add(meanENElement);
+                            String meanVNElement = jsonDecode(dataRaw['meanVN'])[firstMean][j];
+                            meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
+                            meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
+                            meanVNAdd.add(meanVNElement);
+                          }
+                          String meanEN = '';
+                          String meanVN = '';
+                          for(var j = 0; j< meanENAdd.length; j++) {
+                            if (j==0){
+                              meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                              meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                            }else{
+                              meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                              meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                            }
+                          }
+                          if (c.language.string == 'VN'){
+                            mean = meanVN;
+                          }else{
+                            mean = meanEN;
+                          }
+                          if (jsonDecode(dataRaw['imageURL']).length>firstMean){
+                            image = jsonDecode(dataRaw['imageURL'])[firstMean];
+                          }
+                          return GestureDetector(
+                            onTap: () async {
+                              c.nowWord = RxInt(i);
+                              getToHome(dataRaw['word']);
+                            },
+                            child: Row(
+                                children: [
+                                  const SizedBox(width:8),
+                                  Container(
+                                      margin: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: const BorderRadius.all(
+                                            Radius.circular(8)
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.6),
+                                            spreadRadius: 0,
+                                            blurRadius: 5,
+                                            offset: const Offset(5, 5), // changes position of shadow
+                                          ),
+                                        ],
+                                      ),
+                                      width: (MediaQuery.of(context).size.width-60)/2,
+                                      height: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                      child: Stack(
+                                          children:[
+                                            ClipRRect(
+                                              borderRadius: BorderRadius.circular(8),
+                                              child: ImageFiltered(
+                                                imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                                child: Opacity(
+                                                  opacity: 0.8,
+                                                  child: Image(
+                                                    image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                    fit: BoxFit.cover,
+                                                    width: (MediaQuery.of(context).size.width-60)/2,
+                                                    height: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                                    errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                      return const SizedBox();
+                                                    },
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            ClipRRect(
+                                              borderRadius: BorderRadius.circular(8),
+                                              child: Image(
+                                                image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                fit: BoxFit.contain,
+                                                width: (MediaQuery.of(context).size.width-60)/2,
+                                                height: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                                errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                  return const SizedBox();
+                                                },
+                                              ),
+                                            ),
+                                            count>1?
+                                            Positioned(
+                                                right: 7,
+                                                bottom: 7,
+                                                child: Container(
+                                                    alignment: Alignment.center,
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white.withOpacity(0.7),
+                                                      borderRadius: const BorderRadius.all(
+                                                          Radius.circular(20)
+                                                      ),
+                                                    ),
+                                                    height: 40,
+                                                    width: 40,
+                                                    child: Text(
+                                                      '+ ' + (count-1).toString(),
+                                                    )
+                                                )
+                                            )
+                                                : const SizedBox(),
+                                          ]
+                                      )
+                                  ),
+                                  const SizedBox(width:10),
+                                  Expanded(
+                                    child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children:[
+                                          // const SizedBox(height: 8),
+                                          Text(
+                                            dataRaw['word'],
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w600,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 5),
+                                          Text(
+                                            dataRaw['pronun'],
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w400,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 5),
+                                          Text(
+                                            mean,
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w400,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Row(
+                                              children: [
+                                                // const SizedBox(width:10),
+                                                CircularPercentIndicator(
+                                                  radius: (MediaQuery.of(context).size.width-100)/8,
+                                                  lineWidth: 2.0,
+                                                  animation: true,
+                                                  percent: listScore[i].word/25,
+                                                  backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                                  center: Text(
+                                                    c.scoreWord.string,
+                                                    style: TextStyle(
+                                                      fontSize: 10.0,
+                                                      color: textColor.withOpacity(0.5),
+                                                    ),
+                                                  ),
+                                                  circularStrokeCap: CircularStrokeCap.round,
+                                                  progressColor: Colors.purple,
+                                                ),
+                                                const SizedBox(width:5),
+                                                CircularPercentIndicator(
+                                                  radius: (MediaQuery.of(context).size.width-100)/8,
+                                                  lineWidth: 2.0,
+                                                  animation: true,
+                                                  percent: listScore[i].pronun/25,
+                                                  backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                                  center: Text(
+                                                    c.scorePronun.string,
+                                                    style: TextStyle(
+                                                      fontSize: 10.0,
+                                                      color: textColor.withOpacity(0.5),
+                                                    ),
+                                                  ),
+                                                  circularStrokeCap: CircularStrokeCap.round,
+                                                  progressColor: Colors.purple,
+                                                ),
+                                                const SizedBox(width:5),
+                                                CircularPercentIndicator(
+                                                  radius: (MediaQuery.of(context).size.width-100)/8,
+                                                  lineWidth: 2.0,
+                                                  animation: true,
+                                                  percent: listScore[i].speak/25,
+                                                  backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                                  center: Text(
+                                                    c.scoreSpeak.string,
+                                                    style: TextStyle(
+                                                      fontSize: 10.0,
+                                                      color: textColor.withOpacity(0.5),
+                                                    ),
+                                                  ),
+                                                  circularStrokeCap: CircularStrokeCap.round,
+                                                  progressColor: Colors.purple,
+                                                ),
+                                                const SizedBox(width:5),
+                                                CircularPercentIndicator(
+                                                  radius: (MediaQuery.of(context).size.width-100)/8,
+                                                  lineWidth: 2.0,
+                                                  animation: true,
+                                                  percent: listScore[i].mean/25,
+                                                  backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                                  center: Text(
+                                                    c.scoreMean.string,
+                                                    style: TextStyle(
+                                                      fontSize: 10.0,
+                                                      color: textColor.withOpacity(0.5),
+                                                    ),
+                                                  ),
+                                                  circularStrokeCap: CircularStrokeCap.round,
+                                                  progressColor: Colors.purple,
+                                                ),
+                                                // const SizedBox(width:10),
+                                              ]
+                                          ),
+                                        ]
+                                    ),
+                                  ),
+                                  const SizedBox(width:8),
+                                ]
+                            ),
+                          );
+                        },
+                      )
+                      : GridView.count(
+                        crossAxisCount: MediaQuery.of(context).size.width~/300,
+                        addAutomaticKeepAlives: false,
+                        children: List.generate(listShow.length, (i) {
+                          String mean = '';
+                          String image = 'bedict.png';
+                          var dataRaw = listShow[i];
+                          List listMeans = jsonDecode(dataRaw['mean']);
+                          int count = 0;
+                          int firstMean = 0;
+                          for (var j=listMeans.length-1;j>=0;j--){
+                            if (checkSubMean(listMeans[j].cast<String>())){
+                              count++;
+                              firstMean = j;
+                            }
+                          }
+                          List listMean = listMeans[firstMean];
+                          List meanENAdd = [];
+                          List meanVNAdd = [];
+                          for(var j = 0; j< listMean.length; j++) {
+                            String meanENElement = '';
+                            if(listMean[j].contains('#')){
+                              meanENElement = listMean[j].split('#')[1];
+                            }else{
+                              meanENElement = listMean[j];
+                            }
+                            meanENAdd.add(meanENElement);
+                            String meanVNElement = jsonDecode(dataRaw['meanVN'])[firstMean][j];
+                            meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
+                            meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
+                            meanVNAdd.add(meanVNElement);
+                          }
+                          String meanEN = '';
+                          String meanVN = '';
+                          for(var j = 0; j< meanENAdd.length; j++) {
+                            if (j==0){
+                              meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                              meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                            }else{
+                              meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                              meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                            }
+                          }
+                          if (c.language.string == 'VN'){
+                            mean = meanVN;
+                          }else{
+                            mean = meanEN;
+                          }
+                          if (jsonDecode(dataRaw['imageURL']).length>firstMean){
+                            image = jsonDecode(dataRaw['imageURL'])[firstMean];
+                          }
+                          return GestureDetector(
+                            onTap: () {
+                              c.nowWord = RxInt(i);
+                              getToHome(dataRaw['word']);
+                            },
+                            child: Row(
+                              children: [
+                                const Expanded(child:SizedBox()),
+                                SizedBox(
+                                  width: 300,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Row(
+                                          children:[
+                                            Container(
+                                                margin: const EdgeInsets.all(10),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius: const BorderRadius.all(
+                                                      Radius.circular(8)
+                                                  ),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black.withOpacity(0.6),
+                                                      spreadRadius: 0,
+                                                      blurRadius: 5,
+                                                      offset: const Offset(5, 5), // changes position of shadow
+                                                    ),
+                                                  ],
+                                                ),
+                                                width: 240,
+                                                height: 200,
+                                                child: Stack(
+                                                    children:[
+                                                      ClipRRect(
+                                                        borderRadius: BorderRadius.circular(8),
+                                                        child: ImageFiltered(
+                                                          imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                                          child: Opacity(
+                                                            opacity: 0.8,
+                                                            child: Image(
+                                                              image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                              fit: BoxFit.cover,
+                                                              width: 240,
+                                                              height: 200,
+                                                              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                                return const SizedBox();
+                                                              },
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      ClipRRect(
+                                                        borderRadius: BorderRadius.circular(8),
+                                                        child: Image(
+                                                          image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                          fit: BoxFit.contain,
+                                                          width: 240,
+                                                          height: 200,
+                                                          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                            return const SizedBox();
+                                                          },
+                                                        ),
+                                                      ),
+                                                      count>1?
+                                                      Positioned(
+                                                          right: 7,
+                                                          bottom: 7,
+                                                          child: Container(
+                                                              alignment: Alignment.center,
+                                                              decoration: BoxDecoration(
+                                                                color: Colors.white.withOpacity(0.7),
+                                                                borderRadius: const BorderRadius.all(
+                                                                    Radius.circular(20)
+                                                                ),
+                                                              ),
+                                                              height: 40,
+                                                              width: 40,
+                                                              child: Text(
+                                                                '+ ' + (count-1).toString(),
+                                                              )
+                                                          )
+                                                      )
+                                                          : const SizedBox(),
+                                                    ]
+                                                )
+                                            ),
+                                            Column(
+                                                children: [
+                                                  // const SizedBox(width:10),
+                                                  CircularPercentIndicator(
+                                                    radius: 38,
+                                                    lineWidth: 2.0,
+                                                    animation: true,
+                                                    percent: listScore[i].word/25,
+                                                    backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                                    center: Text(
+                                                      c.scoreWord.string,
+                                                      style: TextStyle(
+                                                        fontSize: 10.0,
+                                                        color: textColor.withOpacity(0.5),
+                                                      ),
+                                                    ),
+                                                    circularStrokeCap: CircularStrokeCap.round,
+                                                    progressColor: Colors.purple,
+                                                  ),
+                                                  const SizedBox(height:5),
+                                                  CircularPercentIndicator(
+                                                    radius: 38,
+                                                    lineWidth: 2.0,
+                                                    animation: true,
+                                                    percent: listScore[i].pronun/25,
+                                                    backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                                    center: Text(
+                                                      c.scorePronun.string,
+                                                      style: TextStyle(
+                                                        fontSize: 10.0,
+                                                        color: textColor.withOpacity(0.5),
+                                                      ),
+                                                    ),
+                                                    circularStrokeCap: CircularStrokeCap.round,
+                                                    progressColor: Colors.purple,
+                                                  ),
+                                                  const SizedBox(height:5),
+                                                  CircularPercentIndicator(
+                                                    radius: 38,
+                                                    lineWidth: 2.0,
+                                                    animation: true,
+                                                    percent: listScore[i].speak/25,
+                                                    backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                                    center: Text(
+                                                      c.scoreSpeak.string,
+                                                      style: TextStyle(
+                                                        fontSize: 10.0,
+                                                        color: textColor.withOpacity(0.5),
+                                                      ),
+                                                    ),
+                                                    circularStrokeCap: CircularStrokeCap.round,
+                                                    progressColor: Colors.purple,
+                                                  ),
+                                                  const SizedBox(height:5),
+                                                  CircularPercentIndicator(
+                                                    radius: 38,
+                                                    lineWidth: 2.0,
+                                                    animation: true,
+                                                    percent: listScore[i].mean/25,
+                                                    backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                                    center: Text(
+                                                      c.scoreMean.string,
+                                                      style: TextStyle(
+                                                        fontSize: 10.0,
+                                                        color: textColor.withOpacity(0.5),
+                                                      ),
+                                                    ),
+                                                    circularStrokeCap: CircularStrokeCap.round,
+                                                    progressColor: Colors.purple,
+                                                  ),
+                                                  // const SizedBox(width:10),
+                                                ]
+                                            ),
+                                          ]
+                                      ),
+                                      const SizedBox(height:5),
+                                      Row(
+                                          children:[
+                                            const SizedBox(width:10),
+                                            Expanded(
+                                              child: Text(
+                                                dataRaw['word'],
+                                                style: const TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.w600,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width:10),
+                                          ]
+                                      ),
+                                      const SizedBox(height:5),
+                                      Row(
+                                          children:[
+                                            const SizedBox(width:10),
+                                            Expanded(
+                                              child: Text(
+                                                dataRaw['pronun'],
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w400,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                                // textAlign: TextAlign.right,
+                                              ),
+                                            ),
+                                            const SizedBox(width:10),
+                                          ]
+                                      ),
+                                      const SizedBox(height:5),
+                                      Row(
+                                          children:[
+                                            const SizedBox(width:10),
+                                            Expanded(
+                                              child: Text(
+                                                mean,
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w400,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width:10),
+                                          ]
+                                      ),
+                                    ]
+                                  ),
+                                ),
+                                const Expanded(child:SizedBox()),
+                              ]
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -5265,123 +8967,79 @@ class MyUpgradePage extends StatelessWidget {
 
     final Controller c = Get.put(Controller());
 
-    return Scaffold(
-      appBar: AppBar(
-        title: GetBuilder<Controller>(
-          builder: (_) => Text(
-            c.drawerUpgrade.string.toUpperCase(),
-            style: const TextStyle(
-              color: Color.fromRGBO(255, 255, 255, 1),
+    return WillPopScope(
+      onWillPop: () async {
+        Get.offAll(()=>MainScreen());
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: GetBuilder<Controller>(
+            builder: (_) => Text(
+              c.drawerUpgrade.string.toUpperCase(),
+              style: const TextStyle(
+                color: Color.fromRGBO(255, 255, 255, 1),
+              ),
+            ),),
+          leading: IconButton(
+            padding: const EdgeInsets.all(0.0),
+            icon: const Icon(
+              Icons.arrow_back_ios_rounded, size: 20,
+              // color: textColor.withOpacity(0.7),
             ),
-          ),),
-        centerTitle: true,
-        backgroundColor: backgroundColor,
-      ),
-      body: Container(
-        color: Colors.white,
-        child: Column(
-          children:[
-            const SizedBox(height:7),
-            Row(
-                children:[
-                  const SizedBox(width:15),
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.fromLTRB(0, 10, 10, 10),
-                      decoration: BoxDecoration(
-                        color: themeColor,
-                        borderRadius: const BorderRadius.all(
-                            Radius.circular(8)
+            tooltip: 'Back to MainScreen',
+            onPressed: () {
+              Get.offAll(()=>MainScreen());
+            },
+          ),
+          centerTitle: true,
+          backgroundColor: backgroundColor,
+        ),
+        body: Container(
+          color: Colors.white,
+          child: Column(
+            children:[
+              const SizedBox(height:7),
+              Row(
+                  children:[
+                    const SizedBox(width:15),
+                    Expanded(
+                      child: Container(
+                        margin: const EdgeInsets.fromLTRB(0, 10, 10, 10),
+                        decoration: BoxDecoration(
+                          color: themeColor,
+                          borderRadius: const BorderRadius.all(
+                              Radius.circular(8)
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.6),
+                              spreadRadius: 0,
+                              blurRadius: 1,
+                              offset: const Offset(1, 1), // changes position of shadow
+                            ),
+                          ],
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.6),
-                            spreadRadius: 0,
-                            blurRadius: 1,
-                            offset: const Offset(1, 1), // changes position of shadow
-                          ),
-                        ],
-                      ),
-                      height: 50,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          const SizedBox(width: 20),
-                          GetBuilder<Controller>(
-                            builder: (_) => Icon(
-                              c.available.value? Icons.check_rounded: Icons.close_rounded,
-                              size: 25,
-                              color: textColor,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Container(
-                              alignment: Alignment.center,
-                              child: GetBuilder<Controller>(
-                                builder: (_) => Text(
-                                  c.available.value? c.language.value == 'VN'? 'cửa hàng có sẵn': 'the store is available'
-                                      : c.language.value == 'VN'? 'cửa hàng không có sẵn': 'the store is not available',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    overflow: TextOverflow.ellipsis,
-                                    color: textColor,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width:5),
-                ]
-            ),
-            const SizedBox(height:10),
-            Row(
-                children:[
-                  const SizedBox(width:15),
-                  Expanded(
-                    child: GetBuilder<Controller>(
-                      builder: (_) => Opacity(
-                        opacity: c.isVip.value? 0.6:1,
-                        child: ElevatedButton(
-                          style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                                themeColor
-                            ),
-                            foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                            padding: MaterialStateProperty.all<EdgeInsets>(
-                                const EdgeInsets.all(0)
-                            ),
-                            shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8.0),
-                                )
-                            ),
-                            fixedSize: MaterialStateProperty.all<Size>(
-                                const Size.fromHeight(50)
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              const SizedBox(width: 20),
-                              Icon(
-                                c.isVip.value? Icons.check_rounded: Icons.close_rounded,
+                        height: 50,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            const SizedBox(width: 20),
+                            GetBuilder<Controller>(
+                              builder: (_) => Icon(
+                                c.available.value? Icons.check_rounded: Icons.close_rounded,
                                 size: 25,
                                 color: textColor,
                               ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Container(
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    c.isVip.value? c.language.value == 'VN'?
-                                    'VIP (hạn đến ' + DateFormat('dd-MM-yyyy HH:mm').format(DateTime.fromMillisecondsSinceEpoch(c.expire.value)) + ')':
-                                    'VIP (valid until ' + DateFormat('dd-MM-yyyy HH:mm').format(DateTime.fromMillisecondsSinceEpoch(c.expire.value)) + ')'
-                                        : c.language.value == 'VN'? 'đăng kí 01 năm (119k)': 'register for 1 year (4.9\$)',
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Container(
+                                alignment: Alignment.center,
+                                child: GetBuilder<Controller>(
+                                  builder: (_) => Text(
+                                    c.available.value? c.language.value == 'VN'? 'cửa hàng có sẵn': 'the store is available'
+                                        : c.language.value == 'VN'? 'cửa hàng không có sẵn': 'the store is not available',
                                     style: const TextStyle(
                                       fontSize: 16,
                                       overflow: TextOverflow.ellipsis,
@@ -5390,58 +9048,125 @@ class MyUpgradePage extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
-                          onPressed: () {
-                            if (!c.isVip.value){
-                              final ProductDetails productDetails = c.products[0];
-                              final PurchaseParam purchaseParam = PurchaseParam(productDetails: productDetails);
-                              InAppPurchase.instance.buyNonConsumable(purchaseParam: purchaseParam);
-                            }
-                          },
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width:15),
-                ]
-            ),
-            const SizedBox(height:15),
-            Row(
-              children:[
-                const SizedBox(width:15),
-                Flexible(
-                  child: GetBuilder<Controller>(
-                    builder: (_) => Text(
-                      c.language.value == 'VN'?
-                      'đăng kí 1 năm sử dụng ứng dụng không bị làm phiền bởi quảng cáo,'
-                          ' giúp chúng tôi duy trì ứng dụng này tới mọi người.\n'
-                          ' Số tiền 119,000 đồng cho 1 năm sẽ được áp dụng khi xác nhận. '
-                          'Đăng ký sẽ được gia hạn tự động trừ khi bị huỷ trong vòng 24 giờ '
-                          'trước cuối kỳ hạn. Bạn có thể huỷ bất cứ lúc nào trong cài đặt'
-                          'tài khoản iTunes. Chi tiết hơn ghé qua đường link https://bedict.com/privacy_policy.html.':
-                      'register 1 year using this app without advertisement,'
-                          ' helping us distribute this app to people\n'
-                          'A 4.9\$ for one year purchase will '
-                          'be applied to your iTunes account on confirmation. '
-                          'Subscriptions will automatically renew unless '
-                          'canceled within 24-hours before the end of the current period. '
-                          'You can cancel anytime with your iTunes account settings. '
-                          'For more information, '
-                          'see our https://bedict.com/privacy_policy.html.',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        // overflow: TextOverflow.ellipsis,
-                        color: textColor,
+                    const SizedBox(width:5),
+                  ]
+              ),
+              const SizedBox(height:10),
+              Row(
+                  children:[
+                    const SizedBox(width:15),
+                    Expanded(
+                      child: GetBuilder<Controller>(
+                        builder: (_) => Opacity(
+                          opacity: c.isVip.value? 0.6:1,
+                          child: ElevatedButton(
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all<Color>(
+                                  themeColor
+                              ),
+                              foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                              padding: MaterialStateProperty.all<EdgeInsets>(
+                                  const EdgeInsets.all(0)
+                              ),
+                              shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                  RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                  )
+                              ),
+                              fixedSize: MaterialStateProperty.all<Size>(
+                                  const Size.fromHeight(50)
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                const SizedBox(width: 20),
+                                Icon(
+                                  c.isVip.value? Icons.check_rounded: Icons.close_rounded,
+                                  size: 25,
+                                  color: textColor,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Container(
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      c.isVip.value? c.language.value == 'VN'?
+                                      'VIP (hạn đến ' + DateFormat('dd-MM-yyyy HH:mm').format(DateTime.fromMillisecondsSinceEpoch(c.expire.value)) + ')':
+                                      'VIP (valid until ' + DateFormat('dd-MM-yyyy HH:mm').format(DateTime.fromMillisecondsSinceEpoch(c.expire.value)) + ')'
+                                          : c.language.value == 'VN'? 'đăng kí 01 năm (119k)': 'register for 1 year (4.9\$)',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        overflow: TextOverflow.ellipsis,
+                                        color: textColor,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            onPressed: () {
+                              if (!c.isVip.value){
+                                final ProductDetails productDetails = c.products[0];
+                                final PurchaseParam purchaseParam = PurchaseParam(productDetails: productDetails);
+                                InAppPurchase.instance.buyNonConsumable(purchaseParam: purchaseParam);
+                              }
+                            },
+                          ),
+                        ),
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                  ),
-                ),
-                const SizedBox(width:15),
-              ]
-            ),
-          ],
+                    const SizedBox(width:15),
+                  ]
+              ),
+              const SizedBox(height:15),
+              Row(
+                  children:[
+                    const SizedBox(width:15),
+                    Flexible(
+                      child: GetBuilder<Controller>(
+                        builder: (_) => Text(
+                          c.language.value == 'VN'?
+                              'Số tiền 119,000 đồng cho 1 năm sẽ được áp dụng vào tài khoản '
+                              + (Platform.isIOS?'iTunes':'google') + ' khi xác nhận. '
+                              'Đăng ký sẽ được gia hạn tự động trừ khi bị huỷ trong vòng 24 giờ '
+                              'trước cuối kỳ hạn. Bạn có thể huỷ bất cứ lúc nào trong cài đặt '
+                              'tài khoản ' + (Platform.isIOS?'iTunes':'google') +
+                              '. Quảng cáo sẽ biến mất khi bạn đăng kí. Chi tiết hơn xem Chính sách và quyền riêng tư của chúng tôi'
+                                  ' tại https://bedict.com/privacyPolicy.html và Điều khoản'
+                                  ' dịch vụ tại https://bedict.com/termOfService.html.'
+                              : 'register 1 year using this app without advertisement,'
+                              ' helping us distribute this app to people\n'
+                              'A 4.9\$ for one year purchase will '
+                              'be applied to your ' + (Platform.isIOS?'iTunes':'google') +
+                              ' account on confirmation. '
+                              'Subscriptions will automatically renew unless '
+                              'canceled within 24-hours before the end of the current period. '
+                              'You can cancel anytime with your '
+                              + (Platform.isIOS?'iTunes':'google') + ' account settings.'
+                              ' Advertisements will disappear if you purchase a subscription. '
+                              'For more information, '
+                              'see our Privacy Policy at https://bedict.com/privacyPolicy.html'
+                              ' and Term of Service at https://bedict.com/termOfService.html.',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            // overflow: TextOverflow.ellipsis,
+                            color: textColor,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width:15),
+                  ]
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -5501,88 +9226,105 @@ class ContactPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
 
-    return Scaffold(
-      appBar: AppBar(
-        title: GetBuilder<Controller>(
-          builder: (_) => Text(
-          c.drawerContact.string.toUpperCase(),
-          style: const TextStyle(
-            color: Color.fromRGBO(255, 255, 255, 1),
+    return WillPopScope(
+      onWillPop: () async {
+        Get.offAll(()=>MainScreen());
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: GetBuilder<Controller>(
+            builder: (_) => Text(
+              c.drawerContact.string.toUpperCase(),
+              style: const TextStyle(
+                color: Color.fromRGBO(255, 255, 255, 1),
+              ),
+            ),),
+          leading: IconButton(
+            padding: const EdgeInsets.all(0.0),
+            icon: const Icon(
+              Icons.arrow_back_ios_rounded, size: 20,
+              // color: textColor.withOpacity(0.7),
+            ),
+            tooltip: 'Back to MainScreen',
+            onPressed: () {
+              Get.offAll(()=>MainScreen());
+            },
           ),
-        ),),
-        centerTitle: true,
-        backgroundColor: backgroundColor,
-      ),
-      body: Container(
-        alignment: Alignment.center,
-        color: Colors.white,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.account_box_rounded,size:35,color: backgroundColor),
-                SizedBox(width: 10),
-                Text(
-                  'Trần Trung Hiếu',
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: textColor,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ]
-            ),
-            const SizedBox(height:10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.phone,size:30,color: backgroundColor),
-                SizedBox(width: 10),
-                Text(
-                  '0942245089',
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: textColor,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ]
-            ),
-            const SizedBox(height:10),
-            Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.mail,size:30,color: backgroundColor),
-                  SizedBox(width: 10),
-                  Text(
-                    'hieupro1106@gmail.com',
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: textColor,
+          centerTitle: true,
+          backgroundColor: backgroundColor,
+        ),
+        body: Container(
+          alignment: Alignment.center,
+          color: Colors.white,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.account_box_rounded,size:35,color: backgroundColor),
+                    SizedBox(width: 10),
+                    Text(
+                      'Trần Trung Hiếu',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: textColor,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                ]
-            ),
-            const SizedBox(height:10),
-            Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  FaIcon(FontAwesomeIcons.facebook,size:25,color: backgroundColor),
-                  SizedBox(width: 10),
-                  Text(
-                    'facebook.com/dosel.be',
-                    style: TextStyle(
-                      fontSize: 20,
-                      color: textColor,
+                  ]
+              ),
+              const SizedBox(height:10),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.phone,size:30,color: backgroundColor),
+                    SizedBox(width: 10),
+                    Text(
+                      '0942245089',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: textColor,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                ]
-            ),
-          ],
+                  ]
+              ),
+              const SizedBox(height:10),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Icon(Icons.mail,size:30,color: backgroundColor),
+                    SizedBox(width: 10),
+                    Text(
+                      'hieupro1106@gmail.com',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: textColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ]
+              ),
+              const SizedBox(height:10),
+              Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    FaIcon(FontAwesomeIcons.facebook,size:25,color: backgroundColor),
+                    SizedBox(width: 10),
+                    Text(
+                      'facebook.com/dosel.be',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: textColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ]
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -5596,415 +9338,432 @@ class PolicyPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
 
-    return Scaffold(
-      appBar: AppBar(
-        title: GetBuilder<Controller>(
-          builder: (_) => Text(
-            c.drawerPolicy.string.toUpperCase(),
-            style: const TextStyle(
-              color: Color.fromRGBO(255, 255, 255, 1),
-            ),
-          ),),
-        centerTitle: true,
-        backgroundColor: backgroundColor,
-      ),
-      body: Container(
-        alignment: Alignment.center,
-        color: Colors.white,
-        child: ListView(
-          // mainAxisAlignment: MainAxisAlignment.center,
-          padding: const EdgeInsets.all(8),
-          children: [
-            const SizedBox(height: 20),
-            const Text(
-              'Privacy Policy',
-              style: TextStyle(
-                fontSize: 20,
-                color: textColor,
-                fontWeight: FontWeight.w600,
+    return WillPopScope(
+      onWillPop: () async {
+        Get.offAll(()=>MainScreen());
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: GetBuilder<Controller>(
+            builder: (_) => Text(
+              c.drawerPolicy.string.toUpperCase(),
+              style: const TextStyle(
+                color: Color.fromRGBO(255, 255, 255, 1),
               ),
-              textAlign: TextAlign.center,
+            ),),
+          leading: IconButton(
+            padding: const EdgeInsets.all(0.0),
+            icon: const Icon(
+              Icons.arrow_back_ios_rounded, size: 20,
+              // color: textColor.withOpacity(0.7),
             ),
-            const SizedBox(height: 10),
-            Row(
-              children: const [
-                Flexible(
-                  child: Text(
-                    'Trần Trung Hiếu built the BeDict app as a Free app. This SERVICE is provided by'
-                        ' Trần Trung Hiếu at no cost and is intended for use as is.',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: textColor,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+            tooltip: 'Back to MainScreen',
+            onPressed: () {
+              Get.offAll(()=>MainScreen());
+            },
+          ),
+          centerTitle: true,
+          backgroundColor: backgroundColor,
+        ),
+        body: Container(
+          alignment: Alignment.center,
+          color: Colors.white,
+          child: ListView(
+            // mainAxisAlignment: MainAxisAlignment.center,
+            padding: const EdgeInsets.all(8),
+            children: [
+              const SizedBox(height: 20),
+              const Text(
+                'Privacy Policy',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
                 ),
-              ]
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: const [
-                Flexible(
-                  child: Text(
-                    'This page is used to inform visitors regarding my policies with the collection, use, and'
-                      ' disclosure of Personal Information if anyone decided to use my Service.',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: textColor,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ]
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: const [
-                Flexible(
-                  child: Text(
-                    'If you choose to use my Service, then you agree'
-                    ' to the collection and use of information in relation to this'
-                    ' policy. The Personal Information that I collect is'
-                    ' used for providing and improving the Service.'
-                    ' I will not use or share your'
-                    ' information with anyone except as described in this Privacy Policy.',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: textColor,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ]
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: const [
-                Flexible(
-                  child: Text(
-                    'The terms used in this Privacy Policy have the same meanings'
-                      ' as in our Terms and Conditions, which is accessible at'
-                      ' BeDict unless otherwise defined in this Privacy Policy.',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: textColor,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ]
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Information Collection and Use',
-              style: TextStyle(
-                fontSize: 20,
-                color: textColor,
-                fontWeight: FontWeight.w600,
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: const [
-                Flexible(
-                  child: Text(
-                    'For a better experience, while using our Service,'
-                      ' I may require you to provide us with certain'
-                      ' personally identifiable information, including but not limited to (RECORD_AUDIO). The'
-                      ' information that I request will be'
-                      ' retained on your device and is not collected by me in any way.',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: textColor,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ]
-            ),
-            const SizedBox(height: 10),
-            Row(
-                children: const [
-                  Flexible(
-                    child: Text(
-                      'The app does use third party services that may collect'
-                        'information used to identify you.',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: textColor,
-                        fontWeight: FontWeight.w400,
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'Trần Trung Hiếu built the BeDict app as a Free app. This SERVICE is provided by'
+                            ' Trần Trung Hiếu at no cost and is intended for use as is.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                  ),
-                ]
-            ),
-            const SizedBox(height: 10),
-            Row(
-                children: const [
-                  Flexible(
-                    child: Text(
-                      'Link to privacy policy of third party service providers'
-                        ' used by the app\nGoogle Play Services: https://www.google.com/policies/privacy/'
-                        '\nAdMob https://support.google.com/admob/answer/6128543?hl=en'
-                        '\nI want to inform you that whenever'
-                        ' you use my Service, in a case of an error in the'
-                        ' app I collect data and information (through third'
-                        ' party products) on your phone called Log Data. This Log Data'
-                        ' may include information such as your device Internet'
-                        ' Protocol (“IP”) address, device name, operating system'
-                        ' version, the configuration of the app when utilizing'
-                        ' my Service, the time and date of your use of the'
-                        ' Service, and other statistics.',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: textColor,
-                        fontWeight: FontWeight.w400,
+                  ]
+              ),
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'This page is used to inform visitors regarding my policies with the collection, use, and'
+                            ' disclosure of Personal Information if anyone decided to use my Service.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                  ),
-                ]
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Cookies',
-              style: TextStyle(
-                fontSize: 20,
-                color: textColor,
-                fontWeight: FontWeight.w600,
+                  ]
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: const [
-                Flexible(
-                  child: Text(
-                    'Cookies are files with a small amount of data that are'
-                    ' commonly used as anonymous unique identifiers. These are'
-                    ' sent to your browser from the websites that you visit and'
-                    ' are stored on your device\'s internal memory.',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: textColor,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ]
-            ),
-            const SizedBox(height: 10),
-            Row(
-                children: const [
-                  Flexible(
-                    child: Text(
-                      'This Service does not use these “cookies” explicitly.'
-                        ' However, the app may use third party code and libraries that'
-                        ' use “cookies” to collect information and improve their'
-                        ' services. You have the option to either accept or refuse'
-                        ' these cookies and know when a cookie is being sent to your'
-                        ' device. If you choose to refuse our cookies, you may not be'
-                        ' able to use some portions of this Service.',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: textColor,
-                        fontWeight: FontWeight.w400,
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'If you choose to use my Service, then you agree'
+                            ' to the collection and use of information in relation to this'
+                            ' policy. The Personal Information that I collect is'
+                            ' used for providing and improving the Service.'
+                            ' I will not use or share your'
+                            ' information with anyone except as described in this Privacy Policy.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                  ),
-                ]
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Service Providers',
-              style: TextStyle(
-                fontSize: 20,
-                color: textColor,
-                fontWeight: FontWeight.w600,
+                  ]
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: const [
-                Flexible(
-                  child: Text(
-                    'I may employ third-party companies'
-                      ' and individuals due to the following reasons:\n'
-                    ' To facilitate our Service;\n'
-                    ' To provide the Service on our behalf;\n'
-                    ' To perform Service-related services; or\n'
-                    ' To assist us in analyzing how our Service is used.',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: textColor,
-                      fontWeight: FontWeight.w400,
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'The terms used in this Privacy Policy have the same meanings'
+                            ' as in our Terms and Conditions, which is accessible at'
+                            ' BeDict unless otherwise defined in this Privacy Policy.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ]
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: const [
-                Flexible(
-                  child: Text(
-                    'I want to inform users of this'
-                      ' Service that these third parties have access to your'
-                      ' Personal Information. The reason is to perform the tasks'
-                      ' assigned to them on our behalf. However, they are obligated'
-                      ' not to disclose or use the information for any other purpose.',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: textColor,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ]
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Security',
-              style: TextStyle(
-                fontSize: 20,
-                color: textColor,
-                fontWeight: FontWeight.w600,
+                  ]
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: const [
-                Flexible(
-                  child: Text(
-                    'I value your trust in providing us'
-                      ' your Personal Information, thus we are striving to use'
-                      ' commercially acceptable means of protecting it. But remember'
-                      ' that no method of transmission over the internet, or method'
-                      ' of electronic storage is 100% secure and reliable, and'
-                      ' I cannot guarantee its absolute security.',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: textColor,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
+              const SizedBox(height: 20),
+              const Text(
+                'Information Collection and Use',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
                 ),
-              ]
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Links to Other Sites',
-              style: TextStyle(
-                fontSize: 20,
-                color: textColor,
-                fontWeight: FontWeight.w600,
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: const [
-                Flexible(
-                  child: Text(
-                    'This Service may contain links to other sites. If you click'
-                      ' on a third-party link, you will be directed to that site.'
-                      ' Note that these external sites are not operated by'
-                      ' me. Therefore, I strongly advise you to'
-                      ' review the Privacy Policy of these websites.'
-                      ' I have no control over and assume no'
-                      ' responsibility for the content, privacy policies, or'
-                      ' practices of any third-party sites or services.',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: textColor,
-                      fontWeight: FontWeight.w400,
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'For a better experience, while using our Service,'
+                            ' I may require you to provide us with certain'
+                            ' personally identifiable information, including but not limited to (RECORD_AUDIO). The'
+                            ' information that I request will be'
+                            ' retained on your device and is not collected by me in any way.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ]
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Children’s Privacy',
-              style: TextStyle(
-                fontSize: 20,
-                color: textColor,
-                fontWeight: FontWeight.w600,
+                  ]
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: const [
-                Flexible(
-                  child: Text(
-                    'These Services do not address anyone under the age of 13.'
-                      ' I do not knowingly collect personally'
-                      ' identifiable information from children under 13. In the case'
-                      ' I discover that a child under 13 has provided'
-                      ' me with personal information,'
-                      ' I immediately delete this from our servers. If you'
-                      ' are a parent or guardian and you are aware that your child'
-                      ' has provided us with personal information, please contact'
-                      ' me so that I will be able to do necessary actions.',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: textColor,
-                      fontWeight: FontWeight.w400,
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'The app does use third party services that may collect'
+                            'information used to identify you.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ]
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Changes to This Privacy Policy',
-              style: TextStyle(
-                fontSize: 20,
-                color: textColor,
-                fontWeight: FontWeight.w600,
+                  ]
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: const [
-                Flexible(
-                  child: Text(
-                    'I may update our Privacy Policy from'
-                      'time to time. Thus, you are advised to review this page'
-                      'periodically for any changes. I will'
-                      'notify you of any changes by posting the new Privacy Policy'
-                      'on this page. These changes are effective immediately after'
-                      'they are posted on this page.',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: textColor,
-                      fontWeight: FontWeight.w400,
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'Link to privacy policy of third party service providers'
+                            ' used by the app\nGoogle Play Services: https://www.google.com/policies/privacy/'
+                            '\nAdMob https://support.google.com/admob/answer/6128543?hl=en'
+                            '\nI want to inform you that whenever'
+                            ' you use my Service, in a case of an error in the'
+                            ' app I collect data and information (through third'
+                            ' party products) on your phone called Log Data. This Log Data'
+                            ' may include information such as your device Internet'
+                            ' Protocol (“IP”) address, device name, operating system'
+                            ' version, the configuration of the app when utilizing'
+                            ' my Service, the time and date of your use of the'
+                            ' Service, and other statistics.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                    textAlign: TextAlign.center,
-                  ),
+                  ]
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Cookies',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
                 ),
-              ]
-            ),
-            const SizedBox(height: 10),
-          ],
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'Cookies are files with a small amount of data that are'
+                            ' commonly used as anonymous unique identifiers. These are'
+                            ' sent to your browser from the websites that you visit and'
+                            ' are stored on your device\'s internal memory.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ]
+              ),
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'This Service does not use these “cookies” explicitly.'
+                            ' However, the app may use third party code and libraries that'
+                            ' use “cookies” to collect information and improve their'
+                            ' services. You have the option to either accept or refuse'
+                            ' these cookies and know when a cookie is being sent to your'
+                            ' device. If you choose to refuse our cookies, you may not be'
+                            ' able to use some portions of this Service.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ]
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Service Providers',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'I may employ third-party companies'
+                            ' and individuals due to the following reasons:\n'
+                            ' To facilitate our Service;\n'
+                            ' To provide the Service on our behalf;\n'
+                            ' To perform Service-related services; or\n'
+                            ' To assist us in analyzing how our Service is used.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ]
+              ),
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'I want to inform users of this'
+                            ' Service that these third parties have access to your'
+                            ' Personal Information. The reason is to perform the tasks'
+                            ' assigned to them on our behalf. However, they are obligated'
+                            ' not to disclose or use the information for any other purpose.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ]
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Security',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'I value your trust in providing us'
+                            ' your Personal Information, thus we are striving to use'
+                            ' commercially acceptable means of protecting it. But remember'
+                            ' that no method of transmission over the internet, or method'
+                            ' of electronic storage is 100% secure and reliable, and'
+                            ' I cannot guarantee its absolute security.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ]
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Links to Other Sites',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'This Service may contain links to other sites. If you click'
+                            ' on a third-party link, you will be directed to that site.'
+                            ' Note that these external sites are not operated by'
+                            ' me. Therefore, I strongly advise you to'
+                            ' review the Privacy Policy of these websites.'
+                            ' I have no control over and assume no'
+                            ' responsibility for the content, privacy policies, or'
+                            ' practices of any third-party sites or services.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ]
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Children’s Privacy',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'These Services do not address anyone under the age of 13.'
+                            ' I do not knowingly collect personally'
+                            ' identifiable information from children under 13. In the case'
+                            ' I discover that a child under 13 has provided'
+                            ' me with personal information,'
+                            ' I immediately delete this from our servers. If you'
+                            ' are a parent or guardian and you are aware that your child'
+                            ' has provided us with personal information, please contact'
+                            ' me so that I will be able to do necessary actions.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ]
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Changes to This Privacy Policy',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'I may update our Privacy Policy from'
+                            'time to time. Thus, you are advised to review this page'
+                            'periodically for any changes. I will'
+                            'notify you of any changes by posting the new Privacy Policy'
+                            'on this page. These changes are effective immediately after'
+                            'they are posted on this page.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ]
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
         ),
       ),
     );
@@ -6027,7 +9786,7 @@ class LoadingPage extends StatelessWidget {
           await boxScore.put(data[i]['word'],score);
         }
         await boxSetting.put('isIntroduce',false);
-        Get.to(()=>Home());
+        Get.offAll(()=>MainScreen());
       } else {
         Get.defaultDialog(
           title: c.loadingFailTitle.string,
@@ -6052,31 +9811,36 @@ class LoadingPage extends StatelessWidget {
       }
     });
 
-    return Scaffold(
-      body: Container(
-        alignment: Alignment.center,
-        color: Colors.white,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(
-              width: 200,
-              height: 200,
-              child: CircularProgressIndicator(
-                backgroundColor: themeColor,
-                valueColor: AlwaysStoppedAnimation<Color>(backgroundColor),
+    return WillPopScope(
+      onWillPop: () async {
+        return false;
+      },
+      child: Scaffold(
+        body: Container(
+          alignment: Alignment.center,
+          color: Colors.white,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const SizedBox(
+                width: 200,
+                height: 200,
+                child: CircularProgressIndicator(
+                  backgroundColor: themeColor,
+                  valueColor: AlwaysStoppedAnimation<Color>(backgroundColor),
+                ),
               ),
-            ),
-            const SizedBox(height: 50),
-            Text(
-              c.loadingBody.string,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                color: textColor,
-              )
-            ),
-          ],
+              const SizedBox(height: 50),
+              Text(
+                  c.loadingBody.string,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: textColor,
+                  )
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -6099,159 +9863,220 @@ class WelcomePage extends StatelessWidget {
 
     });
 
-    return Scaffold(
-      body: Container(
-        alignment: Alignment.center,
-        color: Colors.white,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children:[
-                  Text(
-                    'BeDict',
-                    style: TextStyle(
-                        fontSize: 100,
-                        foreground: Paint()..shader = linearGradient
-                    ),
-                  ),
-                  Text(
-                    'Pictorial Dictionary',
-                    style: TextStyle(
-                        fontSize: 33.4,
-                        foreground: Paint()..shader = linearGradient
-                    ),
-                  ),
-                ]
-              )
-            ),
-            Row(
-              children: [
-                const SizedBox(width:40),
-                Expanded(
-                  child: GetBuilder<Controller>(
-                    builder: (_) => Text(
-                      c.welcomeBody.string,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: textColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width:40),
-              ]
-            ),
-            const SizedBox(height: 20),
-            Opacity(
-              opacity: 0.8,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  GetBuilder<Controller>(
-                    builder: (_) =>  Text(
-                      c.drawerLanguage.string,
-                      style: const TextStyle(
-                        color: textColor,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),),
-                  const SizedBox(width:20),
-                  ToggleSwitch(
-                    minWidth: 50.0,
-                    minHeight: 30.0,
-                    fontSize: 14.0,
-                    initialLabelIndex: initLanguageIndex,
-                    activeBgColor: const [backgroundColor],
-                    activeFgColor: Colors.white,
-                    inactiveBgColor: const Color.fromRGBO(240, 240, 240, 1),
-                    inactiveFgColor: textColor,
-                    totalSwitches: 2,
-                    changeOnTap: true,
-                    labels: const ['VN', 'EN'],
-                    onToggle: (index) async {
-                      if (index == 0){
-                        c.changeLanguage('VN');
-                      }else{
-                        c.changeLanguage('EN');
-                      }
-                    },
-                  ),
-                ],
+    return WillPopScope(
+      onWillPop: () async {
+        return false;
+      },
+      child: Scaffold(
+        body: Container(
+          alignment: Alignment.center,
+          color: Colors.white,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children:[
+                        Text(
+                          'BeDict',
+                          style: TextStyle(
+                              fontSize: 100,
+                              foreground: Paint()..shader = linearGradient
+                          ),
+                        ),
+                        Text(
+                          'Pictorial Dictionary',
+                          style: TextStyle(
+                              fontSize: 33.4,
+                              foreground: Paint()..shader = linearGradient
+                          ),
+                        ),
+                      ]
+                  )
               ),
-            ),
-            const SizedBox(height: 100),
-          ],
+              Row(
+                  children: [
+                    const SizedBox(width:40),
+                    Expanded(
+                      child: GetBuilder<Controller>(
+                        builder: (_) => Text(
+                          c.welcomeBody.string,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: textColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width:40),
+                  ]
+              ),
+              const SizedBox(height: 20),
+              Opacity(
+                opacity: 0.8,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GetBuilder<Controller>(
+                      builder: (_) =>  Text(
+                        c.drawerLanguage.string,
+                        style: const TextStyle(
+                          color: textColor,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),),
+                    const SizedBox(width:20),
+                    ToggleSwitch(
+                      minWidth: 50.0,
+                      minHeight: 30.0,
+                      fontSize: 14.0,
+                      initialLabelIndex: initLanguageIndex,
+                      activeBgColor: const [backgroundColor],
+                      activeFgColor: Colors.white,
+                      inactiveBgColor: const Color.fromRGBO(240, 240, 240, 1),
+                      inactiveFgColor: textColor,
+                      totalSwitches: 2,
+                      changeOnTap: true,
+                      labels: const ['VN', 'EN'],
+                      onToggle: (index) async {
+                        if (index == 0){
+                          c.changeLanguage('VN');
+                        }else{
+                          c.changeLanguage('EN');
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 100),
+            ],
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: backgroundColor,
-        child: const Icon(Icons.arrow_forward,size: 30),
-        onPressed: () {
-          Get.to(()=>Introduce());
-        }
+        floatingActionButton: FloatingActionButton(
+            backgroundColor: backgroundColor,
+            child: const Icon(Icons.arrow_forward,size: 30),
+            onPressed: () {
+              Get.offAll(()=>Introduce());
+            }
+        ),
       ),
     );
   }
 }
 
-Future<List<String>> getListWords(String levelString, String category, String type) async {
-  int getLevel(String level){
-    int levelFind = 20;
-    switch(level) {
-      case '8.000 từ':
-        levelFind = 8;
-        break;
-      case '8.000 words':
-        levelFind = 8;
-        break;
-      case '5.000 từ':
-        levelFind = 5;
-        break;
-      case '5.000 words':
-        levelFind = 5;
-        break;
-      case '3.000 từ':
-        levelFind = 3;
-        break;
-      case '3.000 words':
-        levelFind = 3;
-        break;
-      default:
-        levelFind = 20;
-    }
-    return levelFind;
+class BannerAdWidget extends StatefulWidget {
+  // const BannerAdWidget({Key? key}) : super(key: key);
+
+  final double adWidth;
+  final double adHeight;
+
+  const BannerAdWidget({Key? key,
+    required this.adWidth,
+    required this.adHeight
+  }) : super(key: key);
+
+  @override
+  State<StatefulWidget> createState() => BannerAdState();
+}
+
+class BannerAdState extends State<BannerAdWidget> {
+  late BannerAd bannerAd;
+  final Completer<BannerAd> nativeAdCompleter = Completer<BannerAd>();
+  final Controller c = Get.put(Controller());
+  @override
+  void initState() {
+    super.initState();
+    bannerAd = BannerAd(
+      // adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/5194909402' : 'ca-app-pub-9467993129762242/4031685759',
+      adUnitId: Platform.isAndroid ? 'ca-app-pub-3940256099942544/6300978111' : 'ca-app-pub-9467993129762242/4031685759',
+      request: const AdRequest(),
+      size: AdSize(
+        width: widget.adWidth.ceil(),
+        height: widget.adHeight.ceil(),
+      ),
+      listener: BannerAdListener(
+        onAdLoaded: (Ad ad) {
+          nativeAdCompleter.complete(ad as BannerAd);
+        },
+        onAdFailedToLoad: (Ad ad, LoadAdError err) {
+          ad.dispose();
+        },
+        onAdOpened: (Ad ad) => {},
+        onAdClosed: (Ad ad) => {},
+      ),
+      // customOptions: <String, Object>{},
+    );
+    bannerAd.load();
   }
-  int level = getLevel(levelString);
+
+  @override
+  void dispose() {
+    super.dispose();
+    bannerAd.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<BannerAd>(
+      future: nativeAdCompleter.future,
+      builder: (BuildContext context, AsyncSnapshot<BannerAd> snapshot) {
+        Widget child;
+
+        switch (snapshot.connectionState) {
+          case ConnectionState.none:
+            child = Container();
+            break;
+          case ConnectionState.waiting:
+            child = Container();
+            break;
+          case ConnectionState.active:
+            child = Container();
+            break;
+          case ConnectionState.done:
+            if (snapshot.hasData) {
+              child = ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: AdWidget(ad: bannerAd),
+              );
+            } else {
+              child = const Text('Error loading ad');
+            }
+        }
+        return child;
+      },
+    );
+  }
+}
+
+Future<List<String>> getListType(String type) async {
   List<String> findList = <String>[];
   for (var i=0;i<box.length;i++){
     var nowWord = await box.getAt(i);
-    if (category != 'all category'){
-      if (category == 'no category'){
-        if (nowWord['category'] == ',' && int.parse(nowWord['level']) <= level){
-          findList.add(nowWord['word']);
-        }
-      }else{
-        if (nowWord['category'].contains(','+ category) && int.parse(nowWord['level']) <= level){
-          findList.add(nowWord['word']);
-        }
+    if (nowWord['type'].startsWith(type) || nowWord['type'].contains(' $type')){
+      findList.add(nowWord['word']);
+    }
+  }
+  findList.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+  return findList;
+}
+
+Future<List<String>> getListCategory(String category) async {
+  List<String> findList = <String>[];
+  for (var i=0;i<box.length;i++){
+    var nowWord = await box.getAt(i);
+    if (category == 'no category'){
+      if (nowWord['category'] == ','){
+        findList.add(nowWord['word']);
       }
     }else{
-      if (type != 'all type'){
-        if ((nowWord['type'].startsWith(type) || nowWord['type'].contains(' $type'))
-            && int.parse(nowWord['level']) <= level){
-          findList.add(nowWord['word']);
-        }
-      }else{
-        if (int.parse(nowWord['level']) <= level){
-          findList.add(nowWord['word']);
-        }
+      if (nowWord['category'].contains(','+ category)){
+        findList.add(nowWord['word']);
       }
     }
   }
@@ -6428,168 +10253,94 @@ List laytuloai(String kyhieu){
   return tuloai;
 }
 
-Future showFullScreenAd(String word) async {
-  final Controller c = Get.put(Controller());
-  InterstitialAd.load(
-    adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/1735030175':'ca-app-pub-9467993129762242/5200342904',
-    request: const AdRequest(),
-    adLoadCallback: InterstitialAdLoadCallback(
-      onAdLoaded: (InterstitialAd ad) {
-        // Keep a reference to the ad so you can show it later.
-        ad.fullScreenContentCallback = FullScreenContentCallback(
-          onAdShowedFullScreenContent: (InterstitialAd ad) {},
-          onAdDismissedFullScreenContent: (InterstitialAd ad) async {
-            ad.dispose();
-            await c.layWord(word);
-            c.isAdShowing = false.obs;
-          },
-          onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) async {
-            ad.dispose();
-            await c.layWord(word);
-            c.isAdShowing = false.obs;
-          },
-          onAdImpression: (InterstitialAd ad) {},
-        );
-        ad.show();
-      },
-      onAdFailedToLoad: (LoadAdError error) async {
-        c.isAdShowing = false.obs;
-        await c.layWord(word);
-      },
-    )
-  );
-}
-
-Future showAdLearn(int tab) async {
-  final Controller c = Get.put(Controller());
-  InterstitialAd.load(
-    adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/1735030175':'ca-app-pub-9467993129762242/5200342904',
-    request: const AdRequest(),
-    adLoadCallback: InterstitialAdLoadCallback(
-      onAdLoaded: (InterstitialAd ad) {
-        // Keep a reference to the ad so you can show it later.
-        ad.fullScreenContentCallback = FullScreenContentCallback(
-          onAdShowedFullScreenContent: (InterstitialAd ad) {},
-          onAdDismissedFullScreenContent: (InterstitialAd ad) async {
-            ad.dispose();
-            c.isAdShowing = false.obs;
-            c.currentTab = RxInt(tab);
-            c.update();
-          },
-          onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) async {
-            ad.dispose();
-            c.isAdShowing = false.obs;
-            c.currentTab = RxInt(tab);
-            c.update();
-          },
-          onAdImpression: (InterstitialAd ad) {},
-        );
-        ad.show();
-      },
-      onAdFailedToLoad: (LoadAdError error) {
-        c.isAdShowing = false.obs;
-        c.currentTab = RxInt(tab);
-        c.update();
-      },
-    )
-  );
-}
-
-void arrangeLearnMean() {
-  final Controller c = Get.put(Controller());
-  c.currentTab = 0.obs;
-  c.listIndex = [];
-  c.listImage = [];
-  c.listArrange = [for (int i=0; i<c.word.string.split('').length; i++)''];
-  c.listRandom = [for (int i=0; i<c.word.string.split('').length; i++)''];
-  c.listArrangePronun = [for (int i=0; i<c.pronun.string.split('').length; i++)''];
-  c.listRandomPronun = [for (int i=0; i<c.pronun.string.split('').length; i++)''];
-  for (var i=0; i<c.mean.length; i++){
-    c.listIndex.add(i);
-  }
-  c.listIndex.shuffle();
-  for (var i=0; i<c.mean.length; i++){
-    List<String> subListImage = <String>[];
-    if (c.mean.length<4){
-      subListImage = List<String>.from(c.imageURL.toList());
-    }else{
-      subListImage.add(c.imageURL[c.listIndex[i]]);
-      for (var j=0;j<3;j++){
-        int newRandomIndex = 0;
-        while (subListImage.contains(c.imageURL[newRandomIndex])){
-          newRandomIndex = Random().nextInt(c.mean.length);
-        }
-        subListImage.add(c.imageURL[newRandomIndex]);
-      }
-    }
-    subListImage.shuffle();
-    c.listImage.add(subListImage);
-  }
-}
-
-Future getNewWord() async {
+void getNextLearn() {
   final Controller c = Get.put(Controller());
   if (!c.isAdShowing.value){
-    String newRandomWord = '';
-    var check = true;
-    List<String> listRandom = <String>[];
-    while (check && listRandom.length < c.wordArray.length){
-      newRandomWord = c.wordArray[Random().nextInt(c.wordArray.length)];
-      check = await checkScore(newRandomWord);
-      if (!listRandom.contains(newRandomWord)){
-        listRandom.add(newRandomWord);
-      }
-    }
-    if (check && listRandom.length == c.wordArray.length){
-      Get.snackbar(c.language.string == 'VN'?'Chúc mừng':'Congratulation',c.all.string);
-    }else{
-      if (c.isVip.value){
-        await c.layWord(newRandomWord);
+    void toScore() {
+      c.isAdShowing = false.obs;
+      if (c.currentTab.value<3){
+        c.currentTab = RxInt(c.currentTab.value+1);
       }else{
-        int isShowAd = Random().nextInt(9);
-        if (isShowAd == 0){
-          c.isAdShowing = true.obs;
-          await showFullScreenAd(newRandomWord);
-        }else{
-          await c.layWord(newRandomWord);
-        }
+        c.currentTab = 0.obs;
       }
-    }
-  }
-}
-
-Future getWord(String word) async {
-  final Controller c = Get.put(Controller());
-  if (!c.isAdShowing.value){
-    if (c.isVip.value){
-      await c.layWord(word);
-    }else{
-      int isShowAd = Random().nextInt(9);
-      if (isShowAd == 0){
-        c.isAdShowing = true.obs;
-        await showFullScreenAd(word);
-      }else{
-        await c.layWord(word);
-      }
-    }
-  }
-}
-
-void getTab(int tab) {
-  final Controller c = Get.put(Controller());
-  if (!c.isAdShowing.value){
-    if (c.isVip.value){
-      c.currentTab = RxInt(tab);
       c.update();
+    }
+    int isShow = Random().nextInt(showAdFrequency);
+    if (isShow == 0 && !c.isVip.value){
+      c.isAdShowing = true.obs;
+      InterstitialAd.load(
+          adUnitId: Platform.isAndroid ? androidAd:iosAd,
+          request: const AdRequest(),
+          adLoadCallback: InterstitialAdLoadCallback(
+            onAdLoaded: (InterstitialAd ad) {
+              // Keep a reference to the ad so you can show it later.
+              ad.fullScreenContentCallback = FullScreenContentCallback(
+                onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                  ad.dispose();
+                  toScore();
+                },
+                onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                  ad.dispose();
+                  toScore();
+                },
+                onAdImpression: (InterstitialAd ad) {},
+              );
+              ad.show();
+            },
+            onAdFailedToLoad: (LoadAdError error) {
+              toScore();
+            },
+          )
+      );
     }else{
-      int isShowAd = Random().nextInt(9);
-      if (isShowAd == 0){
-        c.isAdShowing = true.obs;
-        showAdLearn(tab);
+      toScore();
+    }
+  }
+}
+
+void getPreviousLearn() {
+  final Controller c = Get.put(Controller());
+  if (!c.isAdShowing.value){
+    void toScore() {
+      c.isAdShowing = false.obs;
+      if (c.currentTab.value>0){
+        c.currentTab = RxInt(c.currentTab.value-1);
       }else{
-        c.currentTab = RxInt(tab);
-        c.update();
+        c.currentTab = 3.obs;
       }
+      c.update();
+    }
+    int isShow = Random().nextInt(showAdFrequency);
+    if (isShow == 0 && !c.isVip.value){
+      c.isAdShowing = true.obs;
+      InterstitialAd.load(
+          adUnitId: Platform.isAndroid ? androidAd:iosAd,
+          request: const AdRequest(),
+          adLoadCallback: InterstitialAdLoadCallback(
+            onAdLoaded: (InterstitialAd ad) {
+              // Keep a reference to the ad so you can show it later.
+              ad.fullScreenContentCallback = FullScreenContentCallback(
+                onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                  ad.dispose();
+                  toScore();
+                },
+                onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                  ad.dispose();
+                  toScore();
+                },
+                onAdImpression: (InterstitialAd ad) {},
+              );
+              ad.show();
+            },
+            onAdFailedToLoad: (LoadAdError error) {
+              toScore();
+            },
+          )
+      );
+    }else{
+      toScore();
     }
   }
 }
@@ -6628,7 +10379,7 @@ Future setRight() async {
   }
   await Future.delayed(const Duration(milliseconds:1000));
   c.learnRight = false.obs;
-  await updateToday();
+  c.update();
 }
 
 Future setWrong() async {
@@ -6641,40 +10392,7 @@ Future setWrong() async {
   }
   await Future.delayed(const Duration(milliseconds:1000));
   c.learnRight = false.obs;
-  await updateToday();
-}
-
-Future updateToday() async{
-  final Controller c = Get.put(Controller());
-  var yesterday = DateTime(
-      DateTime.now().year,
-      DateTime.now().month,
-      DateTime.now().day,
-  );
-  c.listLearnedToday.clear();
-  c.listLearnedToday = RxList(await getListScoreTime(yesterday.millisecondsSinceEpoch,DateTime.now().millisecondsSinceEpoch));
   c.update();
-}
-
-Future setDefault() async {
-  final Controller c = Get.put(Controller());
-  await boxSetting.put('category',0);
-  await boxSetting.put('type',0);
-  await boxSetting.put('level',0);
-  c.category = RxString('all category');
-  c.type = RxString('all type');
-  c.level = RxString('all words');
-  c.categoryIndex = 0.obs;
-  c.typeIndex = 0.obs;
-  c.levelIndex = 0.obs;
-  c.wordArray.clear();
-  List<String> listWord = [];
-  listWord = await getListWords(
-    listLevelEN[0],
-    listCategoryEN[0],
-    listTypeEN[0],
-  );
-  c.wordArray = RxList(listWord);
 }
 
 bool checkSubMean(List<String> subMean){
@@ -6787,24 +10505,15 @@ Future<Score> getScore(String wordScore) async {
   );
 }
 
-Future<List<Score>> getListScore() async {
+Future<List<String>> getListScore() async {
   final Controller c = Get.put(Controller());
-  List<Score> findList = <Score>[];
+  List<String> findList = <String>[];
   for (var i=0;i<c.listWordScore.length;i++){
     var nowWord = await boxScore.get(c.listWordScore[i]);
     if (nowWord[5]>0){
-      findList.add(Score(
-        wordId: nowWord[0],
-        word: nowWord[1],
-        pronun: nowWord[2],
-        speak: nowWord[3],
-        mean: nowWord[4],
-        total: nowWord[5],
-        time: nowWord[6])
-      );
+      findList.add(nowWord[0]);
     }
   }
-  findList.sort((a, b) => b.total.compareTo(a.total));
   return findList;
 }
 
@@ -6826,15 +10535,6 @@ Future<List<Score>> getListScoreTime(int start,int end) async {
   }
   findList.sort((a, b) => b.total.compareTo(a.total));
   return findList;
-}
-
-Future<bool> checkScore(String wordScore) async {
-  List score = await boxScore.get(wordScore) ?? [];
-  if (score[5]>0) {
-    return true;
-  }else{
-    return false;
-  }
 }
 
 Future updateScore(Score dataScore) async {
@@ -7040,12 +10740,6 @@ Future showWord(String wordShow) async {
 
     c.type = RxString('type');
     await boxSetting.put('type',0);
-
-    c.categoryIndex = 0.obs;
-    c.typeIndex = 0.obs;
-    c.levelIndex = 0.obs;
-
-    c.level = RxString('all words');
     await boxSetting.put('level',0);
 
     final String response = await rootBundle.loadString('assets/allWords.json');
@@ -7056,5 +10750,5 @@ Future showWord(String wordShow) async {
 
     await c.layWord(c.word.string);
   }
-  Get.to(()=>Home());
+  Get.offAll(()=> Home());
 }
