@@ -57,7 +57,7 @@ List<String> listCategoryVN = ["khả năng","trừu tượng","thành tích","h
 "âm nhạc","thần thoại","quốc gia","tự nhiên","hàng hải","phủ định","không gì","hiện tại","con số",
 "đại dương","thứ tự","sinh vật","tổ chức","kết quả","thành phần","quá khứ","quá khứ hoàn thành",
 "quãng, giai đoạn","người","hiện tượng","triết học","ngữ âm","cụm từ","vật lý","sinh lý học",
-"địa điểm","kế hoạch","cây cối","điểm","cảnh sát","chính trị","vị trí","khả năng xảy ra",
+"địa điểm","cây cối","điểm","cảnh sát","chính trị","vị trí","khả năng xảy ra",
 "quá trình","đặc điểm","tính chất","chủng tộc","ngưỡng","tôn giáo","quyền","nghi lễ","hoàng gia",
 "thuyền buồm","khoa học","hạt","cảm giác","dịch vụ","tình dục, giới tính","tín hiệu","tình thế",
 "xã hội","linh hồn","âm thanh","vũ trụ, không gian","thể thao","sân khấu","trạng thái","câu nói",
@@ -86,7 +86,7 @@ List<String> listCategoryEN = ["ability","abstract","achievement",
 "music","mythology","nation","nature","nautical","negative","nothing","now","number","ocean",
 "organ","organism","organization","outcome","part","past","past participle",
 "period","person","phenomena","philosophy","phonetics",
-"phrase","physics","physiology","place","plan","plant","point","police","politics",
+"phrase","physics","physiology","place","plant","point","police","politics",
 "position","possibility","process","property",
 "quality","race","range","religion","right","ritual","royal","sailing",
 "science","seed","sensation","service","sex","signal","situation",
@@ -10433,24 +10433,14 @@ Future showNotificationWord() async {
 }
 
 Future showWord(String wordShow) async {
-  if (wordShow != 'Daily'){
-
+  if (wordShow != 'Daily' && wordShow != ''){
     final Controller c = Get.put(Controller());
-
-    c.category = RxString('category');
-    await boxSetting.put('category',0);
-
-    c.type = RxString('type');
-    await boxSetting.put('type',0);
-    await boxSetting.put('level',0);
-
-    final String response = await rootBundle.loadString('assets/allWords.json');
-    final data = await json.decode(response);
-    c.wordArray = data.cast<String>();
-
+    c.category = RxString('all category');
+    c.type = RxString('all type');
     c.word = RxString(wordShow);
-
     await c.layWord(c.word.string);
+    Get.offAll(()=> Home());
+  }else{
+    Get.offAll(()=> MainScreen());
   }
-  Get.offAll(()=> Home());
 }
