@@ -110,7 +110,7 @@ List<String> listTypeEN = ["noun","verb","adjective","adverb","pronoun","abbrevi
   "infinitive particle","predeterminer","auxiliary verb","interrogative adverb",
   "interrogative pronoun","relative pronoun","relative adverb"];
 
-const String androidAd = 'ca-app-pub-3940256099942544/1033173712';
+const String androidAd = 'ca-app-pub-9467993129762242/1735030175';
 const String iosAd = 'ca-app-pub-9467993129762242/5200342904';
 int showAdFrequency = 10;
 int runAppCount = 1;
@@ -333,7 +333,7 @@ class Controller extends GetxController{
       if (purchaseDetails.status == PurchaseStatus.pending) {
       } else {
         if (purchaseDetails.status == PurchaseStatus.error) {
-          Get.snackbar('error',PurchaseStatus.error.toString());
+
         } else if (purchaseDetails.status == PurchaseStatus.purchased ||
             purchaseDetails.status == PurchaseStatus.restored) {
           bool valid = await _verifyPurchase(purchaseDetails.verificationData.serverVerificationData);
@@ -448,7 +448,6 @@ class Controller extends GetxController{
   var learnWrongTitle = 'Rất tiếc!'.obs;
   var learnMeanGuide = 'gõ vào ảnh tương ứng với nghĩa'.obs;
   var all = 'Tất cả'.obs;
-  var relearnButton = 'ôn tập'.obs;
   var scoreId = 'Từ'.obs;
   var scoreWord = 'Viết'.obs;
   var scorePronun = 'Âm'.obs;
@@ -457,27 +456,11 @@ class Controller extends GetxController{
   var scoreTotal = 'Tổng'.obs;
   var hint = 'tìm kiếm...'.obs;
   var notFound = 'không tìm thấy'.obs;
-  var snackbarFindTitle = 'Chưa được!'.obs;
-  var snackbarFindBody = 'Bạn cần chọn từ để học trước'.obs;
-  var snackbarRelearn = 'Không có từ để ôn tập'.obs;
   var learnedWordsTodayTitle = 'mục tiêu:'.obs;
-  var newRandomWordTitle = 'từ mới'.obs;
-  var adTitle = 'QUẢNG CÁO'.obs;
-  var adBody = 'Quảng cáo giúp ứng dụng miễn phí'.obs;
   var loadingBody = 'Đang tải từ điển, vui lòng đợi trong giây lát'.obs;
   var loadingFailTitle = 'Tải lỗi'.obs;
   var loadingFailBody = 'Đảm bảo có kết nối Internet, vui lòng tải lại sau'.obs;
   var welcomeBody = 'Chào mừng bạn đến với BeDict - từ điển thú vị chờ bạn khám phá'.obs;
-  var introduce0Title = 'Giao diện chính'.obs;
-  var introduce0Body = 'Dễ dàng hiểu nghĩa với hình ảnh minh họa sinh động'.obs;
-  var introduce1Title = 'Phân loại'.obs;
-  var introduce1Body = 'Lựa chọn từ theo cách bạn muốn, '
-      'chúng tôi phân loại từ theo chủ đề, loại từ, các gói 3000, 5000, 8000 từ phổ biến nhất'.obs;
-  var introduce2Title = 'Học nghe, nói, đọc, viết'.obs;
-  var introduce2Body = 'Học mà chơi, chơi mà học, thư giãn với BeDict lúc bạn rảnh rỗi,'
-      ' những trò chơi được thiết kế đơn giản nhưng giúp bạn nắm vững 04 kỹ năng nghe, nói, đọc, viết'.obs;
-  var introduce3Title = 'Học qua thông báo'.obs;
-  var introduce3Body = 'Bạn không cần phải vào ứng dụng, thông báo với hình ảnh đầy đủ sẽ giúp bạn'.obs;
 
   changeLanguage(String newLanguage) async {
     language = RxString(newLanguage);
@@ -506,9 +489,7 @@ class Controller extends GetxController{
       learnWrongTitle = 'Rất tiếc!'.obs;
       learnMeanGuide = 'gõ vào ảnh tương ứng với nghĩa'.obs;
       learnedWordsTodayTitle = 'mục tiêu:'.obs;
-      newRandomWordTitle = 'từ mới'.obs;
       all = 'Tất cả'.obs;
-      relearnButton = 'ôn tập'.obs;
       scoreId = 'Từ'.obs;
       scoreWord = 'Viết'.obs;
       scorePronun = 'Âm'.obs;
@@ -517,25 +498,10 @@ class Controller extends GetxController{
       scoreTotal = 'Tổng'.obs;
       hint = 'tìm kiếm...'.obs;
       notFound = 'không tìm thấy'.obs;
-      snackbarFindTitle = 'Chưa được!'.obs;
-      snackbarFindBody = 'Bạn cần chọn từ để học trước'.obs;
-      snackbarRelearn = 'Không có từ để ôn tập'.obs;
-      adTitle = 'QUẢNG CÁO'.obs;
-      adBody = 'Quảng cáo giúp ứng dụng miễn phí'.obs;
       loadingBody = 'Đang tải từ điển, vui lòng đợi trong giây lát'.obs;
       loadingFailTitle = 'Tải lỗi'.obs;
       loadingFailBody = 'Đảm bảo có kết nối Internet, vui lòng tải lại sau'.obs;
       welcomeBody = 'Chào mừng bạn đến với BeDict - từ điển thú vị chờ bạn khám phá'.obs;
-      introduce0Title = 'Giao diện chính'.obs;
-      introduce0Body = 'Dễ dàng hiểu nghĩa với hình ảnh minh họa sinh động'.obs;
-      introduce1Title = 'Phân loại'.obs;
-      introduce1Body = 'Lựa chọn từ theo cách bạn muốn, '
-          'chúng tôi phân loại từ theo chủ đề, loại từ, các gói 3000, 5000, 8000 từ phổ biến nhất'.obs;
-      introduce2Title = 'Học nghe, nói, đọc, viết'.obs;
-      introduce2Body = 'Học mà chơi, chơi mà học, thư giãn với BeDict lúc bạn rảnh rỗi,'
-          ' những trò chơi được thiết kế đơn giản nhưng giúp bạn nắm vững 04 kỹ năng nghe, nói, đọc, viết'.obs;
-      introduce3Title = 'Học qua thông báo'.obs;
-      introduce3Body = 'Bạn không cần phải vào ứng dụng, thông báo với hình ảnh đầy đủ sẽ giúp bạn'.obs;
     }else{
       initLanguageIndex = 1;
       await boxSetting.put('language','EN');
@@ -561,9 +527,7 @@ class Controller extends GetxController{
       learnWrongTitle = 'Sorry!'.obs;
       learnMeanGuide = 'tap the image fit following mean'.obs;
       learnedWordsTodayTitle = 'target:'.obs;
-      newRandomWordTitle = 'other word'.obs;
       all = 'All'.obs;
-      relearnButton = 'relearn'.obs;
       scoreId = 'Word'.obs;
       scoreWord = 'Write'.obs;
       scorePronun = 'Pronun'.obs;
@@ -572,25 +536,10 @@ class Controller extends GetxController{
       scoreTotal = 'Total'.obs;
       hint = 'search...'.obs;
       notFound = 'not found'.obs;
-      snackbarFindTitle = 'Not yet!'.obs;
-      snackbarFindBody = 'Pick a word to learn first'.obs;
-      snackbarRelearn = 'There are none words to relearn'.obs;
-      adTitle = 'ADVERTISEMENT'.obs;
-      adBody = 'Advertisement helps remaining this free app'.obs;
       loadingBody = 'Loading dictionary data, please wait a moment'.obs;
       loadingFailTitle = 'Fail'.obs;
       loadingFailBody = 'Make sure you have Internet connect, please try again later'.obs;
       welcomeBody = 'Welcome you to BeDict - interesting dictionary is waiting for you to discover'.obs;
-      introduce0Title = 'Main Screen'.obs;
-      introduce0Body = 'Easy to learn meaning with our lively images'.obs;
-      introduce1Title = 'Sort words'.obs;
-      introduce1Body = 'Choose word as you want, '
-          'we sort words by category, type, 3000, 5000, 8000 common bundles words'.obs;
-      introduce2Title = 'Leaning listen, speak, read, write'.obs;
-      introduce2Body = 'Leaning as playing, relaxing with BeDict,'
-          ' the plays with simple design help you easy to learn listen, speak, read, write'.obs;
-      introduce3Title = 'Learning through notification'.obs;
-      introduce3Body = 'You don\'t need to go into app, notification with image will help you'.obs;
     }
     update();
   }
@@ -694,27 +643,59 @@ class Introduce extends StatelessWidget {
         globalBackgroundColor: Colors.white,
         pages: [
           PageViewModel(
-            title: c.introduce0Title.string,
-            body: c.introduce0Body.string,
+            title: c.language.string == 'VN'?'Đây là thế giới thật':'This is the real world',
+            body: c.language.string == 'VN'?'Ngôn ngữ trở lên cực kỳ sinh động như ý nghĩa thực của nó'
+                :'Language becomes extremely lively like it is',
             image: _buildImage(c.language.string == 'VN'?'img0.jpg':'img0EN.jpg'),
             decoration: pageDecoration,
           ),
           PageViewModel(
-            title: c.introduce1Title.string,
-            body: c.introduce1Body.string,
+            title: c.language.string == 'VN'?'Gói từ':'Word bundles',
+            body: c.language.string == 'VN'?'Những gói từ quan trọng nhất, tất cả đều có hình ảnh, miễn phí'
+                :'Most important word bundles, all with images, free',
             image: _buildImage(c.language.string == 'VN'?'img1.jpg':'img1EN.jpg'),
             decoration: pageDecoration,
           ),
           PageViewModel(
-            title: c.introduce2Title.string,
-            body: c.introduce2Body.string,
-            image: _buildImage('img2.jpg'),
+            title: c.language.string == 'VN'?'Chủ đề':'Categories',
+            body: c.language.string == 'VN'?'Hàng trăm chủ đề, bao phủ nhiều mặt, nhiều lĩnh vực'
+                :'Hundred categories, cover a lot of aspects, fields',
+            image: _buildImage(c.language.string == 'VN'?'img2.jpg':'img2EN.jpg'),
             decoration: pageDecoration,
           ),
           PageViewModel(
-            title: c.introduce3Title.string,
-            body: c.introduce3Body.string,
+            title: c.language.string == 'VN'?'Chủ đề':'Categories',
+            body: c.language.string == 'VN'?'Chia thành các gói nhỏ, tất cả đều có hình ảnh, miễn phí'
+                :'Divided to some small bundles, all with images, free',
             image: _buildImage(c.language.string == 'VN'?'img3.jpg':'img3EN.jpg'),
+            decoration: pageDecoration,
+          ),
+          PageViewModel(
+            title: c.language.string == 'VN'?'Tìm kiếm':'Searching',
+            body: c.language.string == 'VN'?'Tìm kiếm tất cả từ trong từ điển đều kèm hình ảnh minh hoạ, miễn phí'
+                :'Search all the words in this dictionary with images, free',
+            image: _buildImage(c.language.string == 'VN'?'img4.jpg':'img4EN.jpg'),
+            decoration: pageDecoration,
+          ),
+          PageViewModel(
+            title: c.language.string == 'VN'?'Học':'Learn',
+            body: c.language.string == 'VN'?'Học dễ dàng với hệ thống tính điểm đến khi bạn nắm vừng từ hoàn toàn'
+                :'Easy to learn with marking system until you totally remember the word',
+            image: _buildImage('img5.jpg'),
+            decoration: pageDecoration,
+          ),
+          PageViewModel(
+            title: c.language.string == 'VN'?'Thông báo':'Notification',
+            body: c.language.string == 'VN'?'Xem từ qua thông báo mọi lúc, kể cả khi thiết bị của bạn không mở khoá'
+                :'See words everytime, even when your device do not open',
+            image: _buildImage(c.language.string == 'VN'?'img6.jpg':'img6EN.jpg'),
+            decoration: pageDecoration,
+          ),
+          PageViewModel(
+            title: c.language.string == 'VN'?'Dịch':'Translation',
+            body: c.language.string == 'VN'?'Dịch Anh-Việt và ngược lại, bất cứ cụm từ nào'
+                :'Translage English-Vietnamese and reverse, any clause',
+            image: _buildImage('img7.jpg'),
             decoration: pageDecoration,
           ),
         ],
@@ -2572,296 +2553,6 @@ class _SearchPageState extends State<SearchPage> {
                         ),
                       ),
                       const SizedBox(height: 15),
-                      // Row(
-                      //     children: [
-                      //       const SizedBox(width:10),
-                      //       Expanded(
-                      //         child: TextButton(
-                      //           style: ButtonStyle(
-                      //             backgroundColor: MaterialStateProperty.all<Color>(
-                      //                 themeColor
-                      //             ),
-                      //             foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                      //             padding: MaterialStateProperty.all<EdgeInsets>(
-                      //                 const EdgeInsets.all(0)
-                      //             ),
-                      //             shape: MaterialStateProperty.all<OutlinedBorder?>(
-                      //                 RoundedRectangleBorder(
-                      //                   borderRadius: BorderRadius.circular(20.0),
-                      //                 )
-                      //             ),
-                      //           ),
-                      //           child: Column(
-                      //               children: [
-                      //                 const SizedBox(height:15),
-                      //                 Text(
-                      //                   c.language.string == 'VN'? 'PHÂN LOẠI': 'SORT',
-                      //                   style: const TextStyle(
-                      //                     fontSize: 20,
-                      //                     color: textColor,
-                      //                   ),
-                      //                 ),
-                      //                 const SizedBox(height: 15),
-                      //                 GetBuilder<Controller>(
-                      //                   builder: (_) => Column(
-                      //                       children: [
-                      //                         Row(
-                      //                           children: [
-                      //                             const SizedBox(width: 10),
-                      //                             Container(
-                      //                               alignment: Alignment.center,
-                      //                               height: 40,
-                      //                               child: ToggleButtons(
-                      //                                 fillColor: backgroundColor,
-                      //                                 borderRadius: const BorderRadius.all(
-                      //                                     Radius.circular(10)
-                      //                                 ),
-                      //                                 children: <Widget>[
-                      //                                   SizedBox(
-                      //                                     width: 70,
-                      //                                     child: Text(
-                      //                                       c.language.string == 'VN'? 'chủ đề':'category',
-                      //                                       style: const TextStyle(
-                      //                                         color: textColor,
-                      //                                       ),
-                      //                                       textAlign: TextAlign.center,
-                      //                                       overflow: TextOverflow.ellipsis,
-                      //                                     ),
-                      //                                   ),
-                      //                                   SizedBox(
-                      //                                     width: 70,
-                      //                                     child: Text(
-                      //                                       c.language.string == 'VN'? 'từ loại':'type',
-                      //                                       style: const TextStyle(
-                      //                                         color: textColor,
-                      //                                       ),
-                      //                                       textAlign: TextAlign.center,
-                      //                                       overflow: TextOverflow.ellipsis,
-                      //                                     ),
-                      //                                   ),
-                      //                                 ],
-                      //                                 onPressed: (int index) async {
-                      //                                   for (var i=0;i<2;i++){
-                      //                                     i!=index? c.isSelectedSortScore[i] = false
-                      //                                         : c.isSelectedSortScore[i] = true;
-                      //                                   }
-                      //                                   if (c.isSelectedSortScore[0]){
-                      //                                     c.typeIndexScore = 0.obs;
-                      //                                   }else{
-                      //                                     c.categoryIndexScore = 0.obs;
-                      //                                   }
-                      //                                   await findScore();
-                      //                                 },
-                      //                                 isSelected: c.isSelectedSortScore,
-                      //                               ),
-                      //                             ),
-                      //                             const SizedBox(width: 10),
-                      //                             PopupMenuButton<String>(
-                      //                               onSelected: (String word) async {
-                      //                                 if (c.isSelectedSortScore[0]){
-                      //                                   c.categoryIndexScore = RxInt(c.listCategory.indexOf(word));
-                      //                                   c.typeIndexScore = 0.obs;
-                      //                                 }else{
-                      //                                   c.typeIndexScore = RxInt(c.listType.indexOf(word));
-                      //                                   c.categoryIndexScore = 0.obs;
-                      //                                 }
-                      //                                 await findScore();
-                      //                               },
-                      //                               padding: const EdgeInsets.all(0),
-                      //                               itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                      //                                 for (int i=0; i<(c.isSelectedSortScore[0]? c.listCategory.length:c.listType.length); i++)
-                      //                                   PopupMenuItem<String>(
-                      //                                       value: c.isSelectedSortScore[0]? c.listCategory[i]:c.listType[i],
-                      //                                       padding: const EdgeInsets.fromLTRB(6,0,6,0),
-                      //                                       child: Row(
-                      //                                           mainAxisAlignment: MainAxisAlignment.center,
-                      //                                           children: [
-                      //                                             Text(
-                      //                                               c.isSelectedSortScore[0]? c.listCategory[i]:c.listType[i],
-                      //                                               style: const TextStyle(
-                      //                                                 fontSize: 15,
-                      //                                                 color: textColor,
-                      //                                               ),
-                      //                                               textAlign: TextAlign.center,
-                      //                                             ),
-                      //                                           ]
-                      //                                       )
-                      //                                   ),
-                      //                               ],
-                      //                               // color: themeColor,
-                      //                               child: Row(
-                      //                                   children: [
-                      //                                     Text(
-                      //                                       c.isSelectedSortScore[0]? c.listCategory[c.categoryIndexScore.value]:c.listType[c.typeIndexScore.value],
-                      //                                       style: const TextStyle(
-                      //                                         fontSize: 14,
-                      //                                         color: textColor,
-                      //                                       ),
-                      //                                       overflow: TextOverflow.ellipsis,
-                      //                                       textAlign: TextAlign.left,
-                      //                                     ),
-                      //                                     const Icon(
-                      //                                       Icons.keyboard_arrow_down,
-                      //                                       size: 25,
-                      //                                     ),
-                      //                                   ]
-                      //                               ),
-                      //                               shape: const RoundedRectangleBorder(
-                      //                                   borderRadius: BorderRadius.all(Radius.circular(20.0))
-                      //                               ),
-                      //                             ),
-                      //                             Expanded(
-                      //                               child: PopupMenuButton<String>(
-                      //                                 onSelected: (String word) async {
-                      //                                   c.levelIndexScore = RxInt(c.listLevel.indexOf(word));
-                      //                                   await findScore();
-                      //                                 },
-                      //                                 padding: const EdgeInsets.all(0),
-                      //                                 itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                      //                                   for (int i=0; i<c.listLevel.length; i++)
-                      //                                     PopupMenuItem<String>(
-                      //                                         value: c.listLevel[i],
-                      //                                         padding: const EdgeInsets.fromLTRB(6,0,6,0),
-                      //                                         child: Row(
-                      //                                             mainAxisAlignment: MainAxisAlignment.center,
-                      //                                             children: [
-                      //                                               Text(
-                      //                                                 c.listLevel[i],
-                      //                                                 style: const TextStyle(
-                      //                                                   fontSize: 15,
-                      //                                                   color: textColor,
-                      //                                                 ),
-                      //                                                 textAlign: TextAlign.center,
-                      //                                               ),
-                      //                                             ]
-                      //                                         )
-                      //                                     ),
-                      //                                 ],
-                      //                                 // color: themeColor,
-                      //                                 child: Row(
-                      //                                     mainAxisAlignment: MainAxisAlignment.center,
-                      //                                     children: [
-                      //                                       Text(
-                      //                                         c.listLevel[c.levelIndexScore.value],
-                      //                                         style: const TextStyle(
-                      //                                           fontSize: 14,
-                      //                                           color: textColor,
-                      //                                         ),
-                      //                                         overflow: TextOverflow.ellipsis,
-                      //                                         textAlign: TextAlign.right,
-                      //                                       ),
-                      //                                       const Icon(
-                      //                                         Icons.keyboard_arrow_down,
-                      //                                         size: 25,
-                      //                                       ),
-                      //                                     ]
-                      //                                 ),
-                      //                                 shape: const RoundedRectangleBorder(
-                      //                                     borderRadius: BorderRadius.all(Radius.circular(20.0))
-                      //                                 ),
-                      //                               ),
-                      //                             ),
-                      //                           ],
-                      //                         ),
-                      //                         const SizedBox(height: 10),
-                      //                         Row(
-                      //                             children:[
-                      //                               const SizedBox(width: 13),
-                      //                               Expanded(
-                      //                                 child: GetBuilder<Controller>(
-                      //                                   builder: (_) => Text(
-                      //                                     (c.language.string == 'VN'? 'đã học ' : 'learned ')
-                      //                                         + c.listLearned.length.toString(),
-                      //                                     style: TextStyle(
-                      //                                       fontSize: 12,
-                      //                                       color: textColor.withOpacity(0.5),
-                      //                                     ),
-                      //                                     overflow: TextOverflow.ellipsis,
-                      //                                     textAlign: TextAlign.left,
-                      //                                   ),
-                      //                                 ),
-                      //                               ),
-                      //                               const SizedBox(width: 13),
-                      //                             ]
-                      //                         ),
-                      //                         const SizedBox(height: 3),
-                      //                         Row(
-                      //                             children: [
-                      //                               const SizedBox(width: 10),
-                      //                               Expanded(
-                      //                                 child: GetBuilder<Controller>(
-                      //                                   builder: (_) => LinearPercentIndicator(
-                      //                                     alignment: MainAxisAlignment.center,
-                      //                                     // width: MediaQuery.of(context).size.width-20,
-                      //                                     lineHeight: 18,
-                      //                                     percent: c.listLearned.length/c.listWordScore.length,
-                      //                                     backgroundColor: Colors.black.withOpacity(0.06),
-                      //                                     progressColor: backgroundColor,
-                      //                                     // padding: const EdgeInsets.all(5),
-                      //                                     animation: true,
-                      //                                     center: Text(
-                      //                                         c.listWordScore.length.toString() +
-                      //                                             (c.language.string == 'VN'? ' từ' : ' words'),
-                      //                                         style: const TextStyle(
-                      //                                           fontSize: 10,
-                      //                                         )
-                      //                                     ),
-                      //                                   ),
-                      //                                 ),
-                      //                               ),
-                      //                               const SizedBox(width: 10),
-                      //                             ]
-                      //                         ),
-                      //                       ]
-                      //                   ),
-                      //                 ),
-                      //                 const SizedBox(height:15),
-                      //               ]
-                      //           ),
-                      //           onPressed: () async {
-                      //             if (c.isSelectedSortScore[0]){
-                      //               if (c.language.string == 'VN'){
-                      //                 c.bundle = RxString(listCategoryVN[c.categoryIndexScore.value]);
-                      //               }else{
-                      //                 c.bundle = RxString(listCategoryEN[c.categoryIndexScore.value]);
-                      //               }
-                      //             }else{
-                      //               if (c.language.string == 'VN'){
-                      //                 c.bundle = RxString(listTypeVN[c.typeIndexScore.value]);
-                      //               }else{
-                      //                 c.bundle = RxString(listTypeEN[c.typeIndexScore.value]);
-                      //               }
-                      //             }
-                      //             Get.offAll(()=> const BundlePage());
-                      //           },
-                      //         ),
-                      //       ),
-                      //       const SizedBox(width:10),
-                      //     ]
-                      // ),
-                      // const SizedBox(height:10),
-                      // Row(
-                      //     children: [
-                      //       const SizedBox(width:10),
-                      //       Expanded(
-                      //         child: Container(
-                      //           height: (MediaQuery.of(context).size.width - 20)/3.2,
-                      //           width: MediaQuery.of(context).size.width - 20,
-                      //           decoration: const BoxDecoration(
-                      //             // color: Colors.red.withOpacity(0.3),
-                      //             borderRadius: BorderRadius.all(
-                      //                 Radius.circular(20)
-                      //             ),
-                      //           ),
-                      //           child: BannerAdWidget(
-                      //             adWidth: MediaQuery.of(context).size.width - 20,
-                      //             adHeight: (MediaQuery.of(context).size.width - 20)/3.2,
-                      //           ),
-                      //         ),
-                      //       ),
-                      //       const SizedBox(width:10),
-                      //     ]
-                      // ),
                     ]
                   ),
                 ),
@@ -3097,6 +2788,21 @@ class TranslatePage extends StatelessWidget {
                 ),
                 const SizedBox(width:10),
               ]
+            ),
+            Expanded(
+              child: Container(
+                alignment: Alignment.center,
+                child: SingleChildScrollView(
+                  child: SizedBox(
+                    height: (MediaQuery.of(context).size.width - 20)*250/300,
+                    width: MediaQuery.of(context).size.width - 20,
+                    child: BannerAdWidget(
+                      adWidth: MediaQuery.of(context).size.width - 20,
+                      adHeight: (MediaQuery.of(context).size.width - 20)*250/300,
+                    ),
+                  ),
+                ),
+              ),
             ),
           ]
         ),
@@ -9993,8 +9699,7 @@ class BannerAdState extends State<BannerAdWidget> {
   void initState() {
     super.initState();
     bannerAd = BannerAd(
-      // adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/5194909402' : 'ca-app-pub-9467993129762242/4031685759',
-      adUnitId: Platform.isAndroid ? 'ca-app-pub-3940256099942544/6300978111' : 'ca-app-pub-9467993129762242/4031685759',
+      adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/5194909402' : 'ca-app-pub-9467993129762242/4031685759',
       request: const AdRequest(),
       size: AdSize(
         width: widget.adWidth.ceil(),
@@ -10040,10 +9745,7 @@ class BannerAdState extends State<BannerAdWidget> {
             break;
           case ConnectionState.done:
             if (snapshot.hasData) {
-              child = ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: AdWidget(ad: bannerAd),
-              );
+              child = AdWidget(ad: bannerAd);
             } else {
               child = const Text('Error loading ad');
             }
