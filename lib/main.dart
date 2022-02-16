@@ -5397,7 +5397,7 @@ class _WriteWidgetState extends State<WriteWidget> {
                     ),
                   ),
                   onPressed: () async {
-                    reset();;
+                    reset();
                   },
                   child: GetBuilder<Controller>(
                     builder: (_) => Text(
@@ -5755,7 +5755,7 @@ class _PronunWidgetState extends State<PronunWidget> {
                     ),
                   ),
                   onPressed: () async {
-                    reset();;
+                    reset();
                   },
                   child: GetBuilder<Controller>(
                     builder: (_) => Text(
