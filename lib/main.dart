@@ -1,4 +1,6 @@
 // import 'package:flutter/material.dart';
+// ignore_for_file: empty_catches, prefer_typing_uninitialized_variables, avoid_function_literals_in_foreach_calls
+
 import 'package:flutter/cupertino.dart';
 // import 'package:flutter/painting.dart';
 // import 'package:flutter/widgets.dart';
@@ -272,7 +274,6 @@ class Controller extends GetxController{
   @override
   void onInit() async {
     stt = SpeechToText();
-    // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: SystemUiOverlay.values);
     speechEnabled = RxBool(await stt.initialize(
       onError: (err)  {
         Get.snackbar('voice recognize error',err.errorMsg.replaceAll('_', ' '));
@@ -421,7 +422,6 @@ class Controller extends GetxController{
   var duration = 86400000;
   List<History> listHistory = <History> [].obs;
   List<Score> listLearned = <Score> [].obs;
-  List<Score> listLearnedToday = <Score> [].obs;
   List<String> listWordScorePage = <String> [].obs;
 
   var notifyDaily = false.obs;
@@ -648,58 +648,55 @@ class Introduce extends StatelessWidget {
         globalBackgroundColor: Colors.white,
         pages: [
           PageViewModel(
-            title: c.language.string == 'VN'?'Đây là thế giới thật':'This is the real world',
-            body: c.language.string == 'VN'?'Ngôn ngữ trở lên cực kỳ sinh động như ý nghĩa thực của nó'
-                :'Language becomes extremely lively like it is',
+            title: c.language.string == 'VN'?'Đây là thế giới muôn màu':'This is the colorful world',
+            body: c.language.string == 'VN'?'BeDict cùng ngôn ngữ mô tả cuộc sống muôn màu này.'
+                :'BeDict with language depict this colorful world.',
             image: _buildImage(c.language.string == 'VN'?'img0.jpg':'img0EN.jpg'),
             decoration: pageDecoration,
           ),
           PageViewModel(
             title: c.language.string == 'VN'?'Gói từ':'Word bundles',
-            body: c.language.string == 'VN'?'Những gói từ quan trọng nhất, tất cả đều có hình ảnh, miễn phí'
-                :'Most important word bundles, all with images, free',
+            body: c.language.string == 'VN'?'Những gói từ quan trọng nhất, tất cả đều có hình ảnh, miễn phí.'
+                :'Most important word bundles, all with images, free.',
             image: _buildImage(c.language.string == 'VN'?'img1.jpg':'img1EN.jpg'),
             decoration: pageDecoration,
           ),
           PageViewModel(
             title: c.language.string == 'VN'?'Chủ đề':'Categories',
-            body: c.language.string == 'VN'?'Hàng trăm chủ đề, bao phủ nhiều mặt, nhiều lĩnh vực'
-                :'Hundred categories, cover a lot of aspects, fields',
-            image: _buildImage(c.language.string == 'VN'?'img2.jpg':'img2EN.jpg'),
-            decoration: pageDecoration,
-          ),
-          PageViewModel(
-            title: c.language.string == 'VN'?'Chủ đề':'Categories',
-            body: c.language.string == 'VN'?'Chia thành các gói nhỏ, tất cả đều có hình ảnh, miễn phí'
-                :'Divided to some small bundles, all with images, free',
+            body: c.language.string == 'VN'?'Hàng trăm chủ đề, bao phủ nhiều mặt, nhiều lĩnh vực. '
+                'Chia thành các phần nhỏ, tất cả đều có hình ảnh, miễn phí.'
+                :'Hundred categories, cover a lot of aspects, fields. '
+                'Divided to some small parts, all with images, free.',
             image: _buildImage(c.language.string == 'VN'?'img3.jpg':'img3EN.jpg'),
             decoration: pageDecoration,
           ),
           PageViewModel(
             title: c.language.string == 'VN'?'Tìm kiếm':'Searching',
-            body: c.language.string == 'VN'?'Tìm kiếm tất cả từ trong từ điển đều kèm hình ảnh minh hoạ, miễn phí'
-                :'Search all the words in this dictionary with images, free',
+            body: c.language.string == 'VN'?'Tìm kiếm tất cả từ trong từ điển đều kèm hình ảnh minh hoạ, miễn phí.'
+                :'Search all the words in this dictionary with images, free.',
             image: _buildImage(c.language.string == 'VN'?'img4.jpg':'img4EN.jpg'),
             decoration: pageDecoration,
           ),
           PageViewModel(
             title: c.language.string == 'VN'?'Học':'Learn',
-            body: c.language.string == 'VN'?'Học dễ dàng với hệ thống tính điểm đến khi bạn nắm vừng từ hoàn toàn'
-                :'Easy to learn with marking system until you totally remember the word',
+            body: c.language.string == 'VN'?'Học dễ dàng với những trò chơi đơn giản, hiệu quả '
+                'cùng hệ thống tính điểm cho đến khi bạn nắm vừng từ hoàn toàn.'
+                :'Easy to learn by some easy but helpful games with '
+                'marking system until you totally remember the word.',
             image: _buildImage('img5.jpg'),
             decoration: pageDecoration,
           ),
           PageViewModel(
             title: c.language.string == 'VN'?'Thông báo':'Notification',
-            body: c.language.string == 'VN'?'Xem từ qua thông báo mọi lúc, kể cả khi thiết bị của bạn không mở khoá'
-                :'See words everytime, even when your device do not open',
+            body: c.language.string == 'VN'?'Xem từ qua thông báo mọi lúc, kể cả khi thiết bị của bạn không mở khoá.'
+                :'See words everytime, even when your device do not open.',
             image: _buildImage(c.language.string == 'VN'?'img6.jpg':'img6EN.jpg'),
             decoration: pageDecoration,
           ),
           PageViewModel(
             title: c.language.string == 'VN'?'Dịch':'Translation',
-            body: c.language.string == 'VN'?'Dịch Anh-Việt và ngược lại, bất cứ cụm từ nào'
-                :'Translage English-Vietnamese and reverse, any clause',
+            body: c.language.string == 'VN'?'Dịch Anh-Việt và ngược lại, bất cứ cụm từ nào.'
+                :'Translage English-Vietnamese and reverse, any clause.',
             image: _buildImage('img7.jpg'),
             decoration: pageDecoration,
           ),
@@ -926,7 +923,7 @@ class _SearchPageState extends State<SearchPage> {
     List<String> suggestArray = [];
 
     if (initial){
-      getList(MediaQuery.of(context).size.width < 500?5:(MediaQuery.of(context).size.width~/220+2));
+      getList(MediaQuery.of(context).size.width < 500?5:(MediaQuery.of(context).size.width~/220+3));
     }
     initial = false;
 
@@ -2983,34 +2980,34 @@ class SettingPage extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 10,),
-                            GetBuilder<Controller>(
-                              builder: (_) => Text(
-                                c.drawerTarget.string,
-                                style: const TextStyle(
-                                  color: textColor,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),),
-                            GetBuilder<Controller>(
-                              builder: (_) => Slider(
-                                value: c.target.value.toDouble(),
-                                min: 5,
-                                max: 50,
-                                divisions: 9,
-                                activeColor: backgroundColor,
-                                inactiveColor: themeColor,
-                                thumbColor: backgroundColor,
-                                label: c.target.value.toString(),
-                                onChanged: (double value) async {
-                                  c.target = RxInt(value.toInt());
-                                  await boxSetting.put('target',value.toInt());
-                                  c.update();
-                                },
-                              ),
-                            ),
+                            const SizedBox(height: 15),
+                            // GetBuilder<Controller>(
+                            //   builder: (_) => Text(
+                            //     c.drawerTarget.string,
+                            //     style: const TextStyle(
+                            //       color: textColor,
+                            //       fontSize: 14,
+                            //       fontWeight: FontWeight.w400,
+                            //     ),
+                            //     textAlign: TextAlign.center,
+                            //   ),),
+                            // GetBuilder<Controller>(
+                            //   builder: (_) => Slider(
+                            //     value: c.target.value.toDouble(),
+                            //     min: 5,
+                            //     max: 50,
+                            //     divisions: 9,
+                            //     activeColor: backgroundColor,
+                            //     inactiveColor: themeColor,
+                            //     thumbColor: backgroundColor,
+                            //     label: c.target.value.toString(),
+                            //     onChanged: (double value) async {
+                            //       c.target = RxInt(value.toInt());
+                            //       await boxSetting.put('target',value.toInt());
+                            //       c.update();
+                            //     },
+                            //   ),
+                            // ),
                           ]
                       )
                   ),
@@ -3192,7 +3189,7 @@ class SettingPage extends StatelessWidget {
                 ),
                 const SizedBox(height:5),
                 const Divider(height:1,),
-                const SizedBox(height:12),
+                const SizedBox(height:15),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -3229,7 +3226,7 @@ class SettingPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height:12),
+                const SizedBox(height:15),
                 const Divider(height:1),
                 ListTile(
                   title: GetBuilder<Controller>(
@@ -3415,61 +3412,60 @@ class CategoryScreen extends StatelessWidget {
         ),
         body: Container(
           color: Colors.white,
-          child: Column(
-              children:[
-                // const SizedBox(height: 10),
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Wrap(
-                        spacing: 5,
-                        runSpacing: 5,
-                        runAlignment: WrapAlignment.center,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        direction: Axis.horizontal,
-                        alignment: WrapAlignment.center,
-                        children:[
-                          for (int i=0;i<listCategoryEN.length;i++)
-                            GestureDetector(
-                                onTap: () {
-                                  getToScore(i);
-                                },
-                                child: Container(
-                                  // width: (MediaQuery.of(context).size.width-50)/3,
-                                    decoration: BoxDecoration(
-                                      color: Color.fromRGBO(
-                                          150+Random().nextInt(55),
-                                          201+Random().nextInt(55),
-                                          150+Random().nextInt(55),
-                                          1
-                                      ),
-                                      borderRadius: const BorderRadius.all(
-                                          Radius.circular(20)
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.6),
-                                          spreadRadius: 0,
-                                          blurRadius: 3,
-                                          offset: const Offset(0, 0), // changes position of shadow
-                                        ),
-                                      ],
+          child: SingleChildScrollView(
+            child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  Wrap(
+                      spacing: 5,
+                      runSpacing: 5,
+                      runAlignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      direction: Axis.horizontal,
+                      alignment: WrapAlignment.center,
+                      children:[
+                        for (int i=0;i<listCategoryEN.length;i++)
+                          GestureDetector(
+                              onTap: () {
+                                getToScore(i);
+                              },
+                              child: Container(
+                                // width: (MediaQuery.of(context).size.width-50)/3,
+                                  decoration: BoxDecoration(
+                                    color: Color.fromRGBO(
+                                        150+Random().nextInt(55),
+                                        201+Random().nextInt(55),
+                                        150+Random().nextInt(55),
+                                        1
                                     ),
-                                    padding: const EdgeInsets.all(10),
-                                    margin: const EdgeInsets.all(5),
-                                    child: Text(
-                                      c.language.string == 'VN'?listCategoryVN[i]:listCategoryEN[i],
-                                      style: const TextStyle(
-                                          fontSize: 18
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(20)
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.6),
+                                        spreadRadius: 0,
+                                        blurRadius: 3,
+                                        offset: const Offset(0, 0), // changes position of shadow
                                       ),
-                                      overflow: TextOverflow.ellipsis,
-                                    )
-                                )
-                            ),
-                        ]
-                    ),
+                                    ],
+                                  ),
+                                  padding: const EdgeInsets.all(10),
+                                  margin: const EdgeInsets.all(5),
+                                  child: Text(
+                                    c.language.string == 'VN'?listCategoryVN[i]:listCategoryEN[i],
+                                    style: const TextStyle(
+                                        fontSize: 18
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  )
+                              )
+                          ),
+                      ]
                   ),
-                ),
-              ]
+                  const SizedBox(height: 10),
+                ]
+            ),
           ),
         ),
       ),
@@ -3611,53 +3607,56 @@ class TypeScreen extends StatelessWidget {
               children:[
                 // const SizedBox(height: 10),
                 Expanded(
-                  child: SingleChildScrollView(
-                    child: Wrap(
-                        spacing: 5,
-                        runSpacing: 5,
-                        runAlignment: WrapAlignment.center,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        direction: Axis.horizontal,
-                        alignment: WrapAlignment.center,
-                        children:[
-                          for (int i=0;i<listTypeEN.length;i++)
-                            GestureDetector(
-                                onTap: () {
-                                  getToScore(i);
-                                },
-                                child: Container(
-                                  // width: (MediaQuery.of(context).size.width-50)/3,
-                                    decoration: BoxDecoration(
-                                      color: Color.fromRGBO(
-                                          150+Random().nextInt(55),
-                                          201+Random().nextInt(55),
-                                          150+Random().nextInt(55),
-                                          1
-                                      ),
-                                      borderRadius: const BorderRadius.all(
-                                          Radius.circular(20)
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.6),
-                                          spreadRadius: 0,
-                                          blurRadius: 3,
-                                          offset: const Offset(0, 0), // changes position of shadow
+                  child: Container(
+                    alignment: Alignment.center,
+                    child: SingleChildScrollView(
+                      child: Wrap(
+                          spacing: 5,
+                          runSpacing: 5,
+                          runAlignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          direction: Axis.horizontal,
+                          alignment: WrapAlignment.center,
+                          children:[
+                            for (int i=0;i<listTypeEN.length;i++)
+                              GestureDetector(
+                                  onTap: () {
+                                    getToScore(i);
+                                  },
+                                  child: Container(
+                                    // width: (MediaQuery.of(context).size.width-50)/3,
+                                      decoration: BoxDecoration(
+                                        color: Color.fromRGBO(
+                                            150+Random().nextInt(55),
+                                            201+Random().nextInt(55),
+                                            150+Random().nextInt(55),
+                                            1
                                         ),
-                                      ],
-                                    ),
-                                    padding: const EdgeInsets.all(10),
-                                    margin: const EdgeInsets.all(5),
-                                    child: Text(
-                                      c.language.string == 'VN'?listTypeVN[i]:listTypeEN[i],
-                                      style: const TextStyle(
-                                          fontSize: 18
+                                        borderRadius: const BorderRadius.all(
+                                            Radius.circular(20)
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.6),
+                                            spreadRadius: 0,
+                                            blurRadius: 3,
+                                            offset: const Offset(0, 0), // changes position of shadow
+                                          ),
+                                        ],
                                       ),
-                                      overflow: TextOverflow.ellipsis,
-                                    )
-                                )
-                            ),
-                        ]
+                                      padding: const EdgeInsets.all(10),
+                                      margin: const EdgeInsets.all(5),
+                                      child: Text(
+                                        c.language.string == 'VN'?listTypeVN[i]:listTypeEN[i],
+                                        style: const TextStyle(
+                                            fontSize: 18
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      )
+                                  )
+                              ),
+                          ]
+                      ),
                     ),
                   ),
                 ),
@@ -3680,8 +3679,11 @@ class Home extends StatelessWidget {
     final Controller c = Get.put(Controller());
     List<String> suggestArray = [];
 
-    void getBack() async {
-      await flutterTts.stop();
+    Future getBack() async {
+      try {
+        await flutterTts.stop();
+      } catch (err){}
+
       if (!c.isAdShowing.value){
         void toScore() {
           c.isAdShowing = false.obs;
@@ -3727,8 +3729,10 @@ class Home extends StatelessWidget {
       }
     }
 
-    void getSearch(String word) async {
-      await flutterTts.stop();
+    Future getSearch(String word) async {
+      try {
+        await flutterTts.stop();
+      } catch (err){}
       if (!c.isAdShowing.value){
         void toScore() async {
           c.isAdShowing = false.obs;
@@ -3773,8 +3777,10 @@ class Home extends StatelessWidget {
       }
     }
 
-    void getToLearn() async {
-      await flutterTts.stop();
+    Future getToLearn() async {
+      try {
+        await flutterTts.stop();
+      } catch (err){}
       if (!c.isAdShowing.value){
         void toScore() {
           c.isAdShowing = false.obs;
@@ -3815,8 +3821,10 @@ class Home extends StatelessWidget {
       }
     }
 
-    void getNext() async {
-      await flutterTts.stop();
+    Future getNext() async {
+      try {
+        await flutterTts.stop();
+      } catch (err){}
       if (!c.isAdShowing.value){
         void toScore() async {
           c.isAdShowing = false.obs;
@@ -3870,8 +3878,10 @@ class Home extends StatelessWidget {
       }
     }
 
-    void getPrevious() async {
-      await flutterTts.stop();
+    Future getPrevious() async {
+      try {
+        await flutterTts.stop();
+      } catch (err){}
       if (!c.isAdShowing.value){
         void toScore() async {
           c.isAdShowing = false.obs;
@@ -3925,8 +3935,10 @@ class Home extends StatelessWidget {
       }
     }
 
-    void getRandom() async {
-      await flutterTts.stop();
+    Future getRandom() async {
+      try {
+        await flutterTts.stop();
+      } catch (err){}
       if (!c.isAdShowing.value){
         void toScore() async {
           c.isAdShowing = false.obs;
@@ -3972,8 +3984,10 @@ class Home extends StatelessWidget {
       }
     }
 
-    void getNextMean() async {
-      await flutterTts.stop();
+    Future getNextMean() async {
+      try {
+        await flutterTts.stop();
+      } catch (err){}
       if (!c.isAdShowing.value){
         void toScore() {
           c.isAdShowing = false.obs;
@@ -4019,8 +4033,10 @@ class Home extends StatelessWidget {
       }
     }
 
-    void getPreviousMean() async {
-      await flutterTts.stop();
+    Future getPreviousMean() async {
+      try {
+        await flutterTts.stop();
+      } catch (err){}
       if (!c.isAdShowing.value){
         void toScore() {
           c.isAdShowing = false.obs;
@@ -4072,14 +4088,14 @@ class Home extends StatelessWidget {
         if (c.initSpeak.value) _speak(c.word.string);
       }
       if (c.nowMean.value == 0){
-        duration = 1200 + c.word.string.length*280/c.speakSpeed.value~/3;
+        duration = 2000 + c.word.string.length*50~/c.speakSpeed.value;
         // duration = 3000;
       }
       int wordCount = 0;
       for (var j=0;j<i;j++){
         wordCount += c.mean[c.nowMean.value][j].split(' ').length as int;
       }
-      duration += wordCount*280~/c.speakSpeed.value;
+      duration += i*600 + wordCount*250~/c.speakSpeed.value;
       await Future.delayed(Duration(milliseconds: duration));
     }
 
@@ -4188,7 +4204,7 @@ class Home extends StatelessWidget {
                   onDoubleTap: () {
                     getToLearn();
                   },
-                  onTap:(){
+                  onTap:() async {
                     if (searchFocusNode.hasFocus){
                       searchFocusNode.unfocus();
                     }
@@ -4198,7 +4214,9 @@ class Home extends StatelessWidget {
                     }
                     if (processKey.currentState!.controller.isAnimating){
                       processKey.currentState!.controller.stop();
-                      flutterTts.stop();
+                      try {
+                        await flutterTts.stop();
+                      } catch (err){}
                     }else{
                       processKey.currentState!.controller.forward();
                     }
@@ -4820,7 +4838,9 @@ class Home extends StatelessWidget {
                               changeOnTap: true,
                               labels: const ['VN', 'EN'],
                               onToggle: (index) async {
-                                await flutterTts.stop();
+                                try {
+                                  await flutterTts.stop();
+                                } catch (err){}
                                 if (index == 0){
                                   c.changeLanguage('VN');
                                 }else{
@@ -4847,7 +4867,9 @@ class Home extends StatelessWidget {
                                 value: c.initSpeak.value,
                                 onChanged: (value) async {
                                   c.initSpeak = value.obs;
-                                  await flutterTts.stop();
+                                  try {
+                                    await flutterTts.stop();
+                                  } catch (err){}
                                   c.update();
                                   await boxSetting.put('initSpeak',value);
                                 },
@@ -5027,9 +5049,9 @@ class ProcessWidgetState extends State<ProcessWidget> with TickerProviderStateMi
     }
     int duration = 0;
     if (c.nowMean.value == 0){
-      duration = 1200 + c.word.string.length*280/c.speakSpeed.value~/3;
+      duration = 2000 + c.word.string.length*50~/c.speakSpeed.value;
     }
-    duration += 2000 + wordCount*280~/c.speakSpeed.value;
+    duration += 1000 + (c.mean[c.nowMean.value].length as int)*600 + wordCount*250~/c.speakSpeed.value;
     controller.duration = Duration(milliseconds: duration);
     controller.forward();
     super.initState();
@@ -5067,9 +5089,9 @@ class ProcessWidgetState extends State<ProcessWidget> with TickerProviderStateMi
     }
     int duration = 0;
     if (c.nowMean.value == 0){
-      duration = 1200 + c.word.string.length*280/c.speakSpeed.value~/3;
+      duration = 2000 + c.word.string.length*50~/c.speakSpeed.value;
     }
-    duration += 2000 + wordCount*280~/c.speakSpeed.value;
+    duration += 1000 + (c.mean[c.nowMean.value].length as int)*600 + wordCount*250~/c.speakSpeed.value;
     controller.duration = Duration(milliseconds: duration);
     controller.reset();
     controller.forward();
@@ -6276,7 +6298,9 @@ class _MeanWidgetState extends State<MeanWidget> {
   }
 
   Future speakMeanWidget() async {
-    await flutterTts.stop();
+    try {
+      await flutterTts.stop();
+    } catch (err){}
     for (int i=0;i<mean[listIndex[nowIndex]].length;i++){
       String subMean = mean[listIndex[nowIndex]][i];
       if (c.initSpeak.value) {
@@ -6497,7 +6521,9 @@ class _MeanWidgetState extends State<MeanWidget> {
                                                         for (var i=0;i<mean.length;i++){
                                                           ktMean.add(false);
                                                         }
-                                                        flutterTts.stop();
+                                                        try {
+                                                          await flutterTts.stop();
+                                                        } catch (err){}
                                                         getNextLearn();
                                                       }else{
                                                         if (nowIndex < mean.length - 1){
@@ -6639,7 +6665,9 @@ class _MeanWidgetState extends State<MeanWidget> {
                     changeOnTap: true,
                     labels: const ['VN', 'EN'],
                     onToggle: (index) async {
-                      await flutterTts.stop();
+                      try {
+                        await flutterTts.stop();
+                      } catch (err){}
                       if (index == 0){
                         c.changeLanguage('VN');
                         setState((){
@@ -6672,7 +6700,9 @@ class _MeanWidgetState extends State<MeanWidget> {
                       value: c.initSpeak.value,
                       onChanged: (value) async {
                         c.initSpeak = value.obs;
-                        await flutterTts.stop();
+                        try {
+                          await flutterTts.stop();
+                        } catch (err){}
                         c.update();
                         await boxSetting.put('initSpeak',value);
                       },
@@ -6846,11 +6876,15 @@ class LearnWord extends StatelessWidget {
             GestureDetector(
               onVerticalDragEnd: (details) async {
                 if (details.primaryVelocity! > 0) {
-                  flutterTts.stop();
+                  try {
+                    await flutterTts.stop();
+                  } catch (err){}
                   getPreviousLearn();
                 }
                 if (details.primaryVelocity! < -0) {
-                  flutterTts.stop();
+                  try {
+                    await flutterTts.stop();
+                  } catch (err){}
                   getNextLearn();
                 }
               },
@@ -6959,7 +6993,7 @@ class HistoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
-    const int pageCount = 200;
+    const int pageCount = 100;
 
     Future findHistory() async {
       c.listHistory = await getHistory(c.startDayHistory.value,c.endDayHistory.value);
@@ -6980,6 +7014,7 @@ class HistoryPage extends StatelessWidget {
           c.fromScreen = 0.obs;
           c.nowWord = RxInt(c.wordArray.indexOf(word));
           await c.layWord(word);
+          Get.offAll(()=>Home());
         }
         int isShow = Random().nextInt(showAdFrequency);
         if (isShow == 0 && !c.isVip.value){
@@ -7494,7 +7529,7 @@ class SortPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
     final GlobalKey<ScaffoldState> _key = GlobalKey();
-    const int pageCount = 200;
+    const int pageCount = 100;
 
     Future findScore() async {
       c.listLearned = await getListScoreTime(c.startDay.value,c.endDay.value);
@@ -7511,6 +7546,7 @@ class SortPage extends StatelessWidget {
           c.fromScreen = 0.obs;
           c.nowWord = RxInt(c.wordArray.indexOf(word));
           await c.layWord(word);
+          Get.offAll(()=>Home());
         }
         int isShow = Random().nextInt(showAdFrequency);
         if (isShow == 0 && !c.isVip.value){
@@ -7959,155 +7995,128 @@ class SortPage extends StatelessWidget {
                     ]
                 ),
                 Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                        children:[
-                          GetBuilder<Controller>(
-                            builder: (_) => Wrap(
-                                spacing: 10,
-                                runSpacing: 10,
-                                runAlignment: WrapAlignment.start,
-                                crossAxisAlignment: WrapCrossAlignment.start,
-                                direction: Axis.horizontal,
-                                alignment: WrapAlignment.start,
+                  child: GetBuilder<Controller>(
+                    builder: (_) =>  ListView.builder(
+                        padding: const EdgeInsets.all(4),
+                        addAutomaticKeepAlives: false,
+                        itemCount: c.listLearned.length>(c.indexScorePage.value+1)*pageCount?
+                        pageCount:c.listLearned.length-c.indexScorePage.value*pageCount,
+                        itemBuilder: (BuildContext context, int index) {
+                          return GestureDetector(
+                            onTap:(){
+                              getSearch(c.listLearned[c.indexScorePage.value*pageCount+index].wordId);
+                            },
+                            child: Container(
+                              // height: 70,
+                              alignment: Alignment.center,
+                              decoration: const BoxDecoration(
+                                color: Color.fromRGBO(240, 240, 240, 1),
+                                borderRadius: BorderRadius.all(
+                                    Radius.circular(8)
+                                ),
+                              ),
+                              padding: const EdgeInsets.all(8),
+                              margin: const EdgeInsets.all(5),
+                              child: Row(
                                 children: [
-                                  for (var i=pageCount*c.indexScorePage.value;
-                                  i<(c.listLearned.length~/pageCount>c.indexScorePage.value?
-                                  pageCount*c.indexScorePage.value+pageCount:
-                                  pageCount*c.indexScorePage.value+c.listLearned.length%pageCount); i++)
-                                    GestureDetector(
-                                      onTap: () {
-                                        getSearch(c.listLearned[i].wordId);
-                                      },
-                                      child: Container(
-                                        // height: 105,
-                                        width: MediaQuery.of(context).size.width*0.5 - 15,
-                                        // padding: const EdgeInsets.all(10),
-                                        decoration: const BoxDecoration(
-                                          color: Color.fromRGBO(240, 240, 240, 1),
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(8)
+                                  // const SizedBox(width:10),
+                                  Expanded(
+                                    child: Text(
+                                      c.listLearned[c.indexScorePage.value*pageCount+index].wordId,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        color: textColor,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        // const SizedBox(width:3),
+                                        Expanded(
+                                          child: CircularPercentIndicator(
+                                            radius: (MediaQuery.of(context).size.width*0.5 - 40)/4,
+                                            lineWidth: 3.0,
+                                            animation: true,
+                                            percent: c.listLearned[c.indexScorePage.value*pageCount+index].word/25,
+                                            backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
+                                            center: Text(
+                                              c.scoreWord.string,
+                                              style: const TextStyle(
+                                                fontSize: 10.0,
+                                                color: textColor,
+                                              ),
+                                            ),
+                                            circularStrokeCap: CircularStrokeCap.round,
+                                            progressColor: Colors.purple,
                                           ),
                                         ),
-                                        child: Column(
-                                            children: [
-                                              const SizedBox(height:5),
-                                              Text(
-                                                c.listLearned[i].wordId,
-                                                style: const TextStyle(
-                                                  fontSize: 15,
-                                                  color: textColor,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
+                                        Expanded(
+                                          child: CircularPercentIndicator(
+                                            radius: (MediaQuery.of(context).size.width*0.5 - 40)/4,
+                                            lineWidth: 3.0,
+                                            animation: true,
+                                            percent: c.listLearned[c.indexScorePage.value*pageCount+index].pronun/25,
+                                            backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
+                                            center: Text(
+                                              c.scorePronun.string,
+                                              style: const TextStyle(
+                                                fontSize: 10.0,
+                                                color: textColor,
                                               ),
-                                              const SizedBox(height:5),
-                                              Row(
-                                                children: [
-                                                  const SizedBox(width:3),
-                                                  Expanded(
-                                                    child: CircularPercentIndicator(
-                                                      radius: (MediaQuery.of(context).size.width*0.5 - 30)/4,
-                                                      lineWidth: 3.0,
-                                                      animation: true,
-                                                      percent: c.listLearned[i].word/25,
-                                                      backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
-                                                      center: Text(
-                                                        c.scoreWord.string,
-                                                        style: const TextStyle(
-                                                          fontSize: 10.0,
-                                                          color: textColor,
-                                                        ),
-                                                      ),
-                                                      circularStrokeCap: CircularStrokeCap.round,
-                                                      progressColor: Colors.purple,
-                                                    ),
-                                                  ),
-                                                  Expanded(
-                                                    child: CircularPercentIndicator(
-                                                      radius: (MediaQuery.of(context).size.width*0.5 - 30)/4,
-                                                      lineWidth: 3.0,
-                                                      animation: true,
-                                                      percent: c.listLearned[i].pronun/25,
-                                                      backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
-                                                      center: Text(
-                                                        c.scorePronun.string,
-                                                        style: const TextStyle(
-                                                          fontSize: 10.0,
-                                                          color: textColor,
-                                                        ),
-                                                      ),
-                                                      circularStrokeCap: CircularStrokeCap.round,
-                                                      progressColor: Colors.purple,
-                                                    ),
-                                                  ),
-                                                  Expanded(
-                                                    child: CircularPercentIndicator(
-                                                      radius: (MediaQuery.of(context).size.width*0.5 - 30)/4,
-                                                      lineWidth: 3.0,
-                                                      animation: true,
-                                                      percent: c.listLearned[i].speak/25,
-                                                      backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
-                                                      center: Text(
-                                                        c.scoreSpeak.string,
-                                                        style: const TextStyle(
-                                                          fontSize: 10.0,
-                                                          color: textColor,
-                                                        ),
-                                                      ),
-                                                      circularStrokeCap: CircularStrokeCap.round,
-                                                      progressColor: Colors.purple,
-                                                    ),
-                                                  ),
-                                                  Expanded(
-                                                    child: CircularPercentIndicator(
-                                                      radius: (MediaQuery.of(context).size.width*0.5 - 30)/4,
-                                                      lineWidth: 3.0,
-                                                      animation: true,
-                                                      percent: c.listLearned[i].mean/25,
-                                                      backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
-                                                      center: Text(
-                                                        c.scoreMean.string,
-                                                        style: const TextStyle(
-                                                          fontSize: 10.0,
-                                                          color: textColor,
-                                                        ),
-                                                      ),
-                                                      circularStrokeCap: CircularStrokeCap.round,
-                                                      progressColor: Colors.purple,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width:3),
-                                                ],
-                                              ),
-                                              const SizedBox(height:5),
-                                              GetBuilder<Controller>(
-                                                builder: (_) => LinearPercentIndicator(
-                                                  alignment: MainAxisAlignment.center,
-                                                  // width: MediaQuery.of(context).size.width-20,
-                                                  lineHeight: 10.0,
-                                                  percent: c.listLearned[i].total/100,
-                                                  backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
-                                                  progressColor: backgroundColor,
-                                                  // padding: const EdgeInsets.all(5),
-                                                  animation: true,
-                                                  center: Text(
-                                                      c.scoreTotal.string,
-                                                      style: const TextStyle(
-                                                        fontSize: 8,
-                                                      )
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(height:5),
-                                            ]
+                                            ),
+                                            circularStrokeCap: CircularStrokeCap.round,
+                                            progressColor: Colors.purple,
+                                          ),
                                         ),
-                                      ),
-                                    )
-                                ]
+                                        Expanded(
+                                          child: CircularPercentIndicator(
+                                            radius: (MediaQuery.of(context).size.width*0.5 - 40)/4,
+                                            lineWidth: 3.0,
+                                            animation: true,
+                                            percent: c.listLearned[c.indexScorePage.value*pageCount+index].speak/25,
+                                            backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
+                                            center: Text(
+                                              c.scoreSpeak.string,
+                                              style: const TextStyle(
+                                                fontSize: 10.0,
+                                                color: textColor,
+                                              ),
+                                            ),
+                                            circularStrokeCap: CircularStrokeCap.round,
+                                            progressColor: Colors.purple,
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: CircularPercentIndicator(
+                                            radius: (MediaQuery.of(context).size.width*0.5 - 40)/4,
+                                            lineWidth: 3.0,
+                                            animation: true,
+                                            percent: c.listLearned[c.indexScorePage.value*pageCount+index].mean/25,
+                                            backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
+                                            center: Text(
+                                              c.scoreMean.string,
+                                              style: const TextStyle(
+                                                fontSize: 10.0,
+                                                color: textColor,
+                                              ),
+                                            ),
+                                            circularStrokeCap: CircularStrokeCap.round,
+                                            progressColor: Colors.purple,
+                                          ),
+                                        ),
+                                        // const SizedBox(width:3),
+                                      ],
+                                    ),
+                                  ),
+                                  // const SizedBox(width:10),
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 10),
-                        ]
+                          );
+                        }
                     ),
                   ),
                 ),
@@ -8842,221 +8851,215 @@ class _ScorePageState extends State<ScorePage> {
                               c.nowWord = RxInt(i);
                               getToHome(dataRaw['word']);
                             },
-                            child: Row(
-                              children: [
-                                const Expanded(child:SizedBox()),
-                                SizedBox(
-                                  width: 300,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Row(
-                                          children:[
-                                            Container(
-                                                margin: const EdgeInsets.all(10),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white,
-                                                  borderRadius: const BorderRadius.all(
-                                                      Radius.circular(8)
-                                                  ),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.black.withOpacity(0.6),
-                                                      spreadRadius: 0,
-                                                      blurRadius: 5,
-                                                      offset: const Offset(5, 5), // changes position of shadow
-                                                    ),
-                                                  ],
+                            child: Container(
+                              alignment: Alignment.center,
+                              child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Row(
+                                        children:[
+                                          Container(
+                                              margin: const EdgeInsets.all(10),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: const BorderRadius.all(
+                                                    Radius.circular(8)
                                                 ),
-                                                width: 240,
-                                                height: 200,
-                                                child: Stack(
-                                                    children:[
-                                                      ClipRRect(
-                                                        borderRadius: BorderRadius.circular(8),
-                                                        child: ImageFiltered(
-                                                          imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                                                          child: Opacity(
-                                                            opacity: 0.8,
-                                                            child: Image(
-                                                              image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
-                                                              fit: BoxFit.cover,
-                                                              width: 240,
-                                                              height: 200,
-                                                              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                                                return const SizedBox();
-                                                              },
-                                                            ),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black.withOpacity(0.6),
+                                                    spreadRadius: 0,
+                                                    blurRadius: 5,
+                                                    offset: const Offset(5, 5), // changes position of shadow
+                                                  ),
+                                                ],
+                                              ),
+                                              width: 234,
+                                              height: 195,
+                                              child: Stack(
+                                                  children:[
+                                                    ClipRRect(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      child: ImageFiltered(
+                                                        imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                                        child: Opacity(
+                                                          opacity: 0.8,
+                                                          child: Image(
+                                                            image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                            fit: BoxFit.cover,
+                                                            width: 234,
+                                                            height: 195,
+                                                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                              return const SizedBox();
+                                                            },
                                                           ),
                                                         ),
                                                       ),
-                                                      ClipRRect(
-                                                        borderRadius: BorderRadius.circular(8),
-                                                        child: Image(
-                                                          image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
-                                                          fit: BoxFit.contain,
-                                                          width: 240,
-                                                          height: 200,
-                                                          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                                            return const SizedBox();
-                                                          },
-                                                        ),
+                                                    ),
+                                                    ClipRRect(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      child: Image(
+                                                        image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                        fit: BoxFit.contain,
+                                                        width: 234,
+                                                        height: 195,
+                                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                          return const SizedBox();
+                                                        },
                                                       ),
-                                                      count>1?
-                                                      Positioned(
-                                                          right: 7,
-                                                          bottom: 7,
-                                                          child: Container(
-                                                              alignment: Alignment.center,
-                                                              decoration: BoxDecoration(
-                                                                color: Colors.white.withOpacity(0.7),
-                                                                borderRadius: const BorderRadius.all(
-                                                                    Radius.circular(20)
-                                                                ),
+                                                    ),
+                                                    count>1?
+                                                    Positioned(
+                                                        right: 7,
+                                                        bottom: 7,
+                                                        child: Container(
+                                                            alignment: Alignment.center,
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.white.withOpacity(0.7),
+                                                              borderRadius: const BorderRadius.all(
+                                                                  Radius.circular(20)
                                                               ),
-                                                              height: 40,
-                                                              width: 40,
-                                                              child: Text(
-                                                                '+ ' + (count-1).toString(),
-                                                              )
-                                                          )
-                                                      )
-                                                          : const SizedBox(),
-                                                    ]
-                                                )
-                                            ),
-                                            Column(
-                                                children: [
-                                                  // const SizedBox(width:10),
-                                                  CircularPercentIndicator(
-                                                    radius: 38,
-                                                    lineWidth: 2.0,
-                                                    animation: true,
-                                                    percent: listScore[i].word/25,
-                                                    backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
-                                                    center: Text(
-                                                      c.scoreWord.string,
-                                                      style: TextStyle(
-                                                        fontSize: 10.0,
-                                                        color: textColor.withOpacity(0.5),
-                                                      ),
+                                                            ),
+                                                            height: 40,
+                                                            width: 40,
+                                                            child: Text(
+                                                              '+ ' + (count-1).toString(),
+                                                            )
+                                                        )
+                                                    )
+                                                        : const SizedBox(),
+                                                  ]
+                                              )
+                                          ),
+                                          Column(
+                                              children: [
+                                                // const SizedBox(width:10),
+                                                CircularPercentIndicator(
+                                                  radius: 38,
+                                                  lineWidth: 2.0,
+                                                  animation: true,
+                                                  percent: listScore[i].word/25,
+                                                  backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                                  center: Text(
+                                                    c.scoreWord.string,
+                                                    style: TextStyle(
+                                                      fontSize: 10.0,
+                                                      color: textColor.withOpacity(0.5),
                                                     ),
-                                                    circularStrokeCap: CircularStrokeCap.round,
-                                                    progressColor: Colors.purple,
                                                   ),
-                                                  const SizedBox(height:5),
-                                                  CircularPercentIndicator(
-                                                    radius: 38,
-                                                    lineWidth: 2.0,
-                                                    animation: true,
-                                                    percent: listScore[i].pronun/25,
-                                                    backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
-                                                    center: Text(
-                                                      c.scorePronun.string,
-                                                      style: TextStyle(
-                                                        fontSize: 10.0,
-                                                        color: textColor.withOpacity(0.5),
-                                                      ),
-                                                    ),
-                                                    circularStrokeCap: CircularStrokeCap.round,
-                                                    progressColor: Colors.purple,
-                                                  ),
-                                                  const SizedBox(height:5),
-                                                  CircularPercentIndicator(
-                                                    radius: 38,
-                                                    lineWidth: 2.0,
-                                                    animation: true,
-                                                    percent: listScore[i].speak/25,
-                                                    backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
-                                                    center: Text(
-                                                      c.scoreSpeak.string,
-                                                      style: TextStyle(
-                                                        fontSize: 10.0,
-                                                        color: textColor.withOpacity(0.5),
-                                                      ),
-                                                    ),
-                                                    circularStrokeCap: CircularStrokeCap.round,
-                                                    progressColor: Colors.purple,
-                                                  ),
-                                                  const SizedBox(height:5),
-                                                  CircularPercentIndicator(
-                                                    radius: 38,
-                                                    lineWidth: 2.0,
-                                                    animation: true,
-                                                    percent: listScore[i].mean/25,
-                                                    backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
-                                                    center: Text(
-                                                      c.scoreMean.string,
-                                                      style: TextStyle(
-                                                        fontSize: 10.0,
-                                                        color: textColor.withOpacity(0.5),
-                                                      ),
-                                                    ),
-                                                    circularStrokeCap: CircularStrokeCap.round,
-                                                    progressColor: Colors.purple,
-                                                  ),
-                                                  // const SizedBox(width:10),
-                                                ]
-                                            ),
-                                          ]
-                                      ),
-                                      const SizedBox(height:5),
-                                      Row(
-                                          children:[
-                                            const SizedBox(width:10),
-                                            Expanded(
-                                              child: Text(
-                                                dataRaw['word'],
-                                                style: const TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.w600,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  circularStrokeCap: CircularStrokeCap.round,
+                                                  progressColor: Colors.purple,
                                                 ),
+                                                const SizedBox(height:5),
+                                                CircularPercentIndicator(
+                                                  radius: 38,
+                                                  lineWidth: 2.0,
+                                                  animation: true,
+                                                  percent: listScore[i].pronun/25,
+                                                  backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                                  center: Text(
+                                                    c.scorePronun.string,
+                                                    style: TextStyle(
+                                                      fontSize: 10.0,
+                                                      color: textColor.withOpacity(0.5),
+                                                    ),
+                                                  ),
+                                                  circularStrokeCap: CircularStrokeCap.round,
+                                                  progressColor: Colors.purple,
+                                                ),
+                                                const SizedBox(height:5),
+                                                CircularPercentIndicator(
+                                                  radius: 38,
+                                                  lineWidth: 2.0,
+                                                  animation: true,
+                                                  percent: listScore[i].speak/25,
+                                                  backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                                  center: Text(
+                                                    c.scoreSpeak.string,
+                                                    style: TextStyle(
+                                                      fontSize: 10.0,
+                                                      color: textColor.withOpacity(0.5),
+                                                    ),
+                                                  ),
+                                                  circularStrokeCap: CircularStrokeCap.round,
+                                                  progressColor: Colors.purple,
+                                                ),
+                                                const SizedBox(height:5),
+                                                CircularPercentIndicator(
+                                                  radius: 38,
+                                                  lineWidth: 2.0,
+                                                  animation: true,
+                                                  percent: listScore[i].mean/25,
+                                                  backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                                  center: Text(
+                                                    c.scoreMean.string,
+                                                    style: TextStyle(
+                                                      fontSize: 10.0,
+                                                      color: textColor.withOpacity(0.5),
+                                                    ),
+                                                  ),
+                                                  circularStrokeCap: CircularStrokeCap.round,
+                                                  progressColor: Colors.purple,
+                                                ),
+                                                // const SizedBox(width:10),
+                                              ]
+                                          ),
+                                        ]
+                                    ),
+                                    const SizedBox(height:5),
+                                    Row(
+                                        children:[
+                                          const SizedBox(width:10),
+                                          Expanded(
+                                            child: Text(
+                                              dataRaw['word'],
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w600,
+                                                overflow: TextOverflow.ellipsis,
                                               ),
                                             ),
-                                            const SizedBox(width:10),
-                                          ]
-                                      ),
-                                      const SizedBox(height:5),
-                                      Row(
-                                          children:[
-                                            const SizedBox(width:10),
-                                            Expanded(
-                                              child: Text(
-                                                dataRaw['pronun'],
-                                                style: const TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w400,
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                                // textAlign: TextAlign.right,
+                                          ),
+                                          const SizedBox(width:10),
+                                        ]
+                                    ),
+                                    const SizedBox(height:5),
+                                    Row(
+                                        children:[
+                                          const SizedBox(width:10),
+                                          Expanded(
+                                            child: Text(
+                                              dataRaw['pronun'],
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w400,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              // textAlign: TextAlign.right,
+                                            ),
+                                          ),
+                                          const SizedBox(width:10),
+                                        ]
+                                    ),
+                                    const SizedBox(height:5),
+                                    Row(
+                                        children:[
+                                          const SizedBox(width:10),
+                                          Expanded(
+                                            child: Text(
+                                              mean,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w400,
+                                                overflow: TextOverflow.ellipsis,
                                               ),
                                             ),
-                                            const SizedBox(width:10),
-                                          ]
-                                      ),
-                                      const SizedBox(height:5),
-                                      Row(
-                                          children:[
-                                            const SizedBox(width:10),
-                                            Expanded(
-                                              child: Text(
-                                                mean,
-                                                style: const TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w400,
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(width:10),
-                                          ]
-                                      ),
-                                    ]
-                                  ),
-                                ),
-                                const Expanded(child:SizedBox()),
-                              ]
+                                          ),
+                                          const SizedBox(width:10),
+                                        ]
+                                    ),
+                                  ]
+                              ),
                             ),
                           );
                         }),
@@ -10458,21 +10461,27 @@ void getPreviousLearn() {
 Future _speak(String string) async{
   final Controller c = Get.put(Controller());
   // await flutterTts.stop();
-  await flutterTts.setLanguage("en-US");
-  await flutterTts.setSpeechRate(c.speakSpeed.value);
-  await flutterTts.speak(string);
+  try {
+    await flutterTts.setLanguage("en-US");
+    await flutterTts.setSpeechRate(c.speakSpeed.value);
+    await flutterTts.speak(string);
+  } catch (err){}
+
 }
 
 Future speakMean(String string) async{
   final Controller c = Get.put(Controller());
   // await flutterTts.stop();
-  if (c.language.string == 'VN'){
-    await flutterTts.setLanguage("vi-VN");
-  }else{
-    await flutterTts.setLanguage("en-US");
-  }
-  await flutterTts.setSpeechRate(c.speakSpeed.value);
-  await flutterTts.speak(string);
+  try {
+    if (c.language.string == 'VN'){
+      await flutterTts.setLanguage("vi-VN");
+    }else{
+      await flutterTts.setLanguage("en-US");
+    }
+    await flutterTts.setSpeechRate(c.speakSpeed.value);
+    await flutterTts.speak(string);
+  } catch (err){}
+
 }
 
 Future setRight() async {
