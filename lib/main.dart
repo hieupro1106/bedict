@@ -215,7 +215,7 @@ Future<void> main() async {
   c.enableSound = RxBool(await boxSetting.get('enableSound') ?? true);
   c.initSpeak = RxBool(await boxSetting.get('initSpeak') ?? true);
   c.word = RxString(await boxSetting.get('word') ?? 'hello');
-  c.speakSpeed = RxDouble(await boxSetting.get('speakSpeed') ?? 0.3);
+  c.speakSpeed = RxDouble(await boxSetting.get('speakSpeed') ?? 0.4);
   c.target = RxInt(await boxSetting.get('target') ?? 10);
   c.notificationInterval = RxInt(await boxSetting.get('notificationInterval') ?? 60);
   c.language = RxString(await boxSetting.get('language') ?? c.language.string);
@@ -429,7 +429,7 @@ class Controller extends GetxController{
   var selectedTime = '20:00'.obs;
   var target = 10.obs;
 
-  var speakSpeed = 0.3.obs;
+  var speakSpeed = 0.4.obs;
 
   var isAdShowing = false.obs;
 
@@ -1572,7 +1572,7 @@ class _SearchPageState extends State<SearchPage> {
                           ]
                       ),
                       SizedBox(
-                        height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2 + 80,
+                        height: MediaQuery.of(context).size.width > 500? 220*250/300 + 80: (MediaQuery.of(context).size.width-60)*250/300/2 + 80,
                         child: Row(
                           children: [
                             // const SizedBox(width: 10),
@@ -1836,7 +1836,7 @@ class _SearchPageState extends State<SearchPage> {
                         ]
                       ),
                       SizedBox(
-                        height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2 + 80,
+                        height: MediaQuery.of(context).size.width > 500? 220*250/300 + 80: (MediaQuery.of(context).size.width-60)*250/300/2 + 80,
                         child: Row(
                           children: [
                             // const SizedBox(width: 10),
@@ -2092,7 +2092,7 @@ class _SearchPageState extends State<SearchPage> {
                           ]
                       ),
                       SizedBox(
-                        height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2 + 80,
+                        height: MediaQuery.of(context).size.width > 500? 220*250/300 + 80: (MediaQuery.of(context).size.width-60)*250/300/2 + 80,
                         child: Row(
                           children: [
                             // const SizedBox(width: 10),
@@ -2348,7 +2348,7 @@ class _SearchPageState extends State<SearchPage> {
                           ]
                       ),
                       SizedBox(
-                        height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2 + 80,
+                        height: MediaQuery.of(context).size.width > 500? 220*250/300 + 80: (MediaQuery.of(context).size.width-60)*250/300/2 + 80,
                         child: Row(
                           children: [
                             // const SizedBox(width: 10),
@@ -3680,8 +3680,8 @@ class Home extends StatelessWidget {
     final Controller c = Get.put(Controller());
     List<String> suggestArray = [];
 
-    void getBack() {
-      flutterTts.stop();
+    void getBack() async {
+      await flutterTts.stop();
       if (!c.isAdShowing.value){
         void toScore() {
           c.isAdShowing = false.obs;
@@ -3727,8 +3727,8 @@ class Home extends StatelessWidget {
       }
     }
 
-    void getSearch(String word) {
-      flutterTts.stop();
+    void getSearch(String word) async {
+      await flutterTts.stop();
       if (!c.isAdShowing.value){
         void toScore() async {
           c.isAdShowing = false.obs;
@@ -3773,8 +3773,8 @@ class Home extends StatelessWidget {
       }
     }
 
-    void getToLearn() {
-      flutterTts.stop();
+    void getToLearn() async {
+      await flutterTts.stop();
       if (!c.isAdShowing.value){
         void toScore() {
           c.isAdShowing = false.obs;
@@ -3815,8 +3815,8 @@ class Home extends StatelessWidget {
       }
     }
 
-    void getNext() {
-      flutterTts.stop();
+    void getNext() async {
+      await flutterTts.stop();
       if (!c.isAdShowing.value){
         void toScore() async {
           c.isAdShowing = false.obs;
@@ -3870,8 +3870,8 @@ class Home extends StatelessWidget {
       }
     }
 
-    void getPrevious() {
-      flutterTts.stop();
+    void getPrevious() async {
+      await flutterTts.stop();
       if (!c.isAdShowing.value){
         void toScore() async {
           c.isAdShowing = false.obs;
@@ -3925,8 +3925,8 @@ class Home extends StatelessWidget {
       }
     }
 
-    void getRandom() {
-      flutterTts.stop();
+    void getRandom() async {
+      await flutterTts.stop();
       if (!c.isAdShowing.value){
         void toScore() async {
           c.isAdShowing = false.obs;
@@ -3972,8 +3972,8 @@ class Home extends StatelessWidget {
       }
     }
 
-    void getNextMean() {
-      flutterTts.stop();
+    void getNextMean() async {
+      await flutterTts.stop();
       if (!c.isAdShowing.value){
         void toScore() {
           c.isAdShowing = false.obs;
@@ -4019,8 +4019,8 @@ class Home extends StatelessWidget {
       }
     }
 
-    void getPreviousMean() {
-      flutterTts.stop();
+    void getPreviousMean() async {
+      await flutterTts.stop();
       if (!c.isAdShowing.value){
         void toScore() {
           c.isAdShowing = false.obs;
@@ -4067,11 +4067,20 @@ class Home extends StatelessWidget {
     }
 
     Future waitSpeak(int i) async {
+      int duration = 0;
+      if (i==0 && c.nowMean.value == 0){
+        if (c.initSpeak.value) _speak(c.word.string);
+      }
+      if (c.nowMean.value == 0){
+        duration = 1200 + c.word.string.length*280/c.speakSpeed.value~/3;
+        // duration = 3000;
+      }
       int wordCount = 0;
       for (var j=0;j<i;j++){
         wordCount += c.mean[c.nowMean.value][j].split(' ').length as int;
       }
-      await Future.delayed(Duration(milliseconds: 500 + wordCount*180~/c.speakSpeed.value));
+      duration += wordCount*280~/c.speakSpeed.value;
+      await Future.delayed(Duration(milliseconds: duration));
     }
 
     return WillPopScope(
@@ -4245,16 +4254,16 @@ class Home extends StatelessWidget {
                                   });
                                 },
                               ),
-                              GestureDetector(
-                                child: const SizedBox(
-                                    height: 50,
-                                    width: 40,
-                                    child: Icon(Icons.volume_up_outlined, size: 30,)
-                                ),
-                                onTap: () {
-                                  _speak(c.word.string);
-                                },
-                              ),
+                              // GestureDetector(
+                              //   child: const SizedBox(
+                              //       height: 50,
+                              //       width: 40,
+                              //       child: Icon(Icons.volume_up_outlined, size: 30,)
+                              //   ),
+                              //   onTap: () {
+                              //     _speak(c.word.string);
+                              //   },
+                              // ),
                               GestureDetector(
                                 child: const SizedBox(
                                     height: 50,
@@ -4628,137 +4637,132 @@ class Home extends StatelessWidget {
                       //   ],
                       // ),
                       const SizedBox(height:20),
-                      Expanded(
-                        child: Column(
-                            children:[
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  GetBuilder<Controller>(
-                                    builder: (_) => Flexible(
-                                      child: AnimatedTextKit(
-                                        key: ValueKey<String> (c.word.string),
-                                        animatedTexts: [
-                                          ColorizeAnimatedText(
-                                            c.word.string,
-                                            textAlign: TextAlign.center,
-                                            speed: const Duration(milliseconds: 300),
-                                            textStyle: TextStyle(
-                                              fontSize: 50,
-                                              letterSpacing: 1,
-                                              fontWeight: FontWeight.w600,
-                                              shadows: [
-                                                Shadow(
-                                                  blurRadius: 15,
-                                                  color: Colors.black.withOpacity(0.5),
-                                                  offset: const Offset(3, 3),
-                                                ),
-                                              ],
-                                            ),
-                                            colors: colorizeColors,
-                                          ),
-                                          ColorizeAnimatedText(
-                                            c.pronun.string,
-                                            textAlign: TextAlign.center,
-                                            speed: const Duration(milliseconds: 300),
-                                            textStyle: TextStyle(
-                                              fontSize: 50,
-                                              letterSpacing: 1,
-                                              fontWeight: FontWeight.w600,
-                                              shadows: [
-                                                Shadow(
-                                                  blurRadius: 15,
-                                                  color: Colors.black.withOpacity(0.5),
-                                                  offset: const Offset(3, 3),
-                                                ),
-                                              ],
-                                            ),
-                                            colors: colorizeColors,
-                                          ),
-                                        ],
-                                        isRepeatingAnimation: true,
-                                        repeatForever: true,
-                                        onTap: () {},
-                                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          GetBuilder<Controller>(
+                            builder: (_) => Flexible(
+                              child: AnimatedTextKit(
+                                key: ValueKey<String> (c.word.string),
+                                animatedTexts: [
+                                  ColorizeAnimatedText(
+                                    c.word.string,
+                                    textAlign: TextAlign.center,
+                                    speed: const Duration(milliseconds: 300),
+                                    textStyle: TextStyle(
+                                      fontSize: 50,
+                                      letterSpacing: 1,
+                                      fontWeight: FontWeight.w600,
+                                      shadows: [
+                                        Shadow(
+                                          blurRadius: 15,
+                                          color: Colors.black.withOpacity(0.5),
+                                          offset: const Offset(3, 3),
+                                        ),
+                                      ],
                                     ),
+                                    colors: colorizeColors,
+                                  ),
+                                  ColorizeAnimatedText(
+                                    c.pronun.string,
+                                    textAlign: TextAlign.center,
+                                    speed: const Duration(milliseconds: 300),
+                                    textStyle: TextStyle(
+                                      fontSize: 50,
+                                      letterSpacing: 1,
+                                      fontWeight: FontWeight.w600,
+                                      shadows: [
+                                        Shadow(
+                                          blurRadius: 15,
+                                          color: Colors.black.withOpacity(0.5),
+                                          offset: const Offset(3, 3),
+                                        ),
+                                      ],
+                                    ),
+                                    colors: colorizeColors,
                                   ),
                                 ],
+                                isRepeatingAnimation: true,
+                                repeatForever: true,
+                                onTap: () {},
                               ),
-                              Expanded(
-                                child: Container(color: Colors.transparent),
-                              ),
-                              GetBuilder<Controller>(
-                                builder: (_) => Row(
-                                    children:[
-                                      const SizedBox(width:10),
-                                      c.mean.isNotEmpty?
-                                      Flexible(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: c.mean[c.nowMean.value].asMap().entries.map<Widget>((subMean) =>
-                                                FutureBuilder(
-                                                  // future: Future.delayed(Duration(milliseconds: (subMean.key+1)*1000)),
-                                                  future: waitSpeak(subMean.key),
-                                                  builder: (context, snapshot) {
-                                                    Widget child;
-                                                    if (c.initSpeak.value) {
-                                                      speakMean(subMean.value.substring(0,subMean.value.length-1));
-                                                    }
-                                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                                      child = const SizedBox();
-                                                    } else {
-                                                      child = Container(
-                                                        margin: const EdgeInsets.fromLTRB(0, 0, 0, 5),
-                                                        padding: const EdgeInsets.all(5),
-                                                        decoration: BoxDecoration(
-                                                          color: Colors.white.withOpacity(0.3),
-                                                          borderRadius: const BorderRadius.all(
-                                                              Radius.circular(10)
-                                                          ),
-                                                        ),
-                                                        child: Column(
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                          children: [
-                                                            const SizedBox(height: 3,),
-                                                            Opacity(
-                                                              opacity: 0.3,
-                                                              child: Text(
-                                                                laytuloai(subMean.value.substring(subMean.value.length - 1))[c.typeState.value],
-                                                                style: const TextStyle(
-                                                                  fontSize: 11,
-                                                                  color: textColor,
-                                                                ),
-                                                                textAlign: TextAlign.left,
-                                                              ),
-                                                            ),
-                                                            const SizedBox(height: 2),
-                                                            Text(
-                                                              subMean.value.substring(0,subMean.value.length-1),
-                                                              style: const TextStyle(
-                                                                fontSize: 18,
-                                                                color: textColor,
-                                                              ),
-                                                              textAlign: TextAlign.left,
-                                                            ),
-                                                            const SizedBox(height: 3),
-                                                          ],
-                                                        ),
-                                                      );
-                                                    }
-                                                    return AnimatedSwitcher(
-                                                      duration: const Duration(milliseconds: 500),
-                                                      child: child,
-                                                    );
-                                                  },
+                            ),
+                          ),
+                        ],
+                      ),
+                      Expanded(
+                        child: Container(color: Colors.transparent),
+                      ),
+                      GetBuilder<Controller>(
+                        builder: (_) => Row(
+                            children:[
+                              const SizedBox(width:10),
+                              c.mean.isNotEmpty?
+                              Flexible(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: c.mean[c.nowMean.value].asMap().entries.map<Widget>((subMean) =>
+                                        FutureBuilder(
+                                          // future: Future.delayed(Duration(milliseconds: (subMean.key+1)*1000)),
+                                          future: waitSpeak(subMean.key),
+                                          builder: (context, snapshot) {
+                                            Widget child;
+
+                                            if (snapshot.connectionState == ConnectionState.waiting) {
+                                              child = const SizedBox();
+                                            } else {
+                                              if (c.initSpeak.value) {
+                                                speakMean(subMean.value.substring(0,subMean.value.length-1));
+                                              }
+                                              child = Container(
+                                                margin: const EdgeInsets.fromLTRB(0, 0, 0, 5),
+                                                padding: const EdgeInsets.all(5),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white.withOpacity(0.3),
+                                                  borderRadius: const BorderRadius.all(
+                                                      Radius.circular(10)
+                                                  ),
                                                 ),
-                                            ).toList(),
-                                          )
-                                      )
-                                      : const SizedBox(),
-                                      const SizedBox(width:10),
-                                    ]
-                                ),
-                              ),
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    const SizedBox(height: 3,),
+                                                    Opacity(
+                                                      opacity: 0.3,
+                                                      child: Text(
+                                                        laytuloai(subMean.value.substring(subMean.value.length - 1))[c.typeState.value],
+                                                        style: const TextStyle(
+                                                          fontSize: 11,
+                                                          color: textColor,
+                                                        ),
+                                                        textAlign: TextAlign.left,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 2),
+                                                    Text(
+                                                      subMean.value.substring(0,subMean.value.length-1),
+                                                      style: const TextStyle(
+                                                        fontSize: 18,
+                                                        color: textColor,
+                                                      ),
+                                                      textAlign: TextAlign.left,
+                                                    ),
+                                                    const SizedBox(height: 3),
+                                                  ],
+                                                ),
+                                              );
+                                            }
+                                            return AnimatedSwitcher(
+                                              duration: const Duration(milliseconds: 500),
+                                              child: child,
+                                            );
+                                          },
+                                        ),
+                                    ).toList(),
+                                  )
+                              )
+                                  : const SizedBox(),
+                              const SizedBox(width:10),
                             ]
                         ),
                       ),
@@ -4913,7 +4917,7 @@ class Home extends StatelessWidget {
                                   size: 25,
                                   color: Colors.black.withOpacity(0.3),
                                 ),
-                                tooltip: 'next',
+                                tooltip: 'random',
                                 onPressed: () {
                                   getRandom();
                                 },
@@ -4928,6 +4932,18 @@ class Home extends StatelessWidget {
                                 tooltip: 'previous',
                                 onPressed: () {
                                   getPrevious();
+                                },
+                              ),
+                              IconButton(
+                                padding: const EdgeInsets.all(0.0),
+                                icon: Icon(
+                                  Icons.volume_up_outlined,
+                                  size: 25,
+                                  color: Colors.black.withOpacity(0.3),
+                                ),
+                                tooltip: 'speak',
+                                onPressed: () {
+                                  _speak(c.word.string);
                                 },
                               ),
                               const Expanded(child: SizedBox()),
@@ -5009,7 +5025,12 @@ class ProcessWidgetState extends State<ProcessWidget> with TickerProviderStateMi
     for (var j=0;j<c.mean[c.nowMean.value].length;j++){
       wordCount += c.mean[c.nowMean.value][j].split(' ').length as int;
     }
-    controller.duration = Duration(milliseconds: 2000 + wordCount*180~/c.speakSpeed.value);
+    int duration = 0;
+    if (c.nowMean.value == 0){
+      duration = 1200 + c.word.string.length*280/c.speakSpeed.value~/3;
+    }
+    duration += 2000 + wordCount*280~/c.speakSpeed.value;
+    controller.duration = Duration(milliseconds: duration);
     controller.forward();
     super.initState();
   }
@@ -5044,7 +5065,12 @@ class ProcessWidgetState extends State<ProcessWidget> with TickerProviderStateMi
     for (var j=0;j<c.mean[c.nowMean.value].length;j++){
       wordCount += c.mean[c.nowMean.value][j].split(' ').length as int;
     }
-    controller.duration = Duration(milliseconds: 2000 + wordCount*180~/c.speakSpeed.value);
+    int duration = 0;
+    if (c.nowMean.value == 0){
+      duration = 1200 + c.word.string.length*280/c.speakSpeed.value~/3;
+    }
+    duration += 2000 + wordCount*280~/c.speakSpeed.value;
+    controller.duration = Duration(milliseconds: duration);
     controller.reset();
     controller.forward();
   }
@@ -5348,6 +5374,70 @@ class _WriteWidgetState extends State<WriteWidget> {
                 ]
             ),
           ),
+          const Divider(height:2,thickness:2),
+          Row(
+              children:[
+                const SizedBox(width:10),
+                OutlinedButton(
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                        Colors.transparent
+                    ),
+                    foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                    padding: MaterialStateProperty.all<EdgeInsets>(
+                        const EdgeInsets.all(0)
+                    ),
+                    shape: MaterialStateProperty.all<OutlinedBorder?>(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                        )
+                    ),
+                    fixedSize: MaterialStateProperty.all<Size>(
+                        const Size.fromHeight(40)
+                    ),
+                  ),
+                  onPressed: () async {
+                    reset();;
+                  },
+                  child: GetBuilder<Controller>(
+                    builder: (_) => Text(
+                      c.language.string == 'VN'? 'Đặt lại':'Reset',
+                      style: const TextStyle(
+                        color: textColor,
+                        fontSize: 14,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+                const SizedBox(width:10),
+                const Expanded(child: SizedBox()),
+                GetBuilder<Controller>(
+                  builder: (_) => Text(
+                    c.drawerEnableSound.string,
+                    style: const TextStyle(
+                      color: textColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),),
+                const SizedBox(width:10),
+                GetBuilder<Controller>(
+                  builder: (_) => Switch(
+                    activeColor: backgroundColor,
+                    activeTrackColor: themeColor,
+                    value: c.enableSound.value,
+                    onChanged: (value) async {
+                      c.enableSound = value.obs;
+                      c.update();
+                      await boxSetting.put('enableSound',value);
+                    },
+                  ),
+                ),
+                const SizedBox(width:10),
+              ]
+          ),
         ],
       ),
     );
@@ -5641,6 +5731,70 @@ class _PronunWidgetState extends State<PronunWidget> {
                   const SizedBox(width:5),
                 ]
             ),
+          ),
+          const Divider(height:2,thickness:2),
+          Row(
+              children:[
+                const SizedBox(width:10),
+                OutlinedButton(
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                        Colors.transparent
+                    ),
+                    foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                    padding: MaterialStateProperty.all<EdgeInsets>(
+                        const EdgeInsets.all(0)
+                    ),
+                    shape: MaterialStateProperty.all<OutlinedBorder?>(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                        )
+                    ),
+                    fixedSize: MaterialStateProperty.all<Size>(
+                        const Size.fromHeight(40)
+                    ),
+                  ),
+                  onPressed: () async {
+                    reset();;
+                  },
+                  child: GetBuilder<Controller>(
+                    builder: (_) => Text(
+                      c.language.string == 'VN'? 'Đặt lại':'Reset',
+                      style: const TextStyle(
+                        color: textColor,
+                        fontSize: 14,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+                const SizedBox(width:10),
+                const Expanded(child: SizedBox()),
+                GetBuilder<Controller>(
+                  builder: (_) => Text(
+                    c.drawerEnableSound.string,
+                    style: const TextStyle(
+                      color: textColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),),
+                const SizedBox(width:10),
+                GetBuilder<Controller>(
+                  builder: (_) => Switch(
+                    activeColor: backgroundColor,
+                    activeTrackColor: themeColor,
+                    value: c.enableSound.value,
+                    onChanged: (value) async {
+                      c.enableSound = value.obs;
+                      c.update();
+                      await boxSetting.put('enableSound',value);
+                    },
+                  ),
+                ),
+                const SizedBox(width:10),
+              ]
           ),
         ],
       ),
@@ -10303,7 +10457,7 @@ void getPreviousLearn() {
 
 Future _speak(String string) async{
   final Controller c = Get.put(Controller());
-  await flutterTts.stop();
+  // await flutterTts.stop();
   await flutterTts.setLanguage("en-US");
   await flutterTts.setSpeechRate(c.speakSpeed.value);
   await flutterTts.speak(string);
