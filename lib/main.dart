@@ -648,9 +648,9 @@ class Introduce extends StatelessWidget {
         globalBackgroundColor: Colors.white,
         pages: [
           PageViewModel(
-            title: c.language.string == 'VN'?'Đây là thế giới muôn màu':'This is the colorful world',
-            body: c.language.string == 'VN'?'BeDict cùng ngôn ngữ mô tả cuộc sống muôn màu này.'
-                :'BeDict with language depict this colorful world.',
+            title: c.language.string == 'VN'?'Thế giới muôn màu':'This world is colorful',
+            body: c.language.string == 'VN'?'BeDict mô tả cuộc sống muôn màu này.'
+                :'BeDict depicts this colorful world.',
             image: _buildImage(c.language.string == 'VN'?'img0.jpg':'img0EN.jpg'),
             decoration: pageDecoration,
           ),
@@ -667,14 +667,14 @@ class Introduce extends StatelessWidget {
                 'Chia thành các phần nhỏ, tất cả đều có hình ảnh, miễn phí.'
                 :'Hundred categories, cover a lot of aspects, fields. '
                 'Divided to some small parts, all with images, free.',
-            image: _buildImage(c.language.string == 'VN'?'img3.jpg':'img3EN.jpg'),
+            image: _buildImage(c.language.string == 'VN'?'img2.jpg':'img2EN.jpg'),
             decoration: pageDecoration,
           ),
           PageViewModel(
             title: c.language.string == 'VN'?'Tìm kiếm':'Searching',
             body: c.language.string == 'VN'?'Tìm kiếm tất cả từ trong từ điển đều kèm hình ảnh minh hoạ, miễn phí.'
                 :'Search all the words in this dictionary with images, free.',
-            image: _buildImage(c.language.string == 'VN'?'img4.jpg':'img4EN.jpg'),
+            image: _buildImage(c.language.string == 'VN'?'img3.jpg':'img3EN.jpg'),
             decoration: pageDecoration,
           ),
           PageViewModel(
@@ -683,21 +683,21 @@ class Introduce extends StatelessWidget {
                 'cùng hệ thống tính điểm cho đến khi bạn nắm vừng từ hoàn toàn.'
                 :'Easy to learn by some easy but helpful games with '
                 'marking system until you totally remember the word.',
-            image: _buildImage('img5.jpg'),
+            image: _buildImage('img4.jpg'),
             decoration: pageDecoration,
           ),
           PageViewModel(
             title: c.language.string == 'VN'?'Thông báo':'Notification',
             body: c.language.string == 'VN'?'Xem từ qua thông báo mọi lúc, kể cả khi thiết bị của bạn không mở khoá.'
                 :'See words everytime, even when your device do not open.',
-            image: _buildImage(c.language.string == 'VN'?'img6.jpg':'img6EN.jpg'),
+            image: _buildImage(c.language.string == 'VN'?'img5.jpg':'img5EN.jpg'),
             decoration: pageDecoration,
           ),
           PageViewModel(
             title: c.language.string == 'VN'?'Dịch':'Translation',
             body: c.language.string == 'VN'?'Dịch Anh-Việt và ngược lại, bất cứ cụm từ nào.'
                 :'Translage English-Vietnamese and reverse, any clause.',
-            image: _buildImage('img7.jpg'),
+            image: _buildImage('img6.jpg'),
             decoration: pageDecoration,
           ),
         ],
@@ -4087,7 +4087,7 @@ class Home extends StatelessWidget {
       if (i==0 && c.nowMean.value == 0){
         if (c.initSpeak.value) _speak(c.word.string);
       }
-      if (c.nowMean.value == 0){
+      if (c.nowMean.value == 0 && c.initSpeak.value){
         duration = 2000 + c.word.string.length*50~/c.speakSpeed.value;
         // duration = 3000;
       }
@@ -5048,7 +5048,7 @@ class ProcessWidgetState extends State<ProcessWidget> with TickerProviderStateMi
       wordCount += c.mean[c.nowMean.value][j].split(' ').length as int;
     }
     int duration = 0;
-    if (c.nowMean.value == 0){
+    if (c.nowMean.value == 0 && c.initSpeak.value){
       duration = 2000 + c.word.string.length*50~/c.speakSpeed.value;
     }
     duration += 1000 + (c.mean[c.nowMean.value].length as int)*600 + wordCount*250~/c.speakSpeed.value;
@@ -5088,7 +5088,7 @@ class ProcessWidgetState extends State<ProcessWidget> with TickerProviderStateMi
       wordCount += c.mean[c.nowMean.value][j].split(' ').length as int;
     }
     int duration = 0;
-    if (c.nowMean.value == 0){
+    if (c.nowMean.value == 0 && c.initSpeak.value){
       duration = 2000 + c.word.string.length*50~/c.speakSpeed.value;
     }
     duration += 1000 + (c.mean[c.nowMean.value].length as int)*600 + wordCount*250~/c.speakSpeed.value;
