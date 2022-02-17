@@ -3668,6 +3668,310 @@ class TypeScreen extends StatelessWidget {
   }
 }
 
+class SearchField extends StatelessWidget {
+  const SearchField({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final Controller c = Get.put(Controller());
+    List<String> suggestArray = [];
+
+    WidgetsBinding.instance?.addPostFrameCallback((_) async {
+
+    });
+
+    return Row(
+        children:[
+          const SizedBox(width:20),
+          Expanded(
+            child: TypeAheadField(
+              textFieldConfiguration: TextFieldConfiguration(
+                // controller: searchField,
+                autofocus: false,
+                autocorrect: false,
+                textInputAction: TextInputAction.done,
+                focusNode: searchFocusNode,
+                style: const TextStyle(
+                  fontSize: 15.0,
+                  color: textColor,
+                ),
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.black, width:1),
+                    borderRadius: BorderRadius.all(
+                        Radius.circular(30)
+                    ),
+                  ),
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.black, width: 1),
+                    borderRadius: BorderRadius.all(
+                        Radius.circular(30)
+                    ),
+                  ),
+                  enabledBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.black, width: 1),
+                    borderRadius: BorderRadius.all(
+                        Radius.circular(30)
+                    ),
+                  ),
+                  // prefixIcon: Icon(Icons.search_outlined,size:15),
+                  hintText: c.hint.string,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.all(5),
+                  prefixIcon: const Icon(Icons.search),
+                  // icon: Icon(Icons.search),
+                  // isCollapsed: true,
+                ),
+                onSubmitted: (value) {
+                  if (suggestArray.isEmpty){
+                    // searchField.text = c.word.string;
+                    if (Get.isSnackbarOpen) Get.closeAllSnackbars();
+                    Get.snackbar(c.learnWrongTitle.string, c.notFound.string);
+                  }else{
+                    getSearch(suggestArray[0]);
+                  }
+                },
+              ),
+              suggestionsBoxVerticalOffset: 10,
+              noItemsFoundBuilder: (BuildContext context) => ListTile(
+                title: Text(
+                  c.notFound.string,
+                  style: const TextStyle(
+                    fontSize: 15.0,
+                    color: textColor,
+                  ),
+                ),
+              ),
+              suggestionsCallback: (pattern) async {
+                suggestArray = [];
+                if (pattern == ''){
+                  suggestArray = await getLastSearch();
+                }
+                for (var i = 0; i < c.wordArray.length; i++){
+                  if (suggestArray.length > 9){
+                    break;
+                  }
+                  if (c.wordArray[i].toString().toLowerCase().startsWith(pattern.toLowerCase())){
+                    if (!suggestArray.contains(c.wordArray[i])){
+                      suggestArray.add(c.wordArray[i]);
+                    }
+                  }
+                }
+                return suggestArray;
+              },
+              suggestionsBoxDecoration: SuggestionsBoxDecoration(
+                borderRadius: const BorderRadius.all(Radius.circular(15)),
+                color: Colors.white.withOpacity(0.95),
+              ),
+              itemBuilder: (context, suggestion) {
+                String mean = '';
+                String image = 'bedict.png';
+                var dataRaw = box.get(suggestion.toString());
+                List listMeans = jsonDecode(dataRaw['mean']);
+                List listMean = listMeans[0];
+                List meanENAdd = [];
+                List meanVNAdd = [];
+                for(var j = 0; j< listMean.length; j++) {
+                  String meanENElement = '';
+                  if(listMean[j].contains('#')){
+                    meanENElement = listMean[j].split('#')[1];
+                  }else{
+                    meanENElement = listMean[j];
+                  }
+                  meanENAdd.add(meanENElement);
+                  String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
+                  meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
+                  meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
+                  meanVNAdd.add(meanVNElement);
+                }
+                String meanEN = '';
+                String meanVN = '';
+                for(var j = 0; j< meanENAdd.length; j++) {
+                  if (j==0){
+                    meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                    meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                  }else{
+                    meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                    meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                  }
+                }
+                if (c.language.string == 'VN'){
+                  mean = meanVN;
+                }else{
+                  mean = meanEN;
+                }
+                if (jsonDecode(dataRaw['imageURL']).length>0){
+                  image = jsonDecode(dataRaw['imageURL'])[0];
+                }
+                return Row(
+                    children: [
+                      const SizedBox(width:10),
+                      Expanded(
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children:[
+                              Text(
+                                suggestion.toString(),
+                                style: const TextStyle(
+                                  fontSize: 18.0,
+                                  color: textColor,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height:5),
+                              Text(
+                                mean,
+                                style: const TextStyle(
+                                  fontSize: 14.0,
+                                  color: textColor,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ]
+                        ),
+                      ),
+                      Container(
+                          margin: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: const BorderRadius.all(
+                                Radius.circular(8)
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.6),
+                                spreadRadius: 0,
+                                blurRadius: 3,
+                                offset: const Offset(3, 3), // changes position of shadow
+                              ),
+                            ],
+                          ),
+                          width: 70,
+                          height: 50,
+                          child: Stack(
+                              children:[
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: ImageFiltered(
+                                    imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                    child: Opacity(
+                                      opacity: 0.8,
+                                      child: Image(
+                                        image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                        fit: BoxFit.cover,
+                                        width: 70,
+                                        height: 50,
+                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                          return const SizedBox();
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image(
+                                    image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                    fit: BoxFit.contain,
+                                    width: 70,
+                                    height: 50,
+                                    errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                      return const SizedBox();
+                                    },
+                                  ),
+                                ),
+                                listMeans.length>1?
+                                Positioned(
+                                    right: 4,
+                                    bottom: 4,
+                                    child: Container(
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.7),
+                                          borderRadius: const BorderRadius.all(
+                                              Radius.circular(20)
+                                          ),
+                                        ),
+                                        height: 20,
+                                        width: 20,
+                                        child: Text(
+                                          '+ ' + (listMeans.length-1).toString(),
+                                          style: const TextStyle(
+                                            fontSize: 9,
+                                          ),
+                                        )
+                                    )
+                                )
+                                    : const SizedBox(),
+                              ]
+                          )
+                      ),
+                    ]
+                );
+              },
+              onSuggestionSelected: (suggestion) {
+                getSearch(suggestion.toString());
+              },
+              animationDuration: Duration.zero,
+              debounceDuration: Duration.zero,
+            ),
+          ),
+          const SizedBox(width:20),
+        ]
+    );
+  }
+}
+
+Future getSearch(String word) async {
+  final Controller c = Get.put(Controller());
+  try {
+    await flutterTts.stop();
+  } catch (err){}
+  if (!c.isAdShowing.value){
+    void toScore() async {
+      c.isAdShowing = false.obs;
+      c.isSearch = false.obs;
+      c.category = 'all category'.obs;
+      c.type = 'all type'.obs;
+      c.fromScreen = 0.obs;
+      c.nowWord = RxInt(c.wordArray.indexOf(word));
+      await c.layWord(word);
+    }
+    int isShow = Random().nextInt(showAdFrequency);
+    if (isShow == 0 && !c.isVip.value){
+      c.isAdShowing = true.obs;
+      InterstitialAd.load(
+          adUnitId: Platform.isAndroid ? androidAd:iosAd,
+          request: const AdRequest(),
+          adLoadCallback: InterstitialAdLoadCallback(
+            onAdLoaded: (InterstitialAd ad) {
+              // Keep a reference to the ad so you can show it later.
+              ad.fullScreenContentCallback = FullScreenContentCallback(
+                onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                  ad.dispose();
+                  toScore();
+                },
+                onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                  ad.dispose();
+                  toScore();
+                },
+                onAdImpression: (InterstitialAd ad) {},
+              );
+              ad.show();
+            },
+            onAdFailedToLoad: (LoadAdError error) {
+              toScore();
+            },
+          )
+      );
+    }else{
+      toScore();
+    }
+  }
+}
+
 class Home extends StatelessWidget {
   Home({Key? key}) : super(key: key);
   final GlobalKey<ProcessWidgetState> processKey = GlobalKey<ProcessWidgetState>();
@@ -3677,7 +3981,7 @@ class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
-    List<String> suggestArray = [];
+    // List<String> suggestArray = [];
 
     Future getBack() async {
       try {
@@ -3694,54 +3998,6 @@ class Home extends StatelessWidget {
             default:
               Get.offAll(()=> const ScorePage());
           }
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
-      }
-    }
-
-    Future getSearch(String word) async {
-      try {
-        await flutterTts.stop();
-      } catch (err){}
-      if (!c.isAdShowing.value){
-        void toScore() async {
-          c.isAdShowing = false.obs;
-          c.isSearch = false.obs;
-          c.category = 'all category'.obs;
-          c.type = 'all type'.obs;
-          c.fromScreen = 0.obs;
-          c.nowWord = RxInt(c.wordArray.indexOf(word));
-          await c.layWord(word);
         }
         int isShow = Random().nextInt(showAdFrequency);
         if (isShow == 0 && !c.isVip.value){
@@ -4251,13 +4507,9 @@ class Home extends StatelessWidget {
                                   textAlign: TextAlign.left,
                                 ),
                               ),
-                              GestureDetector(
-                                child: const SizedBox(
-                                    height: 50,
-                                    width: 40,
-                                    child: Icon(Icons.share, size: 25,)
-                                ),
-                                onTap: () async {
+                              IconButton(
+                                icon: const Icon(Icons.share, size: 25,),
+                                onPressed: () async {
                                   double pixelRatio = MediaQuery.of(context).devicePixelRatio;
                                   await screenshotController.capture(
                                       delay: const Duration(milliseconds: 10),
@@ -4272,38 +4524,15 @@ class Home extends StatelessWidget {
                                   });
                                 },
                               ),
-                              // GestureDetector(
-                              //   child: const SizedBox(
-                              //       height: 50,
-                              //       width: 40,
-                              //       child: Icon(Icons.volume_up_outlined, size: 30,)
-                              //   ),
-                              //   onTap: () {
-                              //     _speak(c.word.string);
-                              //   },
-                              // ),
-                              GestureDetector(
-                                child: const SizedBox(
-                                    height: 50,
-                                    width: 40,
-                                    child: Icon(Icons.search_rounded, size: 25,)
-                                ),
-                                onTap: () {
+                              IconButton(
+                                icon: const Icon(Icons.search_rounded, size: 25,),
+                                onPressed: () {
                                   c.isSearch = true.obs;
                                   searchFocusNode.requestFocus();
                                   c.update();
                                 },
                               ),
-                              // GestureDetector(
-                              //   child: const SizedBox(
-                              //       height: 50,
-                              //       width: 40,
-                              //       child: Icon(Icons.arrow_forward_rounded, size: 30,)
-                              //   ),
-                              //   onTap: () {
-                              //     getToLearn();
-                              //   },
-                              // ),
+                              const SizedBox(width:5),
                               OutlinedButton(
                                 style: ButtonStyle(
                                   backgroundColor: MaterialStateProperty.all<Color>(
@@ -4336,259 +4565,10 @@ class Home extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              const SizedBox(width:10),
-                              // IconButton(
-                              //   padding: const EdgeInsets.all(0.0),
-                              //   icon: const Icon(Icons.search_rounded, size: 20,),
-                              //   tooltip: 'search',
-                              //   onPressed: () {
-                              //     c.isSearch = true.obs;
-                              //     searchFocusNode.requestFocus();
-                              //     c.update();
-                              //   },
-                              // ),
+                              const SizedBox(width:15),
                             ]
                         ):
-                        Row(
-                            children:[
-                              const SizedBox(width:20),
-                              Expanded(
-                                child: TypeAheadField(
-                                  textFieldConfiguration: TextFieldConfiguration(
-                                    // controller: searchField,
-                                    autofocus: false,
-                                    autocorrect: false,
-                                    textInputAction: TextInputAction.done,
-                                    focusNode: searchFocusNode,
-                                    style: const TextStyle(
-                                      fontSize: 15.0,
-                                      color: textColor,
-                                    ),
-                                    decoration: InputDecoration(
-                                      border: const OutlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.black, width:1),
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(30)
-                                        ),
-                                      ),
-                                      focusedBorder: const OutlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.black, width: 1),
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(30)
-                                        ),
-                                      ),
-                                      enabledBorder: const OutlineInputBorder(
-                                        borderSide: BorderSide(color: Colors.black, width: 1),
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(30)
-                                        ),
-                                      ),
-                                      // prefixIcon: Icon(Icons.search_outlined,size:15),
-                                      hintText: c.hint.string,
-                                      isDense: true,
-                                      contentPadding: const EdgeInsets.all(5),
-                                      prefixIcon: const Icon(Icons.search),
-                                      // icon: Icon(Icons.search),
-                                      // isCollapsed: true,
-                                    ),
-                                    onSubmitted: (value) {
-                                      if (suggestArray.isEmpty){
-                                        // searchField.text = c.word.string;
-                                        if (Get.isSnackbarOpen) Get.closeAllSnackbars();
-                                        Get.snackbar(c.learnWrongTitle.string, c.notFound.string);
-                                      }else{
-                                        getSearch(suggestArray[0]);
-                                      }
-                                    },
-                                  ),
-                                  suggestionsBoxVerticalOffset: 10,
-                                  noItemsFoundBuilder: (BuildContext context) => ListTile(
-                                    title: Text(
-                                      c.notFound.string,
-                                      style: const TextStyle(
-                                        fontSize: 15.0,
-                                        color: textColor,
-                                      ),
-                                    ),
-                                  ),
-                                  suggestionsCallback: (pattern) async {
-                                    suggestArray = [];
-                                    if (pattern == ''){
-                                      suggestArray = await getLastSearch();
-                                    }
-                                    for (var i = 0; i < c.wordArray.length; i++){
-                                      if (suggestArray.length > 9){
-                                        break;
-                                      }
-                                      if (c.wordArray[i].toString().toLowerCase().startsWith(pattern.toLowerCase())){
-                                        if (!suggestArray.contains(c.wordArray[i])){
-                                          suggestArray.add(c.wordArray[i]);
-                                        }
-                                      }
-                                    }
-                                    return suggestArray;
-                                  },
-                                  suggestionsBoxDecoration: SuggestionsBoxDecoration(
-                                    borderRadius: const BorderRadius.all(Radius.circular(15)),
-                                    color: Colors.white.withOpacity(0.95),
-                                  ),
-                                  itemBuilder: (context, suggestion) {
-                                    String mean = '';
-                                    String image = 'bedict.png';
-                                    var dataRaw = box.get(suggestion.toString());
-                                    List listMeans = jsonDecode(dataRaw['mean']);
-                                    List listMean = listMeans[0];
-                                    List meanENAdd = [];
-                                    List meanVNAdd = [];
-                                    for(var j = 0; j< listMean.length; j++) {
-                                      String meanENElement = '';
-                                      if(listMean[j].contains('#')){
-                                        meanENElement = listMean[j].split('#')[1];
-                                      }else{
-                                        meanENElement = listMean[j];
-                                      }
-                                      meanENAdd.add(meanENElement);
-                                      String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
-                                      meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
-                                      meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
-                                      meanVNAdd.add(meanVNElement);
-                                    }
-                                    String meanEN = '';
-                                    String meanVN = '';
-                                    for(var j = 0; j< meanENAdd.length; j++) {
-                                      if (j==0){
-                                        meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
-                                        meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
-                                      }else{
-                                        meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
-                                        meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
-                                      }
-                                    }
-                                    if (c.language.string == 'VN'){
-                                      mean = meanVN;
-                                    }else{
-                                      mean = meanEN;
-                                    }
-                                    if (jsonDecode(dataRaw['imageURL']).length>0){
-                                      image = jsonDecode(dataRaw['imageURL'])[0];
-                                    }
-                                    return Row(
-                                        children: [
-                                          const SizedBox(width:10),
-                                          Expanded(
-                                            child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children:[
-                                                  Text(
-                                                    suggestion.toString(),
-                                                    style: const TextStyle(
-                                                      fontSize: 18.0,
-                                                      color: textColor,
-                                                      fontWeight: FontWeight.w600,
-                                                    ),
-                                                    overflow: TextOverflow.ellipsis,
-                                                  ),
-                                                  const SizedBox(height:5),
-                                                  Text(
-                                                    mean,
-                                                    style: const TextStyle(
-                                                      fontSize: 14.0,
-                                                      color: textColor,
-                                                    ),
-                                                    overflow: TextOverflow.ellipsis,
-                                                  ),
-                                                ]
-                                            ),
-                                          ),
-                                          Container(
-                                              margin: const EdgeInsets.all(10),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius: const BorderRadius.all(
-                                                    Radius.circular(8)
-                                                ),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black.withOpacity(0.6),
-                                                    spreadRadius: 0,
-                                                    blurRadius: 3,
-                                                    offset: const Offset(3, 3), // changes position of shadow
-                                                  ),
-                                                ],
-                                              ),
-                                              width: 70,
-                                              height: 50,
-                                              child: Stack(
-                                                  children:[
-                                                    ClipRRect(
-                                                      borderRadius: BorderRadius.circular(8),
-                                                      child: ImageFiltered(
-                                                        imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                                                        child: Opacity(
-                                                          opacity: 0.8,
-                                                          child: Image(
-                                                            image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
-                                                            fit: BoxFit.cover,
-                                                            width: 70,
-                                                            height: 50,
-                                                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                                              return const SizedBox();
-                                                            },
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    ClipRRect(
-                                                      borderRadius: BorderRadius.circular(8),
-                                                      child: Image(
-                                                        image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
-                                                        fit: BoxFit.contain,
-                                                        width: 70,
-                                                        height: 50,
-                                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                                          return const SizedBox();
-                                                        },
-                                                      ),
-                                                    ),
-                                                    listMeans.length>1?
-                                                    Positioned(
-                                                        right: 4,
-                                                        bottom: 4,
-                                                        child: Container(
-                                                            alignment: Alignment.center,
-                                                            decoration: BoxDecoration(
-                                                              color: Colors.white.withOpacity(0.7),
-                                                              borderRadius: const BorderRadius.all(
-                                                                  Radius.circular(20)
-                                                              ),
-                                                            ),
-                                                            height: 20,
-                                                            width: 20,
-                                                            child: Text(
-                                                              '+ ' + (listMeans.length-1).toString(),
-                                                              style: const TextStyle(
-                                                                fontSize: 9,
-                                                              ),
-                                                            )
-                                                        )
-                                                    )
-                                                        : const SizedBox(),
-                                                  ]
-                                              )
-                                          ),
-                                        ]
-                                    );
-                                  },
-                                  onSuggestionSelected: (suggestion) async {
-                                    getSearch(suggestion.toString());
-                                  },
-                                  animationDuration: Duration.zero,
-                                  debounceDuration: Duration.zero,
-                                ),
-                              ),
-                              const SizedBox(width:20),
-                            ]
-                        ),
+                        const SearchField(),
                       ),
                       // Row(
                       //   // crossAxisAlignment: CrossAxisAlignment.start,
@@ -4828,7 +4808,7 @@ class Home extends StatelessWidget {
                             ToggleSwitch(
                               minWidth: 35.0,
                               minHeight: 22.0,
-                              fontSize: 11.0,
+                              fontSize: 9.0,
                               initialLabelIndex: initLanguageIndex,
                               activeBgColor: const [backgroundColor],
                               activeFgColor: Colors.white,
@@ -6655,7 +6635,7 @@ class _MeanWidgetState extends State<MeanWidget> {
                   ToggleSwitch(
                     minWidth: 35.0,
                     minHeight: 22.0,
-                    fontSize: 11.0,
+                    fontSize: 9.0,
                     initialLabelIndex: initLanguageIndex,
                     activeBgColor: const [backgroundColor],
                     activeFgColor: Colors.white,
@@ -8851,42 +8831,59 @@ class _ScorePageState extends State<ScorePage> {
                               c.nowWord = RxInt(i);
                               getToHome(dataRaw['word']);
                             },
-                            child: Container(
-                              alignment: Alignment.center,
-                              child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Row(
-                                        children:[
-                                          Container(
-                                              margin: const EdgeInsets.all(10),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius: const BorderRadius.all(
-                                                    Radius.circular(8)
-                                                ),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black.withOpacity(0.6),
-                                                    spreadRadius: 0,
-                                                    blurRadius: 5,
-                                                    offset: const Offset(5, 5), // changes position of shadow
+                            child: Row(
+                              children: [
+                                const Expanded(child:SizedBox()),
+                                SizedBox(
+                                  width: 300,
+                                  child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Row(
+                                            children:[
+                                              Container(
+                                                  margin: const EdgeInsets.all(10),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius: const BorderRadius.all(
+                                                        Radius.circular(8)
+                                                    ),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.black.withOpacity(0.6),
+                                                        spreadRadius: 0,
+                                                        blurRadius: 5,
+                                                        offset: const Offset(5, 5), // changes position of shadow
+                                                      ),
+                                                    ],
                                                   ),
-                                                ],
-                                              ),
-                                              width: 234,
-                                              height: 195,
-                                              child: Stack(
-                                                  children:[
-                                                    ClipRRect(
-                                                      borderRadius: BorderRadius.circular(8),
-                                                      child: ImageFiltered(
-                                                        imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                                                        child: Opacity(
-                                                          opacity: 0.8,
+                                                  width: 234,
+                                                  height: 195,
+                                                  child: Stack(
+                                                      children:[
+                                                        ClipRRect(
+                                                          borderRadius: BorderRadius.circular(8),
+                                                          child: ImageFiltered(
+                                                            imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                                            child: Opacity(
+                                                              opacity: 0.8,
+                                                              child: Image(
+                                                                image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                                fit: BoxFit.cover,
+                                                                width: 234,
+                                                                height: 195,
+                                                                errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                                  return const SizedBox();
+                                                                },
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        ClipRRect(
+                                                          borderRadius: BorderRadius.circular(8),
                                                           child: Image(
                                                             image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
-                                                            fit: BoxFit.cover,
+                                                            fit: BoxFit.contain,
                                                             width: 234,
                                                             height: 195,
                                                             errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
@@ -8894,172 +8891,161 @@ class _ScorePageState extends State<ScorePage> {
                                                             },
                                                           ),
                                                         ),
-                                                      ),
-                                                    ),
-                                                    ClipRRect(
-                                                      borderRadius: BorderRadius.circular(8),
-                                                      child: Image(
-                                                        image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
-                                                        fit: BoxFit.contain,
-                                                        width: 234,
-                                                        height: 195,
-                                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                                          return const SizedBox();
-                                                        },
-                                                      ),
-                                                    ),
-                                                    count>1?
-                                                    Positioned(
-                                                        right: 7,
-                                                        bottom: 7,
-                                                        child: Container(
-                                                            alignment: Alignment.center,
-                                                            decoration: BoxDecoration(
-                                                              color: Colors.white.withOpacity(0.7),
-                                                              borderRadius: const BorderRadius.all(
-                                                                  Radius.circular(20)
-                                                              ),
-                                                            ),
-                                                            height: 40,
-                                                            width: 40,
-                                                            child: Text(
-                                                              '+ ' + (count-1).toString(),
+                                                        count>1?
+                                                        Positioned(
+                                                            right: 7,
+                                                            bottom: 7,
+                                                            child: Container(
+                                                                alignment: Alignment.center,
+                                                                decoration: BoxDecoration(
+                                                                  color: Colors.white.withOpacity(0.7),
+                                                                  borderRadius: const BorderRadius.all(
+                                                                      Radius.circular(20)
+                                                                  ),
+                                                                ),
+                                                                height: 40,
+                                                                width: 40,
+                                                                child: Text(
+                                                                  '+ ' + (count-1).toString(),
+                                                                )
                                                             )
                                                         )
-                                                    )
-                                                        : const SizedBox(),
+                                                            : const SizedBox(),
+                                                      ]
+                                                  )
+                                              ),
+                                              Column(
+                                                  children: [
+                                                    // const SizedBox(width:10),
+                                                    CircularPercentIndicator(
+                                                      radius: 38,
+                                                      lineWidth: 2.0,
+                                                      animation: true,
+                                                      percent: listScore[i].word/25,
+                                                      backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                                      center: Text(
+                                                        c.scoreWord.string,
+                                                        style: TextStyle(
+                                                          fontSize: 10.0,
+                                                          color: textColor.withOpacity(0.5),
+                                                        ),
+                                                      ),
+                                                      circularStrokeCap: CircularStrokeCap.round,
+                                                      progressColor: Colors.purple,
+                                                    ),
+                                                    const SizedBox(height:5),
+                                                    CircularPercentIndicator(
+                                                      radius: 38,
+                                                      lineWidth: 2.0,
+                                                      animation: true,
+                                                      percent: listScore[i].pronun/25,
+                                                      backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                                      center: Text(
+                                                        c.scorePronun.string,
+                                                        style: TextStyle(
+                                                          fontSize: 10.0,
+                                                          color: textColor.withOpacity(0.5),
+                                                        ),
+                                                      ),
+                                                      circularStrokeCap: CircularStrokeCap.round,
+                                                      progressColor: Colors.purple,
+                                                    ),
+                                                    const SizedBox(height:5),
+                                                    CircularPercentIndicator(
+                                                      radius: 38,
+                                                      lineWidth: 2.0,
+                                                      animation: true,
+                                                      percent: listScore[i].speak/25,
+                                                      backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                                      center: Text(
+                                                        c.scoreSpeak.string,
+                                                        style: TextStyle(
+                                                          fontSize: 10.0,
+                                                          color: textColor.withOpacity(0.5),
+                                                        ),
+                                                      ),
+                                                      circularStrokeCap: CircularStrokeCap.round,
+                                                      progressColor: Colors.purple,
+                                                    ),
+                                                    const SizedBox(height:5),
+                                                    CircularPercentIndicator(
+                                                      radius: 38,
+                                                      lineWidth: 2.0,
+                                                      animation: true,
+                                                      percent: listScore[i].mean/25,
+                                                      backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                                      center: Text(
+                                                        c.scoreMean.string,
+                                                        style: TextStyle(
+                                                          fontSize: 10.0,
+                                                          color: textColor.withOpacity(0.5),
+                                                        ),
+                                                      ),
+                                                      circularStrokeCap: CircularStrokeCap.round,
+                                                      progressColor: Colors.purple,
+                                                    ),
+                                                    // const SizedBox(width:10),
                                                   ]
-                                              )
-                                          ),
-                                          Column(
-                                              children: [
-                                                // const SizedBox(width:10),
-                                                CircularPercentIndicator(
-                                                  radius: 38,
-                                                  lineWidth: 2.0,
-                                                  animation: true,
-                                                  percent: listScore[i].word/25,
-                                                  backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
-                                                  center: Text(
-                                                    c.scoreWord.string,
-                                                    style: TextStyle(
-                                                      fontSize: 10.0,
-                                                      color: textColor.withOpacity(0.5),
-                                                    ),
-                                                  ),
-                                                  circularStrokeCap: CircularStrokeCap.round,
-                                                  progressColor: Colors.purple,
-                                                ),
-                                                const SizedBox(height:5),
-                                                CircularPercentIndicator(
-                                                  radius: 38,
-                                                  lineWidth: 2.0,
-                                                  animation: true,
-                                                  percent: listScore[i].pronun/25,
-                                                  backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
-                                                  center: Text(
-                                                    c.scorePronun.string,
-                                                    style: TextStyle(
-                                                      fontSize: 10.0,
-                                                      color: textColor.withOpacity(0.5),
-                                                    ),
-                                                  ),
-                                                  circularStrokeCap: CircularStrokeCap.round,
-                                                  progressColor: Colors.purple,
-                                                ),
-                                                const SizedBox(height:5),
-                                                CircularPercentIndicator(
-                                                  radius: 38,
-                                                  lineWidth: 2.0,
-                                                  animation: true,
-                                                  percent: listScore[i].speak/25,
-                                                  backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
-                                                  center: Text(
-                                                    c.scoreSpeak.string,
-                                                    style: TextStyle(
-                                                      fontSize: 10.0,
-                                                      color: textColor.withOpacity(0.5),
-                                                    ),
-                                                  ),
-                                                  circularStrokeCap: CircularStrokeCap.round,
-                                                  progressColor: Colors.purple,
-                                                ),
-                                                const SizedBox(height:5),
-                                                CircularPercentIndicator(
-                                                  radius: 38,
-                                                  lineWidth: 2.0,
-                                                  animation: true,
-                                                  percent: listScore[i].mean/25,
-                                                  backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
-                                                  center: Text(
-                                                    c.scoreMean.string,
-                                                    style: TextStyle(
-                                                      fontSize: 10.0,
-                                                      color: textColor.withOpacity(0.5),
-                                                    ),
-                                                  ),
-                                                  circularStrokeCap: CircularStrokeCap.round,
-                                                  progressColor: Colors.purple,
-                                                ),
-                                                // const SizedBox(width:10),
-                                              ]
-                                          ),
-                                        ]
-                                    ),
-                                    const SizedBox(height:5),
-                                    Row(
-                                        children:[
-                                          const SizedBox(width:10),
-                                          Expanded(
-                                            child: Text(
-                                              dataRaw['word'],
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w600,
-                                                overflow: TextOverflow.ellipsis,
                                               ),
-                                            ),
-                                          ),
-                                          const SizedBox(width:10),
-                                        ]
-                                    ),
-                                    const SizedBox(height:5),
-                                    Row(
-                                        children:[
-                                          const SizedBox(width:10),
-                                          Expanded(
-                                            child: Text(
-                                              dataRaw['pronun'],
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w400,
-                                                overflow: TextOverflow.ellipsis,
+                                            ]
+                                        ),
+                                        const SizedBox(height:5),
+                                        Row(
+                                            children:[
+                                              const SizedBox(width:10),
+                                              Expanded(
+                                                child: Text(
+                                                  dataRaw['word'],
+                                                  style: const TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.w600,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                ),
                                               ),
-                                              // textAlign: TextAlign.right,
-                                            ),
-                                          ),
-                                          const SizedBox(width:10),
-                                        ]
-                                    ),
-                                    const SizedBox(height:5),
-                                    Row(
-                                        children:[
-                                          const SizedBox(width:10),
-                                          Expanded(
-                                            child: Text(
-                                              mean,
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w400,
-                                                overflow: TextOverflow.ellipsis,
+                                              const SizedBox(width:10),
+                                            ]
+                                        ),
+                                        const SizedBox(height:5),
+                                        Row(
+                                            children:[
+                                              const SizedBox(width:10),
+                                              Expanded(
+                                                child: Text(
+                                                  dataRaw['pronun'],
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w400,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                  // textAlign: TextAlign.right,
+                                                ),
                                               ),
-                                            ),
-                                          ),
-                                          const SizedBox(width:10),
-                                        ]
-                                    ),
-                                  ]
-                              ),
+                                              const SizedBox(width:10),
+                                            ]
+                                        ),
+                                        const SizedBox(height:5),
+                                        Row(
+                                            children:[
+                                              const SizedBox(width:10),
+                                              Expanded(
+                                                child: Text(
+                                                  mean,
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w400,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(width:10),
+                                            ]
+                                        ),
+                                      ]
+                                  ),
+                                ),
+                                const Expanded(child:SizedBox()),
+                              ],
                             ),
                           );
                         }),
