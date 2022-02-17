@@ -601,7 +601,7 @@ class Controller extends GetxController{
       mean = meanEN;
     }
     update();
-    // if (initSpeak.value) _speak(word.string);
+    if (initSpeak.value) _speak(word.string);
   }
 
 }
@@ -835,6 +835,7 @@ class _SearchPageState extends State<SearchPage> {
   int toeflCount = 0;
   int essentialCount = 0;
   bool initial = true;
+  final textFieldController = TextEditingController();
 
   Future getList(int count) async {
     List _listShowIelts = [];
@@ -1017,16 +1018,16 @@ class _SearchPageState extends State<SearchPage> {
       }
     }
 
-    void searchToHome(String word) {
+    Future searchToHome(String word) async {
       if (!c.isAdShowing.value){
-        void toScore() async {
+        Future toScore() async {
           c.nowWord = RxInt(c.wordArray.indexOf(word));
           c.isAdShowing = false.obs;
           c.isSearch = false.obs;
           c.category = 'all category'.obs;
           c.type = 'all type'.obs;
-          await c.layWord(word);
           c.fromScreen = 0.obs;
+          await c.layWord(word);
           Get.offAll(()=>Home());
         }
         int isShow = Random().nextInt(showAdFrequency);
@@ -1182,6 +1183,7 @@ class _SearchPageState extends State<SearchPage> {
                                 child: TypeAheadField(
                                   textFieldConfiguration: TextFieldConfiguration(
                                     // controller: searchField,
+                                    controller: textFieldController,
                                     autofocus: false,
                                     autocorrect: false,
                                     textInputAction: TextInputAction.done,
@@ -1225,7 +1227,7 @@ class _SearchPageState extends State<SearchPage> {
                                         if (Get.isSnackbarOpen) Get.closeAllSnackbars();
                                         Get.snackbar(c.learnWrongTitle.string, c.notFound.string);
                                       }else{
-                                        searchToHome(suggestArray[0]);
+                                        await searchToHome(suggestArray[0]);
                                       }
                                     },
                                   ),
@@ -1409,7 +1411,7 @@ class _SearchPageState extends State<SearchPage> {
                                   },
                                   onSuggestionSelected: (suggestion) async {
                                     // searchField.text = suggestion.toString();
-                                    searchToHome(suggestion.toString());
+                                    await searchToHome(suggestion.toString());
                                   },
                                   animationDuration: Duration.zero,
                                   debounceDuration: Duration.zero,
@@ -2613,10 +2615,6 @@ class TranslatePage extends StatelessWidget {
       await stt.stop();
     }
 
-    WidgetsBinding.instance?.addPostFrameCallback((_) async {
-      c.translateOut = ''.obs;
-    });
-
     return GestureDetector(
       onTap: () {
         if (inFocusNode.hasFocus){
@@ -2691,7 +2689,7 @@ class TranslatePage extends StatelessWidget {
                     // onSubmitted: (text) async {
                     //   await translation();
                     // },
-                    onEditingComplete: () async {
+                    onFieldSubmitted: (string) async {
                       await translation();
                     },
                   ),
@@ -3668,310 +3666,6 @@ class TypeScreen extends StatelessWidget {
   }
 }
 
-class SearchField extends StatelessWidget {
-  const SearchField({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final Controller c = Get.put(Controller());
-    List<String> suggestArray = [];
-
-    WidgetsBinding.instance?.addPostFrameCallback((_) async {
-
-    });
-
-    return Row(
-        children:[
-          const SizedBox(width:20),
-          Expanded(
-            child: TypeAheadField(
-              textFieldConfiguration: TextFieldConfiguration(
-                // controller: searchField,
-                autofocus: false,
-                autocorrect: false,
-                textInputAction: TextInputAction.done,
-                focusNode: searchFocusNode,
-                style: const TextStyle(
-                  fontSize: 15.0,
-                  color: textColor,
-                ),
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.black, width:1),
-                    borderRadius: BorderRadius.all(
-                        Radius.circular(30)
-                    ),
-                  ),
-                  focusedBorder: const OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.black, width: 1),
-                    borderRadius: BorderRadius.all(
-                        Radius.circular(30)
-                    ),
-                  ),
-                  enabledBorder: const OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.black, width: 1),
-                    borderRadius: BorderRadius.all(
-                        Radius.circular(30)
-                    ),
-                  ),
-                  // prefixIcon: Icon(Icons.search_outlined,size:15),
-                  hintText: c.hint.string,
-                  isDense: true,
-                  contentPadding: const EdgeInsets.all(5),
-                  prefixIcon: const Icon(Icons.search),
-                  // icon: Icon(Icons.search),
-                  // isCollapsed: true,
-                ),
-                onSubmitted: (value) {
-                  if (suggestArray.isEmpty){
-                    // searchField.text = c.word.string;
-                    if (Get.isSnackbarOpen) Get.closeAllSnackbars();
-                    Get.snackbar(c.learnWrongTitle.string, c.notFound.string);
-                  }else{
-                    getSearch(suggestArray[0]);
-                  }
-                },
-              ),
-              suggestionsBoxVerticalOffset: 10,
-              noItemsFoundBuilder: (BuildContext context) => ListTile(
-                title: Text(
-                  c.notFound.string,
-                  style: const TextStyle(
-                    fontSize: 15.0,
-                    color: textColor,
-                  ),
-                ),
-              ),
-              suggestionsCallback: (pattern) async {
-                suggestArray = [];
-                if (pattern == ''){
-                  suggestArray = await getLastSearch();
-                }
-                for (var i = 0; i < c.wordArray.length; i++){
-                  if (suggestArray.length > 9){
-                    break;
-                  }
-                  if (c.wordArray[i].toString().toLowerCase().startsWith(pattern.toLowerCase())){
-                    if (!suggestArray.contains(c.wordArray[i])){
-                      suggestArray.add(c.wordArray[i]);
-                    }
-                  }
-                }
-                return suggestArray;
-              },
-              suggestionsBoxDecoration: SuggestionsBoxDecoration(
-                borderRadius: const BorderRadius.all(Radius.circular(15)),
-                color: Colors.white.withOpacity(0.95),
-              ),
-              itemBuilder: (context, suggestion) {
-                String mean = '';
-                String image = 'bedict.png';
-                var dataRaw = box.get(suggestion.toString());
-                List listMeans = jsonDecode(dataRaw['mean']);
-                List listMean = listMeans[0];
-                List meanENAdd = [];
-                List meanVNAdd = [];
-                for(var j = 0; j< listMean.length; j++) {
-                  String meanENElement = '';
-                  if(listMean[j].contains('#')){
-                    meanENElement = listMean[j].split('#')[1];
-                  }else{
-                    meanENElement = listMean[j];
-                  }
-                  meanENAdd.add(meanENElement);
-                  String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
-                  meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
-                  meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
-                  meanVNAdd.add(meanVNElement);
-                }
-                String meanEN = '';
-                String meanVN = '';
-                for(var j = 0; j< meanENAdd.length; j++) {
-                  if (j==0){
-                    meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
-                    meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
-                  }else{
-                    meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
-                    meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
-                  }
-                }
-                if (c.language.string == 'VN'){
-                  mean = meanVN;
-                }else{
-                  mean = meanEN;
-                }
-                if (jsonDecode(dataRaw['imageURL']).length>0){
-                  image = jsonDecode(dataRaw['imageURL'])[0];
-                }
-                return Row(
-                    children: [
-                      const SizedBox(width:10),
-                      Expanded(
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children:[
-                              Text(
-                                suggestion.toString(),
-                                style: const TextStyle(
-                                  fontSize: 18.0,
-                                  color: textColor,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height:5),
-                              Text(
-                                mean,
-                                style: const TextStyle(
-                                  fontSize: 14.0,
-                                  color: textColor,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ]
-                        ),
-                      ),
-                      Container(
-                          margin: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: const BorderRadius.all(
-                                Radius.circular(8)
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.6),
-                                spreadRadius: 0,
-                                blurRadius: 3,
-                                offset: const Offset(3, 3), // changes position of shadow
-                              ),
-                            ],
-                          ),
-                          width: 70,
-                          height: 50,
-                          child: Stack(
-                              children:[
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: ImageFiltered(
-                                    imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                                    child: Opacity(
-                                      opacity: 0.8,
-                                      child: Image(
-                                        image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
-                                        fit: BoxFit.cover,
-                                        width: 70,
-                                        height: 50,
-                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                          return const SizedBox();
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image(
-                                    image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
-                                    fit: BoxFit.contain,
-                                    width: 70,
-                                    height: 50,
-                                    errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                      return const SizedBox();
-                                    },
-                                  ),
-                                ),
-                                listMeans.length>1?
-                                Positioned(
-                                    right: 4,
-                                    bottom: 4,
-                                    child: Container(
-                                        alignment: Alignment.center,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.7),
-                                          borderRadius: const BorderRadius.all(
-                                              Radius.circular(20)
-                                          ),
-                                        ),
-                                        height: 20,
-                                        width: 20,
-                                        child: Text(
-                                          '+ ' + (listMeans.length-1).toString(),
-                                          style: const TextStyle(
-                                            fontSize: 9,
-                                          ),
-                                        )
-                                    )
-                                )
-                                    : const SizedBox(),
-                              ]
-                          )
-                      ),
-                    ]
-                );
-              },
-              onSuggestionSelected: (suggestion) {
-                getSearch(suggestion.toString());
-              },
-              animationDuration: Duration.zero,
-              debounceDuration: Duration.zero,
-            ),
-          ),
-          const SizedBox(width:20),
-        ]
-    );
-  }
-}
-
-Future getSearch(String word) async {
-  final Controller c = Get.put(Controller());
-  try {
-    await flutterTts.stop();
-  } catch (err){}
-  if (!c.isAdShowing.value){
-    void toScore() async {
-      c.isAdShowing = false.obs;
-      c.isSearch = false.obs;
-      c.category = 'all category'.obs;
-      c.type = 'all type'.obs;
-      c.fromScreen = 0.obs;
-      c.nowWord = RxInt(c.wordArray.indexOf(word));
-      await c.layWord(word);
-    }
-    int isShow = Random().nextInt(showAdFrequency);
-    if (isShow == 0 && !c.isVip.value){
-      c.isAdShowing = true.obs;
-      InterstitialAd.load(
-          adUnitId: Platform.isAndroid ? androidAd:iosAd,
-          request: const AdRequest(),
-          adLoadCallback: InterstitialAdLoadCallback(
-            onAdLoaded: (InterstitialAd ad) {
-              // Keep a reference to the ad so you can show it later.
-              ad.fullScreenContentCallback = FullScreenContentCallback(
-                onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                  ad.dispose();
-                  toScore();
-                },
-                onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                  ad.dispose();
-                  toScore();
-                },
-                onAdImpression: (InterstitialAd ad) {},
-              );
-              ad.show();
-            },
-            onAdFailedToLoad: (LoadAdError error) {
-              toScore();
-            },
-          )
-      );
-    }else{
-      toScore();
-    }
-  }
-}
-
 class Home extends StatelessWidget {
   Home({Key? key}) : super(key: key);
   final GlobalKey<ProcessWidgetState> processKey = GlobalKey<ProcessWidgetState>();
@@ -3981,13 +3675,8 @@ class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
-    // List<String> suggestArray = [];
 
-    Future getBack() async {
-      try {
-        await flutterTts.stop();
-      } catch (err){}
-
+    void getBack() {
       if (!c.isAdShowing.value){
         void toScore() {
           c.isAdShowing = false.obs;
@@ -4033,10 +3722,7 @@ class Home extends StatelessWidget {
       }
     }
 
-    Future getToLearn() async {
-      try {
-        await flutterTts.stop();
-      } catch (err){}
+    void getToLearn() {
       if (!c.isAdShowing.value){
         void toScore() {
           c.isAdShowing = false.obs;
@@ -4077,10 +3763,7 @@ class Home extends StatelessWidget {
       }
     }
 
-    Future getNext() async {
-      try {
-        await flutterTts.stop();
-      } catch (err){}
+    void getNext() {
       if (!c.isAdShowing.value){
         void toScore() async {
           c.isAdShowing = false.obs;
@@ -4134,10 +3817,7 @@ class Home extends StatelessWidget {
       }
     }
 
-    Future getPrevious() async {
-      try {
-        await flutterTts.stop();
-      } catch (err){}
+    void getPrevious() {
       if (!c.isAdShowing.value){
         void toScore() async {
           c.isAdShowing = false.obs;
@@ -4191,10 +3871,7 @@ class Home extends StatelessWidget {
       }
     }
 
-    Future getRandom() async {
-      try {
-        await flutterTts.stop();
-      } catch (err){}
+    void getRandom() {
       if (!c.isAdShowing.value){
         void toScore() async {
           c.isAdShowing = false.obs;
@@ -4240,10 +3917,7 @@ class Home extends StatelessWidget {
       }
     }
 
-    Future getNextMean() async {
-      try {
-        await flutterTts.stop();
-      } catch (err){}
+    void getNextMean() {
       if (!c.isAdShowing.value){
         void toScore() {
           c.isAdShowing = false.obs;
@@ -4289,10 +3963,7 @@ class Home extends StatelessWidget {
       }
     }
 
-    Future getPreviousMean() async {
-      try {
-        await flutterTts.stop();
-      } catch (err){}
+    void getPreviousMean() {
       if (!c.isAdShowing.value){
         void toScore() {
           c.isAdShowing = false.obs;
@@ -4340,18 +4011,11 @@ class Home extends StatelessWidget {
 
     Future waitSpeak(int i) async {
       int duration = 0;
-      if (i==0 && c.nowMean.value == 0){
-        if (c.initSpeak.value) _speak(c.word.string);
-      }
-      if (c.nowMean.value == 0 && c.initSpeak.value){
-        duration = 2000 + c.word.string.length*50~/c.speakSpeed.value;
-        // duration = 3000;
-      }
       int wordCount = 0;
       for (var j=0;j<i;j++){
         wordCount += c.mean[c.nowMean.value][j].split(' ').length as int;
       }
-      duration += i*600 + wordCount*250~/c.speakSpeed.value;
+      duration += (i+1)*1000 + wordCount*50~/c.speakSpeed.value;
       await Future.delayed(Duration(milliseconds: duration));
     }
 
@@ -4470,9 +4134,6 @@ class Home extends StatelessWidget {
                     }
                     if (processKey.currentState!.controller.isAnimating){
                       processKey.currentState!.controller.stop();
-                      try {
-                        await flutterTts.stop();
-                      } catch (err){}
                     }else{
                       processKey.currentState!.controller.forward();
                     }
@@ -4481,94 +4142,82 @@ class Home extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children:<Widget> [
                       SizedBox(height: MediaQuery.of(context).padding.top),
-                      GetBuilder<Controller>(
-                        builder: (_) => !c.isSearch.value?
-                        Row(
-                            children:[
-                              IconButton(
-                                padding: const EdgeInsets.all(0.0),
-                                icon: const Icon(Icons.arrow_back_ios_rounded, size: 20,),
-                                tooltip: 'Back',
-                                onPressed: () {
-                                  getBack();
-                                },
-                              ),
-                              Expanded(
-                                child: Text(
-                                  c.fromScreen.value == 0?'':
-                                  (c.language.string == 'VN'?'phần ':'part ')
+                      Row(
+                          children:[
+                            IconButton(
+                              padding: const EdgeInsets.all(0.0),
+                              icon: const Icon(Icons.arrow_back_ios_rounded, size: 20,),
+                              tooltip: 'Back',
+                              onPressed: () {
+                                getBack();
+                              },
+                            ),
+                            Expanded(
+                              child: Text(
+                                c.fromScreen.value == 0?'':
+                                (c.language.string == 'VN'?'phần ':'part ')
                                     + (c.part.value+1).toString() + ' - '
                                     + c.bundle.string.toLowerCase(),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: textColor,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.left,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.share, size: 25,),
+                              onPressed: () async {
+                                double pixelRatio = MediaQuery.of(context).devicePixelRatio;
+                                await screenshotController.capture(
+                                    delay: const Duration(milliseconds: 10),
+                                    pixelRatio: pixelRatio
+                                ).then((image) async {
+                                  if (image != null) {
+                                    final directory = await getApplicationDocumentsDirectory();
+                                    final imagePath = await File('${directory.path}/image.png').create();
+                                    await imagePath.writeAsBytes(image);
+                                    await Share.shareFiles([imagePath.path]);
+                                  }
+                                });
+                              },
+                            ),
+                            const SizedBox(width:5),
+                            OutlinedButton(
+                              style: ButtonStyle(
+                                backgroundColor: MaterialStateProperty.all<Color>(
+                                    Colors.transparent
+                                ),
+                                foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                                padding: MaterialStateProperty.all<EdgeInsets>(
+                                    const EdgeInsets.all(0)
+                                ),
+                                shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30.0),
+                                    )
+                                ),
+                                fixedSize: MaterialStateProperty.all<Size>(
+                                    const Size.fromHeight(40)
+                                ),
+                              ),
+                              onPressed: () async {
+                                getToLearn();
+                              },
+                              child: GetBuilder<Controller>(
+                                builder: (_) => Text(
+                                  c.language.string == 'VN'? 'Học':'Learn',
                                   style: const TextStyle(
-                                    fontSize: 12,
                                     color: textColor,
+                                    fontSize: 14,
                                   ),
-                                  overflow: TextOverflow.ellipsis,
-                                  textAlign: TextAlign.left,
+                                  textAlign: TextAlign.center,
                                 ),
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.share, size: 25,),
-                                onPressed: () async {
-                                  double pixelRatio = MediaQuery.of(context).devicePixelRatio;
-                                  await screenshotController.capture(
-                                      delay: const Duration(milliseconds: 10),
-                                      pixelRatio: pixelRatio
-                                  ).then((image) async {
-                                    if (image != null) {
-                                      final directory = await getApplicationDocumentsDirectory();
-                                      final imagePath = await File('${directory.path}/image.png').create();
-                                      await imagePath.writeAsBytes(image);
-                                      await Share.shareFiles([imagePath.path]);
-                                    }
-                                  });
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.search_rounded, size: 25,),
-                                onPressed: () {
-                                  c.isSearch = true.obs;
-                                  searchFocusNode.requestFocus();
-                                  c.update();
-                                },
-                              ),
-                              const SizedBox(width:5),
-                              OutlinedButton(
-                                style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.all<Color>(
-                                      Colors.transparent
-                                  ),
-                                  foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                                  padding: MaterialStateProperty.all<EdgeInsets>(
-                                      const EdgeInsets.all(0)
-                                  ),
-                                  shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                      RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(30.0),
-                                      )
-                                  ),
-                                  fixedSize: MaterialStateProperty.all<Size>(
-                                      const Size.fromHeight(40)
-                                  ),
-                                ),
-                                onPressed: () async {
-                                  getToLearn();
-                                },
-                                child: GetBuilder<Controller>(
-                                  builder: (_) => Text(
-                                    c.language.string == 'VN'? 'Học':'Learn',
-                                    style: const TextStyle(
-                                      color: textColor,
-                                      fontSize: 14,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width:15),
-                            ]
-                        ):
-                        const SearchField(),
+                            ),
+                            const SizedBox(width:15),
+                          ]
                       ),
                       // Row(
                       //   // crossAxisAlignment: CrossAxisAlignment.start,
@@ -4709,9 +4358,6 @@ class Home extends StatelessWidget {
                                             if (snapshot.connectionState == ConnectionState.waiting) {
                                               child = const SizedBox();
                                             } else {
-                                              if (c.initSpeak.value) {
-                                                speakMean(subMean.value.substring(0,subMean.value.length-1));
-                                              }
                                               child = Container(
                                                 margin: const EdgeInsets.fromLTRB(0, 0, 0, 5),
                                                 padding: const EdgeInsets.all(5),
@@ -4818,9 +4464,6 @@ class Home extends StatelessWidget {
                               changeOnTap: true,
                               labels: const ['VN', 'EN'],
                               onToggle: (index) async {
-                                try {
-                                  await flutterTts.stop();
-                                } catch (err){}
                                 if (index == 0){
                                   c.changeLanguage('VN');
                                 }else{
@@ -4847,9 +4490,6 @@ class Home extends StatelessWidget {
                                 value: c.initSpeak.value,
                                 onChanged: (value) async {
                                   c.initSpeak = value.obs;
-                                  try {
-                                    await flutterTts.stop();
-                                  } catch (err){}
                                   c.update();
                                   await boxSetting.put('initSpeak',value);
                                 },
@@ -5028,10 +4668,7 @@ class ProcessWidgetState extends State<ProcessWidget> with TickerProviderStateMi
       wordCount += c.mean[c.nowMean.value][j].split(' ').length as int;
     }
     int duration = 0;
-    if (c.nowMean.value == 0 && c.initSpeak.value){
-      duration = 2000 + c.word.string.length*50~/c.speakSpeed.value;
-    }
-    duration += 1000 + (c.mean[c.nowMean.value].length as int)*600 + wordCount*250~/c.speakSpeed.value;
+    duration += 2000 + (c.mean[c.nowMean.value].length as int)*1000 + wordCount*50~/c.speakSpeed.value;
     controller.duration = Duration(milliseconds: duration);
     controller.forward();
     super.initState();
@@ -5068,10 +4705,7 @@ class ProcessWidgetState extends State<ProcessWidget> with TickerProviderStateMi
       wordCount += c.mean[c.nowMean.value][j].split(' ').length as int;
     }
     int duration = 0;
-    if (c.nowMean.value == 0 && c.initSpeak.value){
-      duration = 2000 + c.word.string.length*50~/c.speakSpeed.value;
-    }
-    duration += 1000 + (c.mean[c.nowMean.value].length as int)*600 + wordCount*250~/c.speakSpeed.value;
+    duration += 2000 + (c.mean[c.nowMean.value].length as int)*1000 + wordCount*50~/c.speakSpeed.value;
     controller.duration = Duration(milliseconds: duration);
     controller.reset();
     controller.forward();
@@ -5377,6 +5011,7 @@ class _WriteWidgetState extends State<WriteWidget> {
             ),
           ),
           const Divider(height:2,thickness:2),
+          const SizedBox(height:5),
           Row(
               children:[
                 const SizedBox(width:10),
@@ -5440,6 +5075,7 @@ class _WriteWidgetState extends State<WriteWidget> {
                 const SizedBox(width:10),
               ]
           ),
+          const SizedBox(height:5),
         ],
       ),
     );
@@ -5735,6 +5371,7 @@ class _PronunWidgetState extends State<PronunWidget> {
             ),
           ),
           const Divider(height:2,thickness:2),
+          const SizedBox(height:5),
           Row(
               children:[
                 const SizedBox(width:10),
@@ -5798,6 +5435,7 @@ class _PronunWidgetState extends State<PronunWidget> {
                 const SizedBox(width:10),
               ]
           ),
+          const SizedBox(height:5),
         ],
       ),
     );
@@ -6274,19 +5912,6 @@ class _MeanWidgetState extends State<MeanWidget> {
       listImage = _listImage;
       listIndex = _listIndex;
     });
-    speakMeanWidget();
-  }
-
-  Future speakMeanWidget() async {
-    try {
-      await flutterTts.stop();
-    } catch (err){}
-    for (int i=0;i<mean[listIndex[nowIndex]].length;i++){
-      String subMean = mean[listIndex[nowIndex]][i];
-      if (c.initSpeak.value) {
-        await speakMean(subMean.substring(0,subMean.length-1));
-      }
-    }
   }
 
   @override
@@ -6310,7 +5935,6 @@ class _MeanWidgetState extends State<MeanWidget> {
               nowIndex = mean.length-1;
             });
           }
-          speakMeanWidget();
         }
         if (details.primaryVelocity! < 0) {
           if (nowIndex < mean.length - 1){
@@ -6322,7 +5946,6 @@ class _MeanWidgetState extends State<MeanWidget> {
               nowIndex = 0;
             });
           }
-          speakMeanWidget();
         }
       },
       child: Container(
@@ -6501,9 +6124,6 @@ class _MeanWidgetState extends State<MeanWidget> {
                                                         for (var i=0;i<mean.length;i++){
                                                           ktMean.add(false);
                                                         }
-                                                        try {
-                                                          await flutterTts.stop();
-                                                        } catch (err){}
                                                         getNextLearn();
                                                       }else{
                                                         if (nowIndex < mean.length - 1){
@@ -6515,7 +6135,6 @@ class _MeanWidgetState extends State<MeanWidget> {
                                                             nowIndex = 0;
                                                           });
                                                         }
-                                                        speakMeanWidget();
                                                       }
                                                     }else{
                                                       ktMean[nowIndex] = false;
@@ -6629,9 +6248,10 @@ class _MeanWidgetState extends State<MeanWidget> {
               ),
             ),
             const Divider(height:2,thickness:2),
+            const SizedBox(height:10),
             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
                 children:[
-                  const SizedBox(width:10),
                   ToggleSwitch(
                     minWidth: 35.0,
                     minHeight: 22.0,
@@ -6645,9 +6265,6 @@ class _MeanWidgetState extends State<MeanWidget> {
                     changeOnTap: true,
                     labels: const ['VN', 'EN'],
                     onToggle: (index) async {
-                      try {
-                        await flutterTts.stop();
-                      } catch (err){}
                       if (index == 0){
                         c.changeLanguage('VN');
                         setState((){
@@ -6661,66 +6278,9 @@ class _MeanWidgetState extends State<MeanWidget> {
                       }
                     },
                   ),
-                  const SizedBox(width:10),
-                  GetBuilder<Controller>(
-                    builder: (_) => Text(
-                      c.language.string == 'VN'?'nói':'speak',
-                      style: const TextStyle(
-                        color: textColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  GetBuilder<Controller>(
-                    builder: (_) => Switch(
-                      activeColor: backgroundColor,
-                      activeTrackColor: themeColor,
-                      value: c.initSpeak.value,
-                      onChanged: (value) async {
-                        c.initSpeak = value.obs;
-                        try {
-                          await flutterTts.stop();
-                        } catch (err){}
-                        c.update();
-                        await boxSetting.put('initSpeak',value);
-                      },
-                    ),
-                  ),
-                  const SizedBox(width:10),
-                  GetBuilder<Controller>(
-                    builder: (_) => Text(
-                      c.language.string == 'VN'?'tốc độ':'speed',
-                      style: const TextStyle(
-                        color: textColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Expanded(
-                    child: GetBuilder<Controller>(
-                      builder: (_) => Slider(
-                        value: c.speakSpeed.value,
-                        min: 0.1,
-                        max: 1,
-                        divisions: 9,
-                        activeColor: backgroundColor,
-                        inactiveColor: themeColor,
-                        thumbColor: backgroundColor,
-                        label: double.parse((c.speakSpeed.value).toStringAsFixed(1)).toString(),
-                        onChanged: (double value) async {
-                          c.speakSpeed = RxDouble(value);
-                          await boxSetting.put('speakSpeed',value);
-                          c.update();
-                        },
-                      ),
-                    ),
-                  ),
                 ]
             ),
+            const SizedBox(height:10),
           ],
         )
         : const SizedBox(),
@@ -6856,15 +6416,9 @@ class LearnWord extends StatelessWidget {
             GestureDetector(
               onVerticalDragEnd: (details) async {
                 if (details.primaryVelocity! > 0) {
-                  try {
-                    await flutterTts.stop();
-                  } catch (err){}
                   getPreviousLearn();
                 }
                 if (details.primaryVelocity! < -0) {
-                  try {
-                    await flutterTts.stop();
-                  } catch (err){}
                   getNextLearn();
                 }
               },
@@ -10446,24 +10000,8 @@ void getPreviousLearn() {
 
 Future _speak(String string) async{
   final Controller c = Get.put(Controller());
-  // await flutterTts.stop();
   try {
     await flutterTts.setLanguage("en-US");
-    await flutterTts.setSpeechRate(c.speakSpeed.value);
-    await flutterTts.speak(string);
-  } catch (err){}
-
-}
-
-Future speakMean(String string) async{
-  final Controller c = Get.put(Controller());
-  // await flutterTts.stop();
-  try {
-    if (c.language.string == 'VN'){
-      await flutterTts.setLanguage("vi-VN");
-    }else{
-      await flutterTts.setLanguage("en-US");
-    }
     await flutterTts.setSpeechRate(c.speakSpeed.value);
     await flutterTts.speak(string);
   } catch (err){}
