@@ -41,6 +41,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:soundpool/soundpool.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:translator/translator.dart';
+import 'package:flutter_login/flutter_login.dart';
 
 List<String> listCategoryVN = ["khả năng","trừu tượng","thành tích","hành động","tuổi tác","nông nghiệp",
 "trợ giúp","số lượng","giải phẫu","động vật","vẻ ngoài","khảo cổ học","kiến trúc","khu vực",
@@ -198,9 +199,11 @@ Future<void> main() async {
     initLanguageIndex = 1;
   }
 
+  c.user = RxString(await boxSetting.get('user') ?? '');
+  c.password = RxString(await boxSetting.get('password') ?? '');
   String vipToken = await boxSetting.get('vipToken') ?? '';
   if (vipToken != ''){
-    c.isVip = RxBool(await checkExpire(vipToken));
+    c.isVip = RxBool(await checkExpire(vipToken,c.user.string,c.password.string));
   }
 
   runAppCount = await boxSetting.get('runAppCount') ?? runAppCount;
@@ -339,9 +342,30 @@ class Controller extends GetxController{
       } else {
         if (purchaseDetails.status == PurchaseStatus.error) {
 
-        } else if (purchaseDetails.status == PurchaseStatus.purchased ||
-            purchaseDetails.status == PurchaseStatus.restored) {
-          bool valid = await _verifyPurchase(purchaseDetails.verificationData.serverVerificationData);
+        } else if (purchaseDetails.status == PurchaseStatus.purchased) {
+          bool valid = await _verifyPurchase(
+            purchaseDetails.verificationData.serverVerificationData,
+            user.string,
+            password.string
+          );
+          if (valid) {
+            await boxSetting.put('vipToken',purchaseDetails.verificationData.serverVerificationData);
+            isVip = RxBool(valid);
+            update();
+          } else {
+            Get.snackbar('fail','can not register');
+            return;
+          }
+          if (purchaseDetails.pendingCompletePurchase) {
+            await InAppPurchase.instance.completePurchase(purchaseDetails);
+            Get.snackbar('congratulation','success');
+          }
+        } else if (purchaseDetails.status == PurchaseStatus.restored) {
+          bool valid = await checkExpire(
+              purchaseDetails.verificationData.serverVerificationData,
+              user.string,
+              password.string
+          );
           if (valid) {
             await boxSetting.put('vipToken',purchaseDetails.verificationData.serverVerificationData);
             isVip = RxBool(valid);
@@ -358,6 +382,9 @@ class Controller extends GetxController{
       }
     });
   }
+
+  var user = ''.obs;
+  var password = ''.obs;
 
   var bundle = ''.obs;
   var part = 0.obs;
@@ -753,7 +780,7 @@ class MainScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
 
-    List<Widget> pages = [
+    final List<Widget> pages = [
       const SearchPage(),
       TranslatePage(),
       const SettingPage(),
@@ -2818,6 +2845,12 @@ class SettingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
+    final oldPasswordField = TextEditingController();
+    final newPasswordField = TextEditingController();
+    final confirmPasswordField = TextEditingController();
+    final FocusNode oldPasswordFocusNode = FocusNode();
+    final FocusNode newPasswordFocusNode = FocusNode();
+    final FocusNode confirmPasswordFocusNode = FocusNode();
 
     Future<void> showTime() async {
       final TimeOfDay? result =
@@ -2843,6 +2876,298 @@ class SettingPage extends StatelessWidget {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
+                ListTile(
+                  title: GetBuilder<Controller>(
+                    builder: (_) => Text(
+                      c.user.string == ''? c.language.string == 'VN'? 'Đăng nhập':'Login' : c.user.string,
+                      style: const TextStyle(
+                        color: textColor,
+                        fontSize: 16,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  onTap: () {
+                    if (c.user.string == ''){
+                      Get.to(()=>const LoginScreen());
+                    }else{
+                      Get.defaultDialog(
+                        title: c.user.string,
+                        titlePadding: const EdgeInsets.fromLTRB(0, 20, 0, 10),
+                        radius: 10,
+                        content: Column(
+                          children:[
+                            TextButton(
+                              style: ButtonStyle(
+                                backgroundColor: MaterialStateProperty.all<Color>(
+                                    backgroundColor
+                                ),
+                                foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                                padding: MaterialStateProperty.all<EdgeInsets>(
+                                    const EdgeInsets.all(10)
+                                ),
+                                shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30.0),
+                                    )
+                                ),
+                                fixedSize: MaterialStateProperty.all<Size>(
+                                    const Size.fromHeight(40)
+                                ),
+                              ),
+                              onPressed: () async {
+                                c.user = ''.obs;
+                                c.password = ''.obs;
+                                await boxSetting.put('user','');
+                                await boxSetting.put('password','');
+                                c.isVip = false.obs;
+                                c.update();
+                                Get.back();
+                              },
+                              child: GetBuilder<Controller>(
+                                builder: (_) => Text(
+                                  c.language.string == 'VN'? 'Đăng xuất':'Sign Out',
+                                  style: const TextStyle(
+                                    color: textColor,
+                                    fontSize: 14,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height:10),
+                            TextButton(
+                              style: ButtonStyle(
+                                backgroundColor: MaterialStateProperty.all<Color>(
+                                  backgroundColor
+                                ),
+                                foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                                padding: MaterialStateProperty.all<EdgeInsets>(
+                                    const EdgeInsets.all(10)
+                                ),
+                                shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30.0),
+                                    )
+                                ),
+                                fixedSize: MaterialStateProperty.all<Size>(
+                                    const Size.fromHeight(40)
+                                ),
+                              ),
+                              onPressed: () {
+                                Get.back();
+                                Get.defaultDialog(
+                                  title: c.language.string == 'VN'? 'Đổi mật khẩu':'Change password',
+                                  titlePadding: const EdgeInsets.fromLTRB(0, 20, 0, 10),
+                                  contentPadding: const EdgeInsets.fromLTRB(15, 10, 15, 15),
+                                  radius: 10,
+                                  cancelTextColor: backgroundColor,
+                                  confirmTextColor: Colors.white,
+                                  buttonColor: backgroundColor,
+                                  onConfirm:() async {
+                                    Get.back();
+                                    if (newPasswordField.text.length<3){
+                                      if (c.language.string == 'VN'){
+                                        Get.snackbar('fail','mật khẩu quá ngắn');
+                                      }else{
+                                        Get.snackbar('fail','new password is too short');
+                                      }
+                                    }else{
+                                      if (confirmPasswordField.text == newPasswordField.text){
+                                        String status = await changePassword(c.user.string,oldPasswordField.text,confirmPasswordField.text);
+                                        if (status != 'success'){
+                                          Get.snackbar('fail',status);
+                                        }else{
+                                          Get.snackbar(status,'done');
+                                        }
+                                      }else{
+                                        if (c.language.string == 'VN'){
+                                          Get.snackbar('fail','mật khẩu mới không khớp');
+                                        }else{
+                                          Get.snackbar('fail','new password unequal');
+                                        }
+                                      }
+                                    }
+                                  },
+                                  onCancel:(){},
+                                  content: Column(
+                                    children:[
+                                      // const SizedBox(height:10),
+                                      TextFormField(
+                                        controller: oldPasswordField,
+                                        autofocus: true,
+                                        autocorrect: false,
+                                        obscureText: true,
+                                        textInputAction: TextInputAction.done,
+                                        focusNode: oldPasswordFocusNode,
+                                        style: const TextStyle(
+                                          fontSize: 15.0,
+                                          color: textColor,
+                                        ),
+                                        decoration: InputDecoration(
+                                          fillColor: backgroundColor.withOpacity(0.5),
+                                          filled: true,
+                                          border: const OutlineInputBorder(
+                                            borderSide: BorderSide.none,
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(30)
+                                            ),
+                                          ),
+                                          focusedBorder: const OutlineInputBorder(
+                                            borderSide: BorderSide.none,
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(30)
+                                            ),
+                                          ),
+                                          enabledBorder: const OutlineInputBorder(
+                                            borderSide: BorderSide.none,
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(30)
+                                            ),
+                                          ),
+                                          // prefixIcon: Icon(Icons.search_outlined,size:15),
+                                          hintText: c.language.string == 'VN'? 'mật khẩu cũ':'old password',
+                                          isDense: true,
+                                          contentPadding: const EdgeInsets.all(15),
+                                        ),
+                                        onFieldSubmitted: (value) {
+                                          newPasswordFocusNode.requestFocus();
+                                        },
+                                      ),
+                                      const SizedBox(height:10),
+                                      TextFormField(
+                                        controller: newPasswordField,
+                                        autofocus: false,
+                                        autocorrect: false,
+                                        obscureText: true,
+                                        focusNode: newPasswordFocusNode,
+                                        textInputAction: TextInputAction.done,
+                                        style: const TextStyle(
+                                          fontSize: 15.0,
+                                          color: textColor,
+                                        ),
+                                        decoration: InputDecoration(
+                                          fillColor: backgroundColor.withOpacity(0.5),
+                                          filled: true,
+                                          border: const OutlineInputBorder(
+                                            borderSide: BorderSide.none,
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(30)
+                                            ),
+                                          ),
+                                          focusedBorder: const OutlineInputBorder(
+                                            borderSide: BorderSide.none,
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(30)
+                                            ),
+                                          ),
+                                          enabledBorder: const OutlineInputBorder(
+                                            borderSide: BorderSide.none,
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(30)
+                                            ),
+                                          ),
+                                          // prefixIcon: Icon(Icons.search_outlined,size:15),
+                                          hintText: c.language.string == 'VN'? 'mật khẩu mới':'new password',
+                                          isDense: true,
+                                          contentPadding: const EdgeInsets.all(15),
+                                          // prefixIcon: const Icon(Icons.search),
+                                          // icon: Icon(Icons.search),
+                                          // isCollapsed: true,
+                                        ),
+                                        onFieldSubmitted: (value) {
+                                          confirmPasswordFocusNode.requestFocus();
+                                        },
+                                      ),
+                                      const SizedBox(height:10),
+                                      TextFormField(
+                                        controller: confirmPasswordField,
+                                        autofocus: false,
+                                        autocorrect: false,
+                                        obscureText: true,
+                                        focusNode: confirmPasswordFocusNode,
+                                        textInputAction: TextInputAction.done,
+                                        style: const TextStyle(
+                                          fontSize: 15.0,
+                                          color: textColor,
+                                        ),
+                                        decoration: InputDecoration(
+                                          fillColor: backgroundColor.withOpacity(0.5),
+                                          filled: true,
+                                          border: const OutlineInputBorder(
+                                            borderSide: BorderSide.none,
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(30)
+                                            ),
+                                          ),
+                                          focusedBorder: const OutlineInputBorder(
+                                            borderSide: BorderSide.none,
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(30)
+                                            ),
+                                          ),
+                                          enabledBorder: const OutlineInputBorder(
+                                            borderSide: BorderSide.none,
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(30)
+                                            ),
+                                          ),
+                                          // prefixIcon: Icon(Icons.search_outlined,size:15),
+                                          hintText: c.language.string == 'VN'? 'nhập lại mật khẩu mới':'retype new password',
+                                          isDense: true,
+                                          contentPadding: const EdgeInsets.all(15),
+                                          // prefixIcon: const Icon(Icons.search),
+                                          // icon: Icon(Icons.search),
+                                          // isCollapsed: true,
+                                        ),
+                                        onFieldSubmitted: (value) async {
+                                          Get.back();
+                                          if (newPasswordField.text.length<3){
+                                            if (c.language.string == 'VN'){
+                                              Get.snackbar('fail','mật khẩu quá ngắn');
+                                            }else{
+                                              Get.snackbar('fail','new password is too short');
+                                            }
+                                          }else{
+                                            if (confirmPasswordField.text == newPasswordField.text){
+                                              String status = await changePassword(c.user.string,oldPasswordField.text,confirmPasswordField.text);
+                                              if (status != 'success'){
+                                                Get.snackbar('fail',status);
+                                              }else{
+                                                Get.snackbar(status,'done');
+                                              }
+                                            }else{
+                                              if (c.language.string == 'VN'){
+                                                Get.snackbar('fail','mật khẩu mới không khớp');
+                                              }else{
+                                                Get.snackbar('fail','new password unequal');
+                                              }
+                                            }
+                                          }
+                                        },
+                                      ),
+                                    ]
+                                  ),
+                                );
+                              },
+                              child: GetBuilder<Controller>(
+                                builder: (_) => Text(
+                                  c.language.string == 'VN'? 'Đổi mật khẩu':'Change password',
+                                  style: const TextStyle(
+                                    color: textColor,
+                                    fontSize: 14,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ]
+                        ),
+                      );
+                    }
+                  },
+                ),
+                const Divider(height:1),
                 ListTile(
                   title: GetBuilder<Controller>(
                     builder: (_) => Text(
@@ -3259,6 +3584,21 @@ class SettingPage extends StatelessWidget {
                 ListTile(
                   title: GetBuilder<Controller>(
                     builder: (_) =>  Text(
+                      c.language.string == 'VN'? 'Điều khoản sử dụng':'Terms of Use',
+                      style: const TextStyle(
+                        color: textColor,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Get.offAll(()=>const TermPage());
+                  },
+                ),
+                const Divider(height:1),
+                ListTile(
+                  title: GetBuilder<Controller>(
+                    builder: (_) =>  Text(
                       c.drawerContact.string,
                       style: const TextStyle(
                         color: textColor,
@@ -3275,6 +3615,132 @@ class SettingPage extends StatelessWidget {
             ),
           ),
         ]
+      ),
+    );
+  }
+}
+
+class LoginScreen extends StatelessWidget {
+  const LoginScreen({Key? key}) : super(key: key);
+
+  Duration get loginTime => const Duration(milliseconds: 2250);
+
+  Future<String?> _authUser(LoginData data) {
+    return Future.delayed(loginTime).then((_) async {
+      String status = await login(data.name,data.password);
+      if (status == 'not exist') {
+        return 'User not exists';
+      }
+      if (status == 'wrong password') {
+        return 'Password does not match';
+      }
+      if (status == 'fail') {
+        return 'fail';
+      }
+      if (status == 'error') {
+        return 'error';
+      }
+      return null;
+    });
+  }
+
+  Future<String?> _signupUser(SignupData data) {
+    return Future.delayed(loginTime).then((_) async {
+      String status = await signup(data.name.toString(),data.password.toString());
+      if (status == 'exist') {
+        return 'User exists';
+      }
+      if (status == 'fail') {
+        return 'fail';
+      }
+      if (status == 'error') {
+        return 'error';
+      }
+      return null;
+    });
+  }
+
+  Future<String?> _recoverPassword(String name) {
+    return Future.delayed(loginTime).then((_) async {
+      String password = await getPassword(name);
+      if (password == ' '){
+        return 'User not exists';
+      }
+      if (password == ''){
+        return 'Fail';
+      }
+      if (password == 'fail'){
+        return 'Can not send email';
+      }
+      return null;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FlutterLogin(
+      title: 'BeDict',
+      // logo: const AssetImage('assets/logo.png'),
+      onLogin: _authUser,
+      // showDebugButtons: true,
+      onSignup: _signupUser,
+      onSubmitAnimationCompleted: () {
+        Navigator.pop(context);
+      },
+      onRecoverPassword: _recoverPassword,
+      children:[
+        Positioned(
+          bottom: 10,
+          child: TextButton(
+            child: const Text(
+              'skip',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+              )
+            ),
+            onPressed:(){
+              Navigator.pop(context);
+            },
+          ),
+        ),
+      ],
+      theme: LoginTheme(
+        primaryColor: backgroundColor,
+        // accentColor: Colors.yellow,
+        // errorColor: Colors.deepOrange,
+        // logoWidth:100.0,
+        titleStyle: TextStyle(
+          // color: Color.fromRGBO(231, 235, 96,1),
+          fontSize:100,
+          fontWeight: FontWeight.w400,
+          shadows: [Shadow(color: Colors.black.withOpacity(0.7), blurRadius: 20)],
+          // fontFamily: 'Quicksand',
+          // letterSpacing: 10,
+        ),
+        // bodyStyle: TextStyle(
+        //   fontStyle: FontStyle.italic,
+        //   decoration: TextDecoration.underline,
+        // ),
+        // textFieldStyle: TextStyle(
+        //   color: Colors.orange,
+        //   shadows: [Shadow(color: Colors.yellow, blurRadius: 2)],
+        // ),
+        // buttonStyle: const TextStyle(
+        //   fontWeight: FontWeight.w800,
+        //   color: Colors.yellow,
+        // ),
+        // cardTheme: CardTheme(
+        //   color: Colors.yellow.shade100,
+        //   elevation: 5,
+        //   margin: EdgeInsets.only(top: 15),
+        //   shape: ContinuousRectangleBorder(
+        //       borderRadius: BorderRadius.circular(100.0)),
+        // ),
+        buttonTheme: const LoginButtonTheme(
+          // splashColor: Colors.purple,
+          backgroundColor: backgroundColor,
+        ),
       ),
     );
   }
@@ -8768,10 +9234,29 @@ class MyUpgradePage extends StatelessWidget {
                               ],
                             ),
                             onPressed: () {
-                              if (!c.isVip.value){
-                                final ProductDetails productDetails = c.products[0];
-                                final PurchaseParam purchaseParam = PurchaseParam(productDetails: productDetails);
-                                InAppPurchase.instance.buyNonConsumable(purchaseParam: purchaseParam);
+                              if (c.user.string == ''){
+                                Get.defaultDialog(
+                                  title: c.language.string == 'VN'?
+                                    'Đăng nhập'
+                                        :'Login',
+                                  middleText: c.language.string == 'VN'?
+                                    'Đăng nhập để khôi phục đăng kí dù bạn có xoá ứng dụng hoặc đổi thiết bị'
+                                    :'Login to restore register even when you deleted app or changed device',
+                                  cancelTextColor: backgroundColor,
+                                  confirmTextColor: Colors.white,
+                                  buttonColor: backgroundColor,
+                                  onConfirm:(){
+                                    Get.back();
+                                    Get.to(()=>const LoginScreen());
+                                  },
+                                  onCancel:(){}
+                                );
+                              }else{
+                                if (!c.isVip.value){
+                                  final ProductDetails productDetails = c.products[0];
+                                  final PurchaseParam purchaseParam = PurchaseParam(productDetails: productDetails);
+                                  InAppPurchase.instance.buyNonConsumable(purchaseParam: purchaseParam);
+                                }
                               }
                             },
                           ),
@@ -8780,6 +9265,69 @@ class MyUpgradePage extends StatelessWidget {
                     ),
                     const SizedBox(width:15),
                   ]
+              ),
+              const SizedBox(height:15),
+              Row(
+                children:[
+                  const SizedBox(width:15),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            themeColor
+                        ),
+                        foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                        padding: MaterialStateProperty.all<EdgeInsets>(
+                            const EdgeInsets.all(0)
+                        ),
+                        shape: MaterialStateProperty.all<OutlinedBorder?>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            )
+                        ),
+                        fixedSize: MaterialStateProperty.all<Size>(
+                            const Size.fromHeight(50)
+                        ),
+                      ),
+                      child: Container(
+                        alignment: Alignment.center,
+                        child: Text(
+                          c.language.value == 'VN'?'Khôi phục':'Restore',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            overflow: TextOverflow.ellipsis,
+                            color: textColor,
+                          ),
+                        ),
+                      ),
+                      onPressed: () async {
+                        if (c.user.string == ''){
+                          Get.defaultDialog(
+                              title: c.language.string == 'VN'?
+                              'Đăng nhập'
+                                  :'Login',
+                              middleText: c.language.string == 'VN'?
+                              'Đăng nhập để khôi phục đăng kí dù bạn có xoá ứng dụng hoặc đổi thiết bị'
+                                  :'Login to restore register even when you deleted app or changed device',
+                              cancelTextColor: backgroundColor,
+                              confirmTextColor: Colors.white,
+                              buttonColor: backgroundColor,
+                              onConfirm:(){
+                                Get.back();
+                                Get.to(()=>const LoginScreen());
+                              },
+                              onCancel:(){}
+                          );
+                        }else{
+                          if (!c.isVip.value){
+                            await InAppPurchase.instance.restorePurchases();
+                          }
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width:15),
+                ]
               ),
               const SizedBox(height:15),
               Row(
@@ -8809,7 +9357,7 @@ class MyUpgradePage extends StatelessWidget {
                               ' Advertisements will disappear if you purchase a subscription. '
                               'For more information, '
                               'see our Privacy Policy at https://bedict.com/privacyPolicy.html'
-                              ' and Term of Service at https://bedict.com/termOfService.html.',
+                              ' and Terms of Use at https://bedict.com/termOfService.html.',
                           style: const TextStyle(
                             fontSize: 16,
                             // overflow: TextOverflow.ellipsis,
@@ -8822,6 +9370,93 @@ class MyUpgradePage extends StatelessWidget {
                     const SizedBox(width:15),
                   ]
               ),
+              const Expanded(child:SizedBox()),
+              const Divider(height:2,thickness:2),
+              const SizedBox(height:10),
+              Row(
+                  children:[
+                    const SizedBox(width:15),
+                    OutlinedButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            Colors.transparent
+                        ),
+                        foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                        padding: MaterialStateProperty.all<EdgeInsets>(
+                            const EdgeInsets.all(0)
+                        ),
+                        shape: MaterialStateProperty.all<OutlinedBorder?>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30.0),
+                            )
+                        ),
+                        fixedSize: MaterialStateProperty.all<Size>(
+                            const Size.fromHeight(40)
+                        ),
+                      ),
+                      onPressed: () {
+                        Get.offAll(()=>const PolicyPage());
+                      },
+                      child: Row(
+                        children:[
+                          const SizedBox(width:10),
+                          GetBuilder<Controller>(
+                            builder: (_) => Text(
+                              c.language.string == 'VN'? 'Chính sách và quyền riêng tư':'Privacy Policy',
+                              style: const TextStyle(
+                                color: textColor,
+                                fontSize: 14,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          const SizedBox(width:10),
+                        ]
+                      ),
+                    ),
+                    const Expanded(child:SizedBox()),
+                    OutlinedButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            Colors.transparent
+                        ),
+                        foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                        padding: MaterialStateProperty.all<EdgeInsets>(
+                            const EdgeInsets.all(0)
+                        ),
+                        shape: MaterialStateProperty.all<OutlinedBorder?>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30.0),
+                            )
+                        ),
+                        fixedSize: MaterialStateProperty.all<Size>(
+                            const Size.fromHeight(40)
+                        ),
+                      ),
+                      onPressed: () {
+                        Get.offAll(()=>const TermPage());
+                      },
+                      child: Row(
+                          children:[
+                            const SizedBox(width:10),
+                            GetBuilder<Controller>(
+                              builder: (_) => Text(
+                                c.language.string == 'VN'? 'Điều khoản dịch vụ':'Tearms of Use',
+                                style: const TextStyle(
+                                  color: textColor,
+                                  fontSize: 14,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            const SizedBox(width:10),
+                          ]
+                      ),
+                    ),
+                    const SizedBox(width:15),
+                  ]
+              ),
+              const SizedBox(height:10),
             ],
           ),
         ),
@@ -8830,7 +9465,7 @@ class MyUpgradePage extends StatelessWidget {
   }
 }
 
-Future<bool> _verifyPurchase(String token) async {
+Future<bool> _verifyPurchase(String token,String user,String password) async {
   // IMPORTANT!! Always verify a purchase before delivering the product.
   // For the purpose of an example, we directly return true.
   final Controller c = Get.put(Controller());
@@ -8839,6 +9474,8 @@ Future<bool> _verifyPurchase(String token) async {
     Uri.parse(url),
     body: <String, String>{
       'token': token,
+      'user': user,
+      'password': password,
     },
   );
   if (response.statusCode == 200) {
@@ -8853,7 +9490,7 @@ Future<bool> _verifyPurchase(String token) async {
   }
 }
 
-Future<bool> checkExpire(String token) async {
+Future<bool> checkExpire(String token,String user,String password) async {
   // IMPORTANT!! Always verify a purchase before delivering the product.
   // For the purpose of an example, we directly return true.
   final Controller c = Get.put(Controller());
@@ -8862,6 +9499,8 @@ Future<bool> checkExpire(String token) async {
     Uri.parse(url),
     body: <String, String>{
       'token': token,
+      'user': user,
+      'password': password,
     },
   );
   if (response.statusCode == 200) {
@@ -8873,6 +9512,90 @@ Future<bool> checkExpire(String token) async {
     }
   } else {
     return false;
+  }
+}
+
+Future<String> login(String user, String password) async {
+  final Controller c = Get.put(Controller());
+  final response = await http.post(
+    Uri.parse('https://bedict.com/login.php'),
+    body: <String, String>{
+      'user': user,
+      'password': password
+    },
+  );
+  if (response.statusCode == 200) {
+    if (response.body == 'success'){
+      c.user = RxString(user);
+      c.password = RxString(password);
+      await boxSetting.put('user',user);
+      await boxSetting.put('password',password);
+      c.update();
+    }
+    return response.body;
+  } else {
+    return 'fail';
+  }
+}
+
+Future<String> signup(String user, String password) async {
+  final Controller c = Get.put(Controller());
+  final response = await http.post(
+    Uri.parse('https://bedict.com/signup.php'),
+    body: <String, String>{
+      'user': user,
+      'password': password
+    },
+  );
+  if (response.statusCode == 200) {
+    if (response.body == 'success'){
+      c.user = RxString(user);
+      c.password = RxString(password);
+      await boxSetting.put('user',user);
+      await boxSetting.put('password',password);
+      c.update();
+    }
+    return response.body;
+  } else {
+    return 'fail';
+  }
+}
+
+Future<String> changePassword(String user, String oldPassword, String newPassword) async {
+  final Controller c = Get.put(Controller());
+  final response = await http.post(
+    Uri.parse('https://bedict.com/changePassword.php'),
+    body: <String, String>{
+      'user': user,
+      'oldPassword': oldPassword,
+      'newPassword': newPassword
+    },
+  );
+  if (response.statusCode == 200) {
+    if (response.body == 'success'){
+      c.user = RxString(user);
+      c.password = RxString(newPassword);
+      await boxSetting.put('user',user);
+      await boxSetting.put('password',newPassword);
+      c.update();
+    }
+    return response.body;
+  } else {
+    return 'fail';
+  }
+}
+
+Future<String> getPassword(String user) async {
+  final response = await http.post(
+    Uri.parse('https://bedict.com/getPassword.php'),
+    body: <String, String>{
+      'user': user
+    },
+  );
+  if (response.statusCode == 200) {
+    return response.body;
+  } else {
+    return '';
   }
 }
 
@@ -9045,23 +9768,6 @@ class PolicyPage extends StatelessWidget {
                   children: const [
                     Flexible(
                       child: Text(
-                        'Trần Trung Hiếu built the BeDict app as a Free app. This SERVICE is provided by'
-                            ' Trần Trung Hiếu at no cost and is intended for use as is.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ]
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
                         'This page is used to inform visitors regarding my policies with the collection, use, and'
                             ' disclosure of Personal Information if anyone decided to use my Service.',
                         style: TextStyle(
@@ -9101,7 +9807,7 @@ class PolicyPage extends StatelessWidget {
                     Flexible(
                       child: Text(
                         'The terms used in this Privacy Policy have the same meanings'
-                            ' as in our Terms and Conditions, which is accessible at'
+                            ' as in our Terms of Service, which is accessible at'
                             ' BeDict unless otherwise defined in this Privacy Policy.',
                         style: TextStyle(
                           fontSize: 18,
@@ -9166,9 +9872,9 @@ class PolicyPage extends StatelessWidget {
                     Flexible(
                       child: Text(
                         'Link to privacy policy of third party service providers'
-                            ' used by the app\nGoogle Play Services: https://www.google.com/policies/privacy/'
+                            ' used by the app\n Google Play Services: https://www.google.com/policies/privacy/'
                             '\nAdMob https://support.google.com/admob/answer/6128543?hl=en'
-                            '\nI want to inform you that whenever'
+                            '\n\nI want to inform you that whenever'
                             ' you use my Service, in a case of an error in the'
                             ' app I collect data and information (through third'
                             ' party products) on your phone called Log Data. This Log Data'
@@ -9368,10 +10074,10 @@ class PolicyPage extends StatelessWidget {
                   children: const [
                     Flexible(
                       child: Text(
-                        'These Services do not address anyone under the age of 13.'
+                        'These Services do not address anyone under the age of 3.'
                             ' I do not knowingly collect personally'
-                            ' identifiable information from children under 13. In the case'
-                            ' I discover that a child under 13 has provided'
+                            ' identifiable information from children under 3. In the case'
+                            ' I discover that a child under 3 has provided'
                             ' me with personal information,'
                             ' I immediately delete this from our servers. If you'
                             ' are a parent or guardian and you are aware that your child'
@@ -9408,6 +10114,594 @@ class PolicyPage extends StatelessWidget {
                             'notify you of any changes by posting the new Privacy Policy'
                             'on this page. These changes are effective immediately after'
                             'they are posted on this page.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ]
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class TermPage extends StatelessWidget {
+  const TermPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final Controller c = Get.put(Controller());
+
+    return WillPopScope(
+      onWillPop: () async {
+        Get.offAll(()=>MainScreen());
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: GetBuilder<Controller>(
+            builder: (_) => Text(
+              (c.language.string == 'VN'? 'Điều khoản sử dụng':'Terms of Use').toUpperCase(),
+              style: const TextStyle(
+                color: Color.fromRGBO(255, 255, 255, 1),
+              ),
+            ),),
+          leading: IconButton(
+            padding: const EdgeInsets.all(0.0),
+            icon: const Icon(
+              Icons.arrow_back_ios_rounded, size: 20,
+              // color: textColor.withOpacity(0.7),
+            ),
+            tooltip: 'Back to MainScreen',
+            onPressed: () {
+              Get.offAll(()=>MainScreen());
+            },
+          ),
+          centerTitle: true,
+          backgroundColor: backgroundColor,
+        ),
+        body: Container(
+          alignment: Alignment.center,
+          color: Colors.white,
+          child: ListView(
+            // mainAxisAlignment: MainAxisAlignment.center,
+            padding: const EdgeInsets.all(8),
+            children: [
+              const SizedBox(height: 20),
+              const Text(
+                'Terms of Service',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'These Terms of Service and End User License Agreement (this “Agreement”)'
+                            ' constitute a legal agreement between you and BeDict '
+                            '(“BeDict”, “we”, “our”, or “us”) stating the terms and conditions'
+                            ' that govern your use of the mobile, desktop or web-based application'
+                            ' provided herewith (the “Application”) and the web site at www.bedict.com'
+                            ' (the “Site”). The Application and the Site are referred to together as'
+                            ' the “Service.” Please read this Agreement carefully. By downloading,'
+                            ' installing, and/or using the Application or accessing and/or using the Site,'
+                            ' you agree to be bound by and comply with the terms and conditions of this'
+                            ' Agreement. You hereby represent and warrant that you are legally able to'
+                            ' form a binding contract with BeDict. If you do not agree to these terms'
+                            ' and conditions, do not download, install and/or use the Application or'
+                            ' access and/or use the Site. We may at our sole discretion change, add,'
+                            ' modify, or delete portions of this Agreement from time to time. Please '
+                            'review this Agreement for changes prior to use of the Service. Your continued'
+                            ' use of the Service following the posting of changes to this Agreement'
+                            ' constitutes your acceptance of any changes. This is an agreement between'
+                            ' you and BeDict.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ]
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                '1. Provision of Access',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'BeDict shall make the Service available to you pursuant to this Agreement'
+                            ' during your Subscription Term, solely for your own internal business'
+                            ' purposes. You agree that your purchase of the Service is neither'
+                            ' contingent upon the delivery of any future functionality or features '
+                            'nor dependent upon any oral or written public comments made by BeDict '
+                            'with respect to future functionality or features. “Subscription Term” '
+                            'means the then-current Initial Term or Renewal Term of your order for '
+                            'the Service during which you are authorized to use or access the Service'
+                            ' pursuant to the terms set forth in this Agreement, unless earlier '
+                            'terminated as set forth in Section 2.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ]
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                '2. Change or Update to Service; Term; Termination',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'The “Term” of the Agreement shall be the duration of the then-current'
+                            ' Initial Term or Renewal Term(s) of your applicable subscription for'
+                            ' the Service. For purposes of clarity, the Term of this Agreement will'
+                            ' commence on: (i) the effective date specified in your subscription '
+                            'order, or (ii) at the time of download of the Application (as applicable),'
+                            ' and will continue until you terminate your subscription to the Services,'
+                            ' or BeDict terminates this Agreement pursuant to this Section 2. The '
+                            '“Initial Term” for each subscription order will commence on the effective'
+                            ' date set forth on such order, or at the time of download of the Application'
+                            ' (as applicable), and will continue for the subscription period selected by'
+                            ' the user. Unless otherwise set forth on the relevant order, each order will'
+                            ' automatically renew after the Initial Term for successive monthly or annual'
+                            ' periods (each a “Renewal Term”), as applicable, unless you give BeDict prior'
+                            ' written notice of your intent not to renew such subscription at least one'
+                            ' (1) day prior to the end of the Initial Term or then-current Renewal Term.'
+                            ' BeDict may increase the Fees due under orders for the applicable Renewal '
+                            'Terms (if any) by providing notice to Customer of such increase at the time'
+                            ' of renewal. You are permitted to continue use of the Service from the time'
+                            ' of your notice of non-renewal through the end of the then applicable Term.'
+                            ' However, BeDict is not obligated to refund to you any prepaid Fees for any Term.'
+                            ' BeDict, at its sole discretion, and on a case-by-case base, may opt to refund'
+                            ' Fees to its users. BeDict shall have the right for any reason, in its sole'
+                            ' discretion, to terminate, change, suspend or discontinue, temporarily or'
+                            ' permanently, any aspect of the Service, including but not limited to content'
+                            ' or features, without notice to you. We may also impose limits on certain '
+                            'features and services or restrict your access to parts or all of the Service'
+                            ' with or without notice or liability. From time to time, BeDict may make '
+                            'available updates or upgrades to the Service via software download or other'
+                            ' means. Such updates or upgrades may occur automatically without the need '
+                            'for an act on your part, or it may require you to manually download an '
+                            'update or upgrade through the same source from which the Service was originally'
+                            ' downloaded. Certain functions of the Service may be modified or discontinued'
+                            ' as a result of any such update or upgrade, or may not be available if you'
+                            ' have not downloaded all updates and upgrades made available by BeDict or'
+                            ' otherwise. BeDict DOES NOT WARRANT THAT THE FUNCTIONS, FEATURES OR CONTENT'
+                            ' CONTAINED IN THE SERVICE WILL BE UNINTERRUPTED OR ERROR FREE, THAT DEFECTS'
+                            ' WILL BE CORRECTED, OR THAT ANY OTHER SITE OR THE SERVER THAT MAKES IT'
+                            ' AVAILABLE IS FREE OF VIRUSES OR OTHER HARMFUL COMPONENTS. If your use'
+                            ' of this Service results in the need for servicing or replacing property,'
+                            ' material, equipment or data, BeDict is not responsible for those costs.'
+                            ' The Service may contain information about BeDict or other products or services.'
+                            ' The information in the Service is accurate as of the date the Service'
+                            ' is made available to you. Such information about BeDict or other products'
+                            ' or services may be updated from time to time, including without limitation,'
+                            ' when the Service may be updated or upgraded. You should periodically check'
+                            ' whether an updated or upgraded version of the Service is available. You'
+                            ' agree that BeDict may terminate your use of this Service, and/or exercise'
+                            ' any other remedy available to it, if BeDict reasonably believes that you'
+                            ' have violated or acted inconsistently with the letter or spirit of this'
+                            ' Agreement, or violated the rights of BeDict or any third party, or for'
+                            ' any reason with or without notice to you. You agree that BeDict will not'
+                            ' be held liable to you or any third party as a result thereof.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ]
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                '3. iOS In-App Purchase Terms',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'BeDict subscription details for iOS: Payment will be charged to iTunes Account'
+                            ' at confirmation of purchase Subscription automatically renews unless '
+                            'auto-renew is turned off at least 24-hours before the end of the current'
+                            ' period Account will be charged for renewal within 24-hours prior to the'
+                            ' end of the current period, and identify the cost of the renewal Subscriptions'
+                            ' may be managed by the user and auto-renewal may be turned off by going'
+                            ' to the user\'s Account Settings after purchase Advertisements will disappear'
+                            ' when the user purchases a subscription, where applicable.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ]
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                '4. Limited License to the Service and Content',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'Subject to the terms and conditions of this Agreement, BeDict grants you'
+                            ' a personal, limited, non- exclusive and non-transferable license to'
+                            ' install and use the Application for purposes on any device that you'
+                            ' own or control and as permitted by the Usage Rules set forth in Apple\'s'
+                            ' App Store Terms of Service (the “Usage Rules”) or Google\'s Play Store'
+                            'Terms of Service for mobile devices specifically. This license does not '
+                            'allow you to use the Application on any device that you do not own or '
+                            'control, and you may not distribute or make the Application available '
+                            'over a network where it could be used by multiple devices at the same time.'
+                            ' This license does not entitle you to receive from us hard-copy documentation,'
+                            ' support, telephone assistance, or enhancements or updates to the Application,'
+                            ' and Apple and Google have no obligation to furnish any maintenance and'
+                            ' support services regarding the Application. The terms of this license will'
+                            ' govern any upgrades provided by us that replace or supplement the original'
+                            ' Application unless such upgrade is accompanied by a separate license in which'
+                            ' case the terms of that license will govern. Subject to the terms and conditions'
+                            ' of this Agreement, BeDict grants you a personal, limited, non-exclusive,'
+                            ' and non-transferable license to use, publish, distribute, and display the'
+                            ' pre-approved backgrounds, imagery, and music provided in the Service for'
+                            ' the purposes of creating digital media content through the Service (“Licensed'
+                            ' Materials”).',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ]
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                '5. Restrictions',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'You must use the Service in compliance with all applicable laws. You must comply'
+                            ' with applicable third-party terms of agreement when using the Service (e.g.,'
+                            ' your wireless data service agreement). Your right to use the Service will'
+                            ' terminate immediately if you violate any provision of this Agreement.'
+                            ' Your rights to use the Service are specified in this Agreement and all'
+                            ' rights not expressly granted herein are reserved to BeDict. All rights not'
+                            ' expressly granted in Sections 1 and 4 above are exclusively reserved to BeDict.'
+                            ' When using the Service, you may not: modify, adapt, copy, translate, create'
+                            ' derivative works from, publish, license, sell, or otherwise commercialize'
+                            ' the Service, Content (defined below), or any information or software associated'
+                            ' with the Service; decompile, reverse-engineer, disassemble or otherwise attempt'
+                            ' to derive source code from the Service; remove, obscure or alter BeDict’s'
+                            ' copyright notice, trademarks, or other proprietary rights notices affixed'
+                            ' to the Service or Content; rent, lease, sublicense, or otherwise transfer rights'
+                            ' to the Service; use the Service in any manner that could impair or interfere with'
+                            ' the Service; interfere or attempt to interfere with the operation of the Service'
+                            ' in any way through any means, software, routine or device including, but not limited'
+                            ' to, spamming, hacking, uploading computer viruses or time bombs, or other means;'
+                            ' use any robot, spider, other automatic device, or manual process to monitor or'
+                            ' copy the Service or Content contained thereon or for any other purpose without'
+                            ' our prior express written permission; or take any action that imposes an unreasonable'
+                            ' or disproportionately large load on the BeDict infrastructure.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ]
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                '6. Intellectual Property',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'All intellectual property rights in and to the content, tools, text, logos,'
+                            ' marks, data, audio, video, design, codes, layout, “look and feel”, and'
+                            ' other content that is included on the Service (“Content“) is owned by'
+                            ' BeDict or the applicable third-party intellectual property owners. Except'
+                            ' for the rights granted herein with respect to the Licensed Materials,'
+                            ' your use of any Content without prior written consent is strictly prohibited.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ]
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                '7. Fees',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'You shall pay all fees specified in all applicable subscription orders'
+                            ' (“Fees”). Except as otherwise specified herein or in any subscription order,'
+                            ' all Fees are quoted and payable in United States dollars or VietNam Dong,'
+                            ' payment obligations are non-cancelable, and Fees paid are non-refundable.'
+                            ' Fees for the Service are based on subscriptions purchased and not actual'
+                            ' usage. For purposes of clarity, the subscription purchased cannot be'
+                            ' decreased during a Subscription Term. Payments for downloadable versions '
+                            'of the Application are made via their respective application stores (Apple'
+                            ' App Store or Google Play). BeDict does not have access to, nor retains any'
+                            ' credit card information of, any user of the Service.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ]
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                '8. Third-Party Websites',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'You may be able to link from the Service to third-party websites that take'
+                            ' you outside of the Service (“Linked Sites”). BeDict has no responsibility'
+                            ' for the information, content, products, services, advertising, code or'
+                            ' other material, which may be provided through the Linked Sites. Your'
+                            ' interactions with Linked Sites are subject to the terms of service and'
+                            ' other policies of those sites, so please use common sense as you navigate'
+                            ' the Web and be aware when you leave the Service.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ]
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                '9. Disclaimers',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'THE SERVICE AND ALL CONTENT, SOFTWARE, FUNCTIONS, MATERIALS, AND INFORMATION'
+                            ' MADE AVAILABLE ON OR ACCESSED THROUGH IT, ARE PROVIDED ON AN “AS IS” AND '
+                            '“AS AVAILABLE” BASIS WITHOUT WARRANTIES OF ANY KIND. ALL WARRANTIES, EXPRESS,'
+                            ' IMPLIED OR STATUTORY, ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO, ANY'
+                            ' IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,'
+                            ' NON-INFRINGEMENT OF THIRD-PARTY RIGHTS, OR ARISING OUT OF COURSE OF CONDUCT,'
+                            ' TRADE CUSTOM, OR USAGE. IN ADDITION, BeDict DISCLAIMS (A) ANY ENDORSEMENT'
+                            ' OF OR LIABILITY FOR USER SUBMISSIONS, CONTENT, AND LINKED SITES; (B) '
+                            'INACCURACY, INCOMPLETENESS OR TIMELINESS OF THE CONTENT; (C) THE TRANSMISSION'
+                            ' OF VIRUSES OR THE OCCURRENCE OF DATA CORRUPTION; AND (D) DAMAGES AS A RESULT'
+                            ' OF THE TRANSMISSION, USE OR INABILITY TO USE THE SERVICE OR CIRCUMSTANCES OVER'
+                            ' WHICH BeDict HAS NO CONTROL. YOU UNDERSTAND AND AGREE THAT THE OPERATION OF'
+                            ' THE SERVICE MAY INVOLVE BUGS, ERRORS, PROBLEMS OR OTHER LIMITATIONS. BeDict'
+                            ' HAS NO LIABILITY WHATSOEVER FOR YOUR USE OF THE SERVICE OR USE OF ANY I'
+                            'NFORMATION OR MATERIALS ACCESSED THROUGH THE SERVICE. NO ADVICE OR INFORMATION,'
+                            ' WHETHER ORAL OR WRITTEN, OBTAINED BY YOU FROM BeDict THROUGH THE SERVICE CREATES'
+                            ' ANY WARRANTY, REPRESENTATION OR GUARANTEE. BeDict DOES NOT WARRANT THAT THE'
+                            ' FUNCTIONS, FEATURES OR CONTENT CONTAINED IN THE SERVICE WILL BE UNINTERRUPTED'
+                            ' OR ERROR FREE, THAT DEFECTS WILL BE CORRECTED, OR THAT ANY OTHER SITE OR THE'
+                            ' SERVER THAT MAKES IT AVAILABLE IS FREE OF VIRUSES OR OTHER HARMFUL COMPONENTS.'
+                            ' If your use of the Service results in the need for servicing or replacing '
+                            'property, material, equipment or data, BeDict is not responsible for those costs.'
+                            ' IF YOU ARE DISSATISFIED WITH THE SERVICE, YOUR SOLE AND EXCLUSIVE REMEDY IS'
+                            ' TO DISCONTINUE USING THE SERVICE. Your downloading, installation and use of'
+                            ' the Service is at your own discretion and risk, and you are solely responsible'
+                            ' for any damages to your hardware device(s) or loss of data that results from'
+                            ' the downloading, installation or use of the Service.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ]
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                '10. Disclaimer of Apple’s Liability; Third Party Beneficiary Rights',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'Neither Apple nor Google will be responsible for any claims by you or any third'
+                            ' party relating to your possession and/or use of the Application, including'
+                            ' but not limited to (i) product-liability claims, (ii) any claims that the'
+                            ' Application fails to conform to any applicable legal or regulatory requirement,'
+                            ' (iii) claims arising under consumer-protection laws or similar legislation, and'
+                            ' (iv) claims by any third party that the Application or your possession and use'
+                            ' of the Application infringes the intellectual property rights of the third party.'
+                            ' You agree that Apple, Google, and their respective subsidiaries are third-party'
+                            ' beneficiaries of this Agreement, and that upon your acceptance of the terms and'
+                            ' conditions of this Agreement, Apple and/or Google will have the right (and will'
+                            ' be deemed to have accepted the right) to enforce this Agreement against you as a'
+                            ' third party beneficiary thereof.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ]
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                '11. Limitation of Liability; Exclusion of Damages',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'BeDict WILL NOT BE RESPONSIBLE FOR ANY DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL'
+                            ' OR EXEMPLARY DAMAGES, WHETHER FORESEEABLE OR NOT, THAT ARE IN ANY WAY RELATED'
+                            ' TO THIS AGREEMENT, ANY VIRUSES AFFECTING THE SERVICE, THE USE OR INABILITY TO'
+                            ' USE THE SERVICE, THE RESULTS GENERATED FROM THE USE OF THIS SERVICE, LOSS OF'
+                            ' GOODWILL OR PROFITS, LOST BUSINESS, HOWEVER CHARACTERIZED, AND/OR FROM ANY'
+                            ' OTHER CAUSE WHATSOEVER. BeDict is not liable for any lost data resulting from'
+                            ' use of the Service and/or the enforcement of this Agreement. BeDict disclaims'
+                            ' any and all liability for the acts, omissions and conduct of any users on the'
+                            ' Service or otherwise related to your use of the Service. BeDict is not'
+                            ' responsible for the products, services, actions or failure to act of any'
+                            ' other third party in connection with the Service. NOTWITHSTANDING ANYTHING'
+                            ' TO THE CONTRARY CONTAINED HEREIN, BeDict’S AGGREGATE LIABILITY TO YOU FOR ANY'
+                            ' CAUSE WHATSOEVER AND REGARDLESS OF THE FORM OF THE ACTION, WILL BE LIMITED'
+                            ' TO THE AMOUNT YOU PAID TO BeDict, IF ANY, IN THE SIX (6) MONTHS PRIOR TO THE'
+                            ' EVENTS GIVING RISE TO YOUR CLAIM.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: textColor,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ]
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                '12. Wireless Access Charges',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: textColor,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                  children: const [
+                    Flexible(
+                      child: Text(
+                        'Certain Application functions may require data access, and the provider'
+                            ' of data access for your device may charge you data access fees in connection'
+                            ' with your use of the Application. You are solely responsible for any data'
+                            ' access or other charges you incur.',
                         style: TextStyle(
                           fontSize: 18,
                           color: textColor,
