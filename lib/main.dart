@@ -336,8 +336,8 @@ class Controller extends GetxController{
     products = response.productDetails;
   }
 
-  void listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) {
-    purchaseDetailsList.forEach((PurchaseDetails purchaseDetails) async {
+  void listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) async {
+    for (var purchaseDetails in purchaseDetailsList) {
       if (purchaseDetails.status == PurchaseStatus.pending) {
       } else {
         if (purchaseDetails.status == PurchaseStatus.error) {
@@ -353,12 +353,10 @@ class Controller extends GetxController{
             isVip = RxBool(valid);
             update();
           } else {
-            Get.snackbar('fail','can not register');
-            return;
+            continue;
           }
           if (purchaseDetails.pendingCompletePurchase) {
             await InAppPurchase.instance.completePurchase(purchaseDetails);
-            Get.snackbar('congratulation','success');
           }
         } else if (purchaseDetails.status == PurchaseStatus.restored) {
           bool valid = await checkExpire(
@@ -371,16 +369,14 @@ class Controller extends GetxController{
             isVip = RxBool(valid);
             update();
           } else {
-            Get.snackbar('fail','can not register');
-            return;
+            continue;
           }
           if (purchaseDetails.pendingCompletePurchase) {
             await InAppPurchase.instance.completePurchase(purchaseDetails);
-            Get.snackbar('congratulation','success');
           }
         }
       }
-    });
+    }
   }
 
   var user = ''.obs;
