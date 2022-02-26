@@ -1,9 +1,4 @@
-// import 'package:flutter/material.dart';
-// ignore_for_file: empty_catches, prefer_typing_uninitialized_variables, avoid_function_literals_in_foreach_calls
-
 import 'package:flutter/cupertino.dart';
-// import 'package:flutter/painting.dart';
-// import 'package:flutter/widgets.dart';
 import 'dart:async';
 import 'dart:math';
 import 'package:get/get.dart';
@@ -12,15 +7,10 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'dart:ui';
 import 'package:flutter_tts/flutter_tts.dart';
-// import 'package:flutter/foundation.dart' show kIsWeb;
-// import 'dart:io' show Platform;
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
-// import 'package:flutter/rendering.dart';
 import 'package:flutter/foundation.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
-// import 'package:path/path.dart';
-// import 'package:sqflite/sqflite.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
@@ -34,14 +24,11 @@ import 'package:screenshot/screenshot.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:in_app_purchase/in_app_purchase.dart';
-// import 'package:in_app_purchase_android/in_app_purchase_android.dart';
-// import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:soundpool/soundpool.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:translator/translator.dart';
-import 'package:flutter_login/flutter_login.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 
 List<String> listCategoryVN = ["khả năng","trừu tượng","thành tích","hành động","tuổi tác","nông nghiệp",
 "trợ giúp","số lượng","giải phẫu","động vật","vẻ ngoài","khảo cổ học","kiến trúc","khu vực",
@@ -50,7 +37,7 @@ List<String> listCategoryVN = ["khả năng","trừu tượng","thành tích","h
 "tính cách","hoá học","màu sắc","thương mại","liên lạc","hỗn hợp","máy tính","điều kiện",
 "châu lục","văn hoá","chửi thề","nhảy","mức độ","nhu cầu","thiết bị","hướng","thảm hoạ",
 "bệnh tật","học thuyết","uống","sinh thái học","kinh tế","giáo dục","điện","điện tử",
-"nguyên tố","cảm xúc","năng lượng","giải trí","môi trường","sự kiện","câu cảm thán",
+"nguyên tố","cảm xúc","năng lượng","giải trí","môi trường","sự kiện",
 "gia đình","lễ hội","hình khối","tài chính","cá","đồ ăn","tần suất","hoa quả","nhiên liệu",
 "chức năng","tương lai","trò chơi","khoảng trống","địa lý","địa chất","nhà nước","ngữ pháp",
 "nhóm","vi phạm","huy hiệu","lịch sử","kỳ nghỉ","công nghiệp","thông tin","thực thể khác người",
@@ -59,7 +46,7 @@ List<String> listCategoryVN = ["khả năng","trừu tượng","thành tích","h
 "toán học","truyền thông","y tế","vi sinh vật","quân đội","tâm trí","khoáng chất","đạo đức",
 "âm nhạc","thần thoại","quốc gia","tự nhiên","hàng hải","phủ định","không gì","hiện tại","con số",
 "đại dương","thứ tự","sinh vật","tổ chức","kết quả","thành phần","quá khứ","quá khứ hoàn thành",
-"quãng, giai đoạn","người","hiện tượng","triết học","ngữ âm","cụm từ","vật lý","sinh lý học",
+"quãng, giai đoạn","người","hiện tượng","triết học","ngữ âm","vật lý","sinh lý học",
 "địa điểm","cây cối","điểm","cảnh sát","chính trị","vị trí","khả năng xảy ra",
 "quá trình","đặc điểm","tính chất","chủng tộc","ngưỡng","tôn giáo","quyền","nghi lễ","hoàng gia",
 "thuyền buồm","khoa học","hạt","cảm giác","dịch vụ","tình dục, giới tính","tín hiệu","tình thế",
@@ -79,7 +66,7 @@ List<String> listCategoryEN = ["ability","abstract","achievement",
 "culture","curse","dance","degree","demand","device","direction",
 "disaster","disease","doctrine","drink","ecology","economy","education","electric",
 "electronics","element","emotion","energy","entertainment","environment",
-"event","exclamation","family","festival",
+"event","family","festival",
 "figure","finance","fish","food","frequency","fruit","fuel","function","future",
 "game","gap","geography","geology","government","grammar","group","guilt","heraldry",
 "history","holiday","industry","info","inhuman","insect","insurance","internet",
@@ -89,7 +76,7 @@ List<String> listCategoryEN = ["ability","abstract","achievement",
 "music","mythology","nation","nature","nautical","negative","nothing","now","number","ocean",
 "organ","organism","organization","outcome","part","past","past participle",
 "period","person","phenomena","philosophy","phonetics",
-"phrase","physics","physiology","place","plant","point","police","politics",
+"physics","physiology","place","plant","point","police","politics",
 "position","possibility","process","property",
 "quality","race","range","religion","right","ritual","royal","sailing",
 "science","seed","sensation","service","sex","signal","situation",
@@ -134,7 +121,6 @@ const colorizeColors = [
   Colors.green,
 ];
 
-
 final Soundpool pool = Soundpool.fromOptions();
 late int soundId;
 late int soundIdRight;
@@ -143,7 +129,8 @@ late int soundIdWrong;
 int initLanguageIndex = 0;
 late SpeechToText stt;
 late FlutterTts flutterTts;
-FocusNode searchFocusNode = FocusNode();
+final FocusNode searchFocusNode = FocusNode();
+final textFieldController = TextEditingController();
 late var box;
 late var boxSetting;
 late var boxScore;
@@ -152,8 +139,6 @@ List<String> ieltsList = <String>[];
 List<String> toeflList = <String>[];
 List<String> toeicList = <String>[];
 List<String> essentialList = <String>[];
-
-// final searchField = TextEditingController();
 
 Future<void> main() async {
 
@@ -198,13 +183,7 @@ Future<void> main() async {
   }else{
     initLanguageIndex = 1;
   }
-
-  c.user = RxString(await boxSetting.get('user') ?? '');
-  c.password = RxString(await boxSetting.get('password') ?? '');
-  String vipToken = await boxSetting.get('vipToken') ?? '';
-  if (vipToken != ''){
-    c.isVip = RxBool(await checkExpire(vipToken,c.user.string,c.password.string));
-  }
+  // }
 
   runAppCount = await boxSetting.get('runAppCount') ?? runAppCount;
   await boxSetting.put('runAppCount',runAppCount+1);
@@ -268,11 +247,12 @@ Future<void> main() async {
   );
 }
 
-class Controller extends GetxController{
+class Controller extends GetxController {
 
   late StreamSubscription subscription;
   var available = false.obs;
-  List<ProductDetails> products = <ProductDetails>[].obs;
+  // List<ProductDetails> products = <ProductDetails>[].obs;
+  late Package package;
 
   @override
   void onInit() async {
@@ -296,15 +276,15 @@ class Controller extends GetxController{
     await flutterTts.setVolume(1.0);
     await flutterTts.setPitch(1.0);
     await flutterTts.awaitSpeakCompletion(true);
-    final Stream purchaseUpdated = InAppPurchase.instance.purchaseStream;
-    subscription = purchaseUpdated.listen((purchaseDetailsList) {
-      listenToPurchaseUpdated(purchaseDetailsList);
-    }, onDone: () {
-      subscription.cancel();
-    }, onError: (error) {
-      Get.snackbar('fail',error.toString());
-    });
-    initStore();
+    // final Stream purchaseUpdated = _inAppPurchase.purchaseStream;
+    // subscription = purchaseUpdated.listen((purchaseDetailsList) {
+    //   listenToPurchaseUpdated(purchaseDetailsList);
+    // }, onDone: () {
+    //   subscription.cancel();
+    // }, onError: (error) {
+    //   Get.snackbar('fail',error.toString());
+    // });
+    initPlatformState();
     super.onInit();
   }
 
@@ -315,72 +295,45 @@ class Controller extends GetxController{
     boxScore.close();
     boxHistory.close();
     boxSetting.close();
-    subscription.cancel();
+    // subscription.cancel();
     flutterTts.stop();
     stt.cancel();
     super.onClose();
   }
 
-  Future<void> initStore() async {
-    final bool _available = await InAppPurchase.instance.isAvailable();
+  Future<void> initPlatformState() async {
+    await Purchases.setDebugLogsEnabled(true);
+    if (Platform.isAndroid) {
+      await Purchases.setup("goog_NiexvvPotedNffCUwntyLAIJWQf");
+    } else if (Platform.isIOS) {
+      await Purchases.setup("appl_pUnNPLWiWILWJyLBXuVTcpdwHhf");
+    }
+    final bool _available = await Purchases.isConfigured;
     available = RxBool(_available);
     if (!available.value) {
       return;
     }
-    const Set<String> _kIds = <String>{'year'};
-    final ProductDetailsResponse response = await InAppPurchase.instance.queryProductDetails(_kIds);
-    if (response.notFoundIDs.isNotEmpty) {
-      Get.snackbar('fail','not found product');
-      return;
-    }
-    products = response.productDetails;
-  }
-
-  void listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) async {
-    for (var purchaseDetails in purchaseDetailsList) {
-      if (purchaseDetails.status == PurchaseStatus.pending) {
-      } else {
-        if (purchaseDetails.status == PurchaseStatus.error) {
-
-        } else if (purchaseDetails.status == PurchaseStatus.purchased) {
-          bool valid = await _verifyPurchase(
-            purchaseDetails.verificationData.serverVerificationData,
-            user.string,
-            password.string
-          );
-          if (valid) {
-            await boxSetting.put('vipToken',purchaseDetails.verificationData.serverVerificationData);
-            isVip = RxBool(valid);
-            update();
-          } else {
-            continue;
-          }
-          if (purchaseDetails.pendingCompletePurchase) {
-            await InAppPurchase.instance.completePurchase(purchaseDetails);
-          }
-        } else if (purchaseDetails.status == PurchaseStatus.restored) {
-          bool valid = await checkExpire(
-              purchaseDetails.verificationData.serverVerificationData,
-              user.string,
-              password.string
-          );
-          if (valid) {
-            await boxSetting.put('vipToken',purchaseDetails.verificationData.serverVerificationData);
-            isVip = RxBool(valid);
-            update();
-          } else {
-            continue;
-          }
-          if (purchaseDetails.pendingCompletePurchase) {
-            await InAppPurchase.instance.completePurchase(purchaseDetails);
-          }
-        }
+    try {
+      Offerings offerings = await Purchases.getOfferings();
+      if (offerings.current != null) {
+        // Display current offering with offerings.current
+        package = offerings.current!.availablePackages[0];
       }
+    } on PlatformException catch (_) {
+      // optional error handling
+    }
+    try {
+      PurchaserInfo purchaserInfo = await Purchases.getPurchaserInfo();
+      bool isPro = purchaserInfo.entitlements.all["yearly"]?.isActive?? false;
+      isVip = RxBool(isPro);
+      if (isPro){
+        expire = RxInt(DateTime.parse(purchaserInfo.entitlements.all["yearly"]?.expirationDate??DateTime.now().toString()).millisecondsSinceEpoch);
+      }
+      update;
+    } on PlatformException catch (_) {
+      // Error fetching purchaser info
     }
   }
-
-  var user = ''.obs;
-  var password = ''.obs;
 
   var bundle = ''.obs;
   var part = 0.obs;
@@ -495,6 +448,16 @@ class Controller extends GetxController{
     if (language.string == 'VN'){
       initLanguageIndex = 0;
       await boxSetting.put('language','VN');
+      if (bundle.string == 'ESSENTIAL'){
+        bundle = 'CƠ BẢN'.obs;
+      }
+      if (listCategoryEN.contains(bundle.string)){
+        bundle = RxString(listCategoryVN[listCategoryEN.indexOf(bundle.string)]);
+      }else{
+        if (listTypeEN.contains(bundle.string)){
+          bundle = RxString(listTypeVN[listTypeEN.indexOf(bundle.string)]);
+        }
+      }
       mean = meanVN;
       typeState = 1.obs;
       drawerInitSpeak = 'Tự động phát âm nghĩa'.obs;
@@ -533,6 +496,16 @@ class Controller extends GetxController{
     }else{
       initLanguageIndex = 1;
       await boxSetting.put('language','EN');
+      if (bundle.string == 'CƠ BẢN'){
+        bundle = 'ESSENTIAL'.obs;
+      }
+      if (listCategoryVN.contains(bundle.string)){
+        bundle = RxString(listCategoryEN[listCategoryVN.indexOf(bundle.string)]);
+      }else{
+        if (listTypeVN.contains(bundle.string)){
+          bundle = RxString(listTypeEN[listTypeVN.indexOf(bundle.string)]);
+        }
+      }
       mean = meanEN;
       typeState = 0.obs;
       drawerInitSpeak = 'Automatic speaking meaning'.obs;
@@ -858,7 +831,6 @@ class _SearchPageState extends State<SearchPage> {
   int toeflCount = 0;
   int essentialCount = 0;
   bool initial = true;
-  final textFieldController = TextEditingController();
 
   Future getList(int count) async {
     List _listShowIelts = [];
@@ -2841,12 +2813,6 @@ class SettingPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
-    final oldPasswordField = TextEditingController();
-    final newPasswordField = TextEditingController();
-    final confirmPasswordField = TextEditingController();
-    final FocusNode oldPasswordFocusNode = FocusNode();
-    final FocusNode newPasswordFocusNode = FocusNode();
-    final FocusNode confirmPasswordFocusNode = FocusNode();
 
     Future<void> showTime() async {
       final TimeOfDay? result =
@@ -2875,298 +2841,6 @@ class SettingPage extends StatelessWidget {
                 ListTile(
                   title: GetBuilder<Controller>(
                     builder: (_) => Text(
-                      c.user.string == ''? c.language.string == 'VN'? 'Đăng nhập':'Login' : c.user.string,
-                      style: const TextStyle(
-                        color: textColor,
-                        fontSize: 16,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  onTap: () {
-                    if (c.user.string == ''){
-                      Get.to(()=>const LoginScreen());
-                    }else{
-                      Get.defaultDialog(
-                        title: c.user.string,
-                        titlePadding: const EdgeInsets.fromLTRB(0, 20, 0, 10),
-                        radius: 10,
-                        content: Column(
-                          children:[
-                            TextButton(
-                              style: ButtonStyle(
-                                backgroundColor: MaterialStateProperty.all<Color>(
-                                    backgroundColor
-                                ),
-                                foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                                padding: MaterialStateProperty.all<EdgeInsets>(
-                                    const EdgeInsets.all(10)
-                                ),
-                                shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                    RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30.0),
-                                    )
-                                ),
-                                fixedSize: MaterialStateProperty.all<Size>(
-                                    const Size.fromHeight(40)
-                                ),
-                              ),
-                              onPressed: () async {
-                                c.user = ''.obs;
-                                c.password = ''.obs;
-                                await boxSetting.put('user','');
-                                await boxSetting.put('password','');
-                                c.isVip = false.obs;
-                                c.update();
-                                Get.back();
-                              },
-                              child: GetBuilder<Controller>(
-                                builder: (_) => Text(
-                                  c.language.string == 'VN'? 'Đăng xuất':'Sign Out',
-                                  style: const TextStyle(
-                                    color: textColor,
-                                    fontSize: 14,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height:10),
-                            TextButton(
-                              style: ButtonStyle(
-                                backgroundColor: MaterialStateProperty.all<Color>(
-                                  backgroundColor
-                                ),
-                                foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                                padding: MaterialStateProperty.all<EdgeInsets>(
-                                    const EdgeInsets.all(10)
-                                ),
-                                shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                    RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30.0),
-                                    )
-                                ),
-                                fixedSize: MaterialStateProperty.all<Size>(
-                                    const Size.fromHeight(40)
-                                ),
-                              ),
-                              onPressed: () {
-                                Get.back();
-                                Get.defaultDialog(
-                                  title: c.language.string == 'VN'? 'Đổi mật khẩu':'Change password',
-                                  titlePadding: const EdgeInsets.fromLTRB(0, 20, 0, 10),
-                                  contentPadding: const EdgeInsets.fromLTRB(15, 10, 15, 15),
-                                  radius: 10,
-                                  cancelTextColor: backgroundColor,
-                                  confirmTextColor: Colors.white,
-                                  buttonColor: backgroundColor,
-                                  onConfirm:() async {
-                                    Get.back();
-                                    if (newPasswordField.text.length<3){
-                                      if (c.language.string == 'VN'){
-                                        Get.snackbar('fail','mật khẩu quá ngắn');
-                                      }else{
-                                        Get.snackbar('fail','new password is too short');
-                                      }
-                                    }else{
-                                      if (confirmPasswordField.text == newPasswordField.text){
-                                        String status = await changePassword(c.user.string,oldPasswordField.text,confirmPasswordField.text);
-                                        if (status != 'success'){
-                                          Get.snackbar('fail',status);
-                                        }else{
-                                          Get.snackbar(status,'done');
-                                        }
-                                      }else{
-                                        if (c.language.string == 'VN'){
-                                          Get.snackbar('fail','mật khẩu mới không khớp');
-                                        }else{
-                                          Get.snackbar('fail','new password unequal');
-                                        }
-                                      }
-                                    }
-                                  },
-                                  onCancel:(){},
-                                  content: Column(
-                                    children:[
-                                      // const SizedBox(height:10),
-                                      TextFormField(
-                                        controller: oldPasswordField,
-                                        autofocus: true,
-                                        autocorrect: false,
-                                        obscureText: true,
-                                        textInputAction: TextInputAction.done,
-                                        focusNode: oldPasswordFocusNode,
-                                        style: const TextStyle(
-                                          fontSize: 15.0,
-                                          color: textColor,
-                                        ),
-                                        decoration: InputDecoration(
-                                          fillColor: backgroundColor.withOpacity(0.5),
-                                          filled: true,
-                                          border: const OutlineInputBorder(
-                                            borderSide: BorderSide.none,
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(30)
-                                            ),
-                                          ),
-                                          focusedBorder: const OutlineInputBorder(
-                                            borderSide: BorderSide.none,
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(30)
-                                            ),
-                                          ),
-                                          enabledBorder: const OutlineInputBorder(
-                                            borderSide: BorderSide.none,
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(30)
-                                            ),
-                                          ),
-                                          // prefixIcon: Icon(Icons.search_outlined,size:15),
-                                          hintText: c.language.string == 'VN'? 'mật khẩu cũ':'old password',
-                                          isDense: true,
-                                          contentPadding: const EdgeInsets.all(15),
-                                        ),
-                                        onFieldSubmitted: (value) {
-                                          newPasswordFocusNode.requestFocus();
-                                        },
-                                      ),
-                                      const SizedBox(height:10),
-                                      TextFormField(
-                                        controller: newPasswordField,
-                                        autofocus: false,
-                                        autocorrect: false,
-                                        obscureText: true,
-                                        focusNode: newPasswordFocusNode,
-                                        textInputAction: TextInputAction.done,
-                                        style: const TextStyle(
-                                          fontSize: 15.0,
-                                          color: textColor,
-                                        ),
-                                        decoration: InputDecoration(
-                                          fillColor: backgroundColor.withOpacity(0.5),
-                                          filled: true,
-                                          border: const OutlineInputBorder(
-                                            borderSide: BorderSide.none,
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(30)
-                                            ),
-                                          ),
-                                          focusedBorder: const OutlineInputBorder(
-                                            borderSide: BorderSide.none,
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(30)
-                                            ),
-                                          ),
-                                          enabledBorder: const OutlineInputBorder(
-                                            borderSide: BorderSide.none,
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(30)
-                                            ),
-                                          ),
-                                          // prefixIcon: Icon(Icons.search_outlined,size:15),
-                                          hintText: c.language.string == 'VN'? 'mật khẩu mới':'new password',
-                                          isDense: true,
-                                          contentPadding: const EdgeInsets.all(15),
-                                          // prefixIcon: const Icon(Icons.search),
-                                          // icon: Icon(Icons.search),
-                                          // isCollapsed: true,
-                                        ),
-                                        onFieldSubmitted: (value) {
-                                          confirmPasswordFocusNode.requestFocus();
-                                        },
-                                      ),
-                                      const SizedBox(height:10),
-                                      TextFormField(
-                                        controller: confirmPasswordField,
-                                        autofocus: false,
-                                        autocorrect: false,
-                                        obscureText: true,
-                                        focusNode: confirmPasswordFocusNode,
-                                        textInputAction: TextInputAction.done,
-                                        style: const TextStyle(
-                                          fontSize: 15.0,
-                                          color: textColor,
-                                        ),
-                                        decoration: InputDecoration(
-                                          fillColor: backgroundColor.withOpacity(0.5),
-                                          filled: true,
-                                          border: const OutlineInputBorder(
-                                            borderSide: BorderSide.none,
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(30)
-                                            ),
-                                          ),
-                                          focusedBorder: const OutlineInputBorder(
-                                            borderSide: BorderSide.none,
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(30)
-                                            ),
-                                          ),
-                                          enabledBorder: const OutlineInputBorder(
-                                            borderSide: BorderSide.none,
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(30)
-                                            ),
-                                          ),
-                                          // prefixIcon: Icon(Icons.search_outlined,size:15),
-                                          hintText: c.language.string == 'VN'? 'nhập lại mật khẩu mới':'retype new password',
-                                          isDense: true,
-                                          contentPadding: const EdgeInsets.all(15),
-                                          // prefixIcon: const Icon(Icons.search),
-                                          // icon: Icon(Icons.search),
-                                          // isCollapsed: true,
-                                        ),
-                                        onFieldSubmitted: (value) async {
-                                          Get.back();
-                                          if (newPasswordField.text.length<3){
-                                            if (c.language.string == 'VN'){
-                                              Get.snackbar('fail','mật khẩu quá ngắn');
-                                            }else{
-                                              Get.snackbar('fail','new password is too short');
-                                            }
-                                          }else{
-                                            if (confirmPasswordField.text == newPasswordField.text){
-                                              String status = await changePassword(c.user.string,oldPasswordField.text,confirmPasswordField.text);
-                                              if (status != 'success'){
-                                                Get.snackbar('fail',status);
-                                              }else{
-                                                Get.snackbar(status,'done');
-                                              }
-                                            }else{
-                                              if (c.language.string == 'VN'){
-                                                Get.snackbar('fail','mật khẩu mới không khớp');
-                                              }else{
-                                                Get.snackbar('fail','new password unequal');
-                                              }
-                                            }
-                                          }
-                                        },
-                                      ),
-                                    ]
-                                  ),
-                                );
-                              },
-                              child: GetBuilder<Controller>(
-                                builder: (_) => Text(
-                                  c.language.string == 'VN'? 'Đổi mật khẩu':'Change password',
-                                  style: const TextStyle(
-                                    color: textColor,
-                                    fontSize: 14,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ),
-                          ]
-                        ),
-                      );
-                    }
-                  },
-                ),
-                const Divider(height:1),
-                ListTile(
-                  title: GetBuilder<Controller>(
-                    builder: (_) => Text(
                       c.isVip.value? 'VIP' : c.drawerUpgrade.string,
                       style: const TextStyle(
                         color: textColor,
@@ -3176,7 +2850,6 @@ class SettingPage extends StatelessWidget {
                     ),
                   ),
                   onTap: () {
-                    Navigator.pop(context);
                     Get.offAll(()=>const MyUpgradePage());
                   },
                 ),
@@ -3191,7 +2864,6 @@ class SettingPage extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),),
                   onTap: () {
-                    Navigator.pop(context);
                     Get.offAll(()=>const HistoryPage());
                   },
                 ),
@@ -3206,7 +2878,6 @@ class SettingPage extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),),
                   onTap: () {
-                    Navigator.pop(context);
                     Get.offAll(()=> const SortPage());
                   },
                 ),
@@ -3557,7 +3228,6 @@ class SettingPage extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),),
                   onTap: () {
-                    Navigator.pop(context);
                     Get.offAll(()=>const LoadingPage());
                   },
                 ),
@@ -3572,8 +3242,7 @@ class SettingPage extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),),
                   onTap: () {
-                    Navigator.pop(context);
-                    Get.offAll(()=>const PolicyPage());
+                    Get.to(()=>const PolicyPage());
                   },
                 ),
                 const Divider(height:1),
@@ -3587,8 +3256,7 @@ class SettingPage extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),),
                   onTap: () {
-                    Navigator.pop(context);
-                    Get.offAll(()=>const TermPage());
+                    Get.to(()=>const TermPage());
                   },
                 ),
                 const Divider(height:1),
@@ -3602,7 +3270,6 @@ class SettingPage extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),),
                   onTap: () {
-                    Navigator.pop(context);
                     Get.offAll(()=>const ContactPage());
                   },
                 ),
@@ -3611,132 +3278,6 @@ class SettingPage extends StatelessWidget {
             ),
           ),
         ]
-      ),
-    );
-  }
-}
-
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({Key? key}) : super(key: key);
-
-  Duration get loginTime => const Duration(milliseconds: 2250);
-
-  Future<String?> _authUser(LoginData data) {
-    return Future.delayed(loginTime).then((_) async {
-      String status = await login(data.name,data.password);
-      if (status == 'not exist') {
-        return 'User not exists';
-      }
-      if (status == 'wrong password') {
-        return 'Password does not match';
-      }
-      if (status == 'fail') {
-        return 'fail';
-      }
-      if (status == 'error') {
-        return 'error';
-      }
-      return null;
-    });
-  }
-
-  Future<String?> _signupUser(SignupData data) {
-    return Future.delayed(loginTime).then((_) async {
-      String status = await signup(data.name.toString(),data.password.toString());
-      if (status == 'exist') {
-        return 'User exists';
-      }
-      if (status == 'fail') {
-        return 'fail';
-      }
-      if (status == 'error') {
-        return 'error';
-      }
-      return null;
-    });
-  }
-
-  Future<String?> _recoverPassword(String name) {
-    return Future.delayed(loginTime).then((_) async {
-      String password = await getPassword(name);
-      if (password == ' '){
-        return 'User not exists';
-      }
-      if (password == ''){
-        return 'Fail';
-      }
-      if (password == 'fail'){
-        return 'Can not send email';
-      }
-      return null;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FlutterLogin(
-      title: 'BeDict',
-      // logo: const AssetImage('assets/logo.png'),
-      onLogin: _authUser,
-      // showDebugButtons: true,
-      onSignup: _signupUser,
-      onSubmitAnimationCompleted: () {
-        Navigator.pop(context);
-      },
-      onRecoverPassword: _recoverPassword,
-      children:[
-        Positioned(
-          bottom: 10,
-          child: TextButton(
-            child: const Text(
-              'skip',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 15,
-              )
-            ),
-            onPressed:(){
-              Navigator.pop(context);
-            },
-          ),
-        ),
-      ],
-      theme: LoginTheme(
-        primaryColor: backgroundColor,
-        // accentColor: Colors.yellow,
-        // errorColor: Colors.deepOrange,
-        // logoWidth:100.0,
-        titleStyle: TextStyle(
-          // color: Color.fromRGBO(231, 235, 96,1),
-          fontSize:100,
-          fontWeight: FontWeight.w400,
-          shadows: [Shadow(color: Colors.black.withOpacity(0.7), blurRadius: 20)],
-          // fontFamily: 'Quicksand',
-          // letterSpacing: 10,
-        ),
-        // bodyStyle: TextStyle(
-        //   fontStyle: FontStyle.italic,
-        //   decoration: TextDecoration.underline,
-        // ),
-        // textFieldStyle: TextStyle(
-        //   color: Colors.orange,
-        //   shadows: [Shadow(color: Colors.yellow, blurRadius: 2)],
-        // ),
-        // buttonStyle: const TextStyle(
-        //   fontWeight: FontWeight.w800,
-        //   color: Colors.yellow,
-        // ),
-        // cardTheme: CardTheme(
-        //   color: Colors.yellow.shade100,
-        //   elevation: 5,
-        //   margin: EdgeInsets.only(top: 15),
-        //   shape: ContinuousRectangleBorder(
-        //       borderRadius: BorderRadius.circular(100.0)),
-        // ),
-        buttonTheme: const LoginButtonTheme(
-          // splashColor: Colors.purple,
-          backgroundColor: backgroundColor,
-        ),
       ),
     );
   }
@@ -4134,9 +3675,57 @@ class Home extends StatelessWidget {
 
   final ScreenshotController screenshotController = ScreenshotController();
 
+  // final FocusNode searchFocusNodeHome = FocusNode();
+
   @override
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
+    List<String> suggestArray = [];
+
+    Future searchToHome(String word) async {
+      if (!c.isAdShowing.value){
+        Future toScore() async {
+          c.nowWord = RxInt(c.wordArray.indexOf(word));
+          c.isAdShowing = false.obs;
+          c.isSearch = false.obs;
+          c.category = 'all category'.obs;
+          c.type = 'all type'.obs;
+          c.fromScreen = 0.obs;
+          await c.layWord(word);
+        }
+        int isShow = Random().nextInt(showAdFrequency);
+        if (isShow == 0 && !c.isVip.value){
+          c.isAdShowing = true.obs;
+          InterstitialAd.load(
+              adUnitId: Platform.isAndroid ? androidAd:iosAd,
+              request: const AdRequest(),
+              adLoadCallback: InterstitialAdLoadCallback(
+                onAdLoaded: (InterstitialAd ad) {
+                  // Keep a reference to the ad so you can show it later.
+                  ad.fullScreenContentCallback = FullScreenContentCallback(
+                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
+                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                      ad.dispose();
+                      toScore();
+                    },
+                    onAdImpression: (InterstitialAd ad) {},
+                  );
+                  ad.show();
+                },
+                onAdFailedToLoad: (LoadAdError error) {
+                  toScore();
+                },
+              )
+          );
+        }else{
+          toScore();
+        }
+      }
+    }
 
     void getBack() {
       if (!c.isAdShowing.value){
@@ -4566,433 +4155,635 @@ class Home extends StatelessWidget {
                     ),
                   ),
                 ),
-                GestureDetector(
-                  onVerticalDragEnd: (details) {
-                    if (details.primaryVelocity! > 0) {
-                      getPrevious();
-                    }
-                    if (details.primaryVelocity! < -0) {
-                      getNext();
-                    }
-                  },
-                  onHorizontalDragEnd: (details) {
-                    if (details.primaryVelocity! > 0) {
-                      getPreviousMean();
-                    }
-                    if (details.primaryVelocity! < 0) {
-                      getNextMean();
-                    }
-                  },
-                  onDoubleTap: () {
-                    getToLearn();
-                  },
-                  onTap:() async {
-                    if (searchFocusNode.hasFocus){
-                      searchFocusNode.unfocus();
-                    }
-                    if (c.isSearch.value){
-                      c.isSearch = false.obs;
-                      c.update();
-                    }
-                    if (processKey.currentState!.controller.isAnimating){
-                      processKey.currentState!.controller.stop();
-                    }else{
-                      processKey.currentState!.controller.forward();
-                    }
-                  },
-                  child: Column (
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children:<Widget> [
-                      SizedBox(height: MediaQuery.of(context).padding.top),
-                      Row(
-                          children:[
-                            IconButton(
-                              padding: const EdgeInsets.all(0.0),
-                              icon: const Icon(Icons.arrow_back_ios_rounded, size: 20,),
-                              tooltip: 'Back',
-                              onPressed: () {
-                                getBack();
-                              },
-                            ),
-                            Expanded(
-                              child: Text(
-                                c.fromScreen.value == 0?'':
-                                (c.language.string == 'VN'?'phần ':'part ')
-                                    + (c.part.value+1).toString() + ' - '
-                                    + c.bundle.string.toLowerCase(),
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: textColor,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.left,
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.share, size: 25,),
-                              onPressed: () async {
-                                double pixelRatio = MediaQuery.of(context).devicePixelRatio;
-                                await screenshotController.capture(
-                                    delay: const Duration(milliseconds: 10),
-                                    pixelRatio: pixelRatio
-                                ).then((image) async {
-                                  if (image != null) {
-                                    final directory = await getApplicationDocumentsDirectory();
-                                    final imagePath = await File('${directory.path}/image.png').create();
-                                    await imagePath.writeAsBytes(image);
-                                    await Share.shareFiles([imagePath.path]);
-                                  }
-                                });
-                              },
-                            ),
-                            const SizedBox(width:5),
-                            OutlinedButton(
-                              style: ButtonStyle(
-                                backgroundColor: MaterialStateProperty.all<Color>(
-                                    Colors.transparent
-                                ),
-                                foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                                padding: MaterialStateProperty.all<EdgeInsets>(
-                                    const EdgeInsets.all(0)
-                                ),
-                                shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                    RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30.0),
-                                    )
-                                ),
-                                fixedSize: MaterialStateProperty.all<Size>(
-                                    const Size.fromHeight(40)
-                                ),
-                              ),
-                              onPressed: () async {
-                                getToLearn();
-                              },
-                              child: GetBuilder<Controller>(
-                                builder: (_) => Text(
-                                  c.language.string == 'VN'? 'Học':'Learn',
-                                  style: const TextStyle(
-                                    color: textColor,
-                                    fontSize: 14,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width:15),
-                          ]
-                      ),
-                      // Row(
-                      //   // crossAxisAlignment: CrossAxisAlignment.start,
-                      //   children: [
-                      //     const SizedBox(width:5),
-                      //     // TextButton(
-                      //     //   style: ButtonStyle(
-                      //     //     backgroundColor: MaterialStateProperty.all<Color>(
-                      //     //         Colors.transparent
-                      //     //     ),
-                      //     //     foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                      //     //     padding: MaterialStateProperty.all<EdgeInsets>(
-                      //     //         const EdgeInsets.all(0)
-                      //     //     ),
-                      //     //     shape: MaterialStateProperty.all<OutlinedBorder?>(
-                      //     //         RoundedRectangleBorder(
-                      //     //           borderRadius: BorderRadius.circular(30.0),
-                      //     //         )
-                      //     //     ),
-                      //     //     fixedSize: MaterialStateProperty.all<Size>(
-                      //     //         const Size.fromHeight(40)
-                      //     //     ),
-                      //     //   ),
-                      //     //   child: Row(
-                      //     //     mainAxisAlignment: MainAxisAlignment.start,
-                      //     //     children: [
-                      //     //       const SizedBox(width: 10),
-                      //     //       const Icon(
-                      //     //         Icons.volume_up_outlined,
-                      //     //         size: 25,
-                      //     //         color: textColor,
-                      //     //       ),
-                      //     //       GetBuilder<Controller>(
-                      //     //         builder: (_) => Text(
-                      //     //           c.pronun.string,
-                      //     //           style: const TextStyle(
-                      //     //             fontSize: 14,
-                      //     //             overflow: TextOverflow.ellipsis,
-                      //     //             color: textColor,
-                      //     //           ),
-                      //     //         ),
-                      //     //       ),
-                      //     //       const SizedBox(width: 10),
-                      //     //     ],
-                      //     //   ),
-                      //     //   onPressed: () {
-                      //     //     _speak(c.word.string);
-                      //     //   },
-                      //     // ),
-                      //
-                      //     const Expanded(child:SizedBox()),
-                      //     GestureDetector(
-                      //       child: const SizedBox(
-                      //           height: 50,
-                      //           width: 50,
-                      //           child: Icon(Icons.arrow_forward_rounded, size: 30,)
-                      //       ),
-                      //       onTap: () {
-                      //         getToLearn();
-                      //       },
-                      //     ),
-                      //
-                      //     const SizedBox(width:5),
-                      //   ],
-                      // ),
-                      const SizedBox(height:20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          GetBuilder<Controller>(
-                            builder: (_) => Flexible(
-                              child: AnimatedTextKit(
-                                key: ValueKey<String> (c.word.string),
-                                animatedTexts: [
-                                  ColorizeAnimatedText(
-                                    c.word.string,
-                                    textAlign: TextAlign.center,
-                                    speed: const Duration(milliseconds: 300),
-                                    textStyle: TextStyle(
-                                      fontSize: 50,
-                                      letterSpacing: 1,
-                                      fontWeight: FontWeight.w600,
-                                      shadows: [
-                                        Shadow(
-                                          blurRadius: 15,
-                                          color: Colors.black.withOpacity(0.5),
-                                          offset: const Offset(3, 3),
-                                        ),
-                                      ],
-                                    ),
-                                    colors: colorizeColors,
-                                  ),
-                                  ColorizeAnimatedText(
-                                    c.pronun.string,
-                                    textAlign: TextAlign.center,
-                                    speed: const Duration(milliseconds: 300),
-                                    textStyle: TextStyle(
-                                      fontSize: 50,
-                                      letterSpacing: 1,
-                                      fontWeight: FontWeight.w600,
-                                      shadows: [
-                                        Shadow(
-                                          blurRadius: 15,
-                                          color: Colors.black.withOpacity(0.5),
-                                          offset: const Offset(3, 3),
-                                        ),
-                                      ],
-                                    ),
-                                    colors: colorizeColors,
-                                  ),
-                                ],
-                                isRepeatingAnimation: true,
-                                repeatForever: true,
-                                onTap: () {},
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Expanded(
-                        child: Container(color: Colors.transparent),
-                      ),
-                      GetBuilder<Controller>(
-                        builder: (_) => Row(
+                Column (
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children:<Widget> [
+                    SizedBox(height: MediaQuery.of(context).padding.top + 5),
+                    GetBuilder<Controller>(
+                      builder: (_) => Visibility(
+                        visible: !c.isSearch.value,
+                        child: Row(
                             children:[
-                              const SizedBox(width:10),
-                              c.mean.isNotEmpty?
-                              Flexible(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: c.mean[c.nowMean.value].asMap().entries.map<Widget>((subMean) =>
-                                        FutureBuilder(
-                                          // future: Future.delayed(Duration(milliseconds: (subMean.key+1)*1000)),
-                                          future: waitSpeak(subMean.key),
-                                          builder: (context, snapshot) {
-                                            Widget child;
-
-                                            if (snapshot.connectionState == ConnectionState.waiting) {
-                                              child = const SizedBox();
-                                            } else {
-                                              child = Container(
-                                                margin: const EdgeInsets.fromLTRB(0, 0, 0, 5),
-                                                padding: const EdgeInsets.all(5),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white.withOpacity(0.3),
-                                                  borderRadius: const BorderRadius.all(
-                                                      Radius.circular(10)
-                                                  ),
-                                                ),
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    const SizedBox(height: 3,),
-                                                    Opacity(
-                                                      opacity: 0.3,
-                                                      child: Text(
-                                                        laytuloai(subMean.value.substring(subMean.value.length - 1))[c.typeState.value],
-                                                        style: const TextStyle(
-                                                          fontSize: 11,
-                                                          color: textColor,
-                                                        ),
-                                                        textAlign: TextAlign.left,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(height: 2),
-                                                    Text(
-                                                      subMean.value.substring(0,subMean.value.length-1),
-                                                      style: const TextStyle(
-                                                        fontSize: 18,
-                                                        color: textColor,
-                                                      ),
-                                                      textAlign: TextAlign.left,
-                                                    ),
-                                                    const SizedBox(height: 3),
-                                                  ],
-                                                ),
-                                              );
-                                            }
-                                            return AnimatedSwitcher(
-                                              duration: const Duration(milliseconds: 500),
-                                              child: child,
-                                            );
-                                          },
-                                        ),
-                                    ).toList(),
-                                  )
-                              )
-                                  : const SizedBox(),
-                              const SizedBox(width:10),
+                              IconButton(
+                                padding: const EdgeInsets.all(0.0),
+                                icon: const Icon(Icons.arrow_back_ios_rounded, size: 20,),
+                                tooltip: 'Back',
+                                onPressed: () {
+                                  getBack();
+                                },
+                              ),
+                              Expanded(
+                                child: Text(
+                                  c.fromScreen.value == 0?'':
+                                  (c.language.string == 'VN'?'phần ':'part ')
+                                      + (c.part.value+1).toString() + ' - '
+                                      + c.bundle.string.toLowerCase(),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: textColor,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.left,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.search, size: 25,),
+                                onPressed: () {
+                                  c.isSearch = true.obs;
+                                  c.update();
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.share, size: 25,),
+                                onPressed: () async {
+                                  double pixelRatio = MediaQuery.of(context).devicePixelRatio;
+                                  await screenshotController.capture(
+                                      delay: const Duration(milliseconds: 10),
+                                      pixelRatio: pixelRatio
+                                  ).then((image) async {
+                                    if (image != null) {
+                                      final directory = await getApplicationDocumentsDirectory();
+                                      final imagePath = await File('${directory.path}/image.png').create();
+                                      await imagePath.writeAsBytes(image);
+                                      await Share.shareFiles([imagePath.path]);
+                                    }
+                                  });
+                                },
+                              ),
+                              const SizedBox(width:20),
+                              OutlinedButton(
+                                style: ButtonStyle(
+                                  backgroundColor: MaterialStateProperty.all<Color>(
+                                      Colors.transparent
+                                  ),
+                                  foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                                  padding: MaterialStateProperty.all<EdgeInsets>(
+                                      const EdgeInsets.all(0)
+                                  ),
+                                  shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                      RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(30.0),
+                                      )
+                                  ),
+                                  fixedSize: MaterialStateProperty.all<Size>(
+                                      const Size.fromHeight(40)
+                                  ),
+                                ),
+                                onPressed: () {
+                                  getToLearn();
+                                },
+                                child: GetBuilder<Controller>(
+                                  builder: (_) => Text(
+                                    c.language.string == 'VN'? 'Học':'Learn',
+                                    style: const TextStyle(
+                                      color: textColor,
+                                      fontSize: 14,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width:15),
                             ]
                         ),
                       ),
-                      const SizedBox(height:5),
-                      GetBuilder<Controller>(
-                        builder: (_) => c.mean.length>1?
-                        DotsIndicator(
-                            dotsCount: c.mean.length,
-                            position: c.nowMean.value.toDouble(),
-                            axis: Axis.horizontal,
-                            decorator: DotsDecorator(
-                              size: const Size.square(9.0),
-                              activeSize: const Size(14.0, 9.0),
-                              activeColor: Colors.black.withOpacity(0.4),
-                              color: Colors.black.withOpacity(0.1),
-                              activeShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
-                              spacing: 19*c.mean.length>MediaQuery.of(context).size.width - 20 ?
-                              EdgeInsets.fromLTRB(
-                                  ((MediaQuery.of(context).size.width-20)/c.mean.length-9)/2,
-                                  10,
-                                  ((MediaQuery.of(context).size.width-20)/c.mean.length-9)/2,
-                                  10
-                              )
-                                  : const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                    ),
+                    GetBuilder<Controller>(
+                      builder: (_) => Visibility(
+                        visible: c.isSearch.value,
+                        child: Row(
+                            children:[
+                              const SizedBox(width:15),
+                              Expanded(
+                                child: TypeAheadField(
+                                  textFieldConfiguration: TextFieldConfiguration(
+                                    // controller: textFieldController,
+                                    autofocus: true,
+                                    autocorrect: false,
+                                    textInputAction: TextInputAction.done,
+                                    // focusNode: searchFocusNodeHome,
+                                    style: const TextStyle(
+                                      fontSize: 15.0,
+                                      color: textColor,
+                                    ),
+                                    decoration: InputDecoration(
+                                      fillColor: Colors.transparent,
+                                      filled: true,
+                                      border: const OutlineInputBorder(
+                                        borderSide: BorderSide(width:1,color:Colors.black),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(30)
+                                        ),
+                                      ),
+                                      focusedBorder: const OutlineInputBorder(
+                                        borderSide: BorderSide(width:1,color:Colors.black),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(30)
+                                        ),
+                                      ),
+                                      enabledBorder: const OutlineInputBorder(
+                                        borderSide: BorderSide(width:1,color:Colors.black),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(30)
+                                        ),
+                                      ),
+                                      // prefixIcon: Icon(Icons.search_outlined,size:15),
+                                      hintText: c.hint.string,
+                                      isDense: true,
+                                      contentPadding: const EdgeInsets.all(5),
+                                      prefixIcon: const Icon(Icons.search),
+                                      // icon: Icon(Icons.search),
+                                      // isCollapsed: true,
+                                    ),
+                                    onSubmitted: (value) async {
+                                      if (suggestArray.isEmpty){
+                                        // searchField.text = c.word.string;
+                                        if (Get.isSnackbarOpen) Get.closeAllSnackbars();
+                                        Get.snackbar(c.learnWrongTitle.string, c.notFound.string);
+                                      }else{
+                                        await searchToHome(suggestArray[0]);
+                                      }
+                                    },
+                                  ),
+                                  suggestionsBoxVerticalOffset: 10,
+                                  noItemsFoundBuilder: (BuildContext context) => ListTile(
+                                    title: Text(
+                                      c.notFound.string,
+                                      style: const TextStyle(
+                                        fontSize: 15.0,
+                                        color: textColor,
+                                      ),
+                                    ),
+                                  ),
+                                  suggestionsCallback: (pattern) async {
+                                    suggestArray = [];
+                                    if (pattern == ''){
+                                      suggestArray = await getLastSearch();
+                                    }
+                                    for (var i = 0; i < c.wordArray.length; i++){
+                                      if (suggestArray.length > 9){
+                                        break;
+                                      }
+                                      if (c.wordArray[i].toString().toLowerCase().startsWith(pattern.toLowerCase())){
+                                        if (!suggestArray.contains(c.wordArray[i])){
+                                          suggestArray.add(c.wordArray[i]);
+                                        }
+                                      }
+                                    }
+                                    return suggestArray;
+                                  },
+                                  suggestionsBoxDecoration: SuggestionsBoxDecoration(
+                                    borderRadius: const BorderRadius.all(Radius.circular(15)),
+                                    color: Colors.white.withOpacity(1.0),
+                                  ),
+                                  itemBuilder: (context, suggestion) {
+                                    String mean = '';
+                                    String image = 'bedict.png';
+                                    var dataRaw = box.get(suggestion.toString());
+                                    List listMeans = jsonDecode(dataRaw['mean']);
+                                    List listMean = listMeans[0];
+                                    List meanENAdd = [];
+                                    List meanVNAdd = [];
+                                    for(var j = 0; j< listMean.length; j++) {
+                                      String meanENElement = '';
+                                      if(listMean[j].contains('#')){
+                                        meanENElement = listMean[j].split('#')[1];
+                                      }else{
+                                        meanENElement = listMean[j];
+                                      }
+                                      meanENAdd.add(meanENElement);
+                                      String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
+                                      meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
+                                      meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
+                                      meanVNAdd.add(meanVNElement);
+                                    }
+                                    String meanEN = '';
+                                    String meanVN = '';
+                                    for(var j = 0; j< meanENAdd.length; j++) {
+                                      if (j==0){
+                                        meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                                        meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                                      }else{
+                                        meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                                        meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                                      }
+                                    }
+                                    if (c.language.string == 'VN'){
+                                      mean = meanVN;
+                                    }else{
+                                      mean = meanEN;
+                                    }
+                                    if (jsonDecode(dataRaw['imageURL']).length>0){
+                                      image = jsonDecode(dataRaw['imageURL'])[0];
+                                    }
+                                    return Row(
+                                        children: [
+                                          const SizedBox(width:10),
+                                          Expanded(
+                                            child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children:[
+                                                  Text(
+                                                    suggestion.toString(),
+                                                    style: const TextStyle(
+                                                      fontSize: 18.0,
+                                                      color: textColor,
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                  const SizedBox(height:5),
+                                                  Text(
+                                                    mean,
+                                                    style: const TextStyle(
+                                                      fontSize: 14.0,
+                                                      color: textColor,
+                                                    ),
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                ]
+                                            ),
+                                          ),
+                                          Container(
+                                              margin: const EdgeInsets.all(10),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: const BorderRadius.all(
+                                                    Radius.circular(8)
+                                                ),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black.withOpacity(0.6),
+                                                    spreadRadius: 0,
+                                                    blurRadius: 3,
+                                                    offset: const Offset(3, 3), // changes position of shadow
+                                                  ),
+                                                ],
+                                              ),
+                                              width: 70,
+                                              height: 50,
+                                              child: Stack(
+                                                  children:[
+                                                    ClipRRect(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      child: ImageFiltered(
+                                                        imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                                        child: Opacity(
+                                                          opacity: 0.8,
+                                                          child: Image(
+                                                            image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                            fit: BoxFit.cover,
+                                                            width: 70,
+                                                            height: 50,
+                                                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                              return const SizedBox();
+                                                            },
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    ClipRRect(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      child: Image(
+                                                        image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                        fit: BoxFit.contain,
+                                                        width: 70,
+                                                        height: 50,
+                                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                          return const SizedBox();
+                                                        },
+                                                      ),
+                                                    ),
+                                                    listMeans.length>1?
+                                                    Positioned(
+                                                        right: 4,
+                                                        bottom: 4,
+                                                        child: Container(
+                                                            alignment: Alignment.center,
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.white.withOpacity(0.7),
+                                                              borderRadius: const BorderRadius.all(
+                                                                  Radius.circular(20)
+                                                              ),
+                                                            ),
+                                                            height: 20,
+                                                            width: 20,
+                                                            child: Text(
+                                                              '+ ' + (listMeans.length-1).toString(),
+                                                              style: const TextStyle(
+                                                                fontSize: 9,
+                                                              ),
+                                                            )
+                                                        )
+                                                    )
+                                                        : const SizedBox(),
+                                                  ]
+                                              )
+                                          ),
+                                        ]
+                                    );
+                                  },
+                                  onSuggestionSelected: (suggestion) async {
+                                    // searchField.text = suggestion.toString();
+                                    await searchToHome(suggestion.toString());
+                                  },
+                                  animationDuration: Duration.zero,
+                                  debounceDuration: Duration.zero,
+                                ),
+                              ),
+                              const SizedBox(width:15),
+                            ]
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height:20),
+                    Expanded(
+                      child: GestureDetector(
+                        onVerticalDragEnd: (details) {
+                          if (details.primaryVelocity! > 0) {
+                            getPrevious();
+                          }
+                          if (details.primaryVelocity! < -0) {
+                            getNext();
+                          }
+                        },
+                        onHorizontalDragEnd: (details) {
+                          if (details.primaryVelocity! > 0) {
+                            getPreviousMean();
+                          }
+                          if (details.primaryVelocity! < 0) {
+                            getNextMean();
+                          }
+                        },
+                        onDoubleTap: () {
+                          getToLearn();
+                        },
+                        onTap:() async {
+                          if (searchFocusNode.hasFocus){
+                            searchFocusNode.unfocus();
+                          }
+                          if (c.isSearch.value){
+                            c.isSearch = false.obs;
+                            c.update();
+                          }
+                          if (processKey.currentState!.controller.isAnimating){
+                            processKey.currentState!.controller.stop();
+                          }else{
+                            processKey.currentState!.controller.forward();
+                          }
+                        },
+                        child: Column(
+                            children:[
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  GetBuilder<Controller>(
+                                    builder: (_) => Flexible(
+                                      child: AnimatedTextKit(
+                                        key: ValueKey<String> (c.word.string),
+                                        animatedTexts: [
+                                          ColorizeAnimatedText(
+                                            c.word.string,
+                                            textAlign: TextAlign.center,
+                                            speed: const Duration(milliseconds: 300),
+                                            textStyle: TextStyle(
+                                              fontSize: 50,
+                                              letterSpacing: 1,
+                                              fontWeight: FontWeight.w600,
+                                              shadows: [
+                                                Shadow(
+                                                  blurRadius: 15,
+                                                  color: Colors.black.withOpacity(0.5),
+                                                  offset: const Offset(3, 3),
+                                                ),
+                                              ],
+                                            ),
+                                            colors: colorizeColors,
+                                          ),
+                                          ColorizeAnimatedText(
+                                            c.pronun.string,
+                                            textAlign: TextAlign.center,
+                                            speed: const Duration(milliseconds: 300),
+                                            textStyle: TextStyle(
+                                              fontSize: 50,
+                                              letterSpacing: 1,
+                                              fontWeight: FontWeight.w600,
+                                              shadows: [
+                                                Shadow(
+                                                  blurRadius: 15,
+                                                  color: Colors.black.withOpacity(0.5),
+                                                  offset: const Offset(3, 3),
+                                                ),
+                                              ],
+                                            ),
+                                            colors: colorizeColors,
+                                          ),
+                                        ],
+                                        isRepeatingAnimation: true,
+                                        repeatForever: true,
+                                        onTap: () {},
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Expanded(
+                                child: Container(color: Colors.transparent),
+                              ),
+                              GetBuilder<Controller>(
+                                builder: (_) => Row(
+                                    children:[
+                                      const SizedBox(width:10),
+                                      c.mean.isNotEmpty?
+                                      Flexible(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: c.mean[c.nowMean.value].asMap().entries.map<Widget>((subMean) =>
+                                                FutureBuilder(
+                                                  // future: Future.delayed(Duration(milliseconds: (subMean.key+1)*1000)),
+                                                  future: waitSpeak(subMean.key),
+                                                  builder: (context, snapshot) {
+                                                    Widget child;
+
+                                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                                      child = const SizedBox();
+                                                    } else {
+                                                      child = Container(
+                                                        margin: const EdgeInsets.fromLTRB(0, 0, 0, 5),
+                                                        padding: const EdgeInsets.all(5),
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.white.withOpacity(0.3),
+                                                          borderRadius: const BorderRadius.all(
+                                                              Radius.circular(10)
+                                                          ),
+                                                        ),
+                                                        child: Column(
+                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          children: [
+                                                            const SizedBox(height: 3,),
+                                                            Opacity(
+                                                              opacity: 0.3,
+                                                              child: Text(
+                                                                laytuloai(subMean.value.substring(subMean.value.length - 1))[c.typeState.value],
+                                                                style: const TextStyle(
+                                                                  fontSize: 11,
+                                                                  color: textColor,
+                                                                ),
+                                                                textAlign: TextAlign.left,
+                                                              ),
+                                                            ),
+                                                            const SizedBox(height: 2),
+                                                            Text(
+                                                              subMean.value.substring(0,subMean.value.length-1),
+                                                              style: const TextStyle(
+                                                                fontSize: 18,
+                                                                color: textColor,
+                                                              ),
+                                                              textAlign: TextAlign.left,
+                                                            ),
+                                                            const SizedBox(height: 3),
+                                                          ],
+                                                        ),
+                                                      );
+                                                    }
+                                                    return AnimatedSwitcher(
+                                                      duration: const Duration(milliseconds: 500),
+                                                      child: child,
+                                                    );
+                                                  },
+                                                ),
+                                            ).toList(),
+                                          )
+                                      )
+                                          : const SizedBox(),
+                                      const SizedBox(width:10),
+                                    ]
+                                ),
+                              ),
+                            ]
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height:5),
+                    GetBuilder<Controller>(
+                      builder: (_) => c.mean.length>1?
+                      DotsIndicator(
+                          dotsCount: c.mean.length,
+                          position: c.nowMean.value.toDouble(),
+                          axis: Axis.horizontal,
+                          decorator: DotsDecorator(
+                            size: const Size.square(9.0),
+                            activeSize: const Size(14.0, 9.0),
+                            activeColor: Colors.black.withOpacity(0.4),
+                            color: Colors.black.withOpacity(0.1),
+                            activeShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
+                            spacing: 19*c.mean.length>MediaQuery.of(context).size.width - 20 ?
+                            EdgeInsets.fromLTRB(
+                                ((MediaQuery.of(context).size.width-20)/c.mean.length-9)/2,
+                                10,
+                                ((MediaQuery.of(context).size.width-20)/c.mean.length-9)/2,
+                                10
+                            )
+                                : const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                          ),
+                          onTap: (index){
+                            c.nowMean = RxInt(index.toInt());
+                            c.update();
+                          }
+                      )
+                          : const SizedBox(),
+                    ),
+                    const SizedBox(height:5),
+                    GetBuilder<Controller>(
+                      builder: (_) => c.mean.isNotEmpty?
+                      ProcessWidget(
+                        meanLength:c.mean[c.nowMean.value].length,
+                        key: processKey,
+                      )
+                          :const SizedBox(),
+                    ),
+                    Row(
+                        children:[
+                          const SizedBox(width:10),
+                          ToggleSwitch(
+                            minWidth: 35.0,
+                            minHeight: 22.0,
+                            fontSize: 9.0,
+                            initialLabelIndex: initLanguageIndex,
+                            activeBgColor: const [backgroundColor],
+                            activeFgColor: Colors.white,
+                            inactiveBgColor: const Color.fromRGBO(240, 240, 240, 1),
+                            inactiveFgColor: textColor,
+                            totalSwitches: 2,
+                            changeOnTap: true,
+                            labels: const ['VN', 'EN'],
+                            onToggle: (index) async {
+                              if (index == 0){
+                                c.changeLanguage('VN');
+                              }else{
+                                c.changeLanguage('EN');
+                              }
+                            },
+                          ),
+                          const SizedBox(width:10),
+                          GetBuilder<Controller>(
+                            builder: (_) => Text(
+                              c.language.string == 'VN'?'nói':'speak',
+                              style: const TextStyle(
+                                color: textColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              textAlign: TextAlign.center,
                             ),
-                            onTap: (index){
-                              c.nowMean = RxInt(index.toInt());
-                              c.update();
-                            }
-                        )
-                            : const SizedBox(),
-                      ),
-                      const SizedBox(height:5),
-                      GetBuilder<Controller>(
-                        builder: (_) => c.mean.isNotEmpty?
-                        ProcessWidget(
-                          meanLength:c.mean[c.nowMean.value].length,
-                          key: processKey,
-                        )
-                        :const SizedBox(),
-                      ),
-                      Row(
-                          children:[
-                            const SizedBox(width:10),
-                            ToggleSwitch(
-                              minWidth: 35.0,
-                              minHeight: 22.0,
-                              fontSize: 9.0,
-                              initialLabelIndex: initLanguageIndex,
-                              activeBgColor: const [backgroundColor],
-                              activeFgColor: Colors.white,
-                              inactiveBgColor: const Color.fromRGBO(240, 240, 240, 1),
-                              inactiveFgColor: textColor,
-                              totalSwitches: 2,
-                              changeOnTap: true,
-                              labels: const ['VN', 'EN'],
-                              onToggle: (index) async {
-                                if (index == 0){
-                                  c.changeLanguage('VN');
-                                }else{
-                                  c.changeLanguage('EN');
-                                }
+                          ),
+                          GetBuilder<Controller>(
+                            builder: (_) => Switch(
+                              activeColor: backgroundColor,
+                              activeTrackColor: themeColor,
+                              value: c.initSpeak.value,
+                              onChanged: (value) async {
+                                c.initSpeak = value.obs;
+                                c.update();
+                                await boxSetting.put('initSpeak',value);
                               },
                             ),
-                            const SizedBox(width:10),
-                            GetBuilder<Controller>(
-                              builder: (_) => Text(
-                                c.language.string == 'VN'?'nói':'speak',
-                                style: const TextStyle(
-                                  color: textColor,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                                textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(width:10),
+                          GetBuilder<Controller>(
+                            builder: (_) => Text(
+                              c.language.string == 'VN'?'tốc độ':'speed',
+                              style: const TextStyle(
+                                color: textColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
                               ),
+                              textAlign: TextAlign.center,
                             ),
-                            GetBuilder<Controller>(
-                              builder: (_) => Switch(
+                          ),
+                          Expanded(
+                            child: GetBuilder<Controller>(
+                              builder: (_) => Slider(
+                                value: c.speakSpeed.value,
+                                min: 0.1,
+                                max: 1,
+                                divisions: 9,
                                 activeColor: backgroundColor,
-                                activeTrackColor: themeColor,
-                                value: c.initSpeak.value,
-                                onChanged: (value) async {
-                                  c.initSpeak = value.obs;
+                                inactiveColor: themeColor,
+                                thumbColor: backgroundColor,
+                                label: double.parse((c.speakSpeed.value).toStringAsFixed(1)).toString(),
+                                onChanged: (double value) async {
+                                  c.speakSpeed = RxDouble(value);
+                                  await boxSetting.put('speakSpeed',value);
                                   c.update();
-                                  await boxSetting.put('initSpeak',value);
                                 },
                               ),
                             ),
-                            const SizedBox(width:10),
-                            GetBuilder<Controller>(
-                              builder: (_) => Text(
-                                c.language.string == 'VN'?'tốc độ':'speed',
-                                style: const TextStyle(
-                                  color: textColor,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            Expanded(
-                              child: GetBuilder<Controller>(
-                                builder: (_) => Slider(
-                                  value: c.speakSpeed.value,
-                                  min: 0.1,
-                                  max: 1,
-                                  divisions: 9,
-                                  activeColor: backgroundColor,
-                                  inactiveColor: themeColor,
-                                  thumbColor: backgroundColor,
-                                  label: double.parse((c.speakSpeed.value).toStringAsFixed(1)).toString(),
-                                  onChanged: (double value) async {
-                                    c.speakSpeed = RxDouble(value);
-                                    await boxSetting.put('speakSpeed',value);
-                                    c.update();
-                                  },
-                                ),
-                              ),
-                            ),
-                          ]
-                      ),
-                      SizedBox(height: MediaQuery.of(context).padding.bottom),
-                    ],
-                  ),
+                          ),
+                        ]
+                    ),
+                    SizedBox(height: MediaQuery.of(context).padding.bottom),
+                  ],
                 ),
                 Container(
                   alignment:Alignment.centerRight,
@@ -5130,7 +4921,7 @@ class ProcessWidgetState extends State<ProcessWidget> with TickerProviderStateMi
       wordCount += c.mean[c.nowMean.value][j].split(' ').length as int;
     }
     int duration = 0;
-    duration += 2000 + (c.mean[c.nowMean.value].length as int)*1000 + wordCount*50~/c.speakSpeed.value;
+    duration += 3000 + (c.mean[c.nowMean.value].length as int)*1000 + wordCount*50~/c.speakSpeed.value;
     controller.duration = Duration(milliseconds: duration);
     controller.forward();
     super.initState();
@@ -5167,7 +4958,7 @@ class ProcessWidgetState extends State<ProcessWidget> with TickerProviderStateMi
       wordCount += c.mean[c.nowMean.value][j].split(' ').length as int;
     }
     int duration = 0;
-    duration += 2000 + (c.mean[c.nowMean.value].length as int)*1000 + wordCount*50~/c.speakSpeed.value;
+    duration += 3000 + (c.mean[c.nowMean.value].length as int)*1000 + wordCount*50~/c.speakSpeed.value;
     controller.duration = Duration(milliseconds: duration);
     controller.reset();
     controller.forward();
@@ -9229,29 +9020,24 @@ class MyUpgradePage extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            onPressed: () {
-                              if (c.user.string == ''){
-                                Get.defaultDialog(
-                                  title: c.language.string == 'VN'?
-                                    'Đăng nhập'
-                                        :'Login',
-                                  middleText: c.language.string == 'VN'?
-                                    'Đăng nhập để khôi phục đăng kí dù bạn có xoá ứng dụng hoặc đổi thiết bị'
-                                    :'Login to restore register even when you deleted app or changed device',
-                                  cancelTextColor: backgroundColor,
-                                  confirmTextColor: Colors.white,
-                                  buttonColor: backgroundColor,
-                                  onConfirm:(){
-                                    Get.back();
-                                    Get.to(()=>const LoginScreen());
-                                  },
-                                  onCancel:(){}
-                                );
-                              }else{
-                                if (!c.isVip.value){
-                                  final ProductDetails productDetails = c.products[0];
-                                  final PurchaseParam purchaseParam = PurchaseParam(productDetails: productDetails);
-                                  InAppPurchase.instance.buyNonConsumable(purchaseParam: purchaseParam);
+                            onPressed: () async {
+                              if (!c.isVip.value){
+                                // final ProductDetails productDetails = c.products[0];
+                                // final PurchaseParam purchaseParam = PurchaseParam(productDetails: productDetails);
+                                // await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
+                                try {
+                                  PurchaserInfo purchaserInfo = await Purchases.purchasePackage(c.package);
+                                  bool isPro = purchaserInfo.entitlements.all["yearly"]?.isActive?? false;
+                                  c.isVip = RxBool(isPro);
+                                  if (isPro){
+                                    c.expire = RxInt(DateTime.parse(purchaserInfo.entitlements.all["yearly"]?.expirationDate??DateTime.now().toString()).millisecondsSinceEpoch);
+                                  }
+                                  c.update();
+                                } on PlatformException catch (e) {
+                                  var errorCode = PurchasesErrorHelper.getErrorCode(e);
+                                  if (errorCode != PurchasesErrorCode.purchaseCancelledError) {
+
+                                  }
                                 }
                               }
                             },
@@ -9297,26 +9083,17 @@ class MyUpgradePage extends StatelessWidget {
                         ),
                       ),
                       onPressed: () async {
-                        if (c.user.string == ''){
-                          Get.defaultDialog(
-                              title: c.language.string == 'VN'?
-                              'Đăng nhập'
-                                  :'Login',
-                              middleText: c.language.string == 'VN'?
-                              'Đăng nhập để khôi phục đăng kí dù bạn có xoá ứng dụng hoặc đổi thiết bị'
-                                  :'Login to restore register even when you deleted app or changed device',
-                              cancelTextColor: backgroundColor,
-                              confirmTextColor: Colors.white,
-                              buttonColor: backgroundColor,
-                              onConfirm:(){
-                                Get.back();
-                                Get.to(()=>const LoginScreen());
-                              },
-                              onCancel:(){}
-                          );
-                        }else{
-                          if (!c.isVip.value){
-                            await InAppPurchase.instance.restorePurchases();
+                        if (!c.isVip.value){
+                          try {
+                            PurchaserInfo restoredInfo = await Purchases.restoreTransactions();
+                            bool isPro = restoredInfo.entitlements.all["yearly"]?.isActive?? false;
+                            c.isVip = RxBool(isPro);
+                            if (isPro){
+                              c.expire = RxInt(DateTime.parse(restoredInfo.entitlements.all["yearly"]?.expirationDate??DateTime.now().toString()).millisecondsSinceEpoch);
+                            }
+                            c.update();
+                          } on PlatformException catch (_) {
+                            // Error restoring purchases
                           }
                         }
                       },
@@ -9372,45 +9149,42 @@ class MyUpgradePage extends StatelessWidget {
               Row(
                   children:[
                     const SizedBox(width:15),
-                    OutlinedButton(
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            Colors.transparent
-                        ),
-                        foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                        padding: MaterialStateProperty.all<EdgeInsets>(
-                            const EdgeInsets.all(0)
-                        ),
-                        shape: MaterialStateProperty.all<OutlinedBorder?>(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30.0),
-                            )
-                        ),
-                        fixedSize: MaterialStateProperty.all<Size>(
-                            const Size.fromHeight(40)
-                        ),
-                      ),
-                      onPressed: () {
-                        Get.offAll(()=>const PolicyPage());
-                      },
-                      child: Row(
-                        children:[
-                          const SizedBox(width:10),
-                          GetBuilder<Controller>(
-                            builder: (_) => Text(
-                              c.language.string == 'VN'? 'Chính sách và quyền riêng tư':'Privacy Policy',
-                              style: const TextStyle(
-                                color: textColor,
-                                fontSize: 14,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
+                    Expanded(
+                      child: OutlinedButton(
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                              Colors.transparent
                           ),
-                          const SizedBox(width:10),
-                        ]
+                          foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                          padding: MaterialStateProperty.all<EdgeInsets>(
+                              const EdgeInsets.all(10)
+                          ),
+                          shape: MaterialStateProperty.all<OutlinedBorder?>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30.0),
+                              )
+                          ),
+                          // fixedSize: MaterialStateProperty.all<Size>(
+                          //     const Size.fromHeight(40)
+                          // ),
+                        ),
+                        onPressed: () {
+                          Get.to(()=>const PolicyPage());
+                        },
+                        child: GetBuilder<Controller>(
+                          builder: (_) => Text(
+                            c.language.string == 'VN'? 'Chính sách và quyền riêng tư':'Privacy Policy',
+                            style: const TextStyle(
+                              color: textColor,
+                              fontSize: 14,
+                            ),
+                            textAlign: TextAlign.center,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ),
                     ),
-                    const Expanded(child:SizedBox()),
+                    const SizedBox(width:15),
                     OutlinedButton(
                       style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all<Color>(
@@ -9418,35 +9192,30 @@ class MyUpgradePage extends StatelessWidget {
                         ),
                         foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
                         padding: MaterialStateProperty.all<EdgeInsets>(
-                            const EdgeInsets.all(0)
+                            const EdgeInsets.all(10)
                         ),
                         shape: MaterialStateProperty.all<OutlinedBorder?>(
                             RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30.0),
                             )
                         ),
-                        fixedSize: MaterialStateProperty.all<Size>(
-                            const Size.fromHeight(40)
-                        ),
+                        // fixedSize: MaterialStateProperty.all<Size>(
+                        //     const Size.fromHeight(40)
+                        // ),
                       ),
                       onPressed: () {
-                        Get.offAll(()=>const TermPage());
+                        Get.to(()=>const TermPage());
                       },
-                      child: Row(
-                          children:[
-                            const SizedBox(width:10),
-                            GetBuilder<Controller>(
-                              builder: (_) => Text(
-                                c.language.string == 'VN'? 'Điều khoản dịch vụ':'Tearms of Use',
-                                style: const TextStyle(
-                                  color: textColor,
-                                  fontSize: 14,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            const SizedBox(width:10),
-                          ]
+                      child: GetBuilder<Controller>(
+                        builder: (_) => Text(
+                          c.language.string == 'VN'? 'Điều khoản dịch vụ':'Tearms of Use',
+                          style: const TextStyle(
+                            color: textColor,
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.center,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ),
                     const SizedBox(width:15),
@@ -9458,140 +9227,6 @@ class MyUpgradePage extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-Future<bool> _verifyPurchase(String token,String user,String password) async {
-  // IMPORTANT!! Always verify a purchase before delivering the product.
-  // For the purpose of an example, we directly return true.
-  final Controller c = Get.put(Controller());
-  String url = Platform.isAndroid? 'https://bedict.com/checkPay.php':'https://bedict.com/checkPayIos.php';
-  final response = await http.post(
-    Uri.parse(url),
-    body: <String, String>{
-      'token': token,
-      'user': user,
-      'password': password,
-    },
-  );
-  if (response.statusCode == 200) {
-    if (response.body != 'error'){
-      c.expire = RxInt(int.parse(response.body));
-      return true;
-    }else{
-      return false;
-    }
-  } else {
-    return false;
-  }
-}
-
-Future<bool> checkExpire(String token,String user,String password) async {
-  // IMPORTANT!! Always verify a purchase before delivering the product.
-  // For the purpose of an example, we directly return true.
-  final Controller c = Get.put(Controller());
-  String url = Platform.isAndroid? 'https://bedict.com/checkExpire.php':'https://bedict.com/checkExpireIos.php';
-  final response = await http.post(
-    Uri.parse(url),
-    body: <String, String>{
-      'token': token,
-      'user': user,
-      'password': password,
-    },
-  );
-  if (response.statusCode == 200) {
-    if (response.body != 'error'){
-      c.expire = RxInt(int.parse(response.body));
-      return true;
-    }else{
-      return false;
-    }
-  } else {
-    return false;
-  }
-}
-
-Future<String> login(String user, String password) async {
-  final Controller c = Get.put(Controller());
-  final response = await http.post(
-    Uri.parse('https://bedict.com/login.php'),
-    body: <String, String>{
-      'user': user,
-      'password': password
-    },
-  );
-  if (response.statusCode == 200) {
-    if (response.body == 'success'){
-      c.user = RxString(user);
-      c.password = RxString(password);
-      await boxSetting.put('user',user);
-      await boxSetting.put('password',password);
-      c.update();
-    }
-    return response.body;
-  } else {
-    return 'fail';
-  }
-}
-
-Future<String> signup(String user, String password) async {
-  final Controller c = Get.put(Controller());
-  final response = await http.post(
-    Uri.parse('https://bedict.com/signup.php'),
-    body: <String, String>{
-      'user': user,
-      'password': password
-    },
-  );
-  if (response.statusCode == 200) {
-    if (response.body == 'success'){
-      c.user = RxString(user);
-      c.password = RxString(password);
-      await boxSetting.put('user',user);
-      await boxSetting.put('password',password);
-      c.update();
-    }
-    return response.body;
-  } else {
-    return 'fail';
-  }
-}
-
-Future<String> changePassword(String user, String oldPassword, String newPassword) async {
-  final Controller c = Get.put(Controller());
-  final response = await http.post(
-    Uri.parse('https://bedict.com/changePassword.php'),
-    body: <String, String>{
-      'user': user,
-      'oldPassword': oldPassword,
-      'newPassword': newPassword
-    },
-  );
-  if (response.statusCode == 200) {
-    if (response.body == 'success'){
-      c.user = RxString(user);
-      c.password = RxString(newPassword);
-      await boxSetting.put('user',user);
-      await boxSetting.put('password',newPassword);
-      c.update();
-    }
-    return response.body;
-  } else {
-    return 'fail';
-  }
-}
-
-Future<String> getPassword(String user) async {
-  final response = await http.post(
-    Uri.parse('https://bedict.com/getPassword.php'),
-    body: <String, String>{
-      'user': user
-    },
-  );
-  if (response.statusCode == 200) {
-    return response.body;
-  } else {
-    return '';
   }
 }
 
@@ -9714,415 +9349,409 @@ class PolicyPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
 
-    return WillPopScope(
-      onWillPop: () async {
-        Get.offAll(()=>MainScreen());
-        return false;
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: GetBuilder<Controller>(
-            builder: (_) => Text(
-              c.drawerPolicy.string.toUpperCase(),
-              style: const TextStyle(
-                color: Color.fromRGBO(255, 255, 255, 1),
-              ),
-            ),),
-          leading: IconButton(
-            padding: const EdgeInsets.all(0.0),
-            icon: const Icon(
-              Icons.arrow_back_ios_rounded, size: 20,
-              // color: textColor.withOpacity(0.7),
+    return Scaffold(
+      appBar: AppBar(
+        title: GetBuilder<Controller>(
+          builder: (_) => Text(
+            c.drawerPolicy.string.toUpperCase(),
+            style: const TextStyle(
+              color: Color.fromRGBO(255, 255, 255, 1),
             ),
-            tooltip: 'Back to MainScreen',
-            onPressed: () {
-              Get.offAll(()=>MainScreen());
-            },
+          ),),
+        leading: IconButton(
+          padding: const EdgeInsets.all(0.0),
+          icon: const Icon(
+            Icons.arrow_back_ios_rounded, size: 20,
+            // color: textColor.withOpacity(0.7),
           ),
-          centerTitle: true,
-          backgroundColor: backgroundColor,
+          tooltip: 'Back',
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
-        body: Container(
-          alignment: Alignment.center,
-          color: Colors.white,
-          child: ListView(
-            // mainAxisAlignment: MainAxisAlignment.center,
-            padding: const EdgeInsets.all(8),
-            children: [
-              const SizedBox(height: 20),
-              const Text(
-                'Privacy Policy',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
+        centerTitle: true,
+        backgroundColor: backgroundColor,
+      ),
+      body: Container(
+        alignment: Alignment.center,
+        color: Colors.white,
+        child: ListView(
+          // mainAxisAlignment: MainAxisAlignment.center,
+          padding: const EdgeInsets.all(8),
+          children: [
+            const SizedBox(height: 20),
+            const Text(
+              'Privacy Policy',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'This page is used to inform visitors regarding my policies with the collection, use, and'
-                            ' disclosure of Personal Information if anyone decided to use my Service.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'This page is used to inform visitors regarding my policies with the collection, use, and'
+                          ' disclosure of Personal Information if anyone decided to use my Service.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'If you choose to use my Service, then you agree'
-                            ' to the collection and use of information in relation to this'
-                            ' policy. The Personal Information that I collect is'
-                            ' used for providing and improving the Service.'
-                            ' I will not use or share your'
-                            ' information with anyone except as described in this Privacy Policy.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+                  ),
+                ]
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'If you choose to use my Service, then you agree'
+                          ' to the collection and use of information in relation to this'
+                          ' policy. The Personal Information that I collect is'
+                          ' used for providing and improving the Service.'
+                          ' I will not use or share your'
+                          ' information with anyone except as described in this Privacy Policy.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'The terms used in this Privacy Policy have the same meanings'
-                            ' as in our Terms of Service, which is accessible at'
-                            ' BeDict unless otherwise defined in this Privacy Policy.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+                  ),
+                ]
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'The terms used in this Privacy Policy have the same meanings'
+                          ' as in our Terms of Service, which is accessible at'
+                          ' BeDict unless otherwise defined in this Privacy Policy.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
+                  ),
+                ]
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Information Collection and Use',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 20),
-              const Text(
-                'Information Collection and Use',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'For a better experience, while using our Service,'
-                            ' I may require you to provide us with certain'
-                            ' personally identifiable information, including but not limited to (RECORD_AUDIO). The'
-                            ' information that I request will be'
-                            ' retained on your device and is not collected by me in any way.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'For a better experience, while using our Service,'
+                          ' I may require you to provide us with certain'
+                          ' personally identifiable information, including but not limited to (RECORD_AUDIO). The'
+                          ' information that I request will be'
+                          ' retained on your device and is not collected by me in any way.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'The app does use third party services that may collect'
-                            'information used to identify you.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+                  ),
+                ]
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'The app does use third party services that may collect'
+                          'information used to identify you.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'Link to privacy policy of third party service providers'
-                            ' used by the app\n Google Play Services: https://www.google.com/policies/privacy/'
-                            '\nAdMob https://support.google.com/admob/answer/6128543?hl=en'
-                            '\n\nI want to inform you that whenever'
-                            ' you use my Service, in a case of an error in the'
-                            ' app I collect data and information (through third'
-                            ' party products) on your phone called Log Data. This Log Data'
-                            ' may include information such as your device Internet'
-                            ' Protocol (“IP”) address, device name, operating system'
-                            ' version, the configuration of the app when utilizing'
-                            ' my Service, the time and date of your use of the'
-                            ' Service, and other statistics.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+                  ),
+                ]
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'Link to privacy policy of third party service providers'
+                          ' used by the app\n Google Play Services: https://www.google.com/policies/privacy/'
+                          '\nAdMob https://support.google.com/admob/answer/6128543?hl=en'
+                          '\n\nI want to inform you that whenever'
+                          ' you use my Service, in a case of an error in the'
+                          ' app I collect data and information (through third'
+                          ' party products) on your phone called Log Data. This Log Data'
+                          ' may include information such as your device Internet'
+                          ' Protocol (“IP”) address, device name, operating system'
+                          ' version, the configuration of the app when utilizing'
+                          ' my Service, the time and date of your use of the'
+                          ' Service, and other statistics.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
+                  ),
+                ]
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Cookies',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 20),
-              const Text(
-                'Cookies',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'Cookies are files with a small amount of data that are'
-                            ' commonly used as anonymous unique identifiers. These are'
-                            ' sent to your browser from the websites that you visit and'
-                            ' are stored on your device\'s internal memory.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'Cookies are files with a small amount of data that are'
+                          ' commonly used as anonymous unique identifiers. These are'
+                          ' sent to your browser from the websites that you visit and'
+                          ' are stored on your device\'s internal memory.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'This Service does not use these “cookies” explicitly.'
-                            ' However, the app may use third party code and libraries that'
-                            ' use “cookies” to collect information and improve their'
-                            ' services. You have the option to either accept or refuse'
-                            ' these cookies and know when a cookie is being sent to your'
-                            ' device. If you choose to refuse our cookies, you may not be'
-                            ' able to use some portions of this Service.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+                  ),
+                ]
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'This Service does not use these “cookies” explicitly.'
+                          ' However, the app may use third party code and libraries that'
+                          ' use “cookies” to collect information and improve their'
+                          ' services. You have the option to either accept or refuse'
+                          ' these cookies and know when a cookie is being sent to your'
+                          ' device. If you choose to refuse our cookies, you may not be'
+                          ' able to use some portions of this Service.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
+                  ),
+                ]
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Service Providers',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 20),
-              const Text(
-                'Service Providers',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'I may employ third-party companies'
-                            ' and individuals due to the following reasons:\n'
-                            ' To facilitate our Service;\n'
-                            ' To provide the Service on our behalf;\n'
-                            ' To perform Service-related services; or\n'
-                            ' To assist us in analyzing how our Service is used.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'I may employ third-party companies'
+                          ' and individuals due to the following reasons:\n'
+                          ' To facilitate our Service;\n'
+                          ' To provide the Service on our behalf;\n'
+                          ' To perform Service-related services; or\n'
+                          ' To assist us in analyzing how our Service is used.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'I want to inform users of this'
-                            ' Service that these third parties have access to your'
-                            ' Personal Information. The reason is to perform the tasks'
-                            ' assigned to them on our behalf. However, they are obligated'
-                            ' not to disclose or use the information for any other purpose.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+                  ),
+                ]
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'I want to inform users of this'
+                          ' Service that these third parties have access to your'
+                          ' Personal Information. The reason is to perform the tasks'
+                          ' assigned to them on our behalf. However, they are obligated'
+                          ' not to disclose or use the information for any other purpose.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
+                  ),
+                ]
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Security',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 20),
-              const Text(
-                'Security',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'I value your trust in providing us'
-                            ' your Personal Information, thus we are striving to use'
-                            ' commercially acceptable means of protecting it. But remember'
-                            ' that no method of transmission over the internet, or method'
-                            ' of electronic storage is 100% secure and reliable, and'
-                            ' I cannot guarantee its absolute security.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'I value your trust in providing us'
+                          ' your Personal Information, thus we are striving to use'
+                          ' commercially acceptable means of protecting it. But remember'
+                          ' that no method of transmission over the internet, or method'
+                          ' of electronic storage is 100% secure and reliable, and'
+                          ' I cannot guarantee its absolute security.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
+                  ),
+                ]
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Links to Other Sites',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 20),
-              const Text(
-                'Links to Other Sites',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'This Service may contain links to other sites. If you click'
-                            ' on a third-party link, you will be directed to that site.'
-                            ' Note that these external sites are not operated by'
-                            ' me. Therefore, I strongly advise you to'
-                            ' review the Privacy Policy of these websites.'
-                            ' I have no control over and assume no'
-                            ' responsibility for the content, privacy policies, or'
-                            ' practices of any third-party sites or services.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'This Service may contain links to other sites. If you click'
+                          ' on a third-party link, you will be directed to that site.'
+                          ' Note that these external sites are not operated by'
+                          ' me. Therefore, I strongly advise you to'
+                          ' review the Privacy Policy of these websites.'
+                          ' I have no control over and assume no'
+                          ' responsibility for the content, privacy policies, or'
+                          ' practices of any third-party sites or services.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
+                  ),
+                ]
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Children’s Privacy',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 20),
-              const Text(
-                'Children’s Privacy',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'These Services do not address anyone under the age of 3.'
-                            ' I do not knowingly collect personally'
-                            ' identifiable information from children under 3. In the case'
-                            ' I discover that a child under 3 has provided'
-                            ' me with personal information,'
-                            ' I immediately delete this from our servers. If you'
-                            ' are a parent or guardian and you are aware that your child'
-                            ' has provided us with personal information, please contact'
-                            ' me so that I will be able to do necessary actions.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'These Services do not address anyone under the age of 3.'
+                          ' I do not knowingly collect personally'
+                          ' identifiable information from children under 3. In the case'
+                          ' I discover that a child under 3 has provided'
+                          ' me with personal information,'
+                          ' I immediately delete this from our servers. If you'
+                          ' are a parent or guardian and you are aware that your child'
+                          ' has provided us with personal information, please contact'
+                          ' me so that I will be able to do necessary actions.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
+                  ),
+                ]
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Changes to This Privacy Policy',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 20),
-              const Text(
-                'Changes to This Privacy Policy',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'I may update our Privacy Policy from'
-                            'time to time. Thus, you are advised to review this page'
-                            'periodically for any changes. I will'
-                            'notify you of any changes by posting the new Privacy Policy'
-                            'on this page. These changes are effective immediately after'
-                            'they are posted on this page.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'I may update our Privacy Policy from'
+                          'time to time. Thus, you are advised to review this page'
+                          'periodically for any changes. I will'
+                          'notify you of any changes by posting the new Privacy Policy'
+                          'on this page. These changes are effective immediately after'
+                          'they are posted on this page.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
-              ),
-              const SizedBox(height: 10),
-            ],
-          ),
+                  ),
+                ]
+            ),
+            const SizedBox(height: 10),
+          ],
         ),
       ),
     );
@@ -10136,581 +9765,575 @@ class TermPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
 
-    return WillPopScope(
-      onWillPop: () async {
-        Get.offAll(()=>MainScreen());
-        return false;
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: GetBuilder<Controller>(
-            builder: (_) => Text(
-              (c.language.string == 'VN'? 'Điều khoản sử dụng':'Terms of Use').toUpperCase(),
-              style: const TextStyle(
-                color: Color.fromRGBO(255, 255, 255, 1),
-              ),
-            ),),
-          leading: IconButton(
-            padding: const EdgeInsets.all(0.0),
-            icon: const Icon(
-              Icons.arrow_back_ios_rounded, size: 20,
-              // color: textColor.withOpacity(0.7),
+    return Scaffold(
+      appBar: AppBar(
+        title: GetBuilder<Controller>(
+          builder: (_) => Text(
+            (c.language.string == 'VN'? 'Điều khoản sử dụng':'Terms of Use').toUpperCase(),
+            style: const TextStyle(
+              color: Color.fromRGBO(255, 255, 255, 1),
             ),
-            tooltip: 'Back to MainScreen',
-            onPressed: () {
-              Get.offAll(()=>MainScreen());
-            },
+          ),),
+        leading: IconButton(
+          padding: const EdgeInsets.all(0.0),
+          icon: const Icon(
+            Icons.arrow_back_ios_rounded, size: 20,
+            // color: textColor.withOpacity(0.7),
           ),
-          centerTitle: true,
-          backgroundColor: backgroundColor,
+          tooltip: 'Back to MainScreen',
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
-        body: Container(
-          alignment: Alignment.center,
-          color: Colors.white,
-          child: ListView(
-            // mainAxisAlignment: MainAxisAlignment.center,
-            padding: const EdgeInsets.all(8),
-            children: [
-              const SizedBox(height: 20),
-              const Text(
-                'Terms of Service',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
+        centerTitle: true,
+        backgroundColor: backgroundColor,
+      ),
+      body: Container(
+        alignment: Alignment.center,
+        color: Colors.white,
+        child: ListView(
+          // mainAxisAlignment: MainAxisAlignment.center,
+          padding: const EdgeInsets.all(8),
+          children: [
+            const SizedBox(height: 20),
+            const Text(
+              'Terms of Service',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'These Terms of Service and End User License Agreement (this “Agreement”)'
-                            ' constitute a legal agreement between you and BeDict '
-                            '(“BeDict”, “we”, “our”, or “us”) stating the terms and conditions'
-                            ' that govern your use of the mobile, desktop or web-based application'
-                            ' provided herewith (the “Application”) and the web site at www.bedict.com'
-                            ' (the “Site”). The Application and the Site are referred to together as'
-                            ' the “Service.” Please read this Agreement carefully. By downloading,'
-                            ' installing, and/or using the Application or accessing and/or using the Site,'
-                            ' you agree to be bound by and comply with the terms and conditions of this'
-                            ' Agreement. You hereby represent and warrant that you are legally able to'
-                            ' form a binding contract with BeDict. If you do not agree to these terms'
-                            ' and conditions, do not download, install and/or use the Application or'
-                            ' access and/or use the Site. We may at our sole discretion change, add,'
-                            ' modify, or delete portions of this Agreement from time to time. Please '
-                            'review this Agreement for changes prior to use of the Service. Your continued'
-                            ' use of the Service following the posting of changes to this Agreement'
-                            ' constitutes your acceptance of any changes. This is an agreement between'
-                            ' you and BeDict.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'These Terms of Service and End User License Agreement (this “Agreement”)'
+                          ' constitute a legal agreement between you and BeDict '
+                          '(“BeDict”, “we”, “our”, or “us”) stating the terms and conditions'
+                          ' that govern your use of the mobile, desktop or web-based application'
+                          ' provided herewith (the “Application”) and the web site at www.bedict.com'
+                          ' (the “Site”). The Application and the Site are referred to together as'
+                          ' the “Service.” Please read this Agreement carefully. By downloading,'
+                          ' installing, and/or using the Application or accessing and/or using the Site,'
+                          ' you agree to be bound by and comply with the terms and conditions of this'
+                          ' Agreement. You hereby represent and warrant that you are legally able to'
+                          ' form a binding contract with BeDict. If you do not agree to these terms'
+                          ' and conditions, do not download, install and/or use the Application or'
+                          ' access and/or use the Site. We may at our sole discretion change, add,'
+                          ' modify, or delete portions of this Agreement from time to time. Please '
+                          'review this Agreement for changes prior to use of the Service. Your continued'
+                          ' use of the Service following the posting of changes to this Agreement'
+                          ' constitutes your acceptance of any changes. This is an agreement between'
+                          ' you and BeDict.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
+                  ),
+                ]
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              '1. Provision of Access',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 10),
-              const Text(
-                '1. Provision of Access',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'BeDict shall make the Service available to you pursuant to this Agreement'
-                            ' during your Subscription Term, solely for your own internal business'
-                            ' purposes. You agree that your purchase of the Service is neither'
-                            ' contingent upon the delivery of any future functionality or features '
-                            'nor dependent upon any oral or written public comments made by BeDict '
-                            'with respect to future functionality or features. “Subscription Term” '
-                            'means the then-current Initial Term or Renewal Term of your order for '
-                            'the Service during which you are authorized to use or access the Service'
-                            ' pursuant to the terms set forth in this Agreement, unless earlier '
-                            'terminated as set forth in Section 2.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'BeDict shall make the Service available to you pursuant to this Agreement'
+                          ' during your Subscription Term, solely for your own internal business'
+                          ' purposes. You agree that your purchase of the Service is neither'
+                          ' contingent upon the delivery of any future functionality or features '
+                          'nor dependent upon any oral or written public comments made by BeDict '
+                          'with respect to future functionality or features. “Subscription Term” '
+                          'means the then-current Initial Term or Renewal Term of your order for '
+                          'the Service during which you are authorized to use or access the Service'
+                          ' pursuant to the terms set forth in this Agreement, unless earlier '
+                          'terminated as set forth in Section 2.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
+                  ),
+                ]
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              '2. Change or Update to Service; Term; Termination',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 10),
-              const Text(
-                '2. Change or Update to Service; Term; Termination',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'The “Term” of the Agreement shall be the duration of the then-current'
-                            ' Initial Term or Renewal Term(s) of your applicable subscription for'
-                            ' the Service. For purposes of clarity, the Term of this Agreement will'
-                            ' commence on: (i) the effective date specified in your subscription '
-                            'order, or (ii) at the time of download of the Application (as applicable),'
-                            ' and will continue until you terminate your subscription to the Services,'
-                            ' or BeDict terminates this Agreement pursuant to this Section 2. The '
-                            '“Initial Term” for each subscription order will commence on the effective'
-                            ' date set forth on such order, or at the time of download of the Application'
-                            ' (as applicable), and will continue for the subscription period selected by'
-                            ' the user. Unless otherwise set forth on the relevant order, each order will'
-                            ' automatically renew after the Initial Term for successive monthly or annual'
-                            ' periods (each a “Renewal Term”), as applicable, unless you give BeDict prior'
-                            ' written notice of your intent not to renew such subscription at least one'
-                            ' (1) day prior to the end of the Initial Term or then-current Renewal Term.'
-                            ' BeDict may increase the Fees due under orders for the applicable Renewal '
-                            'Terms (if any) by providing notice to Customer of such increase at the time'
-                            ' of renewal. You are permitted to continue use of the Service from the time'
-                            ' of your notice of non-renewal through the end of the then applicable Term.'
-                            ' However, BeDict is not obligated to refund to you any prepaid Fees for any Term.'
-                            ' BeDict, at its sole discretion, and on a case-by-case base, may opt to refund'
-                            ' Fees to its users. BeDict shall have the right for any reason, in its sole'
-                            ' discretion, to terminate, change, suspend or discontinue, temporarily or'
-                            ' permanently, any aspect of the Service, including but not limited to content'
-                            ' or features, without notice to you. We may also impose limits on certain '
-                            'features and services or restrict your access to parts or all of the Service'
-                            ' with or without notice or liability. From time to time, BeDict may make '
-                            'available updates or upgrades to the Service via software download or other'
-                            ' means. Such updates or upgrades may occur automatically without the need '
-                            'for an act on your part, or it may require you to manually download an '
-                            'update or upgrade through the same source from which the Service was originally'
-                            ' downloaded. Certain functions of the Service may be modified or discontinued'
-                            ' as a result of any such update or upgrade, or may not be available if you'
-                            ' have not downloaded all updates and upgrades made available by BeDict or'
-                            ' otherwise. BeDict DOES NOT WARRANT THAT THE FUNCTIONS, FEATURES OR CONTENT'
-                            ' CONTAINED IN THE SERVICE WILL BE UNINTERRUPTED OR ERROR FREE, THAT DEFECTS'
-                            ' WILL BE CORRECTED, OR THAT ANY OTHER SITE OR THE SERVER THAT MAKES IT'
-                            ' AVAILABLE IS FREE OF VIRUSES OR OTHER HARMFUL COMPONENTS. If your use'
-                            ' of this Service results in the need for servicing or replacing property,'
-                            ' material, equipment or data, BeDict is not responsible for those costs.'
-                            ' The Service may contain information about BeDict or other products or services.'
-                            ' The information in the Service is accurate as of the date the Service'
-                            ' is made available to you. Such information about BeDict or other products'
-                            ' or services may be updated from time to time, including without limitation,'
-                            ' when the Service may be updated or upgraded. You should periodically check'
-                            ' whether an updated or upgraded version of the Service is available. You'
-                            ' agree that BeDict may terminate your use of this Service, and/or exercise'
-                            ' any other remedy available to it, if BeDict reasonably believes that you'
-                            ' have violated or acted inconsistently with the letter or spirit of this'
-                            ' Agreement, or violated the rights of BeDict or any third party, or for'
-                            ' any reason with or without notice to you. You agree that BeDict will not'
-                            ' be held liable to you or any third party as a result thereof.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'The “Term” of the Agreement shall be the duration of the then-current'
+                          ' Initial Term or Renewal Term(s) of your applicable subscription for'
+                          ' the Service. For purposes of clarity, the Term of this Agreement will'
+                          ' commence on: (i) the effective date specified in your subscription '
+                          'order, or (ii) at the time of download of the Application (as applicable),'
+                          ' and will continue until you terminate your subscription to the Services,'
+                          ' or BeDict terminates this Agreement pursuant to this Section 2. The '
+                          '“Initial Term” for each subscription order will commence on the effective'
+                          ' date set forth on such order, or at the time of download of the Application'
+                          ' (as applicable), and will continue for the subscription period selected by'
+                          ' the user. Unless otherwise set forth on the relevant order, each order will'
+                          ' automatically renew after the Initial Term for successive monthly or annual'
+                          ' periods (each a “Renewal Term”), as applicable, unless you give BeDict prior'
+                          ' written notice of your intent not to renew such subscription at least one'
+                          ' (1) day prior to the end of the Initial Term or then-current Renewal Term.'
+                          ' BeDict may increase the Fees due under orders for the applicable Renewal '
+                          'Terms (if any) by providing notice to Customer of such increase at the time'
+                          ' of renewal. You are permitted to continue use of the Service from the time'
+                          ' of your notice of non-renewal through the end of the then applicable Term.'
+                          ' However, BeDict is not obligated to refund to you any prepaid Fees for any Term.'
+                          ' BeDict, at its sole discretion, and on a case-by-case base, may opt to refund'
+                          ' Fees to its users. BeDict shall have the right for any reason, in its sole'
+                          ' discretion, to terminate, change, suspend or discontinue, temporarily or'
+                          ' permanently, any aspect of the Service, including but not limited to content'
+                          ' or features, without notice to you. We may also impose limits on certain '
+                          'features and services or restrict your access to parts or all of the Service'
+                          ' with or without notice or liability. From time to time, BeDict may make '
+                          'available updates or upgrades to the Service via software download or other'
+                          ' means. Such updates or upgrades may occur automatically without the need '
+                          'for an act on your part, or it may require you to manually download an '
+                          'update or upgrade through the same source from which the Service was originally'
+                          ' downloaded. Certain functions of the Service may be modified or discontinued'
+                          ' as a result of any such update or upgrade, or may not be available if you'
+                          ' have not downloaded all updates and upgrades made available by BeDict or'
+                          ' otherwise. BeDict DOES NOT WARRANT THAT THE FUNCTIONS, FEATURES OR CONTENT'
+                          ' CONTAINED IN THE SERVICE WILL BE UNINTERRUPTED OR ERROR FREE, THAT DEFECTS'
+                          ' WILL BE CORRECTED, OR THAT ANY OTHER SITE OR THE SERVER THAT MAKES IT'
+                          ' AVAILABLE IS FREE OF VIRUSES OR OTHER HARMFUL COMPONENTS. If your use'
+                          ' of this Service results in the need for servicing or replacing property,'
+                          ' material, equipment or data, BeDict is not responsible for those costs.'
+                          ' The Service may contain information about BeDict or other products or services.'
+                          ' The information in the Service is accurate as of the date the Service'
+                          ' is made available to you. Such information about BeDict or other products'
+                          ' or services may be updated from time to time, including without limitation,'
+                          ' when the Service may be updated or upgraded. You should periodically check'
+                          ' whether an updated or upgraded version of the Service is available. You'
+                          ' agree that BeDict may terminate your use of this Service, and/or exercise'
+                          ' any other remedy available to it, if BeDict reasonably believes that you'
+                          ' have violated or acted inconsistently with the letter or spirit of this'
+                          ' Agreement, or violated the rights of BeDict or any third party, or for'
+                          ' any reason with or without notice to you. You agree that BeDict will not'
+                          ' be held liable to you or any third party as a result thereof.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
+                  ),
+                ]
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              '3. iOS In-App Purchase Terms',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 10),
-              const Text(
-                '3. iOS In-App Purchase Terms',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'BeDict subscription details for iOS: Payment will be charged to iTunes Account'
-                            ' at confirmation of purchase Subscription automatically renews unless '
-                            'auto-renew is turned off at least 24-hours before the end of the current'
-                            ' period Account will be charged for renewal within 24-hours prior to the'
-                            ' end of the current period, and identify the cost of the renewal Subscriptions'
-                            ' may be managed by the user and auto-renewal may be turned off by going'
-                            ' to the user\'s Account Settings after purchase Advertisements will disappear'
-                            ' when the user purchases a subscription, where applicable.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'BeDict subscription details for iOS: Payment will be charged to iTunes Account'
+                          ' at confirmation of purchase Subscription automatically renews unless '
+                          'auto-renew is turned off at least 24-hours before the end of the current'
+                          ' period Account will be charged for renewal within 24-hours prior to the'
+                          ' end of the current period, and identify the cost of the renewal Subscriptions'
+                          ' may be managed by the user and auto-renewal may be turned off by going'
+                          ' to the user\'s Account Settings after purchase Advertisements will disappear'
+                          ' when the user purchases a subscription, where applicable.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
+                  ),
+                ]
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              '4. Limited License to the Service and Content',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 10),
-              const Text(
-                '4. Limited License to the Service and Content',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'Subject to the terms and conditions of this Agreement, BeDict grants you'
-                            ' a personal, limited, non- exclusive and non-transferable license to'
-                            ' install and use the Application for purposes on any device that you'
-                            ' own or control and as permitted by the Usage Rules set forth in Apple\'s'
-                            ' App Store Terms of Service (the “Usage Rules”) or Google\'s Play Store'
-                            'Terms of Service for mobile devices specifically. This license does not '
-                            'allow you to use the Application on any device that you do not own or '
-                            'control, and you may not distribute or make the Application available '
-                            'over a network where it could be used by multiple devices at the same time.'
-                            ' This license does not entitle you to receive from us hard-copy documentation,'
-                            ' support, telephone assistance, or enhancements or updates to the Application,'
-                            ' and Apple and Google have no obligation to furnish any maintenance and'
-                            ' support services regarding the Application. The terms of this license will'
-                            ' govern any upgrades provided by us that replace or supplement the original'
-                            ' Application unless such upgrade is accompanied by a separate license in which'
-                            ' case the terms of that license will govern. Subject to the terms and conditions'
-                            ' of this Agreement, BeDict grants you a personal, limited, non-exclusive,'
-                            ' and non-transferable license to use, publish, distribute, and display the'
-                            ' pre-approved backgrounds, imagery, and music provided in the Service for'
-                            ' the purposes of creating digital media content through the Service (“Licensed'
-                            ' Materials”).',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'Subject to the terms and conditions of this Agreement, BeDict grants you'
+                          ' a personal, limited, non- exclusive and non-transferable license to'
+                          ' install and use the Application for purposes on any device that you'
+                          ' own or control and as permitted by the Usage Rules set forth in Apple\'s'
+                          ' App Store Terms of Service (the “Usage Rules”) or Google\'s Play Store'
+                          'Terms of Service for mobile devices specifically. This license does not '
+                          'allow you to use the Application on any device that you do not own or '
+                          'control, and you may not distribute or make the Application available '
+                          'over a network where it could be used by multiple devices at the same time.'
+                          ' This license does not entitle you to receive from us hard-copy documentation,'
+                          ' support, telephone assistance, or enhancements or updates to the Application,'
+                          ' and Apple and Google have no obligation to furnish any maintenance and'
+                          ' support services regarding the Application. The terms of this license will'
+                          ' govern any upgrades provided by us that replace or supplement the original'
+                          ' Application unless such upgrade is accompanied by a separate license in which'
+                          ' case the terms of that license will govern. Subject to the terms and conditions'
+                          ' of this Agreement, BeDict grants you a personal, limited, non-exclusive,'
+                          ' and non-transferable license to use, publish, distribute, and display the'
+                          ' pre-approved backgrounds, imagery, and music provided in the Service for'
+                          ' the purposes of creating digital media content through the Service (“Licensed'
+                          ' Materials”).',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
+                  ),
+                ]
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              '5. Restrictions',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 10),
-              const Text(
-                '5. Restrictions',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'You must use the Service in compliance with all applicable laws. You must comply'
-                            ' with applicable third-party terms of agreement when using the Service (e.g.,'
-                            ' your wireless data service agreement). Your right to use the Service will'
-                            ' terminate immediately if you violate any provision of this Agreement.'
-                            ' Your rights to use the Service are specified in this Agreement and all'
-                            ' rights not expressly granted herein are reserved to BeDict. All rights not'
-                            ' expressly granted in Sections 1 and 4 above are exclusively reserved to BeDict.'
-                            ' When using the Service, you may not: modify, adapt, copy, translate, create'
-                            ' derivative works from, publish, license, sell, or otherwise commercialize'
-                            ' the Service, Content (defined below), or any information or software associated'
-                            ' with the Service; decompile, reverse-engineer, disassemble or otherwise attempt'
-                            ' to derive source code from the Service; remove, obscure or alter BeDict’s'
-                            ' copyright notice, trademarks, or other proprietary rights notices affixed'
-                            ' to the Service or Content; rent, lease, sublicense, or otherwise transfer rights'
-                            ' to the Service; use the Service in any manner that could impair or interfere with'
-                            ' the Service; interfere or attempt to interfere with the operation of the Service'
-                            ' in any way through any means, software, routine or device including, but not limited'
-                            ' to, spamming, hacking, uploading computer viruses or time bombs, or other means;'
-                            ' use any robot, spider, other automatic device, or manual process to monitor or'
-                            ' copy the Service or Content contained thereon or for any other purpose without'
-                            ' our prior express written permission; or take any action that imposes an unreasonable'
-                            ' or disproportionately large load on the BeDict infrastructure.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'You must use the Service in compliance with all applicable laws. You must comply'
+                          ' with applicable third-party terms of agreement when using the Service (e.g.,'
+                          ' your wireless data service agreement). Your right to use the Service will'
+                          ' terminate immediately if you violate any provision of this Agreement.'
+                          ' Your rights to use the Service are specified in this Agreement and all'
+                          ' rights not expressly granted herein are reserved to BeDict. All rights not'
+                          ' expressly granted in Sections 1 and 4 above are exclusively reserved to BeDict.'
+                          ' When using the Service, you may not: modify, adapt, copy, translate, create'
+                          ' derivative works from, publish, license, sell, or otherwise commercialize'
+                          ' the Service, Content (defined below), or any information or software associated'
+                          ' with the Service; decompile, reverse-engineer, disassemble or otherwise attempt'
+                          ' to derive source code from the Service; remove, obscure or alter BeDict’s'
+                          ' copyright notice, trademarks, or other proprietary rights notices affixed'
+                          ' to the Service or Content; rent, lease, sublicense, or otherwise transfer rights'
+                          ' to the Service; use the Service in any manner that could impair or interfere with'
+                          ' the Service; interfere or attempt to interfere with the operation of the Service'
+                          ' in any way through any means, software, routine or device including, but not limited'
+                          ' to, spamming, hacking, uploading computer viruses or time bombs, or other means;'
+                          ' use any robot, spider, other automatic device, or manual process to monitor or'
+                          ' copy the Service or Content contained thereon or for any other purpose without'
+                          ' our prior express written permission; or take any action that imposes an unreasonable'
+                          ' or disproportionately large load on the BeDict infrastructure.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
+                  ),
+                ]
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              '6. Intellectual Property',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 10),
-              const Text(
-                '6. Intellectual Property',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'All intellectual property rights in and to the content, tools, text, logos,'
-                            ' marks, data, audio, video, design, codes, layout, “look and feel”, and'
-                            ' other content that is included on the Service (“Content“) is owned by'
-                            ' BeDict or the applicable third-party intellectual property owners. Except'
-                            ' for the rights granted herein with respect to the Licensed Materials,'
-                            ' your use of any Content without prior written consent is strictly prohibited.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'All intellectual property rights in and to the content, tools, text, logos,'
+                          ' marks, data, audio, video, design, codes, layout, “look and feel”, and'
+                          ' other content that is included on the Service (“Content“) is owned by'
+                          ' BeDict or the applicable third-party intellectual property owners. Except'
+                          ' for the rights granted herein with respect to the Licensed Materials,'
+                          ' your use of any Content without prior written consent is strictly prohibited.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
+                  ),
+                ]
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              '7. Fees',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 10),
-              const Text(
-                '7. Fees',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'You shall pay all fees specified in all applicable subscription orders'
-                            ' (“Fees”). Except as otherwise specified herein or in any subscription order,'
-                            ' all Fees are quoted and payable in United States dollars or VietNam Dong,'
-                            ' payment obligations are non-cancelable, and Fees paid are non-refundable.'
-                            ' Fees for the Service are based on subscriptions purchased and not actual'
-                            ' usage. For purposes of clarity, the subscription purchased cannot be'
-                            ' decreased during a Subscription Term. Payments for downloadable versions '
-                            'of the Application are made via their respective application stores (Apple'
-                            ' App Store or Google Play). BeDict does not have access to, nor retains any'
-                            ' credit card information of, any user of the Service.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'You shall pay all fees specified in all applicable subscription orders'
+                          ' (“Fees”). Except as otherwise specified herein or in any subscription order,'
+                          ' all Fees are quoted and payable in United States dollars or VietNam Dong,'
+                          ' payment obligations are non-cancelable, and Fees paid are non-refundable.'
+                          ' Fees for the Service are based on subscriptions purchased and not actual'
+                          ' usage. For purposes of clarity, the subscription purchased cannot be'
+                          ' decreased during a Subscription Term. Payments for downloadable versions '
+                          'of the Application are made via their respective application stores (Apple'
+                          ' App Store or Google Play). BeDict does not have access to, nor retains any'
+                          ' credit card information of, any user of the Service.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
+                  ),
+                ]
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              '8. Third-Party Websites',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 10),
-              const Text(
-                '8. Third-Party Websites',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'You may be able to link from the Service to third-party websites that take'
-                            ' you outside of the Service (“Linked Sites”). BeDict has no responsibility'
-                            ' for the information, content, products, services, advertising, code or'
-                            ' other material, which may be provided through the Linked Sites. Your'
-                            ' interactions with Linked Sites are subject to the terms of service and'
-                            ' other policies of those sites, so please use common sense as you navigate'
-                            ' the Web and be aware when you leave the Service.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'You may be able to link from the Service to third-party websites that take'
+                          ' you outside of the Service (“Linked Sites”). BeDict has no responsibility'
+                          ' for the information, content, products, services, advertising, code or'
+                          ' other material, which may be provided through the Linked Sites. Your'
+                          ' interactions with Linked Sites are subject to the terms of service and'
+                          ' other policies of those sites, so please use common sense as you navigate'
+                          ' the Web and be aware when you leave the Service.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
+                  ),
+                ]
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              '9. Disclaimers',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 10),
-              const Text(
-                '9. Disclaimers',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'THE SERVICE AND ALL CONTENT, SOFTWARE, FUNCTIONS, MATERIALS, AND INFORMATION'
-                            ' MADE AVAILABLE ON OR ACCESSED THROUGH IT, ARE PROVIDED ON AN “AS IS” AND '
-                            '“AS AVAILABLE” BASIS WITHOUT WARRANTIES OF ANY KIND. ALL WARRANTIES, EXPRESS,'
-                            ' IMPLIED OR STATUTORY, ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO, ANY'
-                            ' IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,'
-                            ' NON-INFRINGEMENT OF THIRD-PARTY RIGHTS, OR ARISING OUT OF COURSE OF CONDUCT,'
-                            ' TRADE CUSTOM, OR USAGE. IN ADDITION, BeDict DISCLAIMS (A) ANY ENDORSEMENT'
-                            ' OF OR LIABILITY FOR USER SUBMISSIONS, CONTENT, AND LINKED SITES; (B) '
-                            'INACCURACY, INCOMPLETENESS OR TIMELINESS OF THE CONTENT; (C) THE TRANSMISSION'
-                            ' OF VIRUSES OR THE OCCURRENCE OF DATA CORRUPTION; AND (D) DAMAGES AS A RESULT'
-                            ' OF THE TRANSMISSION, USE OR INABILITY TO USE THE SERVICE OR CIRCUMSTANCES OVER'
-                            ' WHICH BeDict HAS NO CONTROL. YOU UNDERSTAND AND AGREE THAT THE OPERATION OF'
-                            ' THE SERVICE MAY INVOLVE BUGS, ERRORS, PROBLEMS OR OTHER LIMITATIONS. BeDict'
-                            ' HAS NO LIABILITY WHATSOEVER FOR YOUR USE OF THE SERVICE OR USE OF ANY I'
-                            'NFORMATION OR MATERIALS ACCESSED THROUGH THE SERVICE. NO ADVICE OR INFORMATION,'
-                            ' WHETHER ORAL OR WRITTEN, OBTAINED BY YOU FROM BeDict THROUGH THE SERVICE CREATES'
-                            ' ANY WARRANTY, REPRESENTATION OR GUARANTEE. BeDict DOES NOT WARRANT THAT THE'
-                            ' FUNCTIONS, FEATURES OR CONTENT CONTAINED IN THE SERVICE WILL BE UNINTERRUPTED'
-                            ' OR ERROR FREE, THAT DEFECTS WILL BE CORRECTED, OR THAT ANY OTHER SITE OR THE'
-                            ' SERVER THAT MAKES IT AVAILABLE IS FREE OF VIRUSES OR OTHER HARMFUL COMPONENTS.'
-                            ' If your use of the Service results in the need for servicing or replacing '
-                            'property, material, equipment or data, BeDict is not responsible for those costs.'
-                            ' IF YOU ARE DISSATISFIED WITH THE SERVICE, YOUR SOLE AND EXCLUSIVE REMEDY IS'
-                            ' TO DISCONTINUE USING THE SERVICE. Your downloading, installation and use of'
-                            ' the Service is at your own discretion and risk, and you are solely responsible'
-                            ' for any damages to your hardware device(s) or loss of data that results from'
-                            ' the downloading, installation or use of the Service.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'THE SERVICE AND ALL CONTENT, SOFTWARE, FUNCTIONS, MATERIALS, AND INFORMATION'
+                          ' MADE AVAILABLE ON OR ACCESSED THROUGH IT, ARE PROVIDED ON AN “AS IS” AND '
+                          '“AS AVAILABLE” BASIS WITHOUT WARRANTIES OF ANY KIND. ALL WARRANTIES, EXPRESS,'
+                          ' IMPLIED OR STATUTORY, ARE DISCLAIMED, INCLUDING, BUT NOT LIMITED TO, ANY'
+                          ' IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,'
+                          ' NON-INFRINGEMENT OF THIRD-PARTY RIGHTS, OR ARISING OUT OF COURSE OF CONDUCT,'
+                          ' TRADE CUSTOM, OR USAGE. IN ADDITION, BeDict DISCLAIMS (A) ANY ENDORSEMENT'
+                          ' OF OR LIABILITY FOR USER SUBMISSIONS, CONTENT, AND LINKED SITES; (B) '
+                          'INACCURACY, INCOMPLETENESS OR TIMELINESS OF THE CONTENT; (C) THE TRANSMISSION'
+                          ' OF VIRUSES OR THE OCCURRENCE OF DATA CORRUPTION; AND (D) DAMAGES AS A RESULT'
+                          ' OF THE TRANSMISSION, USE OR INABILITY TO USE THE SERVICE OR CIRCUMSTANCES OVER'
+                          ' WHICH BeDict HAS NO CONTROL. YOU UNDERSTAND AND AGREE THAT THE OPERATION OF'
+                          ' THE SERVICE MAY INVOLVE BUGS, ERRORS, PROBLEMS OR OTHER LIMITATIONS. BeDict'
+                          ' HAS NO LIABILITY WHATSOEVER FOR YOUR USE OF THE SERVICE OR USE OF ANY I'
+                          'NFORMATION OR MATERIALS ACCESSED THROUGH THE SERVICE. NO ADVICE OR INFORMATION,'
+                          ' WHETHER ORAL OR WRITTEN, OBTAINED BY YOU FROM BeDict THROUGH THE SERVICE CREATES'
+                          ' ANY WARRANTY, REPRESENTATION OR GUARANTEE. BeDict DOES NOT WARRANT THAT THE'
+                          ' FUNCTIONS, FEATURES OR CONTENT CONTAINED IN THE SERVICE WILL BE UNINTERRUPTED'
+                          ' OR ERROR FREE, THAT DEFECTS WILL BE CORRECTED, OR THAT ANY OTHER SITE OR THE'
+                          ' SERVER THAT MAKES IT AVAILABLE IS FREE OF VIRUSES OR OTHER HARMFUL COMPONENTS.'
+                          ' If your use of the Service results in the need for servicing or replacing '
+                          'property, material, equipment or data, BeDict is not responsible for those costs.'
+                          ' IF YOU ARE DISSATISFIED WITH THE SERVICE, YOUR SOLE AND EXCLUSIVE REMEDY IS'
+                          ' TO DISCONTINUE USING THE SERVICE. Your downloading, installation and use of'
+                          ' the Service is at your own discretion and risk, and you are solely responsible'
+                          ' for any damages to your hardware device(s) or loss of data that results from'
+                          ' the downloading, installation or use of the Service.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
+                  ),
+                ]
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              '10. Disclaimer of Apple’s Liability; Third Party Beneficiary Rights',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 10),
-              const Text(
-                '10. Disclaimer of Apple’s Liability; Third Party Beneficiary Rights',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'Neither Apple nor Google will be responsible for any claims by you or any third'
-                            ' party relating to your possession and/or use of the Application, including'
-                            ' but not limited to (i) product-liability claims, (ii) any claims that the'
-                            ' Application fails to conform to any applicable legal or regulatory requirement,'
-                            ' (iii) claims arising under consumer-protection laws or similar legislation, and'
-                            ' (iv) claims by any third party that the Application or your possession and use'
-                            ' of the Application infringes the intellectual property rights of the third party.'
-                            ' You agree that Apple, Google, and their respective subsidiaries are third-party'
-                            ' beneficiaries of this Agreement, and that upon your acceptance of the terms and'
-                            ' conditions of this Agreement, Apple and/or Google will have the right (and will'
-                            ' be deemed to have accepted the right) to enforce this Agreement against you as a'
-                            ' third party beneficiary thereof.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'Neither Apple nor Google will be responsible for any claims by you or any third'
+                          ' party relating to your possession and/or use of the Application, including'
+                          ' but not limited to (i) product-liability claims, (ii) any claims that the'
+                          ' Application fails to conform to any applicable legal or regulatory requirement,'
+                          ' (iii) claims arising under consumer-protection laws or similar legislation, and'
+                          ' (iv) claims by any third party that the Application or your possession and use'
+                          ' of the Application infringes the intellectual property rights of the third party.'
+                          ' You agree that Apple, Google, and their respective subsidiaries are third-party'
+                          ' beneficiaries of this Agreement, and that upon your acceptance of the terms and'
+                          ' conditions of this Agreement, Apple and/or Google will have the right (and will'
+                          ' be deemed to have accepted the right) to enforce this Agreement against you as a'
+                          ' third party beneficiary thereof.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
+                  ),
+                ]
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              '11. Limitation of Liability; Exclusion of Damages',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 10),
-              const Text(
-                '11. Limitation of Liability; Exclusion of Damages',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'BeDict WILL NOT BE RESPONSIBLE FOR ANY DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL'
-                            ' OR EXEMPLARY DAMAGES, WHETHER FORESEEABLE OR NOT, THAT ARE IN ANY WAY RELATED'
-                            ' TO THIS AGREEMENT, ANY VIRUSES AFFECTING THE SERVICE, THE USE OR INABILITY TO'
-                            ' USE THE SERVICE, THE RESULTS GENERATED FROM THE USE OF THIS SERVICE, LOSS OF'
-                            ' GOODWILL OR PROFITS, LOST BUSINESS, HOWEVER CHARACTERIZED, AND/OR FROM ANY'
-                            ' OTHER CAUSE WHATSOEVER. BeDict is not liable for any lost data resulting from'
-                            ' use of the Service and/or the enforcement of this Agreement. BeDict disclaims'
-                            ' any and all liability for the acts, omissions and conduct of any users on the'
-                            ' Service or otherwise related to your use of the Service. BeDict is not'
-                            ' responsible for the products, services, actions or failure to act of any'
-                            ' other third party in connection with the Service. NOTWITHSTANDING ANYTHING'
-                            ' TO THE CONTRARY CONTAINED HEREIN, BeDict’S AGGREGATE LIABILITY TO YOU FOR ANY'
-                            ' CAUSE WHATSOEVER AND REGARDLESS OF THE FORM OF THE ACTION, WILL BE LIMITED'
-                            ' TO THE AMOUNT YOU PAID TO BeDict, IF ANY, IN THE SIX (6) MONTHS PRIOR TO THE'
-                            ' EVENTS GIVING RISE TO YOUR CLAIM.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'BeDict WILL NOT BE RESPONSIBLE FOR ANY DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL'
+                          ' OR EXEMPLARY DAMAGES, WHETHER FORESEEABLE OR NOT, THAT ARE IN ANY WAY RELATED'
+                          ' TO THIS AGREEMENT, ANY VIRUSES AFFECTING THE SERVICE, THE USE OR INABILITY TO'
+                          ' USE THE SERVICE, THE RESULTS GENERATED FROM THE USE OF THIS SERVICE, LOSS OF'
+                          ' GOODWILL OR PROFITS, LOST BUSINESS, HOWEVER CHARACTERIZED, AND/OR FROM ANY'
+                          ' OTHER CAUSE WHATSOEVER. BeDict is not liable for any lost data resulting from'
+                          ' use of the Service and/or the enforcement of this Agreement. BeDict disclaims'
+                          ' any and all liability for the acts, omissions and conduct of any users on the'
+                          ' Service or otherwise related to your use of the Service. BeDict is not'
+                          ' responsible for the products, services, actions or failure to act of any'
+                          ' other third party in connection with the Service. NOTWITHSTANDING ANYTHING'
+                          ' TO THE CONTRARY CONTAINED HEREIN, BeDict’S AGGREGATE LIABILITY TO YOU FOR ANY'
+                          ' CAUSE WHATSOEVER AND REGARDLESS OF THE FORM OF THE ACTION, WILL BE LIMITED'
+                          ' TO THE AMOUNT YOU PAID TO BeDict, IF ANY, IN THE SIX (6) MONTHS PRIOR TO THE'
+                          ' EVENTS GIVING RISE TO YOUR CLAIM.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
+                  ),
+                ]
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              '12. Wireless Access Charges',
+              style: TextStyle(
+                fontSize: 20,
+                color: textColor,
+                fontWeight: FontWeight.w600,
               ),
-              const SizedBox(height: 10),
-              const Text(
-                '12. Wireless Access Charges',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                  children: const [
-                    Flexible(
-                      child: Text(
-                        'Certain Application functions may require data access, and the provider'
-                            ' of data access for your device may charge you data access fees in connection'
-                            ' with your use of the Application. You are solely responsible for any data'
-                            ' access or other charges you incur.',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: textColor,
-                          fontWeight: FontWeight.w400,
-                        ),
-                        textAlign: TextAlign.center,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Row(
+                children: const [
+                  Flexible(
+                    child: Text(
+                      'Certain Application functions may require data access, and the provider'
+                          ' of data access for your device may charge you data access fees in connection'
+                          ' with your use of the Application. You are solely responsible for any data'
+                          ' access or other charges you incur.',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: textColor,
+                        fontWeight: FontWeight.w400,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                  ]
-              ),
-              const SizedBox(height: 10),
-            ],
-          ),
+                  ),
+                ]
+            ),
+            const SizedBox(height: 10),
+          ],
         ),
       ),
     );
@@ -11290,12 +10913,9 @@ void getPreviousLearn() {
 
 Future _speak(String string) async{
   final Controller c = Get.put(Controller());
-  try {
-    await flutterTts.setLanguage("en-US");
-    await flutterTts.setSpeechRate(c.speakSpeed.value);
-    await flutterTts.speak(string);
-  } catch (err){}
-
+  await flutterTts.setLanguage("en-US");
+  await flutterTts.setSpeechRate(c.speakSpeed.value);
+  await flutterTts.speak(string);
 }
 
 Future setRight() async {
