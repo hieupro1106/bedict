@@ -150,7 +150,7 @@ Future<void> main() async {
   c.speakSpeed = RxDouble(await boxSetting.get('speakSpeed') ?? 0.4);
   c.target = RxInt(await boxSetting.get('target') ?? 10);
   c.notificationInterval = RxInt(await boxSetting.get('notificationInterval') ?? 60);
-  c.language = RxString(await boxSetting.get('language') ?? Get.deviceLocale.toString() != 'vi_VN'? 'EN':'VN');
+  c.language = RxString(await boxSetting.get('language') ?? (Get.deviceLocale.toString() != 'vi_VN'? 'EN':'VN'));
   c.changeLanguage(c.language.string);
   if (c.language.string == 'VN'){
     initLanguageIndex = 0;

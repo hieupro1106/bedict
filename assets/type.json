@@ -2,9 +2,12 @@
 ["pronoun","đại từ"],["preposition","giới từ"],["conjunction","liên từ"],
 ["auxiliary verb","trợ động từ"],["modal verb","động từ khiếm khuyết"],
 ["relative pronoun","đại từ quan hệ"],["interrogative pronoun","đại từ nghi vấn"],
-["possessive pronoun","đại từ sở hữu"],["possessive determiner","từ hạn định sở hữu"],
-["predeterminer","từ chỉ định"],["infinitive particle","tiểu từ nguyên mẫu"],
+["possessive pronoun","đại từ sở hữu"],
+["infinitive particle","tiểu từ nguyên mẫu"],
 ["interrogative adverb","trạng từ nghi vấn"],["relative adverb","trạng từ quan hệ"],
-["phrase","cụm từ"],["contraction","từ rút gọn"],["abbreviation","từ viết tắt"],
+["phrase","cụm từ"],
+["determiner","từ hạn định"],["possessive determiner","từ hạn định sở hữu"],
+["predeterminer","từ chỉ định"],
+["contraction","từ rút gọn"],["abbreviation","từ viết tắt"],
 ["exclamation","từ cảm thán"],
-["determiner","từ hạn định"],["cardinal number","số đếm"],["ordinal number","số thứ tự"]]
+["cardinal number","số đếm"],["ordinal number","số thứ tự"]]
