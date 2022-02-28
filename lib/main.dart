@@ -65,7 +65,7 @@ int initLanguageIndex = 0;
 late SpeechToText stt;
 late FlutterTts flutterTts;
 final FocusNode searchFocusNode = FocusNode();
-final textFieldController = TextEditingController();
+
 late var box;
 late var boxSetting;
 late var boxScore;
@@ -133,14 +133,6 @@ Future<void> main() async {
   response = await rootBundle.loadString('assets/type.json');
   listType = await json.decode(response);
 
-  var initLanguage = await boxSetting.get('language') ?? 'VN';
-  if (initLanguage == 'VN'){
-    initLanguageIndex = 0;
-  }else{
-    initLanguageIndex = 1;
-  }
-  // }
-
   runAppCount = await boxSetting.get('runAppCount') ?? runAppCount;
   await boxSetting.put('runAppCount',runAppCount+1);
   if (runAppCount<100){
@@ -158,8 +150,13 @@ Future<void> main() async {
   c.speakSpeed = RxDouble(await boxSetting.get('speakSpeed') ?? 0.4);
   c.target = RxInt(await boxSetting.get('target') ?? 10);
   c.notificationInterval = RxInt(await boxSetting.get('notificationInterval') ?? 60);
-  c.language = RxString(await boxSetting.get('language') ?? c.language.string);
+  c.language = RxString(await boxSetting.get('language') ?? Get.deviceLocale.toString() != 'vi_VN'? 'EN':'VN');
   c.changeLanguage(c.language.string);
+  if (c.language.string == 'VN'){
+    initLanguageIndex = 0;
+  }else{
+    initLanguageIndex = 1;
+  }
   bool isIntroduce = await boxSetting.get('isIntroduce') ?? true;
 
   if (c.notifyWord.value){
@@ -213,14 +210,14 @@ class Controller extends GetxController {
       },
     ));
     flutterTts = FlutterTts();
-    // final Stream purchaseUpdated = _inAppPurchase.purchaseStream;
-    // subscription = purchaseUpdated.listen((purchaseDetailsList) {
-    //   listenToPurchaseUpdated(purchaseDetailsList);
-    // }, onDone: () {
-    //   subscription.cancel();
-    // }, onError: (error) {
-    //   Get.snackbar('fail',error.toString());
-    // });
+    if (Platform.isIOS) {
+      await flutterTts.setIosAudioCategory(IosTextToSpeechAudioCategory.playback, [
+        IosTextToSpeechAudioCategoryOptions.allowBluetooth,
+        IosTextToSpeechAudioCategoryOptions.allowBluetoothA2DP,
+        IosTextToSpeechAudioCategoryOptions.mixWithOthers,
+        IosTextToSpeechAudioCategoryOptions.defaultToSpeaker
+      ]);
+    }
     initPlatformState();
     super.onInit();
   }
@@ -868,6 +865,7 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
+    final textFieldController = TextEditingController(text:'');
     List<String> suggestArray = [];
 
     if (initial){
@@ -1165,6 +1163,12 @@ class _SearchPageState extends State<SearchPage> {
                                       isDense: true,
                                       contentPadding: const EdgeInsets.all(5),
                                       prefixIcon: const Icon(Icons.search),
+                                      suffixIcon: IconButton(
+                                        icon: const Icon(Icons.close_rounded),
+                                        onPressed:(){
+                                          textFieldController.text = '';
+                                        }
+                                      ),
                                       // icon: Icon(Icons.search),
                                       // isCollapsed: true,
                                     ),
@@ -2622,13 +2626,13 @@ class TranslatePage extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 20,
                     ),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       border: InputBorder.none,
                       focusedBorder: InputBorder.none,
                       enabledBorder: InputBorder.none,
-                      hintText: '...',
+                      hintText: c.language.string == 'VN'? 'Nhập văn bản ...':'Type here ...',
                       isDense: true,
-                      contentPadding: EdgeInsets.all(5),
+                      contentPadding: const EdgeInsets.all(5),
                     ),
                     // onChanged: (text) async {
                     //   await translation();
@@ -3624,6 +3628,7 @@ class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
+    final textFieldController = TextEditingController(text:'');
     List<String> suggestArray = [];
 
     Future searchToHome(String word) async {
@@ -4201,7 +4206,7 @@ class Home extends StatelessWidget {
                               Expanded(
                                 child: TypeAheadField(
                                   textFieldConfiguration: TextFieldConfiguration(
-                                    // controller: textFieldController,
+                                    controller: textFieldController,
                                     autofocus: true,
                                     autocorrect: false,
                                     textInputAction: TextInputAction.done,
@@ -4236,6 +4241,12 @@ class Home extends StatelessWidget {
                                       isDense: true,
                                       contentPadding: const EdgeInsets.all(5),
                                       prefixIcon: const Icon(Icons.search),
+                                      suffixIcon: IconButton(
+                                          icon: const Icon(Icons.close_rounded),
+                                          onPressed:(){
+                                            textFieldController.text = '';
+                                          }
+                                      ),
                                       // icon: Icon(Icons.search),
                                       // isCollapsed: true,
                                     ),
@@ -5651,12 +5662,13 @@ class SpeakWidget extends StatelessWidget {
       c.update();
       if (result.finalResult) {
         bool kt = false;
-        if (c.word.string.contains(' ')){
-          if (c.listenString.string.toLowerCase().contains(c.word.string.toLowerCase())){
+        String word = c.word.string.toLowerCase().replaceAll('-', ' ');
+        if (word.contains(' ')){
+          if (c.listenString.string.toLowerCase().contains(word)){
             kt = true;
           }
         }else{
-          if (c.listenString.string.toLowerCase().split(' ').contains(c.word.string.toLowerCase())){
+          if (c.listenString.string.toLowerCase().split(' ').contains(word)){
             kt = true;
           }
         }
