@@ -29,76 +29,11 @@ import 'package:soundpool/soundpool.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:translator/translator.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:tiengviet/tiengviet.dart';
 
-List<String> listCategoryVN = ["khả năng","trừu tượng","thành tích","hành động","tuổi tác","nông nghiệp",
-"trợ giúp","số lượng","giải phẫu","động vật","vẻ ngoài","khảo cổ học","kiến trúc","khu vực",
-"nghệ thuật","khía cạnh","tài sản","chiêm tinh học","thiên văn học","thái độ","thực thể",
-"rung chuông","cá cược","hoá sinh học","sinh học","chim","cơ thể","nhà cửa","việc làm ăn",
-"tính cách","hoá học","màu sắc","thương mại","liên lạc","hỗn hợp","máy tính","điều kiện",
-"châu lục","văn hoá","chửi thề","nhảy","mức độ","nhu cầu","thiết bị","hướng","thảm hoạ",
-"bệnh tật","học thuyết","uống","sinh thái học","kinh tế","giáo dục","điện","điện tử",
-"nguyên tố","cảm xúc","năng lượng","giải trí","môi trường","sự kiện",
-"gia đình","lễ hội","hình khối","tài chính","cá","đồ ăn","tần suất","hoa quả","nhiên liệu",
-"chức năng","tương lai","trò chơi","khoảng trống","địa lý","địa chất","nhà nước","ngữ pháp",
-"nhóm","vi phạm","huy hiệu","lịch sử","kỳ nghỉ","công nghiệp","thông tin","thực thể khác người",
-"côn trùng","bảo hiểm","mạng internet","vật thể","nghề nghiệp","ngôn ngữ","luật pháp",
-"ngôn ngữ học","danh sách","văn học","logic","máy móc","dấu, dấu vết","đống","vật liệu",
-"toán học","truyền thông","y tế","vi sinh vật","quân đội","tâm trí","khoáng chất","đạo đức",
-"âm nhạc","thần thoại","quốc gia","tự nhiên","hàng hải","phủ định","không gì","hiện tại","con số",
-"đại dương","thứ tự","sinh vật","tổ chức","kết quả","thành phần","quá khứ","quá khứ hoàn thành",
-"quãng, giai đoạn","người","hiện tượng","triết học","ngữ âm","vật lý","sinh lý học",
-"địa điểm","cây cối","điểm","cảnh sát","chính trị","vị trí","khả năng xảy ra",
-"quá trình","đặc điểm","tính chất","chủng tộc","ngưỡng","tôn giáo","quyền","nghi lễ","hoàng gia",
-"thuyền buồm","khoa học","hạt","cảm giác","dịch vụ","tình dục, giới tính","tín hiệu","tình thế",
-"xã hội","linh hồn","âm thanh","vũ trụ, không gian","thể thao","sân khấu","trạng thái","câu nói",
-"văn phòng phẩm","thống kê","câu chuyện","cấu trúc","phong cách","vật chất","chịu đựng",
-"siêu nhiên","hệ thống","kỹ thuật","công nghệ","xu hướng","thần học","giả thuyết, lý thuyết",
-"sự vật","thời gian","tiêu đề","truyền thống","giao thông","loại, kiểu","đơn vị","đồ dùng",
-"tiện ích","giá trị","rau củ","phương tiện","vi rút","chiến tranh","cách thức","vũ khí",
-"trang phục","thời tiết","từ","công việc","thế giới","viết lách","không chủ đề"];
-List<String> listCategoryEN = ["ability","abstract","achievement",
-"action","age","agriculture","aid","amount","anatomy","animal",
-"appearance","archaeology","architecture","area","art",
-"aspect","asset","astrology","astronomy","attitude","being","bell-ringing",
-"bet","biochemistry","biology","bird","body","building","business",
-"character","chemistry","color","commerce","communication",
-"compound","computing","condition","continent",
-"culture","curse","dance","degree","demand","device","direction",
-"disaster","disease","doctrine","drink","ecology","economy","education","electric",
-"electronics","element","emotion","energy","entertainment","environment",
-"event","family","festival",
-"figure","finance","fish","food","frequency","fruit","fuel","function","future",
-"game","gap","geography","geology","government","grammar","group","guilt","heraldry",
-"history","holiday","industry","info","inhuman","insect","insurance","internet",
-"item","job","language","law","linguistics","list","literature","logic",
-"machine","mark","mass","material","math","media","medicine",
-"microorganism","military","mind","mineral","moral",
-"music","mythology","nation","nature","nautical","negative","nothing","now","number","ocean",
-"organ","organism","organization","outcome","part","past","past participle",
-"period","person","phenomena","philosophy","phonetics",
-"physics","physiology","place","plant","point","police","politics",
-"position","possibility","process","property",
-"quality","race","range","religion","right","ritual","royal","sailing",
-"science","seed","sensation","service","sex","signal","situation",
-"society","soul","sound","space","sport","stage",
-"state","statement","stationery","statistics","story","structure","style","substance",
-"suffering","supernatural","system","technical","technology","tendency","theology",
-"theory","thing","time","title","tradition","traffic","type","unit","utensil","utility","value",
-"vegetable","vehicle","virus","war","way","weapon","wear","weather","word","work","world","writing","no category"];
+List listCategory = [];
 
-List<String> listLevelVN = ['tất cả từ', '8.000 từ','5.000 từ','3.000 từ'];
-List<String> listLevelEN = ['all words', '8.000 words','5.000 words','3.000 words'];
-
-List<String> listTypeVN = ["danh từ","động từ","tính từ","trạng từ","đại từ","từ viết tắt", "từ cảm thán",
-  "giới từ","liên từ", "từ hạn định sở hữu","đại từ sở hữu","cụm từ","từ rút gọn",
-  "động từ khiếm khuyết","từ hạn định","số đếm","số thứ tự",
-  "tiểu từ nguyên mẫu", "từ chỉ định","trợ động từ","trạng từ nghi vấn",
-  "đại từ nghi vấn","đại từ quan hệ","trạng từ quan hệ"];
-List<String> listTypeEN = ["noun","verb","adjective","adverb","pronoun","abbreviation","exclamation",
-  "preposition","conjunction", "possessive determiner","possessive pronoun","phrase","contraction",
-  "modal verb","determiner","cardinal number","ordinal number",
-  "infinitive particle","predeterminer","auxiliary verb","interrogative adverb",
-  "interrogative pronoun","relative pronoun","relative adverb"];
+List listType = [];
 
 const String androidAd = 'ca-app-pub-9467993129762242/1735030175';
 const String iosAd = 'ca-app-pub-9467993129762242/5200342904';
@@ -177,6 +112,27 @@ Future<void> main() async {
   box = await Hive.openBox('data');
   boxScore = await Hive.openBox('score');
   boxHistory = await Hive.openBox('history');
+
+  String response = await rootBundle.loadString('assets/ielts.json');
+  var data = await json.decode(response);
+  ieltsList = data.cast<String>();
+  response = await rootBundle.loadString('assets/toeic.json');
+  data = await json.decode(response);
+  toeicList = data.cast<String>();
+  response = await rootBundle.loadString('assets/toefl.json');
+  data = await json.decode(response);
+  toeflList = data.cast<String>();
+  response = await rootBundle.loadString('assets/essential.json');
+  data = await json.decode(response);
+  essentialList = data.cast<String>();
+  response = await rootBundle.loadString('assets/allWords.json');
+  data = await json.decode(response);
+  c.wordArray = RxList(data.cast<String>());
+  response = await rootBundle.loadString('assets/category.json');
+  listCategory = await json.decode(response);
+  response = await rootBundle.loadString('assets/type.json');
+  listType = await json.decode(response);
+
   var initLanguage = await boxSetting.get('language') ?? 'VN';
   if (initLanguage == 'VN'){
     initLanguageIndex = 0;
@@ -222,22 +178,6 @@ Future<void> main() async {
     return pool.load(soundData);
   });
 
-  String response = await rootBundle.loadString('assets/ielts.json');
-  var data = await json.decode(response);
-  ieltsList = data.cast<String>();
-  response = await rootBundle.loadString('assets/toeic.json');
-  data = await json.decode(response);
-  toeicList = data.cast<String>();
-  response = await rootBundle.loadString('assets/toefl.json');
-  data = await json.decode(response);
-  toeflList = data.cast<String>();
-  response = await rootBundle.loadString('assets/essential.json');
-  data = await json.decode(response);
-  essentialList = data.cast<String>();
-  response = await rootBundle.loadString('assets/allWords.json');
-  data = await json.decode(response);
-  c.wordArray = RxList(data.cast<String>());
-
   runApp(
     GetMaterialApp(
       title: "BeDict",
@@ -273,9 +213,6 @@ class Controller extends GetxController {
       },
     ));
     flutterTts = FlutterTts();
-    await flutterTts.setVolume(1.0);
-    await flutterTts.setPitch(1.0);
-    await flutterTts.awaitSpeakCompletion(true);
     // final Stream purchaseUpdated = _inAppPurchase.purchaseStream;
     // subscription = purchaseUpdated.listen((purchaseDetailsList) {
     //   listenToPurchaseUpdated(purchaseDetailsList);
@@ -409,7 +346,7 @@ class Controller extends GetxController {
 
   var isAdShowing = false.obs;
 
-  var drawerInitSpeak = 'Tự động phát âm nghĩa'.obs;
+  var drawerInitSpeak = 'Tự động phát âm'.obs;
   var drawerEnableSound = 'Âm nền'.obs;
   var drawerHistory = 'Lịch sử tìm kiếm'.obs;
   var drawerScore = 'Thống kê từ đã học'.obs;
@@ -447,20 +384,30 @@ class Controller extends GetxController {
     language = RxString(newLanguage);
     if (language.string == 'VN'){
       initLanguageIndex = 0;
+      listCategory.sort((a, b) => TiengViet.parse(a[1]).compareTo(TiengViet.parse(b[1])));
+      if (category.string != 'all category'){
+        for (int i=0;i<listCategory.length;i++){
+          if (listCategory[i][0] == bundle.string){
+            bundle = RxString(listCategory[i][1]);
+            break;
+          }
+        }
+      }
+      if (type.string != 'all type'){
+        for (int i=0;i<listType.length;i++){
+          if (listType[i][0] == bundle.string){
+            bundle = RxString(listType[i][1]);
+            break;
+          }
+        }
+      }
       await boxSetting.put('language','VN');
       if (bundle.string == 'ESSENTIAL'){
         bundle = 'CƠ BẢN'.obs;
       }
-      if (listCategoryEN.contains(bundle.string)){
-        bundle = RxString(listCategoryVN[listCategoryEN.indexOf(bundle.string)]);
-      }else{
-        if (listTypeEN.contains(bundle.string)){
-          bundle = RxString(listTypeVN[listTypeEN.indexOf(bundle.string)]);
-        }
-      }
       mean = meanVN;
       typeState = 1.obs;
-      drawerInitSpeak = 'Tự động phát âm nghĩa'.obs;
+      drawerInitSpeak = 'Tự động phát âm'.obs;
       drawerEnableSound = 'Âm nền'.obs;
       drawerHistory = 'Lịch sử tìm kiếm'.obs;
       drawerScore = 'Thống kê từ đã học'.obs;
@@ -495,20 +442,30 @@ class Controller extends GetxController {
       welcomeBody = 'Chào mừng bạn đến với BeDict - từ điển thú vị chờ bạn khám phá'.obs;
     }else{
       initLanguageIndex = 1;
+      listCategory.sort((a, b) => a[0].compareTo(b[0]));
+      if (category.string != 'all category'){
+        for (int i=0;i<listCategory.length;i++){
+          if (listCategory[i][1] == bundle.string){
+            bundle = RxString(listCategory[i][0]);
+            break;
+          }
+        }
+      }
+      if (type.string != 'all type'){
+        for (int i=0;i<listType.length;i++){
+          if (listType[i][1] == bundle.string){
+            bundle = RxString(listType[i][0]);
+            break;
+          }
+        }
+      }
       await boxSetting.put('language','EN');
       if (bundle.string == 'CƠ BẢN'){
         bundle = 'ESSENTIAL'.obs;
       }
-      if (listCategoryVN.contains(bundle.string)){
-        bundle = RxString(listCategoryEN[listCategoryVN.indexOf(bundle.string)]);
-      }else{
-        if (listTypeVN.contains(bundle.string)){
-          bundle = RxString(listTypeEN[listTypeVN.indexOf(bundle.string)]);
-        }
-      }
       mean = meanEN;
       typeState = 0.obs;
-      drawerInitSpeak = 'Automatic speaking meaning'.obs;
+      drawerInitSpeak = 'Automatic speaking'.obs;
       drawerEnableSound = 'Sound'.obs;
       drawerHistory = 'Search history'.obs;
       drawerScore = 'Learned words'.obs;
@@ -766,47 +723,42 @@ class MainScreen extends StatelessWidget {
         statusBarIconBrightness: Brightness.light, // status bar icons' color
         systemNavigationBarIconBrightness: Brightness.light, //navigation bar icons' color
       ),
-      child: WillPopScope(
-        onWillPop: () async {
-          return false;
-        },
-        child: Scaffold(
-          key: _key,
-          resizeToAvoidBottomInset: false,
-          body: GetBuilder<Controller>(
-            builder: (_) => pages.elementAt(c.currentPage.value),
-          ),
-          bottomNavigationBar: GetBuilder<Controller>(
-            builder: (_) => BottomNavigationBar(
-              currentIndex: c.currentPage.value,
-              onTap: (int index) {
-                c.currentPage = RxInt(index);
-                c.update();
-              },
-              backgroundColor: Colors.white,
-              showUnselectedLabels: true,
-              unselectedItemColor: const Color.fromRGBO(235, 235, 235, 1),
-              selectedItemColor: textColor,
-              selectedFontSize: 14,
-              unselectedFontSize: 14,
-              items: [
-                BottomNavigationBarItem(
-                  icon: const Icon(Icons.search_rounded),
-                  backgroundColor: backgroundColor,
-                  label: c.language.string == 'VN'? 'Tìm kiếm':'Search',
-                ),
-                BottomNavigationBarItem(
-                  icon: const Icon(Icons.g_translate_outlined),
-                  backgroundColor: backgroundColor,
-                  label: c.language.string == 'VN'? 'Dịch':'Translate',
-                ),
-                BottomNavigationBarItem(
-                  icon: const Icon(Icons.settings_rounded),
-                  backgroundColor: backgroundColor,
-                  label: c.language.string == 'VN'? 'Cài đặt':'Setting',
-                ),
-              ],
-            ),
+      child: Scaffold(
+        key: _key,
+        resizeToAvoidBottomInset: false,
+        body: GetBuilder<Controller>(
+          builder: (_) => pages.elementAt(c.currentPage.value),
+        ),
+        bottomNavigationBar: GetBuilder<Controller>(
+          builder: (_) => BottomNavigationBar(
+            currentIndex: c.currentPage.value,
+            onTap: (int index) {
+              c.currentPage = RxInt(index);
+              c.update();
+            },
+            backgroundColor: Colors.white,
+            showUnselectedLabels: true,
+            unselectedItemColor: const Color.fromRGBO(235, 235, 235, 1),
+            selectedItemColor: textColor,
+            selectedFontSize: 14,
+            unselectedFontSize: 14,
+            items: [
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.search_rounded),
+                backgroundColor: backgroundColor,
+                label: c.language.string == 'VN'? 'Tìm kiếm':'Search',
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.g_translate_outlined),
+                backgroundColor: backgroundColor,
+                label: c.language.string == 'VN'? 'Dịch':'Translate',
+              ),
+              BottomNavigationBarItem(
+                icon: const Icon(Icons.settings_rounded),
+                backgroundColor: backgroundColor,
+                label: c.language.string == 'VN'? 'Cài đặt':'Setting',
+              ),
+            ],
           ),
         ),
       ),
@@ -3294,13 +3246,9 @@ class CategoryScreen extends StatelessWidget {
       if (!c.isAdShowing.value){
         void toScore() async {
           c.isAdShowing = false.obs;
-          if (c.language.string == 'VN'){
-            c.bundle = RxString(listCategoryVN[i]);
-          }else{
-            c.bundle = RxString(listCategoryEN[i]);
-          }
-          c.listWordScore = RxList(await getListCategory(listCategoryEN[i]));
-          c.category = RxString(listCategoryEN[i]);
+          c.bundle = RxString(listCategory[i][c.typeState.value]);
+          c.listWordScore = RxList(await getListCategory(listCategory[i][0]));
+          c.category = RxString(listCategory[i][0]);
           c.type = 'all type'.obs;
           c.part = 0.obs;
           Get.offAll(()=> const ScorePage());
@@ -3425,7 +3373,7 @@ class CategoryScreen extends StatelessWidget {
                       direction: Axis.horizontal,
                       alignment: WrapAlignment.center,
                       children:[
-                        for (int i=0;i<listCategoryEN.length;i++)
+                        for (int i=0;i<listCategory.length;i++)
                           GestureDetector(
                               onTap: () {
                                 getToScore(i);
@@ -3454,7 +3402,7 @@ class CategoryScreen extends StatelessWidget {
                                   padding: const EdgeInsets.all(10),
                                   margin: const EdgeInsets.all(5),
                                   child: Text(
-                                    c.language.string == 'VN'?listCategoryVN[i]:listCategoryEN[i],
+                                    listCategory[i][c.typeState.value],
                                     style: const TextStyle(
                                         fontSize: 18
                                     ),
@@ -3485,14 +3433,10 @@ class TypeScreen extends StatelessWidget {
       if (!c.isAdShowing.value){
         void toScore() async {
           c.isAdShowing = false.obs;
-          if (c.language.string == 'VN'){
-            c.bundle = RxString(listTypeVN[i]);
-          }else{
-            c.bundle = RxString(listTypeEN[i]);
-          }
-          c.listWordScore = RxList(await getListType(listTypeEN[i]));
+          c.bundle = RxString(listType[i][c.typeState.value]);
+          c.listWordScore = RxList(await getListType(listType[i][0]));
           c.category = 'all category'.obs;
-          c.type = RxString(listTypeEN[i]);
+          c.type = RxString(listType[i][0]);
           c.part = 0.obs;
           Get.offAll(()=> const ScorePage());
         }
@@ -3619,7 +3563,7 @@ class TypeScreen extends StatelessWidget {
                           direction: Axis.horizontal,
                           alignment: WrapAlignment.center,
                           children:[
-                            for (int i=0;i<listTypeEN.length;i++)
+                            for (int i=0;i<listType.length;i++)
                               GestureDetector(
                                   onTap: () {
                                     getToScore(i);
@@ -3648,7 +3592,7 @@ class TypeScreen extends StatelessWidget {
                                       padding: const EdgeInsets.all(10),
                                       margin: const EdgeInsets.all(5),
                                       child: Text(
-                                        c.language.string == 'VN'?listTypeVN[i]:listTypeEN[i],
+                                        listType[i][c.typeState.value],
                                         style: const TextStyle(
                                             fontSize: 18
                                         ),
@@ -10915,6 +10859,9 @@ Future _speak(String string) async{
   final Controller c = Get.put(Controller());
   await flutterTts.setLanguage("en-US");
   await flutterTts.setSpeechRate(c.speakSpeed.value);
+  // await flutterTts.setVolume(1.0);
+  // await flutterTts.setPitch(1.0);
+  await flutterTts.awaitSpeakCompletion(true);
   await flutterTts.speak(string);
 }
 
