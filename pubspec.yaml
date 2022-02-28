@@ -103,6 +103,7 @@ flutter:
     - assets/sounds/speech_to_text_listening.m4r
     - assets/sounds/speech_to_text_cancel.m4r
     - assets/sounds/speech_to_text_stop.m4r
+    - assets/temp/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

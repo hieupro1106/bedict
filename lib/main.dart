@@ -3365,60 +3365,108 @@ class CategoryScreen extends StatelessWidget {
         ),
         body: Container(
           color: Colors.white,
-          child: SingleChildScrollView(
-            child: Column(
-                children: [
-                  const SizedBox(height: 10),
-                  Wrap(
-                      spacing: 5,
-                      runSpacing: 5,
-                      runAlignment: WrapAlignment.center,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      direction: Axis.horizontal,
-                      alignment: WrapAlignment.center,
-                      children:[
-                        for (int i=0;i<listCategory.length;i++)
-                          GestureDetector(
-                              onTap: () {
-                                getToScore(i);
-                              },
-                              child: Container(
-                                // width: (MediaQuery.of(context).size.width-50)/3,
-                                  decoration: BoxDecoration(
-                                    color: Color.fromRGBO(
-                                        150+Random().nextInt(55),
-                                        201+Random().nextInt(55),
-                                        150+Random().nextInt(55),
-                                        1
-                                    ),
-                                    borderRadius: const BorderRadius.all(
-                                        Radius.circular(20)
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.6),
-                                        spreadRadius: 0,
-                                        blurRadius: 3,
-                                        offset: const Offset(0, 0), // changes position of shadow
-                                      ),
-                                    ],
-                                  ),
-                                  padding: const EdgeInsets.all(10),
-                                  margin: const EdgeInsets.all(5),
-                                  child: Text(
-                                    listCategory[i][c.typeState.value],
-                                    style: const TextStyle(
-                                        fontSize: 18
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  )
-                              )
+          // padding: EdgeInsets.all(10),
+          child: GridView.count(
+            crossAxisCount: MediaQuery.of(context).size.width~/120,
+            addAutomaticKeepAlives: false,
+            childAspectRatio: 4/3,
+            // mainAxisSpacing: 10,
+            // crossAxisSpacing: 10,
+            children: List.generate(listCategory.length, (i) {
+              String url = '';
+              switch (listCategory[i][0]){
+                case 'heraldry':
+                  url = 'assets/temp/armory2.png';
+                  break;
+                case 'no category':
+                  url = 'assets/temp/no.png';
+                  break;
+                case 'past participle':
+                  url = 'assets/temp/no.png';
+                  break;
+                case 'internet':
+                  url = 'assets/temp/Internet1.png';
+                  break;
+                case 'bell-ringing':
+                  url = 'assets/temp/bob7.png';
+                  break;
+                default:
+                  url = 'assets/temp/' + listCategory[i][0] + '1.png';
+              }
+              return GestureDetector(
+                onTap: () {
+                  getToScore(i);
+                },
+                child: Stack(
+                  children:[
+                    Container(
+                      height: double.infinity,
+                      width: double.infinity,
+                      margin: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: const BorderRadius.all(
+                            Radius.circular(10)
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.6),
+                            spreadRadius: 0,
+                            blurRadius: 3,
+                            offset: const Offset(0, 0), // changes position of shadow
                           ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.asset(
+                          url,
+                          fit: BoxFit.cover,
+                          // width: MediaQuery.of(context).size.width<500? MediaQuery.of(context).size.width-100:400,
+                          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                            return const SizedBox();
+                          },
+                        ),
+                      ),
+                    ),
+                    Column(
+                      children:[
+                        const Expanded(child:SizedBox()),
+                        Container(
+                          height: 25,
+                          // alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.5),
+                            borderRadius: const BorderRadius.only(
+                              bottomLeft: Radius.circular(10),
+                              bottomRight: Radius.circular(10),
+                            ),
+                          ),
+                          margin: const EdgeInsets.all(8),
+                          child: Row(
+                            children:[
+                              const SizedBox(width:5),
+                              Expanded(
+                                child: Text(
+                                  listCategory[i][c.typeState.value],
+                                  // textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    overflow: TextOverflow.ellipsis,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width:5),
+                            ]
+                          ),
+                        ),
                       ]
-                  ),
-                  const SizedBox(height: 10),
-                ]
-            ),
+                    ),
+                  ]
+                ),
+              );
+            }),
           ),
         ),
       ),
@@ -3552,64 +3600,64 @@ class TypeScreen extends StatelessWidget {
         ),
         body: Container(
           color: Colors.white,
-          child: Column(
-              children:[
-                // const SizedBox(height: 10),
-                Expanded(
-                  child: Container(
-                    alignment: Alignment.center,
-                    child: SingleChildScrollView(
-                      child: Wrap(
-                          spacing: 5,
-                          runSpacing: 5,
-                          runAlignment: WrapAlignment.center,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          direction: Axis.horizontal,
-                          alignment: WrapAlignment.center,
-                          children:[
-                            for (int i=0;i<listType.length;i++)
-                              GestureDetector(
-                                  onTap: () {
-                                    getToScore(i);
-                                  },
-                                  child: Container(
-                                    // width: (MediaQuery.of(context).size.width-50)/3,
-                                      decoration: BoxDecoration(
-                                        color: Color.fromRGBO(
-                                            150+Random().nextInt(55),
-                                            201+Random().nextInt(55),
-                                            150+Random().nextInt(55),
-                                            1
-                                        ),
-                                        borderRadius: const BorderRadius.all(
-                                            Radius.circular(20)
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(0.6),
-                                            spreadRadius: 0,
-                                            blurRadius: 3,
-                                            offset: const Offset(0, 0), // changes position of shadow
-                                          ),
-                                        ],
-                                      ),
-                                      padding: const EdgeInsets.all(10),
-                                      margin: const EdgeInsets.all(5),
-                                      child: Text(
-                                        listType[i][c.typeState.value],
-                                        style: const TextStyle(
-                                            fontSize: 18
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      )
-                                  )
-                              ),
-                          ]
-                      ),
+          height: double.infinity,
+          alignment: Alignment.center,
+          child: GridView.count(
+            crossAxisCount: MediaQuery.of(context).size.width~/180,
+            addAutomaticKeepAlives: false,
+            shrinkWrap: true,
+            childAspectRatio: 5/2,
+            // mainAxisSpacing: 10,
+            // crossAxisSpacing: 10,
+            children: List.generate(listType.length, (i) {
+              return GestureDetector(
+                onTap: () {
+                  getToScore(i);
+                },
+                child: Container(
+                  // width: (MediaQuery.of(context).size.width-50)/3,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Color.fromRGBO(
+                        150+Random().nextInt(55),
+                        201+Random().nextInt(55),
+                        150+Random().nextInt(55),
+                        1
                     ),
+                    borderRadius: const BorderRadius.all(
+                        Radius.circular(20)
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.6),
+                        spreadRadius: 0,
+                        blurRadius: 3,
+                        offset: const Offset(0, 0), // changes position of shadow
+                      ),
+                    ],
                   ),
+                  padding: const EdgeInsets.all(5),
+                  margin: const EdgeInsets.all(8),
+                  child: Text(
+                    listType[i][c.typeState.value],
+                    style: const TextStyle(
+                      fontSize: 18,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                      // shadows: <Shadow>[
+                      //   Shadow(
+                      //     offset: Offset(0.0, 0.0),
+                      //     blurRadius: 3.0,
+                      //     color: Colors.black,
+                      //   ),
+                      // ],
+                    ),
+                    textAlign: TextAlign.center,
+                    // overflow: TextOverflow.ellipsis,
+                  )
                 ),
-              ]
+              );
+            }),
           ),
         ),
       ),
