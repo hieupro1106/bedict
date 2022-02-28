@@ -3369,6 +3369,7 @@ class CategoryScreen extends StatelessWidget {
           child: GridView.count(
             crossAxisCount: MediaQuery.of(context).size.width~/120,
             addAutomaticKeepAlives: false,
+            padding: const EdgeInsets.all(5),
             childAspectRatio: 4/3,
             // mainAxisSpacing: 10,
             // crossAxisSpacing: 10,
@@ -3402,7 +3403,7 @@ class CategoryScreen extends StatelessWidget {
                     Container(
                       height: double.infinity,
                       width: double.infinity,
-                      margin: const EdgeInsets.all(8),
+                      margin: const EdgeInsets.all(7),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: const BorderRadius.all(
@@ -3442,7 +3443,7 @@ class CategoryScreen extends StatelessWidget {
                               bottomRight: Radius.circular(10),
                             ),
                           ),
-                          margin: const EdgeInsets.all(8),
+                          margin: const EdgeInsets.all(7),
                           child: Row(
                             children:[
                               const SizedBox(width:5),
@@ -3605,6 +3606,7 @@ class TypeScreen extends StatelessWidget {
           child: GridView.count(
             crossAxisCount: MediaQuery.of(context).size.width~/180,
             addAutomaticKeepAlives: false,
+            padding: const EdgeInsets.all(5),
             shrinkWrap: true,
             childAspectRatio: 5/2,
             // mainAxisSpacing: 10,
@@ -3625,7 +3627,7 @@ class TypeScreen extends StatelessWidget {
                         1
                     ),
                     borderRadius: const BorderRadius.all(
-                        Radius.circular(20)
+                        Radius.circular(50)
                     ),
                     boxShadow: [
                       BoxShadow(
@@ -10645,7 +10647,7 @@ Future<List<String>> getListCategory(String category) async {
         findList.add(nowWord['word']);
       }
     }else{
-      if (nowWord['category'].contains(','+ category)){
+      if (nowWord['category'].split(',').contains(category)){
         findList.add(nowWord['word']);
       }
     }
