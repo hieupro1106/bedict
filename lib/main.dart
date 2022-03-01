@@ -65,6 +65,7 @@ int initLanguageIndex = 0;
 late SpeechToText stt;
 late FlutterTts flutterTts;
 final FocusNode searchFocusNode = FocusNode();
+final inController = TextEditingController();
 
 late var box;
 late var boxSetting;
@@ -731,6 +732,10 @@ class MainScreen extends StatelessWidget {
             currentIndex: c.currentPage.value,
             onTap: (int index) {
               c.currentPage = RxInt(index);
+              if (index == 1){
+                c.translateOut = ''.obs;
+                inController.text = '';
+              }
               c.update();
             },
             backgroundColor: Colors.white,
@@ -1103,363 +1108,346 @@ class _SearchPageState extends State<SearchPage> {
         color: Colors.white,
         child: Column(
           children:[
-            Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                // boxShadow: [
-                //   BoxShadow(
-                //     color: Colors.black.withOpacity(0.3),
-                //     spreadRadius: 0,
-                //     blurRadius: 10,
-                //     offset: const Offset(0, 2),
-                //   ),
-                // ],
-              ),
-              child: Column(
-                  children:[
-                    SizedBox(height: MediaQuery.of(context).padding.top+10),
-                    GetBuilder<Controller>(
-                      builder: (_) => Visibility(
-                        visible: c.isSearch.value,
-                        child: Row(
-                            children:[
-                              const SizedBox(width:15),
-                              Expanded(
-                                child: TypeAheadField(
-                                  textFieldConfiguration: TextFieldConfiguration(
-                                    // controller: searchField,
-                                    controller: textFieldController,
-                                    autofocus: false,
-                                    autocorrect: false,
-                                    textInputAction: TextInputAction.done,
-                                    focusNode: searchFocusNode,
-                                    style: const TextStyle(
-                                      fontSize: 15.0,
-                                      color: textColor,
-                                    ),
-                                    decoration: InputDecoration(
-                                      fillColor: backgroundColor.withOpacity(0.5),
-                                      filled: true,
-                                      border: const OutlineInputBorder(
-                                        borderSide: BorderSide.none,
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(30)
-                                        ),
-                                      ),
-                                      focusedBorder: const OutlineInputBorder(
-                                        borderSide: BorderSide.none,
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(30)
-                                        ),
-                                      ),
-                                      enabledBorder: const OutlineInputBorder(
-                                        borderSide: BorderSide.none,
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(30)
-                                        ),
-                                      ),
-                                      // prefixIcon: Icon(Icons.search_outlined,size:15),
-                                      hintText: c.hint.string,
-                                      isDense: true,
-                                      contentPadding: const EdgeInsets.all(5),
-                                      prefixIcon: const Icon(Icons.search),
-                                      suffixIcon: IconButton(
-                                        icon: const Icon(Icons.close_rounded),
-                                        onPressed:(){
-                                          textFieldController.text = '';
-                                        }
-                                      ),
-                                      // icon: Icon(Icons.search),
-                                      // isCollapsed: true,
-                                    ),
-                                    onSubmitted: (value) async {
-                                      if (suggestArray.isEmpty){
-                                        // searchField.text = c.word.string;
-                                        if (Get.isSnackbarOpen) Get.closeAllSnackbars();
-                                        Get.snackbar(c.learnWrongTitle.string, c.notFound.string);
-                                      }else{
-                                        await searchToHome(suggestArray[0]);
-                                      }
-                                    },
-                                  ),
-                                  suggestionsBoxVerticalOffset: 10,
-                                  noItemsFoundBuilder: (BuildContext context) => ListTile(
-                                    title: Text(
-                                      c.notFound.string,
-                                      style: const TextStyle(
-                                        fontSize: 15.0,
-                                        color: textColor,
-                                      ),
-                                    ),
-                                  ),
-                                  suggestionsCallback: (pattern) async {
-                                    suggestArray = [];
-                                    if (pattern == ''){
-                                      suggestArray = await getLastSearch();
-                                    }
-                                    for (var i = 0; i < c.wordArray.length; i++){
-                                      if (suggestArray.length > 9){
-                                        break;
-                                      }
-                                      if (c.wordArray[i].toString().toLowerCase().startsWith(pattern.toLowerCase())){
-                                        if (!suggestArray.contains(c.wordArray[i])){
-                                          suggestArray.add(c.wordArray[i]);
-                                        }
-                                      }
-                                    }
-                                    return suggestArray;
-                                  },
-                                  suggestionsBoxDecoration: SuggestionsBoxDecoration(
-                                    borderRadius: const BorderRadius.all(Radius.circular(15)),
-                                    color: Colors.white.withOpacity(1.0),
-                                  ),
-                                  itemBuilder: (context, suggestion) {
-                                    String mean = '';
-                                    String image = 'bedict.png';
-                                    var dataRaw = box.get(suggestion.toString());
-                                    List listMeans = jsonDecode(dataRaw['mean']);
-                                    List listMean = listMeans[0];
-                                    List meanENAdd = [];
-                                    List meanVNAdd = [];
-                                    for(var j = 0; j< listMean.length; j++) {
-                                      String meanENElement = '';
-                                      if(listMean[j].contains('#')){
-                                        meanENElement = listMean[j].split('#')[1];
-                                      }else{
-                                        meanENElement = listMean[j];
-                                      }
-                                      meanENAdd.add(meanENElement);
-                                      String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
-                                      meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
-                                      meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
-                                      meanVNAdd.add(meanVNElement);
-                                    }
-                                    String meanEN = '';
-                                    String meanVN = '';
-                                    for(var j = 0; j< meanENAdd.length; j++) {
-                                      if (j==0){
-                                        meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
-                                        meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
-                                      }else{
-                                        meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
-                                        meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
-                                      }
-                                    }
-                                    if (c.language.string == 'VN'){
-                                      mean = meanVN;
-                                    }else{
-                                      mean = meanEN;
-                                    }
-                                    if (jsonDecode(dataRaw['imageURL']).length>0){
-                                      image = jsonDecode(dataRaw['imageURL'])[0];
-                                    }
-                                    return Row(
-                                        children: [
-                                          const SizedBox(width:10),
-                                          Expanded(
-                                            child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children:[
-                                                  Text(
-                                                    suggestion.toString(),
-                                                    style: const TextStyle(
-                                                      fontSize: 18.0,
-                                                      color: textColor,
-                                                      fontWeight: FontWeight.w600,
-                                                    ),
-                                                    overflow: TextOverflow.ellipsis,
-                                                  ),
-                                                  const SizedBox(height:5),
-                                                  Text(
-                                                    mean,
-                                                    style: const TextStyle(
-                                                      fontSize: 14.0,
-                                                      color: textColor,
-                                                    ),
-                                                    overflow: TextOverflow.ellipsis,
-                                                  ),
-                                                ]
-                                            ),
-                                          ),
-                                          Container(
-                                              margin: const EdgeInsets.all(10),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius: const BorderRadius.all(
-                                                    Radius.circular(8)
-                                                ),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black.withOpacity(0.6),
-                                                    spreadRadius: 0,
-                                                    blurRadius: 3,
-                                                    offset: const Offset(3, 3), // changes position of shadow
-                                                  ),
-                                                ],
-                                              ),
-                                              width: 70,
-                                              height: 50,
-                                              child: Stack(
-                                                  children:[
-                                                    ClipRRect(
-                                                      borderRadius: BorderRadius.circular(8),
-                                                      child: ImageFiltered(
-                                                        imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                                                        child: Opacity(
-                                                          opacity: 0.8,
-                                                          child: Image(
-                                                            image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
-                                                            fit: BoxFit.cover,
-                                                            width: 70,
-                                                            height: 50,
-                                                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                                              return const SizedBox();
-                                                            },
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    ClipRRect(
-                                                      borderRadius: BorderRadius.circular(8),
-                                                      child: Image(
-                                                        image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
-                                                        fit: BoxFit.contain,
-                                                        width: 70,
-                                                        height: 50,
-                                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                                          return const SizedBox();
-                                                        },
-                                                      ),
-                                                    ),
-                                                    listMeans.length>1?
-                                                    Positioned(
-                                                        right: 4,
-                                                        bottom: 4,
-                                                        child: Container(
-                                                            alignment: Alignment.center,
-                                                            decoration: BoxDecoration(
-                                                              color: Colors.white.withOpacity(0.7),
-                                                              borderRadius: const BorderRadius.all(
-                                                                  Radius.circular(20)
-                                                              ),
-                                                            ),
-                                                            height: 20,
-                                                            width: 20,
-                                                            child: Text(
-                                                              '+ ' + (listMeans.length-1).toString(),
-                                                              style: const TextStyle(
-                                                                fontSize: 9,
-                                                              ),
-                                                            )
-                                                        )
-                                                    )
-                                                        : const SizedBox(),
-                                                  ]
-                                              )
-                                          ),
-                                        ]
-                                    );
-                                  },
-                                  onSuggestionSelected: (suggestion) async {
-                                    // searchField.text = suggestion.toString();
-                                    await searchToHome(suggestion.toString());
-                                  },
-                                  animationDuration: Duration.zero,
-                                  debounceDuration: Duration.zero,
-                                ),
-                              ),
-                              const SizedBox(width:15),
-                            ]
-                        ),
-                      ),
-                    ),
-                    GetBuilder<Controller>(
-                      builder: (_) => Visibility(
-                        visible: !c.isSearch.value,
-                        child: Row(
-                          children:[
-                            const SizedBox(width: 20),
-                            OutlinedButton(
-                              style: ButtonStyle(
-                                // backgroundColor: MaterialStateProperty.all<Color>(backgroundColor.withOpacity(0.2)),
-                                // foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                                padding: MaterialStateProperty.all<EdgeInsets>(
-                                    const EdgeInsets.all(12)
-                                ),
-                                shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                    RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30.0),
-                                    )
-                                ),
-                              ),
-                              onPressed: () {
-                                getToCategory();
-                              },
-                              child: Text(
-                                  c.language.string == 'VN'? 'Chủ đề':'Category',
-                                  style: const TextStyle(
-                                    color: textColor,
-                                  )
-                              ),
+            SizedBox(height: MediaQuery.of(context).padding.top+10),
+            GetBuilder<Controller>(
+              builder: (_) => Visibility(
+                visible: c.isSearch.value,
+                child: Row(
+                    children:[
+                      const SizedBox(width:15),
+                      Expanded(
+                        child: TypeAheadField(
+                          textFieldConfiguration: TextFieldConfiguration(
+                            // controller: searchField,
+                            controller: textFieldController,
+                            autofocus: false,
+                            autocorrect: false,
+                            textInputAction: TextInputAction.done,
+                            focusNode: searchFocusNode,
+                            style: const TextStyle(
+                              fontSize: 15.0,
+                              color: textColor,
                             ),
-                            const SizedBox(width: 10),
-                            OutlinedButton(
-                              style: ButtonStyle(
-                                // backgroundColor: MaterialStateProperty.all<Color>(backgroundColor.withOpacity(0.2)),
-                                // foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                                padding: MaterialStateProperty.all<EdgeInsets>(
-                                    const EdgeInsets.all(12)
-                                ),
-                                shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                    RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30.0),
-                                    )
+                            decoration: InputDecoration(
+                              fillColor: backgroundColor.withOpacity(0.5),
+                              filled: true,
+                              border: const OutlineInputBorder(
+                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.all(
+                                    Radius.circular(30)
                                 ),
                               ),
-                              onPressed: () {
-                                getToType();
-                              },
-                              child: Text(
-                                  c.language.string == 'VN'? 'Từ loại':'Type',
-                                  style: const TextStyle(
-                                    color: textColor,
-                                  )
+                              focusedBorder: const OutlineInputBorder(
+                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.all(
+                                    Radius.circular(30)
+                                ),
                               ),
+                              enabledBorder: const OutlineInputBorder(
+                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.all(
+                                    Radius.circular(30)
+                                ),
+                              ),
+                              // prefixIcon: Icon(Icons.search_outlined,size:15),
+                              hintText: c.hint.string,
+                              isDense: true,
+                              contentPadding: const EdgeInsets.all(5),
+                              prefixIcon: const Icon(Icons.search),
+                              suffixIcon: IconButton(
+                                  icon: const Icon(Icons.close_rounded),
+                                  onPressed:(){
+                                    textFieldController.text = '';
+                                  }
+                              ),
+                              // icon: Icon(Icons.search),
+                              // isCollapsed: true,
                             ),
-                            const Expanded(child:SizedBox()),
-                            TextButton(
-                              style: ButtonStyle(
-                                backgroundColor: MaterialStateProperty.all<Color>(backgroundColor.withOpacity(0.5)),
-                                foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                                padding: MaterialStateProperty.all<EdgeInsets>(
-                                    const EdgeInsets.fromLTRB(0, 10, 0, 10)
-                                ),
-                                shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                    RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15.0),
-                                    )
-                                ),
-                              ),
-                              onPressed: () {
-                                c.isSearch = true.obs;
-                                c.update();
-                                searchFocusNode.requestFocus();
-                              },
-                              child: const Icon(
-                                Icons.search,
-                                size: 20,
+                            onSubmitted: (value) async {
+                              if (suggestArray.isEmpty){
+                                // searchField.text = c.word.string;
+                                if (Get.isSnackbarOpen) Get.closeAllSnackbars();
+                                Get.snackbar(c.learnWrongTitle.string, c.notFound.string);
+                              }else{
+                                await searchToHome(suggestArray[0]);
+                              }
+                            },
+                          ),
+                          suggestionsBoxVerticalOffset: 10,
+                          noItemsFoundBuilder: (BuildContext context) => ListTile(
+                            title: Text(
+                              c.notFound.string,
+                              style: const TextStyle(
+                                fontSize: 15.0,
                                 color: textColor,
                               ),
                             ),
-                            const SizedBox(width: 20),
-                          ],
+                          ),
+                          suggestionsCallback: (pattern) async {
+                            suggestArray = [];
+                            if (pattern == ''){
+                              suggestArray = await getLastSearch();
+                            }
+                            for (var i = 0; i < c.wordArray.length; i++){
+                              if (suggestArray.length > 9){
+                                break;
+                              }
+                              if (c.wordArray[i].toString().toLowerCase().startsWith(pattern.toLowerCase())){
+                                if (!suggestArray.contains(c.wordArray[i])){
+                                  suggestArray.add(c.wordArray[i]);
+                                }
+                              }
+                            }
+                            return suggestArray;
+                          },
+                          suggestionsBoxDecoration: SuggestionsBoxDecoration(
+                            borderRadius: const BorderRadius.all(Radius.circular(15)),
+                            color: Colors.white.withOpacity(1.0),
+                          ),
+                          itemBuilder: (context, suggestion) {
+                            String mean = '';
+                            String image = 'bedict.png';
+                            var dataRaw = box.get(suggestion.toString());
+                            List listMeans = jsonDecode(dataRaw['mean']);
+                            List listMean = listMeans[0];
+                            List meanENAdd = [];
+                            List meanVNAdd = [];
+                            for(var j = 0; j< listMean.length; j++) {
+                              String meanENElement = '';
+                              if(listMean[j].contains('#')){
+                                meanENElement = listMean[j].split('#')[1];
+                              }else{
+                                meanENElement = listMean[j];
+                              }
+                              meanENAdd.add(meanENElement);
+                              String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
+                              meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
+                              meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
+                              meanVNAdd.add(meanVNElement);
+                            }
+                            String meanEN = '';
+                            String meanVN = '';
+                            for(var j = 0; j< meanENAdd.length; j++) {
+                              if (j==0){
+                                meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                                meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                              }else{
+                                meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                                meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                              }
+                            }
+                            if (c.language.string == 'VN'){
+                              mean = meanVN;
+                            }else{
+                              mean = meanEN;
+                            }
+                            if (jsonDecode(dataRaw['imageURL']).length>0){
+                              image = jsonDecode(dataRaw['imageURL'])[0];
+                            }
+                            return Row(
+                                children: [
+                                  const SizedBox(width:10),
+                                  Expanded(
+                                    child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children:[
+                                          Text(
+                                            suggestion.toString(),
+                                            style: const TextStyle(
+                                              fontSize: 18.0,
+                                              color: textColor,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height:5),
+                                          Text(
+                                            mean,
+                                            style: const TextStyle(
+                                              fontSize: 14.0,
+                                              color: textColor,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ]
+                                    ),
+                                  ),
+                                  Container(
+                                      margin: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: const BorderRadius.all(
+                                            Radius.circular(8)
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.6),
+                                            spreadRadius: 0,
+                                            blurRadius: 3,
+                                            offset: const Offset(3, 3), // changes position of shadow
+                                          ),
+                                        ],
+                                      ),
+                                      width: 70,
+                                      height: 50,
+                                      child: Stack(
+                                          children:[
+                                            ClipRRect(
+                                              borderRadius: BorderRadius.circular(8),
+                                              child: ImageFiltered(
+                                                imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                                child: Opacity(
+                                                  opacity: 0.8,
+                                                  child: Image(
+                                                    image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                    fit: BoxFit.cover,
+                                                    width: 70,
+                                                    height: 50,
+                                                    errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                      return const SizedBox();
+                                                    },
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            ClipRRect(
+                                              borderRadius: BorderRadius.circular(8),
+                                              child: Image(
+                                                image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                fit: BoxFit.contain,
+                                                width: 70,
+                                                height: 50,
+                                                errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                  return const SizedBox();
+                                                },
+                                              ),
+                                            ),
+                                            listMeans.length>1?
+                                            Positioned(
+                                                right: 4,
+                                                bottom: 4,
+                                                child: Container(
+                                                    alignment: Alignment.center,
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white.withOpacity(0.7),
+                                                      borderRadius: const BorderRadius.all(
+                                                          Radius.circular(20)
+                                                      ),
+                                                    ),
+                                                    height: 20,
+                                                    width: 20,
+                                                    child: Text(
+                                                      '+ ' + (listMeans.length-1).toString(),
+                                                      style: const TextStyle(
+                                                        fontSize: 9,
+                                                      ),
+                                                    )
+                                                )
+                                            )
+                                                : const SizedBox(),
+                                          ]
+                                      )
+                                  ),
+                                ]
+                            );
+                          },
+                          onSuggestionSelected: (suggestion) async {
+                            // searchField.text = suggestion.toString();
+                            await searchToHome(suggestion.toString());
+                          },
+                          animationDuration: Duration.zero,
+                          debounceDuration: Duration.zero,
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                  ]
+                      const SizedBox(width:15),
+                    ]
+                ),
               ),
             ),
+            GetBuilder<Controller>(
+              builder: (_) => Visibility(
+                visible: !c.isSearch.value,
+                child: Row(
+                  children:[
+                    const SizedBox(width: 20),
+                    OutlinedButton(
+                      style: ButtonStyle(
+                        // backgroundColor: MaterialStateProperty.all<Color>(backgroundColor.withOpacity(0.2)),
+                        // foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                        padding: MaterialStateProperty.all<EdgeInsets>(
+                            const EdgeInsets.all(12)
+                        ),
+                        shape: MaterialStateProperty.all<OutlinedBorder?>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30.0),
+                            )
+                        ),
+                      ),
+                      onPressed: () {
+                        getToCategory();
+                      },
+                      child: Text(
+                          c.language.string == 'VN'? 'Chủ đề':'Category',
+                          style: const TextStyle(
+                            color: textColor,
+                          )
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    OutlinedButton(
+                      style: ButtonStyle(
+                        // backgroundColor: MaterialStateProperty.all<Color>(backgroundColor.withOpacity(0.2)),
+                        // foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                        padding: MaterialStateProperty.all<EdgeInsets>(
+                            const EdgeInsets.all(12)
+                        ),
+                        shape: MaterialStateProperty.all<OutlinedBorder?>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30.0),
+                            )
+                        ),
+                      ),
+                      onPressed: () {
+                        getToType();
+                      },
+                      child: Text(
+                          c.language.string == 'VN'? 'Từ loại':'Type',
+                          style: const TextStyle(
+                            color: textColor,
+                          )
+                      ),
+                    ),
+                    const Expanded(child:SizedBox()),
+                    TextButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(backgroundColor.withOpacity(0.5)),
+                        foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                        padding: MaterialStateProperty.all<EdgeInsets>(
+                            const EdgeInsets.fromLTRB(0, 10, 0, 10)
+                        ),
+                        shape: MaterialStateProperty.all<OutlinedBorder?>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15.0),
+                            )
+                        ),
+                      ),
+                      onPressed: () {
+                        c.isSearch = true.obs;
+                        c.update();
+                        searchFocusNode.requestFocus();
+                      },
+                      child: const Icon(
+                        Icons.search,
+                        size: 20,
+                        color: textColor,
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
             Expanded(
               child: GetBuilder<Controller>(
                 builder: (_) => Visibility(
@@ -2522,7 +2510,7 @@ class _SearchPageState extends State<SearchPage> {
 
 class TranslatePage extends StatelessWidget {
   TranslatePage({Key? key}) : super(key: key);
-  final inController = TextEditingController();
+
   final FocusNode inFocusNode = FocusNode();
 
   @override
@@ -3239,8 +3227,24 @@ class SettingPage extends StatelessWidget {
   }
 }
 
-class CategoryScreen extends StatelessWidget {
+class CategoryScreen extends StatefulWidget {
   const CategoryScreen({Key? key}) : super(key: key);
+
+  @override
+  State<CategoryScreen> createState() => _CategoryScreenState();
+}
+
+class _CategoryScreenState extends State<CategoryScreen> {
+  List listCategoryShow = [];
+  final textFieldController = TextEditingController();
+
+  @override
+  void initState() {
+    setState((){
+      listCategoryShow = listCategory;
+    });
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -3250,11 +3254,12 @@ class CategoryScreen extends StatelessWidget {
       if (!c.isAdShowing.value){
         void toScore() async {
           c.isAdShowing = false.obs;
-          c.bundle = RxString(listCategory[i][c.typeState.value]);
-          c.listWordScore = RxList(await getListCategory(listCategory[i][0]));
-          c.category = RxString(listCategory[i][0]);
+          c.bundle = RxString(listCategoryShow[i][c.typeState.value]);
+          c.listWordScore = RxList(await getListCategory(listCategoryShow[i][0]));
+          c.category = RxString(listCategoryShow[i][0]);
           c.type = 'all type'.obs;
           c.part = 0.obs;
+          c.isSearch = false.obs;
           Get.offAll(()=> const ScorePage());
         }
         int isShow = Random().nextInt(showAdFrequency);
@@ -3295,6 +3300,7 @@ class CategoryScreen extends StatelessWidget {
       if (!c.isAdShowing.value){
         void toScore() async {
           c.isAdShowing = false.obs;
+          c.isSearch = false.obs;
           Get.offAll(()=> MainScreen());
         }
         int isShow = Random().nextInt(showAdFrequency);
@@ -3333,141 +3339,281 @@ class CategoryScreen extends StatelessWidget {
 
     return WillPopScope(
       onWillPop: () async {
+        c.isSearch = false.obs;
         Get.offAll(()=>MainScreen());
         return false;
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            c.language.string == 'VN'?'Chủ đề':'Category',
-            style: TextStyle(
-              fontSize: 18,
-              color: textColor.withOpacity(0.7),
-            ),
-            overflow: TextOverflow.ellipsis,
-            // textAlign: TextAlign.left,
-          ),
-          leading: IconButton(
-            padding: const EdgeInsets.all(0.0),
-            icon: Icon(
-              Icons.arrow_back_ios_rounded, size: 20,
-              color: textColor.withOpacity(0.7),
-            ),
-            tooltip: 'Back to MainScreen',
-            onPressed: () {
-              getToMainScreen();
-            },
-          ),
-          centerTitle: true,
-          backgroundColor: Colors.white,
-          bottomOpacity: 0.0,
-          elevation: 0.0,
-        ),
-        body: Container(
-          color: Colors.white,
-          // padding: EdgeInsets.all(10),
-          child: GridView.count(
-            crossAxisCount: MediaQuery.of(context).size.width~/120,
-            addAutomaticKeepAlives: false,
-            padding: const EdgeInsets.all(5),
-            childAspectRatio: 4/3,
-            // mainAxisSpacing: 10,
-            // crossAxisSpacing: 10,
-            children: List.generate(listCategory.length, (i) {
-              String url = '';
-              switch (listCategory[i][0]){
-                case 'heraldry':
-                  url = 'assets/temp/armory2.png';
-                  break;
-                case 'no category':
-                  url = 'assets/temp/no.png';
-                  break;
-                case 'past participle':
-                  url = 'assets/temp/no.png';
-                  break;
-                case 'internet':
-                  url = 'assets/temp/Internet1.png';
-                  break;
-                case 'bell-ringing':
-                  url = 'assets/temp/bob7.png';
-                  break;
-                default:
-                  url = 'assets/temp/' + listCategory[i][0] + '1.png';
-              }
-              return GestureDetector(
-                onTap: () {
-                  getToScore(i);
-                },
-                child: Stack(
-                  children:[
-                    Container(
-                      height: double.infinity,
-                      width: double.infinity,
-                      margin: const EdgeInsets.all(7),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: const BorderRadius.all(
-                            Radius.circular(10)
+        // resizeToAvoidBottomInset: false,
+        // appBar: AppBar(
+        //   title: Text(
+        //     c.language.string == 'VN'?'Chủ đề':'Category',
+        //     style: TextStyle(
+        //       fontSize: 18,
+        //       color: textColor.withOpacity(0.7),
+        //     ),
+        //     overflow: TextOverflow.ellipsis,
+        //     // textAlign: TextAlign.left,
+        //   ),
+        //   leading: IconButton(
+        //     padding: const EdgeInsets.all(0.0),
+        //     icon: Icon(
+        //       Icons.arrow_back_ios_rounded, size: 20,
+        //       color: textColor.withOpacity(0.7),
+        //     ),
+        //     tooltip: 'Back to MainScreen',
+        //     onPressed: () {
+        //       getToMainScreen();
+        //     },
+        //   ),
+        //   centerTitle: true,
+        //   backgroundColor: Colors.white,
+        //   bottomOpacity: 0.0,
+        //   elevation: 0.0,
+        // ),
+        body: GestureDetector(
+          onTap:(){
+            if (searchFocusNode.hasFocus){
+              searchFocusNode.unfocus();
+            }
+            if (c.isSearch.value){
+              c.isSearch = false.obs;
+              c.update();
+            }
+          },
+          child: Container(
+            color: Colors.white,
+            // padding: EdgeInsets.all(10),
+            child: Column(
+              children:[
+                SizedBox(height: MediaQuery.of(context).padding.top+10),
+                GetBuilder<Controller>(
+                  builder: (_) => Visibility(
+                    visible: c.isSearch.value,
+                    child: Column(
+                      children:[
+                        Row(
+                            children:[
+                              const SizedBox(width:15),
+                              Expanded(
+                                child: TextFormField(
+                                  // controller: searchField,
+                                  controller: textFieldController,
+                                  autofocus: true,
+                                  autocorrect: false,
+                                  textInputAction: TextInputAction.done,
+                                  // focusNode: searchFocusNode,
+                                  style: const TextStyle(
+                                    fontSize: 15.0,
+                                    color: textColor,
+                                  ),
+                                  decoration: InputDecoration(
+                                    fillColor: Colors.transparent,
+                                    filled: true,
+                                    border: const OutlineInputBorder(
+                                      borderSide: BorderSide(width:1,color:Colors.black),
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(30)
+                                      ),
+                                    ),
+                                    focusedBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(width:1,color:Colors.black),
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(30)
+                                      ),
+                                    ),
+                                    enabledBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(width:1,color:Colors.black),
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(30)
+                                      ),
+                                    ),
+                                    // prefixIcon: Icon(Icons.search_outlined,size:15),
+                                    hintText: c.hint.string,
+                                    isDense: true,
+                                    contentPadding: const EdgeInsets.all(5),
+                                    prefixIcon: const Icon(Icons.search),
+                                    suffixIcon: IconButton(
+                                        icon: const Icon(Icons.close_rounded),
+                                        onPressed:(){
+                                          textFieldController.text = '';
+                                          setState((){
+                                            listCategoryShow = listCategory;
+                                          });
+                                        }
+                                    ),
+                                    // icon: Icon(Icons.search),
+                                    // isCollapsed: true,
+                                  ),
+                                  onChanged: (value) {
+                                    // textFieldController.text = value;
+                                    List list = [];
+                                    for (int i=0;i<listCategory.length;i++){
+                                      if (TiengViet.parse(listCategory[i][c.typeState.value]).contains(TiengViet.parse(value))){
+                                        list.add(listCategory[i]);
+                                      }
+                                    }
+                                    setState((){
+                                      listCategoryShow = list;
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width:15),
+                            ]
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.6),
-                            spreadRadius: 0,
-                            blurRadius: 3,
-                            offset: const Offset(0, 0), // changes position of shadow
+                        const SizedBox(height: 10),
+                      ]
+                    ),
+                  ),
+                ),
+                GetBuilder<Controller>(
+                  builder: (_) => Visibility(
+                    visible: !c.isSearch.value,
+                    child: Row(
+                      children:[
+                        const SizedBox(width: 10),
+                        IconButton(
+                          padding: const EdgeInsets.all(0.0),
+                          icon: Icon(
+                            Icons.arrow_back_ios_rounded, size: 20,
+                            color: textColor.withOpacity(0.7),
                           ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.asset(
-                          url,
-                          fit: BoxFit.cover,
-                          // width: MediaQuery.of(context).size.width<500? MediaQuery.of(context).size.width-100:400,
-                          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                            return const SizedBox();
+                          tooltip: 'Back to MainScreen',
+                          onPressed: () {
+                            getToMainScreen();
                           },
                         ),
-                      ),
-                    ),
-                    Column(
-                      children:[
-                        const Expanded(child:SizedBox()),
-                        Container(
-                          height: 25,
-                          // alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.5),
-                            borderRadius: const BorderRadius.only(
-                              bottomLeft: Radius.circular(10),
-                              bottomRight: Radius.circular(10),
+                        Expanded(
+                          child: Text(
+                            c.language.string == 'VN'?'Chủ đề':'Category',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              color: textColor,
                             ),
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
                           ),
-                          margin: const EdgeInsets.all(7),
-                          child: Row(
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.search, size: 25,),
+                          onPressed: () {
+                            c.isSearch = true.obs;
+                            c.update();
+                          },
+                        ),
+                        const SizedBox(width: 10),
+                      ],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: GridView.count(
+                    crossAxisCount: MediaQuery.of(context).size.width~/120,
+                    addAutomaticKeepAlives: false,
+                    padding: const EdgeInsets.all(5),
+                    childAspectRatio: 4/3,
+                    // mainAxisSpacing: 10,
+                    // crossAxisSpacing: 10,
+                    children: List.generate(listCategoryShow.length, (i) {
+                      String url = '';
+                      switch (listCategoryShow[i][0]){
+                        case 'heraldry':
+                          url = 'assets/temp/armory2.png';
+                          break;
+                        case 'no category':
+                          url = 'assets/temp/no.png';
+                          break;
+                        case 'past participle':
+                          url = 'assets/temp/no.png';
+                          break;
+                        case 'internet':
+                          url = 'assets/temp/Internet1.png';
+                          break;
+                        case 'bell-ringing':
+                          url = 'assets/temp/bob7.png';
+                          break;
+                        default:
+                          url = 'assets/temp/' + listCategoryShow[i][0] + '1.png';
+                      }
+                      return GestureDetector(
+                        onTap: () {
+                          getToScore(i);
+                        },
+                        child: Stack(
                             children:[
-                              const SizedBox(width:5),
-                              Expanded(
-                                child: Text(
-                                  listCategory[i][c.typeState.value],
-                                  // textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    overflow: TextOverflow.ellipsis,
-                                    color: Colors.white,
+                              Container(
+                                height: double.infinity,
+                                width: double.infinity,
+                                margin: const EdgeInsets.all(7),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(10)
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.6),
+                                      spreadRadius: 0,
+                                      blurRadius: 3,
+                                      offset: const Offset(0, 0), // changes position of shadow
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Image.asset(
+                                    url,
+                                    fit: BoxFit.cover,
+                                    // width: MediaQuery.of(context).size.width<500? MediaQuery.of(context).size.width-100:400,
+                                    errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                      return const SizedBox();
+                                    },
                                   ),
                                 ),
                               ),
-                              const SizedBox(width:5),
+                              Column(
+                                  children:[
+                                    const Expanded(child:SizedBox()),
+                                    Container(
+                                      height: 25,
+                                      // alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.5),
+                                        borderRadius: const BorderRadius.only(
+                                          bottomLeft: Radius.circular(10),
+                                          bottomRight: Radius.circular(10),
+                                        ),
+                                      ),
+                                      margin: const EdgeInsets.all(7),
+                                      child: Row(
+                                          children:[
+                                            const SizedBox(width:5),
+                                            Expanded(
+                                              child: Text(
+                                                listCategoryShow[i][c.typeState.value],
+                                                // textAlign: TextAlign.center,
+                                                style: const TextStyle(
+                                                  fontSize: 16,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width:5),
+                                          ]
+                                      ),
+                                    ),
+                                  ]
+                              ),
                             ]
-                          ),
                         ),
-                      ]
-                    ),
-                  ]
+                      );
+                    }),
+                  ),
                 ),
-              );
-            }),
+              ]
+            ),
           ),
         ),
       ),
