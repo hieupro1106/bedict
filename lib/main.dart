@@ -1114,7 +1114,24 @@ class _SearchPageState extends State<SearchPage> {
                 visible: c.isSearch.value,
                 child: Row(
                     children:[
-                      const SizedBox(width:15),
+                      // const SizedBox(width:15),
+                      IconButton(
+                        padding: const EdgeInsets.all(0.0),
+                        icon: Icon(
+                          Icons.arrow_back_ios_rounded, size: 20,
+                          color: textColor.withOpacity(0.7),
+                        ),
+                        tooltip: 'Back',
+                        onPressed: () {
+                          if (searchFocusNode.hasFocus){
+                            searchFocusNode.unfocus();
+                          }
+                          if (c.isSearch.value){
+                            c.isSearch = false.obs;
+                            c.update();
+                          }
+                        },
+                      ),
                       Expanded(
                         child: TypeAheadField(
                           textFieldConfiguration: TextFieldConfiguration(
@@ -3344,33 +3361,6 @@ class _CategoryScreenState extends State<CategoryScreen> {
         return false;
       },
       child: Scaffold(
-        // resizeToAvoidBottomInset: false,
-        // appBar: AppBar(
-        //   title: Text(
-        //     c.language.string == 'VN'?'Chủ đề':'Category',
-        //     style: TextStyle(
-        //       fontSize: 18,
-        //       color: textColor.withOpacity(0.7),
-        //     ),
-        //     overflow: TextOverflow.ellipsis,
-        //     // textAlign: TextAlign.left,
-        //   ),
-        //   leading: IconButton(
-        //     padding: const EdgeInsets.all(0.0),
-        //     icon: Icon(
-        //       Icons.arrow_back_ios_rounded, size: 20,
-        //       color: textColor.withOpacity(0.7),
-        //     ),
-        //     tooltip: 'Back to MainScreen',
-        //     onPressed: () {
-        //       getToMainScreen();
-        //     },
-        //   ),
-        //   centerTitle: true,
-        //   backgroundColor: Colors.white,
-        //   bottomOpacity: 0.0,
-        //   elevation: 0.0,
-        // ),
         body: GestureDetector(
           onTap:(){
             if (searchFocusNode.hasFocus){
@@ -3394,7 +3384,24 @@ class _CategoryScreenState extends State<CategoryScreen> {
                       children:[
                         Row(
                             children:[
-                              const SizedBox(width:15),
+                              // const SizedBox(width:15),
+                              IconButton(
+                                padding: const EdgeInsets.all(0.0),
+                                icon: Icon(
+                                  Icons.arrow_back_ios_rounded, size: 20,
+                                  color: textColor.withOpacity(0.7),
+                                ),
+                                tooltip: 'Back',
+                                onPressed: () {
+                                  if (searchFocusNode.hasFocus){
+                                    searchFocusNode.unfocus();
+                                  }
+                                  if (c.isSearch.value){
+                                    c.isSearch = false.obs;
+                                    c.update();
+                                  }
+                                },
+                              ),
                               Expanded(
                                 child: TextFormField(
                                   // controller: searchField,
@@ -3449,7 +3456,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                                     // textFieldController.text = value;
                                     List list = [];
                                     for (int i=0;i<listCategory.length;i++){
-                                      if (TiengViet.parse(listCategory[i][c.typeState.value]).contains(TiengViet.parse(value))){
+                                      if (TiengViet.parse(listCategory[i][c.typeState.value]).startsWith(TiengViet.parse(value))){
                                         list.add(listCategory[i]);
                                       }
                                     }
@@ -3876,6 +3883,12 @@ class Home extends StatelessWidget {
       if (!c.isAdShowing.value){
         void toScore() {
           c.isAdShowing = false.obs;
+          if (searchFocusNode.hasFocus){
+            searchFocusNode.unfocus();
+          }
+          if (c.isSearch.value){
+            c.isSearch = false.obs;
+          }
           switch (c.fromScreen.value){
             case 0:
               Get.offAll(()=> MainScreen());
@@ -3923,6 +3936,12 @@ class Home extends StatelessWidget {
         void toScore() {
           c.isAdShowing = false.obs;
           c.currentTab = 0.obs;
+          if (searchFocusNode.hasFocus){
+            searchFocusNode.unfocus();
+          }
+          if (c.isSearch.value){
+            c.isSearch = false.obs;
+          }
           Get.offAll(()=>const LearnWord());
         }
         int isShow = Random().nextInt(showAdFrequency);
@@ -3963,6 +3982,12 @@ class Home extends StatelessWidget {
       if (!c.isAdShowing.value){
         void toScore() async {
           c.isAdShowing = false.obs;
+          if (searchFocusNode.hasFocus){
+            searchFocusNode.unfocus();
+          }
+          if (c.isSearch.value){
+            c.isSearch = false.obs;
+          }
           if (c.fromScreen.value ==0){
             if (c.nowWord.value<(c.wordArray.length-1)){
               c.nowWord = RxInt(c.nowWord.value+1);
@@ -4017,6 +4042,12 @@ class Home extends StatelessWidget {
       if (!c.isAdShowing.value){
         void toScore() async {
           c.isAdShowing = false.obs;
+          if (searchFocusNode.hasFocus){
+            searchFocusNode.unfocus();
+          }
+          if (c.isSearch.value){
+            c.isSearch = false.obs;
+          }
           if (c.fromScreen.value == 0){
             if (c.nowWord.value>0){
               c.nowWord = RxInt(c.nowWord.value-1);
@@ -4071,6 +4102,12 @@ class Home extends StatelessWidget {
       if (!c.isAdShowing.value){
         void toScore() async {
           c.isAdShowing = false.obs;
+          if (searchFocusNode.hasFocus){
+            searchFocusNode.unfocus();
+          }
+          if (c.isSearch.value){
+            c.isSearch = false.obs;
+          }
           if (c.fromScreen.value == 0){
             c.nowWord = RxInt(Random().nextInt(c.wordArray.length));
             await c.layWord(c.wordArray[c.nowWord.value]);
@@ -4117,6 +4154,12 @@ class Home extends StatelessWidget {
       if (!c.isAdShowing.value){
         void toScore() {
           c.isAdShowing = false.obs;
+          if (searchFocusNode.hasFocus){
+            searchFocusNode.unfocus();
+          }
+          if (c.isSearch.value){
+            c.isSearch = false.obs;
+          }
           if (c.nowMean.value<(c.mean.length-1)){
             c.nowMean = RxInt(c.nowMean.value+1);
             c.update();
@@ -4163,6 +4206,12 @@ class Home extends StatelessWidget {
       if (!c.isAdShowing.value){
         void toScore() {
           c.isAdShowing = false.obs;
+          if (searchFocusNode.hasFocus){
+            searchFocusNode.unfocus();
+          }
+          if (c.isSearch.value){
+            c.isSearch = false.obs;
+          }
           if (c.nowMean.value>0){
             c.nowMean = RxInt(c.nowMean.value-1);
             c.update();
@@ -4398,7 +4447,24 @@ class Home extends StatelessWidget {
                         visible: c.isSearch.value,
                         child: Row(
                             children:[
-                              const SizedBox(width:15),
+                              // const SizedBox(width:15),
+                              IconButton(
+                                padding: const EdgeInsets.all(0.0),
+                                icon: Icon(
+                                  Icons.arrow_back_ios_rounded, size: 20,
+                                  color: textColor.withOpacity(0.7),
+                                ),
+                                tooltip: 'Back',
+                                onPressed: () {
+                                  if (searchFocusNode.hasFocus){
+                                    searchFocusNode.unfocus();
+                                  }
+                                  if (c.isSearch.value){
+                                    c.isSearch = false.obs;
+                                    c.update();
+                                  }
+                                },
+                              ),
                               Expanded(
                                 child: TypeAheadField(
                                   textFieldConfiguration: TextFieldConfiguration(
@@ -9932,7 +9998,7 @@ class TermPage extends StatelessWidget {
             Icons.arrow_back_ios_rounded, size: 20,
             // color: textColor.withOpacity(0.7),
           ),
-          tooltip: 'Back to MainScreen',
+          tooltip: 'Back',
           onPressed: () {
             Navigator.pop(context);
           },
