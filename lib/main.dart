@@ -20,7 +20,6 @@ import 'package:flutter/services.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:screenshot/screenshot.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -34,6 +33,10 @@ import 'package:tiengviet/tiengviet.dart';
 List listCategory = [];
 
 List listType = [];
+
+List languages = [];
+
+List languagesCode = [];
 
 const String androidAd = 'ca-app-pub-9467993129762242/1735030175';
 const String iosAd = 'ca-app-pub-9467993129762242/5200342904';
@@ -133,6 +136,10 @@ Future<void> main() async {
   listCategory = await json.decode(response);
   response = await rootBundle.loadString('assets/type.json');
   listType = await json.decode(response);
+  response = await rootBundle.loadString('assets/languages.json');
+  languages = await json.decode(response);
+  response = await rootBundle.loadString('assets/languageCode.json');
+  languagesCode = await json.decode(response);
 
   runAppCount = await boxSetting.get('runAppCount') ?? runAppCount;
   await boxSetting.put('runAppCount',runAppCount+1);
@@ -147,12 +154,12 @@ Future<void> main() async {
   c.notifyWord = RxBool(await boxSetting.get('notifyWord') ?? false);
   c.enableSound = RxBool(await boxSetting.get('enableSound') ?? true);
   c.initSpeak = RxBool(await boxSetting.get('initSpeak') ?? true);
-  c.word = RxString(await boxSetting.get('word') ?? 'hello');
   c.speakSpeed = RxDouble(await boxSetting.get('speakSpeed') ?? 0.4);
   c.target = RxInt(await boxSetting.get('target') ?? 10);
   c.notificationInterval = RxInt(await boxSetting.get('notificationInterval') ?? 60);
   c.language = RxString(await boxSetting.get('language') ?? (Get.deviceLocale.toString() != 'vi_VN'? 'EN':'VN'));
   c.changeLanguage(c.language.string);
+  c.languageLocal = RxString(await boxSetting.get('languageLocal') ?? 'Vietnamese');
   if (c.language.string == 'VN'){
     initLanguageIndex = 0;
   }else{
@@ -272,13 +279,13 @@ class Controller extends GetxController {
 
   var bundle = ''.obs;
   var part = 0.obs;
+  var isReverse = false.obs;
 
   var nowDuration = 0.obs;
   var fromScreen = 0.obs;
   var translateIn = ''.obs;
   var translateOut = ''.obs;
-  var languageIn = 'English'.obs;
-  var languageOut = 'Tiếng Việt'.obs;
+  var languageLocal = 'Vietnamese'.obs;
   var currentPage = 0.obs;
   var currentTab = 0.obs;
   var nowIndex = 0.obs;
@@ -501,7 +508,6 @@ class Controller extends GetxController {
   }
   Future layWord(String newWord) async {
     word = RxString(newWord);
-    await boxSetting.put('word',word.string);
     // searchField.text = word.string;
     Score currentScore = await getScore(word.string);
     wordScore = RxInt(currentScore.word);
@@ -2539,11 +2545,12 @@ class TranslatePage extends StatelessWidget {
         inFocusNode.unfocus();
       }
       if (inController.value.text != ''){
-        if (c.languageIn.string == 'English'){
-          var translation = await inController.value.text.translate(from:'en',to:'vi');
+        String languageCode = languagesCode[languages.indexOf(c.languageLocal.string)];
+        if (!c.isReverse.value){
+          var translation = await inController.value.text.translate(from:'en',to:languageCode);
           c.translateOut = RxString(translation.text);
         }else{
-          var translation = await inController.value.text.translate(from:'vi',to:'en');
+          var translation = await inController.value.text.translate(from:languageCode,to:'en');
           c.translateOut = RxString(translation.text);
         }
       }else{
@@ -2559,12 +2566,18 @@ class TranslatePage extends StatelessWidget {
       }
     }
 
-    Future startListening(String locale) async {
-      await stt.listen(
-        onResult: onSpeechResult,
-        localeId: locale,
-        // partialResults: false,
-      );
+    Future startListening() async {
+      if (!c.isReverse.value){
+        await stt.listen(
+          onResult: onSpeechResult,
+          localeId: c.locale.string,
+          // partialResults: false,
+        );
+      }else{
+        await stt.listen(
+          onResult: onSpeechResult,
+        );
+      }
     }
 
     void stopListening() async {
@@ -2582,40 +2595,134 @@ class TranslatePage extends StatelessWidget {
         child: Column(
           children:[
             SizedBox(height: MediaQuery.of(context).padding.top+10),
-            Row(
-              children: [
-                Expanded(
-                  child: GetBuilder<Controller>(
-                    builder: (_) => Text(
-                      c.languageIn.string,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 20,
+            GetBuilder<Controller>(
+              builder: (_) => c.isReverse.value?
+              Row(
+                  children: [
+                    Expanded(
+                      child: PopupMenuButton<String>(
+                        onSelected: (String word) async {
+                          c.languageLocal = RxString(word);
+                          await boxSetting.put('languageLocal',word);
+                          c.update();
+                        },
+                        padding: const EdgeInsets.all(0),
+                        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                          for (int i=0; i<languages.length; i++)
+                            PopupMenuItem<String>(
+                                value: languages[i],
+                                padding: const EdgeInsets.fromLTRB(5,0,5,0),
+                                child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        languages[i],
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          color: textColor,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ]
+                                )
+                            ),
+                        ],
+                        // color: themeColor,
+                        child: Text(
+                          c.languageLocal.string,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            color: textColor,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                        shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(20.0))
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.compare_arrows_rounded),
-                  onPressed: (){
-                    String newLanguage = c.languageIn.string;
-                    c.languageIn = RxString(c.languageOut.string);
-                    c.languageOut = RxString(newLanguage);
-                    c.update();
-                  },
-                ),
-                Expanded(
-                  child: GetBuilder<Controller>(
-                    builder: (_) => Text(
-                      c.languageOut.string,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 20,
+                    IconButton(
+                      icon: const Icon(Icons.compare_arrows_rounded),
+                      onPressed: (){
+                        c.isReverse = RxBool(!c.isReverse.value);
+                        c.update();
+                      },
+                    ),
+                    const Expanded(
+                      child: Text(
+                        'English',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 20,
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              ]
+                  ]
+              ):
+              Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'English',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 20,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.compare_arrows_rounded),
+                      onPressed: (){
+                        c.isReverse = RxBool(!c.isReverse.value);
+                        c.update();
+                      },
+                    ),
+                    Expanded(
+                      child: PopupMenuButton<String>(
+                        onSelected: (String word) async {
+                          c.languageLocal = RxString(word);
+                          await boxSetting.put('languageLocal',word);
+                          c.update();
+                        },
+                        padding: const EdgeInsets.all(0),
+                        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                          for (int i=0; i<languages.length; i++)
+                            PopupMenuItem<String>(
+                                value: languages[i],
+                                padding: const EdgeInsets.fromLTRB(5,0,5,0),
+                                child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        languages[i],
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          color: textColor,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ]
+                                )
+                            ),
+                        ],
+                        // color: themeColor,
+                        child: Text(
+                          c.languageLocal.string,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            color: textColor,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                        shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(20.0))
+                        ),
+                      ),
+                    ),
+                  ]
+              ),
             ),
             Row(
               children:[
@@ -2692,11 +2799,7 @@ class TranslatePage extends StatelessWidget {
                     ),
                     onPressed: () {
                       if (stt.isNotListening){
-                        if (c.languageIn.string == 'English'){
-                          startListening(c.locale.string);
-                        }else{
-                          startListening('vi-VN');
-                        }
+                        startListening();
                       }else{
                         stopListening();
                       }
@@ -2709,7 +2812,7 @@ class TranslatePage extends StatelessWidget {
                     size: 35,
                   ),
                   onPressed: () {
-                    if (c.languageIn.string == 'English'){
+                    if (!c.isReverse.value){
                       _speak(inController.value.text);
                     }else{
                       _speak(c.translateOut.string);
@@ -3824,10 +3927,6 @@ class Home extends StatelessWidget {
   Home({Key? key}) : super(key: key);
   final GlobalKey<ProcessWidgetState> processKey = GlobalKey<ProcessWidgetState>();
 
-  final ScreenshotController screenshotController = ScreenshotController();
-
-  // final FocusNode searchFocusNodeHome = FocusNode();
-
   @override
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
@@ -4279,9 +4378,7 @@ class Home extends StatelessWidget {
             statusBarIconBrightness: Brightness.light, // status bar icons' color
             systemNavigationBarIconBrightness: Brightness.light, //navigation bar icons' color
           ),
-          child: Screenshot(
-            controller: screenshotController,
-            child: Stack(
+          child: Stack(
               children: [
                 GetBuilder<Controller>(
                   builder: (_) => c.imageURL.isNotEmpty?
@@ -4390,18 +4487,48 @@ class Home extends StatelessWidget {
                               IconButton(
                                 icon: const Icon(Icons.share, size: 25,),
                                 onPressed: () async {
-                                  double pixelRatio = MediaQuery.of(context).devicePixelRatio;
-                                  await screenshotController.capture(
-                                      delay: const Duration(milliseconds: 10),
-                                      pixelRatio: pixelRatio
-                                  ).then((image) async {
-                                    if (image != null) {
-                                      final directory = await getApplicationDocumentsDirectory();
-                                      final imagePath = await File('${directory.path}/image.png').create();
-                                      await imagePath.writeAsBytes(image);
-                                      await Share.shareFiles([imagePath.path]);
-                                    }
-                                  });
+                                  // double pixelRatio = MediaQuery.of(context).devicePixelRatio;
+                                  // await screenshotController.capture(
+                                  //     delay: const Duration(milliseconds: 10),
+                                  //     pixelRatio: pixelRatio
+                                  // ).then((image) async {
+                                  //   if (image != null) {
+                                  //     final directory = await getApplicationDocumentsDirectory();
+                                  //     final imagePath = await File('${directory.path}/image.png').create();
+                                  //     await imagePath.writeAsBytes(image);
+                                  //     await Share.shareFiles([imagePath.path]);
+                                  //   }
+                                  // });
+                                  String mean = '';
+                                  for (int i=0;i<c.mean[c.nowMean.value].length;i++){
+                                    String subMean = c.mean[c.nowMean.value][i];
+                                    mean += '(' + laytuloai(subMean.substring(subMean.length - 1))[c.typeState.value].toLowerCase();
+                                    mean += ') ';
+                                    mean += subMean.substring(0,subMean.length-1);
+                                    mean += '\n';
+                                  }
+                                  final response = await http.get(Uri.parse('https://bedict.com/' + c.imageURL[c.nowMean.value].replaceAll('\\','')));
+                                  final bytes = response.bodyBytes;
+                                  final temp = await getApplicationDocumentsDirectory();
+                                  final path = '${temp.path}/image.jpg';
+                                  File(path).writeAsBytes(bytes);
+                                  String string = '';
+                                  if (c.language.string == 'VN'){
+                                    string = 'BeDict - Ứng dụng từ điển hình ảnh Tiếng Anh'
+                                        + '\n\n' + c.word.string + '\n/'
+                                        + c.pronun.string + '/\n'+ mean
+                                        + '\nIos: https://apple.co/3M6FDxy\n'
+                                        + '\nAndroid: https://play.google.com/store/apps/details?id=com.bedict.bedict\n'
+                                        + '\nWeb: https://bedict.com/\n';
+                                  }else{
+                                    string = 'BeDict - English Picture Dictionary Application'
+                                        + '\n\n' + c.word.string + '\n/'
+                                        + c.pronun.string + '/\n'+ mean
+                                        + '\nIos: https://apple.co/3M6FDxy\n'
+                                        + '\nAndroid: https://play.google.com/store/apps/details?id=com.bedict.bedict\n'
+                                        + '\nWeb: https://bedict.com/\n';
+                                  }
+                                  await Share.shareFiles([path],text: string);
                                 },
                               ),
                               const SizedBox(width:20),
@@ -5089,7 +5216,6 @@ class Home extends StatelessWidget {
                   ),
                 ),
               ]
-            ),
           ),
         ),
       ),
