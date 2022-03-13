@@ -4518,15 +4518,15 @@ class Home extends StatelessWidget {
                                         + '\n\n' + c.word.string + '\n/'
                                         + c.pronun.string + '/\n'+ mean
                                         + '\nIos: https://apple.co/3M6FDxy\n'
-                                        + '\nAndroid: https://play.google.com/store/apps/details?id=com.bedict.bedict\n'
-                                        + '\nWeb: https://bedict.com/\n';
+                                        + 'Android: https://play.google.com/store/apps/details?id=com.bedict.bedict\n'
+                                        + 'Web: https://bedict.com/\n';
                                   }else{
                                     string = 'BeDict - English Picture Dictionary Application'
                                         + '\n\n' + c.word.string + '\n/'
                                         + c.pronun.string + '/\n'+ mean
                                         + '\nIos: https://apple.co/3M6FDxy\n'
-                                        + '\nAndroid: https://play.google.com/store/apps/details?id=com.bedict.bedict\n'
-                                        + '\nWeb: https://bedict.com/\n';
+                                        + 'Android: https://play.google.com/store/apps/details?id=com.bedict.bedict\n'
+                                        + 'Web: https://bedict.com/\n';
                                   }
                                   await Share.shareFiles([path],text: string);
                                 },
