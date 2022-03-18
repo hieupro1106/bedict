@@ -349,8 +349,6 @@ class Controller extends GetxController {
 
   var speakSpeed = 0.4.obs;
 
-  var isAdShowing = false.obs;
-
   var drawerInitSpeak = 'Tự động phát âm'.obs;
   var drawerEnableSound = 'Âm nền'.obs;
   var drawerHistory = 'Lịch sử tìm kiếm'.obs;
@@ -884,220 +882,45 @@ class _SearchPageState extends State<SearchPage> {
     }
     initial = false;
 
-    void getToScore(String bundle) {
-      if (!c.isAdShowing.value){
-        void toScore() {
-          c.bundle = RxString(bundle);
-          c.part = 0.obs;
-          c.isAdShowing = false.obs;
-          c.category = 'all category'.obs;
-          c.type = 'all type'.obs;
-          Get.offAll(()=> const ScorePage());
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
-      }
+    Future getToScore(String bundle) async {
+      c.bundle = RxString(bundle);
+      c.part = 0.obs;
+      c.category = 'all category'.obs;
+      c.type = 'all type'.obs;
+      await loadAd();
+      Get.offAll(()=> const ScorePage());
     }
 
-    void getToHome(String bundle, String word) {
-      if (!c.isAdShowing.value){
-        void toScore() async {
-          c.fromScreen = 1.obs;
-          c.isSearch = false.obs;
-          c.isAdShowing = false.obs;
-          c.bundle = RxString(bundle);
-          c.category = 'all category'.obs;
-          c.type = 'all type'.obs;
-          await c.layWord(word);
-          Get.offAll(()=>Home());
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
-      }
+    Future getToHome(String bundle, String word) async {
+      c.fromScreen = 1.obs;
+      c.isSearch = false.obs;
+      await loadAd();
+      c.bundle = RxString(bundle);
+      c.category = 'all category'.obs;
+      c.type = 'all type'.obs;
+      await c.layWord(word);
+      Get.offAll(()=>Home());
     }
 
     Future searchToHome(String word) async {
-      if (!c.isAdShowing.value){
-        Future toScore() async {
-          c.nowWord = RxInt(c.wordArray.indexOf(word));
-          c.isAdShowing = false.obs;
-          c.isSearch = false.obs;
-          c.category = 'all category'.obs;
-          c.type = 'all type'.obs;
-          c.fromScreen = 0.obs;
-          await c.layWord(word);
-          Get.offAll(()=>Home());
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
+      c.nowWord = RxInt(c.wordArray.indexOf(word));
+      await loadAd();
+      c.isSearch = false.obs;
+      c.category = 'all category'.obs;
+      c.type = 'all type'.obs;
+      c.fromScreen = 0.obs;
+      await c.layWord(word);
+      Get.offAll(()=>Home());
       }
+
+    Future getToCategory() async {
+      await loadAd();
+      Get.offAll(()=> const CategoryScreen());
     }
 
-    void getToCategory() {
-      if (!c.isAdShowing.value){
-        void toScore() {
-          c.isAdShowing = false.obs;
-          Get.offAll(()=> const CategoryScreen());
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
-      }
-    }
-
-    void getToType() {
-      if (!c.isAdShowing.value){
-        void toScore() {
-          c.isAdShowing = false.obs;
-          Get.offAll(()=> const TypeScreen());
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
-      }
+    Future getToType() async {
+      await loadAd();
+      Get.offAll(()=> const TypeScreen());
     }
 
     return GestureDetector(
@@ -3370,91 +3193,21 @@ class _CategoryScreenState extends State<CategoryScreen> {
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
 
-    void getToScore(int i) {
-      if (!c.isAdShowing.value){
-        void toScore() async {
-          c.isAdShowing = false.obs;
-          c.bundle = RxString(listCategoryShow[i][c.typeState.value]);
-          c.listWordScore = RxList(await getListCategory(listCategoryShow[i][0]));
-          c.category = RxString(listCategoryShow[i][0]);
-          c.type = 'all type'.obs;
-          c.part = 0.obs;
-          c.isSearch = false.obs;
-          Get.offAll(()=> const ScorePage());
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
-      }
+    Future getToScore(int i) async {
+      await loadAd();
+      c.bundle = RxString(listCategoryShow[i][c.typeState.value]);
+      c.listWordScore = RxList(await getListCategory(listCategoryShow[i][0]));
+      c.category = RxString(listCategoryShow[i][0]);
+      c.type = 'all type'.obs;
+      c.part = 0.obs;
+      c.isSearch = false.obs;
+      Get.offAll(()=> const ScorePage());
     }
 
-    void getToMainScreen() {
-      if (!c.isAdShowing.value){
-        void toScore() async {
-          c.isAdShowing = false.obs;
-          c.isSearch = false.obs;
-          Get.offAll(()=> MainScreen());
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
-      }
+    Future getToMainScreen() async {
+      await loadAd();
+      c.isSearch = false.obs;
+      Get.offAll(()=> MainScreen());
     }
 
     return WillPopScope(
@@ -3738,89 +3491,19 @@ class TypeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
 
-    void getToScore(int i) {
-      if (!c.isAdShowing.value){
-        void toScore() async {
-          c.isAdShowing = false.obs;
-          c.bundle = RxString(listType[i][c.typeState.value]);
-          c.listWordScore = RxList(await getListType(listType[i][0]));
-          c.category = 'all category'.obs;
-          c.type = RxString(listType[i][0]);
-          c.part = 0.obs;
-          Get.offAll(()=> const ScorePage());
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
-      }
+    Future getToScore(int i) async {
+      await loadAd();
+      c.bundle = RxString(listType[i][c.typeState.value]);
+      c.listWordScore = RxList(await getListType(listType[i][0]));
+      c.category = 'all category'.obs;
+      c.type = RxString(listType[i][0]);
+      c.part = 0.obs;
+      Get.offAll(()=> const ScorePage());
     }
 
-    void getToMainScreen() {
-      if (!c.isAdShowing.value){
-        void toScore() async {
-          c.isAdShowing = false.obs;
-          Get.offAll(()=> MainScreen());
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
-      }
+    Future getToMainScreen() async {
+      await loadAd();
+      Get.offAll(()=> MainScreen());
     }
 
     return WillPopScope(
@@ -3934,422 +3617,142 @@ class Home extends StatelessWidget {
     List<String> suggestArray = [];
 
     Future searchToHome(String word) async {
-      if (!c.isAdShowing.value){
-        Future toScore() async {
-          c.nowWord = RxInt(c.wordArray.indexOf(word));
-          c.isAdShowing = false.obs;
-          c.isSearch = false.obs;
-          c.category = 'all category'.obs;
-          c.type = 'all type'.obs;
-          c.fromScreen = 0.obs;
-          await c.layWord(word);
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
+      c.nowWord = RxInt(c.wordArray.indexOf(word));
+      await loadAd();
+      c.isSearch = false.obs;
+      c.category = 'all category'.obs;
+      c.type = 'all type'.obs;
+      c.fromScreen = 0.obs;
+      await c.layWord(word);
+    }
+
+    Future getBack() async {
+      await loadAd();
+      if (searchFocusNode.hasFocus){
+        searchFocusNode.unfocus();
+      }
+      if (c.isSearch.value){
+        c.isSearch = false.obs;
+      }
+      switch (c.fromScreen.value){
+        case 0:
+          Get.offAll(()=> MainScreen());
+          break;
+        default:
+          Get.offAll(()=> const ScorePage());
       }
     }
 
-    void getBack() {
-      if (!c.isAdShowing.value){
-        void toScore() {
-          c.isAdShowing = false.obs;
-          if (searchFocusNode.hasFocus){
-            searchFocusNode.unfocus();
-          }
-          if (c.isSearch.value){
-            c.isSearch = false.obs;
-          }
-          switch (c.fromScreen.value){
-            case 0:
-              Get.offAll(()=> MainScreen());
-              break;
-            default:
-              Get.offAll(()=> const ScorePage());
-          }
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
+    Future getToLearn() async {
+      await loadAd();
+      c.currentTab = 0.obs;
+      if (searchFocusNode.hasFocus){
+        searchFocusNode.unfocus();
+      }
+      if (c.isSearch.value){
+        c.isSearch = false.obs;
+      }
+      Get.offAll(()=>const LearnWord());
+    }
+
+    Future getNext() async {
+      await loadAd();
+      if (searchFocusNode.hasFocus){
+        searchFocusNode.unfocus();
+      }
+      if (c.isSearch.value){
+        c.isSearch = false.obs;
+      }
+      if (c.fromScreen.value ==0){
+        if (c.nowWord.value<(c.wordArray.length-1)){
+          c.nowWord = RxInt(c.nowWord.value+1);
         }else{
-          toScore();
+          c.nowWord = 0.obs;
         }
+        await c.layWord(c.wordArray[c.nowWord.value]);
+      }else{
+        if (c.nowWord.value<(c.listWordScorePage.length-1)){
+          c.nowWord = RxInt(c.nowWord.value+1);
+        }else{
+          c.nowWord = 0.obs;
+        }
+        await c.layWord(c.listWordScorePage[c.nowWord.value]);
       }
     }
 
-    void getToLearn() {
-      if (!c.isAdShowing.value){
-        void toScore() {
-          c.isAdShowing = false.obs;
-          c.currentTab = 0.obs;
-          if (searchFocusNode.hasFocus){
-            searchFocusNode.unfocus();
-          }
-          if (c.isSearch.value){
-            c.isSearch = false.obs;
-          }
-          Get.offAll(()=>const LearnWord());
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
+    Future getPrevious() async {
+      await loadAd();
+      if (searchFocusNode.hasFocus){
+        searchFocusNode.unfocus();
+      }
+      if (c.isSearch.value){
+        c.isSearch = false.obs;
+      }
+      if (c.fromScreen.value == 0){
+        if (c.nowWord.value>0){
+          c.nowWord = RxInt(c.nowWord.value-1);
         }else{
-          toScore();
+          c.nowWord = RxInt(c.wordArray.length-1);
         }
+        await c.layWord(c.wordArray[c.nowWord.value]);
+      }else{
+        if (c.nowWord.value>0){
+          c.nowWord = RxInt(c.nowWord.value-1);
+        }else{
+          c.nowWord = RxInt(c.listWordScorePage.length-1);
+        }
+        await c.layWord(c.listWordScorePage[c.nowWord.value]);
       }
     }
 
-    void getNext() {
-      if (!c.isAdShowing.value){
-        void toScore() async {
-          c.isAdShowing = false.obs;
-          if (searchFocusNode.hasFocus){
-            searchFocusNode.unfocus();
-          }
-          if (c.isSearch.value){
-            c.isSearch = false.obs;
-          }
-          if (c.fromScreen.value ==0){
-            if (c.nowWord.value<(c.wordArray.length-1)){
-              c.nowWord = RxInt(c.nowWord.value+1);
-            }else{
-              c.nowWord = 0.obs;
-            }
-            await c.layWord(c.wordArray[c.nowWord.value]);
-          }else{
-            if (c.nowWord.value<(c.listWordScorePage.length-1)){
-              c.nowWord = RxInt(c.nowWord.value+1);
-            }else{
-              c.nowWord = 0.obs;
-            }
-            await c.layWord(c.listWordScorePage[c.nowWord.value]);
-          }
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
+    Future getRandom() async {
+      await loadAd();
+      if (searchFocusNode.hasFocus){
+        searchFocusNode.unfocus();
+      }
+      if (c.isSearch.value){
+        c.isSearch = false.obs;
+      }
+      if (c.fromScreen.value == 0){
+        c.nowWord = RxInt(Random().nextInt(c.wordArray.length));
+        await c.layWord(c.wordArray[c.nowWord.value]);
+      }else{
+        c.nowWord = RxInt(Random().nextInt(c.listWordScorePage.length));
+        await c.layWord(c.listWordScorePage[c.nowWord.value]);
       }
     }
 
-    void getPrevious() {
-      if (!c.isAdShowing.value){
-        void toScore() async {
-          c.isAdShowing = false.obs;
-          if (searchFocusNode.hasFocus){
-            searchFocusNode.unfocus();
-          }
-          if (c.isSearch.value){
-            c.isSearch = false.obs;
-          }
-          if (c.fromScreen.value == 0){
-            if (c.nowWord.value>0){
-              c.nowWord = RxInt(c.nowWord.value-1);
-            }else{
-              c.nowWord = RxInt(c.wordArray.length-1);
-            }
-            await c.layWord(c.wordArray[c.nowWord.value]);
-          }else{
-            if (c.nowWord.value>0){
-              c.nowWord = RxInt(c.nowWord.value-1);
-            }else{
-              c.nowWord = RxInt(c.listWordScorePage.length-1);
-            }
-            await c.layWord(c.listWordScorePage[c.nowWord.value]);
-          }
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
+    Future getNextMean() async {
+      await loadAd();
+      if (searchFocusNode.hasFocus){
+        searchFocusNode.unfocus();
+      }
+      if (c.isSearch.value){
+        c.isSearch = false.obs;
+      }
+      if (c.nowMean.value<(c.mean.length-1)){
+        c.nowMean = RxInt(c.nowMean.value+1);
+        c.update();
+      }else{
+        c.nowMean = 0.obs;
+        c.update();
       }
     }
 
-    void getRandom() {
-      if (!c.isAdShowing.value){
-        void toScore() async {
-          c.isAdShowing = false.obs;
-          if (searchFocusNode.hasFocus){
-            searchFocusNode.unfocus();
-          }
-          if (c.isSearch.value){
-            c.isSearch = false.obs;
-          }
-          if (c.fromScreen.value == 0){
-            c.nowWord = RxInt(Random().nextInt(c.wordArray.length));
-            await c.layWord(c.wordArray[c.nowWord.value]);
-          }else{
-            c.nowWord = RxInt(Random().nextInt(c.listWordScorePage.length));
-            await c.layWord(c.listWordScorePage[c.nowWord.value]);
-          }
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
+    Future getPreviousMean() async {
+      await loadAd();
+      if (searchFocusNode.hasFocus){
+        searchFocusNode.unfocus();
       }
-    }
-
-    void getNextMean() {
-      if (!c.isAdShowing.value){
-        void toScore() {
-          c.isAdShowing = false.obs;
-          if (searchFocusNode.hasFocus){
-            searchFocusNode.unfocus();
-          }
-          if (c.isSearch.value){
-            c.isSearch = false.obs;
-          }
-          if (c.nowMean.value<(c.mean.length-1)){
-            c.nowMean = RxInt(c.nowMean.value+1);
-            c.update();
-          }else{
-            c.nowMean = 0.obs;
-            c.update();
-          }
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
+      if (c.isSearch.value){
+        c.isSearch = false.obs;
       }
-    }
-
-    void getPreviousMean() {
-      if (!c.isAdShowing.value){
-        void toScore() {
-          c.isAdShowing = false.obs;
-          if (searchFocusNode.hasFocus){
-            searchFocusNode.unfocus();
-          }
-          if (c.isSearch.value){
-            c.isSearch = false.obs;
-          }
-          if (c.nowMean.value>0){
-            c.nowMean = RxInt(c.nowMean.value-1);
-            c.update();
-          }else{
-            c.nowMean = RxInt(c.imageURL.length-1);
-            c.update();
-          }
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
+      if (c.nowMean.value>0){
+        c.nowMean = RxInt(c.nowMean.value-1);
+        c.update();
+      }else{
+        c.nowMean = RxInt(c.imageURL.length-1);
+        c.update();
       }
     }
 
@@ -6899,85 +6302,15 @@ class LearnWord extends StatelessWidget {
       const MeanWidget(),
     ];
 
-    void getBack() {
-      if (!c.isAdShowing.value){
-        void toScore() {
-          c.isAdShowing = false.obs;
-          Get.offAll(()=>Home());
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
-      }
+    Future getBack() async {
+      await loadAd();
+      Get.offAll(()=>Home());
     }
 
-    void getTab(int tab) {
-      if (!c.isAdShowing.value){
-        void toScore() {
-          c.isAdShowing = false.obs;
-          c.currentTab = RxInt(tab);
-          c.update();
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
-      }
+    Future getTab(int tab) async {
+      await loadAd();
+      c.currentTab = RxInt(tab);
+      c.update();
     }
 
     return WillPopScope(
@@ -7136,49 +6469,14 @@ class HistoryPage extends StatelessWidget {
       await findHistory();
     });
 
-    void getSearch(String word) {
-      if (!c.isAdShowing.value){
-        void toScore() async {
-          c.isAdShowing = false.obs;
-          c.category = 'all category'.obs;
-          c.type = 'all type'.obs;
-          c.fromScreen = 0.obs;
-          c.nowWord = RxInt(c.wordArray.indexOf(word));
-          await c.layWord(word);
-          Get.offAll(()=>Home());
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
-      }
+    Future getSearch(String word) async {
+      await loadAd();
+      c.category = 'all category'.obs;
+      c.type = 'all type'.obs;
+      c.fromScreen = 0.obs;
+      c.nowWord = RxInt(c.wordArray.indexOf(word));
+      await c.layWord(word);
+      Get.offAll(()=>Home());
     }
 
     return WillPopScope(
@@ -7668,49 +6966,14 @@ class SortPage extends StatelessWidget {
       c.update();
     }
 
-    void getSearch(String word) {
-      if (!c.isAdShowing.value){
-        void toScore() async {
-          c.isAdShowing = false.obs;
-          c.category = 'all category'.obs;
-          c.type = 'all type'.obs;
-          c.fromScreen = 0.obs;
-          c.nowWord = RxInt(c.wordArray.indexOf(word));
-          await c.layWord(word);
-          Get.offAll(()=>Home());
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
-      }
+    Future getSearch(String word) async {
+      await loadAd();
+      c.category = 'all category'.obs;
+      c.type = 'all type'.obs;
+      c.fromScreen = 0.obs;
+      c.nowWord = RxInt(c.wordArray.indexOf(word));
+      await c.layWord(word);
+      Get.offAll(()=>Home());
     }
 
     Future.delayed(Duration.zero, () async {
@@ -8335,179 +7598,39 @@ class _ScorePageState extends State<ScorePage> {
   @override
   Widget build(BuildContext context) {
 
-    void getToHome(String word) {
-      if (!c.isAdShowing.value){
-        void toScore() async {
-          c.isAdShowing = false.obs;
-          await c.layWord(word);
-          c.fromScreen = 1.obs;
-          Get.offAll(()=>Home());
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
+    Future getToHome(String word) async {
+      await loadAd();
+      await c.layWord(word);
+      c.fromScreen = 1.obs;
+      Get.offAll(()=>Home());
+    }
+
+    Future getBack() async {
+      await loadAd();
+      if (c.category.string != 'all category'){
+        Get.offAll(()=> const CategoryScreen());
+      }else{
+        if (c.type.string != 'all type'){
+          Get.offAll(()=> const TypeScreen());
         }else{
-          toScore();
+          Get.offAll(()=> MainScreen());
         }
       }
     }
 
-    void getBack() {
-      if (!c.isAdShowing.value){
-        void toScore() {
-          c.isAdShowing = false.obs;
-          if (c.category.string != 'all category'){
-            Get.offAll(()=> const CategoryScreen());
-          }else{
-            if (c.type.string != 'all type'){
-              Get.offAll(()=> const TypeScreen());
-            }else{
-              Get.offAll(()=> MainScreen());
-            }
-          }
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
+    Future getNext() async {
+      await loadAd();
+      if (listWord.length>pageCount*(c.part.value+1)){
+        c.part = RxInt(c.part.value+1);
+        getList(c.part.value);
       }
     }
 
-    void getNext() {
-      if (!c.isAdShowing.value){
-        void toScore() {
-          c.isAdShowing = false.obs;
-          if (listWord.length>pageCount*(c.part.value+1)){
-            c.part = RxInt(c.part.value+1);
-            getList(c.part.value);
-          }
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
-      }
-    }
-
-    void getPrevious() {
-      if (!c.isAdShowing.value){
-        void toScore() {
-          c.isAdShowing = false.obs;
-          if (c.part.value>0){
-            c.part = RxInt(c.part.value-1);
-            getList(c.part.value);
-          }
-        }
-        int isShow = Random().nextInt(showAdFrequency);
-        if (isShow == 0 && !c.isVip.value){
-          c.isAdShowing = true.obs;
-          InterstitialAd.load(
-              adUnitId: Platform.isAndroid ? androidAd:iosAd,
-              request: const AdRequest(),
-              adLoadCallback: InterstitialAdLoadCallback(
-                onAdLoaded: (InterstitialAd ad) {
-                  // Keep a reference to the ad so you can show it later.
-                  ad.fullScreenContentCallback = FullScreenContentCallback(
-                    onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                    onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                      ad.dispose();
-                      toScore();
-                    },
-                    onAdImpression: (InterstitialAd ad) {},
-                  );
-                  ad.show();
-                },
-                onAdFailedToLoad: (LoadAdError error) {
-                  toScore();
-                },
-              )
-          );
-        }else{
-          toScore();
-        }
+    Future getPrevious() async {
+      await loadAd();
+      if (c.part.value>0){
+        c.part = RxInt(c.part.value-1);
+        getList(c.part.value);
       }
     }
 
@@ -10994,6 +10117,34 @@ Future<List<String>> getListCategory(String category) async {
   return findList;
 }
 
+Future loadAd() async {
+  final Controller c = Get.put(Controller());
+  int isShow = Random().nextInt(showAdFrequency);
+  if (isShow == 0 && !c.isVip.value){
+    await InterstitialAd.load(
+        adUnitId: Platform.isAndroid ? androidAd:iosAd,
+        request: const AdRequest(),
+        adLoadCallback: InterstitialAdLoadCallback(
+          onAdLoaded: (InterstitialAd ad) {
+            // Keep a reference to the ad so you can show it later.
+            ad.fullScreenContentCallback = FullScreenContentCallback(
+              onAdShowedFullScreenContent: (InterstitialAd ad) {},
+              onAdDismissedFullScreenContent: (InterstitialAd ad) {
+                ad.dispose();
+              },
+              onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+                ad.dispose();
+              },
+              onAdImpression: (InterstitialAd ad) {},
+            );
+            ad.show();
+          },
+          onAdFailedToLoad: (LoadAdError error) {},
+        )
+    );
+  }
+}
+
 List laytuloai(String kyhieu){
   var tuloai = [];
   switch(kyhieu) {
@@ -11163,96 +10314,26 @@ List laytuloai(String kyhieu){
   return tuloai;
 }
 
-void getNextLearn() {
+Future getNextLearn() async {
   final Controller c = Get.put(Controller());
-  if (!c.isAdShowing.value){
-    void toScore() {
-      c.isAdShowing = false.obs;
-      if (c.currentTab.value<3){
-        c.currentTab = RxInt(c.currentTab.value+1);
-      }else{
-        c.currentTab = 0.obs;
-      }
-      c.update();
-    }
-    int isShow = Random().nextInt(showAdFrequency);
-    if (isShow == 0 && !c.isVip.value){
-      c.isAdShowing = true.obs;
-      InterstitialAd.load(
-          adUnitId: Platform.isAndroid ? androidAd:iosAd,
-          request: const AdRequest(),
-          adLoadCallback: InterstitialAdLoadCallback(
-            onAdLoaded: (InterstitialAd ad) {
-              // Keep a reference to the ad so you can show it later.
-              ad.fullScreenContentCallback = FullScreenContentCallback(
-                onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                  ad.dispose();
-                  toScore();
-                },
-                onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                  ad.dispose();
-                  toScore();
-                },
-                onAdImpression: (InterstitialAd ad) {},
-              );
-              ad.show();
-            },
-            onAdFailedToLoad: (LoadAdError error) {
-              toScore();
-            },
-          )
-      );
-    }else{
-      toScore();
-    }
+  await loadAd();
+  if (c.currentTab.value<3){
+    c.currentTab = RxInt(c.currentTab.value+1);
+  }else{
+    c.currentTab = 0.obs;
   }
+  c.update();
 }
 
-void getPreviousLearn() {
+Future getPreviousLearn() async {
   final Controller c = Get.put(Controller());
-  if (!c.isAdShowing.value){
-    void toScore() {
-      c.isAdShowing = false.obs;
-      if (c.currentTab.value>0){
-        c.currentTab = RxInt(c.currentTab.value-1);
-      }else{
-        c.currentTab = 3.obs;
-      }
-      c.update();
-    }
-    int isShow = Random().nextInt(showAdFrequency);
-    if (isShow == 0 && !c.isVip.value){
-      c.isAdShowing = true.obs;
-      InterstitialAd.load(
-          adUnitId: Platform.isAndroid ? androidAd:iosAd,
-          request: const AdRequest(),
-          adLoadCallback: InterstitialAdLoadCallback(
-            onAdLoaded: (InterstitialAd ad) {
-              // Keep a reference to the ad so you can show it later.
-              ad.fullScreenContentCallback = FullScreenContentCallback(
-                onAdShowedFullScreenContent: (InterstitialAd ad) {},
-                onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                  ad.dispose();
-                  toScore();
-                },
-                onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-                  ad.dispose();
-                  toScore();
-                },
-                onAdImpression: (InterstitialAd ad) {},
-              );
-              ad.show();
-            },
-            onAdFailedToLoad: (LoadAdError error) {
-              toScore();
-            },
-          )
-      );
-    }else{
-      toScore();
-    }
+  await loadAd();
+  if (c.currentTab.value>0){
+    c.currentTab = RxInt(c.currentTab.value-1);
+  }else{
+    c.currentTab = 3.obs;
   }
+  c.update();
 }
 
 Future _speak(String string) async{
