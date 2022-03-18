@@ -4943,7 +4943,7 @@ class _WriteWidgetState extends State<WriteWidget> {
                                                       await updateScore(newScore);
                                                     }
                                                     await setRight();
-                                                    getNextLearn();
+                                                    await getNextLearn();
                                                   }else{
                                                     if (c.wordScore.value>0){
                                                       c.wordScore = RxInt(c.wordScore.value - 1);
@@ -5303,7 +5303,7 @@ class _PronunWidgetState extends State<PronunWidget> {
                                                       await updateScore(newScore);
                                                     }
                                                     await setRight();
-                                                    getNextLearn();
+                                                    await getNextLearn();
                                                   }else{
                                                     if (c.pronunScore.value>0){
                                                       c.pronunScore = RxInt(c.pronunScore.value - 1);
@@ -5479,7 +5479,7 @@ class SpeakWidget extends StatelessWidget {
             await updateScore(newScore);
           }
           await setRight();
-          getNextLearn();
+          await getNextLearn();
         }else{
           if (c.speakScore.value>0){
             c.speakScore = RxInt(c.speakScore.value - 1);
@@ -6124,7 +6124,7 @@ class _MeanWidgetState extends State<MeanWidget> {
                                                         for (var i=0;i<mean.length;i++){
                                                           ktMean.add(false);
                                                         }
-                                                        getNextLearn();
+                                                        await getNextLearn();
                                                       }else{
                                                         if (nowIndex < mean.length - 1){
                                                           setState((){
@@ -6346,10 +6346,10 @@ class LearnWord extends StatelessWidget {
             GestureDetector(
               onVerticalDragEnd: (details) async {
                 if (details.primaryVelocity! > 0) {
-                  getPreviousLearn();
+                  await getPreviousLearn();
                 }
                 if (details.primaryVelocity! < -0) {
-                  getNextLearn();
+                  await getNextLearn();
                 }
               },
               child: Container(
