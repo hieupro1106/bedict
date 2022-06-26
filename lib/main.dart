@@ -714,9 +714,9 @@ class MainScreen extends StatelessWidget {
       const SettingPage(),
     ];
 
-    WidgetsBinding.instance?.addPostFrameCallback((_) async {
-
-    });
+    // WidgetsBinding.instance?.addPostFrameCallback((_) async {
+    //
+    // });
 
     return AnnotatedRegion(
       value: const SystemUiOverlayStyle(
@@ -1015,7 +1015,9 @@ class _SearchPageState extends State<SearchPage> {
                                 if (Get.isSnackbarOpen) Get.closeAllSnackbars();
                                 Get.snackbar(c.learnWrongTitle.string, c.notFound.string);
                               }else{
-                                await searchToHome(suggestArray[0]);
+                                if (!suggestArray[0].contains('@')) {
+                                  await searchToHome(suggestArray[0]);
+                                }
                               }
                             },
                           ),
@@ -1044,6 +1046,17 @@ class _SearchPageState extends State<SearchPage> {
                                 }
                               }
                             }
+                            if (suggestArray.isEmpty) {
+                              String languageCode = languagesCode[languages.indexOf(c.languageLocal.string)];
+                              var checkLanguage = await pattern.translate(to:'en');
+                              if (checkLanguage.text == pattern){
+                                var google = await pattern.translate(from:'en',to:languageCode);
+                                suggestArray.add(google.text + '@' + pattern);
+                              }else{
+                                var google = await pattern.translate(to:'en');
+                                suggestArray.add(google.text + '@' + pattern);
+                              }
+                            }
                             return suggestArray;
                           },
                           suggestionsBoxDecoration: SuggestionsBoxDecoration(
@@ -1053,42 +1066,48 @@ class _SearchPageState extends State<SearchPage> {
                           itemBuilder: (context, suggestion) {
                             String mean = '';
                             String image = 'bedict.png';
-                            var dataRaw = box.get(suggestion.toString());
-                            List listMeans = jsonDecode(dataRaw['mean']);
-                            List listMean = listMeans[0];
-                            List meanENAdd = [];
-                            List meanVNAdd = [];
-                            for(var j = 0; j< listMean.length; j++) {
-                              String meanENElement = '';
-                              if(listMean[j].contains('#')){
-                                meanENElement = listMean[j].split('#')[1];
-                              }else{
-                                meanENElement = listMean[j];
-                              }
-                              meanENAdd.add(meanENElement);
-                              String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
-                              meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
-                              meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
-                              meanVNAdd.add(meanVNElement);
-                            }
-                            String meanEN = '';
-                            String meanVN = '';
-                            for(var j = 0; j< meanENAdd.length; j++) {
-                              if (j==0){
-                                meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
-                                meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
-                              }else{
-                                meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
-                                meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
-                              }
-                            }
-                            if (c.language.string == 'VN'){
-                              mean = meanVN;
+                            List listMeans = [];
+                            if (suggestion.toString().contains('@')){
+                              mean = suggestion.toString().split('@')[0];
+                              listMeans.add(suggestion.toString().split('@')[0]);
                             }else{
-                              mean = meanEN;
-                            }
-                            if (jsonDecode(dataRaw['imageURL']).length>0){
-                              image = jsonDecode(dataRaw['imageURL'])[0];
+                              var dataRaw = box.get(suggestion.toString());
+                              listMeans = jsonDecode(dataRaw['mean']);
+                              List listMean = listMeans[0];
+                              List meanENAdd = [];
+                              List meanVNAdd = [];
+                              for(var j = 0; j< listMean.length; j++) {
+                                String meanENElement = '';
+                                if(listMean[j].contains('#')){
+                                  meanENElement = listMean[j].split('#')[1];
+                                }else{
+                                  meanENElement = listMean[j];
+                                }
+                                meanENAdd.add(meanENElement);
+                                String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
+                                meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
+                                meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
+                                meanVNAdd.add(meanVNElement);
+                              }
+                              String meanEN = '';
+                              String meanVN = '';
+                              for(var j = 0; j< meanENAdd.length; j++) {
+                                if (j==0){
+                                  meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                                  meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                                }else{
+                                  meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                                  meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                                }
+                              }
+                              if (c.language.string == 'VN'){
+                                mean = meanVN;
+                              }else{
+                                mean = meanEN;
+                              }
+                              if (jsonDecode(dataRaw['imageURL']).length>0){
+                                image = jsonDecode(dataRaw['imageURL'])[0];
+                              }
                             }
                             return Row(
                                 children: [
@@ -1098,7 +1117,9 @@ class _SearchPageState extends State<SearchPage> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children:[
                                           Text(
-                                            suggestion.toString(),
+                                            suggestion.toString().contains('@')?
+                                            suggestion.toString().split('@')[1]
+                                            :suggestion.toString(),
                                             style: const TextStyle(
                                               fontSize: 18.0,
                                               color: textColor,
@@ -1199,7 +1220,9 @@ class _SearchPageState extends State<SearchPage> {
                           },
                           onSuggestionSelected: (suggestion) async {
                             // searchField.text = suggestion.toString();
-                            await searchToHome(suggestion.toString());
+                            if (!suggestion.toString().contains('@')) {
+                              await searchToHome(suggestion.toString());
+                            }
                           },
                           animationDuration: Duration.zero,
                           debounceDuration: Duration.zero,
@@ -2712,9 +2735,9 @@ class SettingPage extends StatelessWidget {
       }
     }
 
-    WidgetsBinding.instance?.addPostFrameCallback((_) async {
-
-    });
+    // WidgetsBinding.instance?.addPostFrameCallback((_) async {
+    //
+    // });
 
     return Container(
       color: Colors.white,
@@ -4048,7 +4071,9 @@ class Home extends StatelessWidget {
                                         if (Get.isSnackbarOpen) Get.closeAllSnackbars();
                                         Get.snackbar(c.learnWrongTitle.string, c.notFound.string);
                                       }else{
-                                        await searchToHome(suggestArray[0]);
+                                        if (!suggestArray[0].contains('@')) {
+                                          await searchToHome(suggestArray[0]);
+                                        }
                                       }
                                     },
                                   ),
@@ -4077,6 +4102,17 @@ class Home extends StatelessWidget {
                                         }
                                       }
                                     }
+                                    if (suggestArray.isEmpty) {
+                                      String languageCode = languagesCode[languages.indexOf(c.languageLocal.string)];
+                                      var checkLanguage = await pattern.translate(to:'en');
+                                      if (checkLanguage.text == pattern){
+                                        var google = await pattern.translate(from:'en',to:languageCode);
+                                        suggestArray.add(google.text + '@' + pattern);
+                                      }else{
+                                        var google = await pattern.translate(to:'en');
+                                        suggestArray.add(google.text + '@' + pattern);
+                                      }
+                                    }
                                     return suggestArray;
                                   },
                                   suggestionsBoxDecoration: SuggestionsBoxDecoration(
@@ -4086,42 +4122,48 @@ class Home extends StatelessWidget {
                                   itemBuilder: (context, suggestion) {
                                     String mean = '';
                                     String image = 'bedict.png';
-                                    var dataRaw = box.get(suggestion.toString());
-                                    List listMeans = jsonDecode(dataRaw['mean']);
-                                    List listMean = listMeans[0];
-                                    List meanENAdd = [];
-                                    List meanVNAdd = [];
-                                    for(var j = 0; j< listMean.length; j++) {
-                                      String meanENElement = '';
-                                      if(listMean[j].contains('#')){
-                                        meanENElement = listMean[j].split('#')[1];
-                                      }else{
-                                        meanENElement = listMean[j];
-                                      }
-                                      meanENAdd.add(meanENElement);
-                                      String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
-                                      meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
-                                      meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
-                                      meanVNAdd.add(meanVNElement);
-                                    }
-                                    String meanEN = '';
-                                    String meanVN = '';
-                                    for(var j = 0; j< meanENAdd.length; j++) {
-                                      if (j==0){
-                                        meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
-                                        meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
-                                      }else{
-                                        meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
-                                        meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
-                                      }
-                                    }
-                                    if (c.language.string == 'VN'){
-                                      mean = meanVN;
+                                    List listMeans = [];
+                                    if (suggestion.toString().contains('@')){
+                                      mean = suggestion.toString().split('@')[0];
+                                      listMeans.add(suggestion.toString().split('@')[0]);
                                     }else{
-                                      mean = meanEN;
-                                    }
-                                    if (jsonDecode(dataRaw['imageURL']).length>0){
-                                      image = jsonDecode(dataRaw['imageURL'])[0];
+                                      var dataRaw = box.get(suggestion.toString());
+                                      listMeans = jsonDecode(dataRaw['mean']);
+                                      List listMean = listMeans[0];
+                                      List meanENAdd = [];
+                                      List meanVNAdd = [];
+                                      for(var j = 0; j< listMean.length; j++) {
+                                        String meanENElement = '';
+                                        if(listMean[j].contains('#')){
+                                          meanENElement = listMean[j].split('#')[1];
+                                        }else{
+                                          meanENElement = listMean[j];
+                                        }
+                                        meanENAdd.add(meanENElement);
+                                        String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
+                                        meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
+                                        meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
+                                        meanVNAdd.add(meanVNElement);
+                                      }
+                                      String meanEN = '';
+                                      String meanVN = '';
+                                      for(var j = 0; j< meanENAdd.length; j++) {
+                                        if (j==0){
+                                          meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                                          meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                                        }else{
+                                          meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                                          meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                                        }
+                                      }
+                                      if (c.language.string == 'VN'){
+                                        mean = meanVN;
+                                      }else{
+                                        mean = meanEN;
+                                      }
+                                      if (jsonDecode(dataRaw['imageURL']).length>0){
+                                        image = jsonDecode(dataRaw['imageURL'])[0];
+                                      }
                                     }
                                     return Row(
                                         children: [
@@ -4131,7 +4173,9 @@ class Home extends StatelessWidget {
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children:[
                                                   Text(
-                                                    suggestion.toString(),
+                                                    suggestion.toString().contains('@')?
+                                                    suggestion.toString().split('@')[1]
+                                                    :suggestion.toString(),
                                                     style: const TextStyle(
                                                       fontSize: 18.0,
                                                       color: textColor,
@@ -4232,7 +4276,9 @@ class Home extends StatelessWidget {
                                   },
                                   onSuggestionSelected: (suggestion) async {
                                     // searchField.text = suggestion.toString();
-                                    await searchToHome(suggestion.toString());
+                                    if (!suggestion.toString().contains('@')) {
+                                      await searchToHome(suggestion.toString());
+                                    }
                                   },
                                   animationDuration: Duration.zero,
                                   debounceDuration: Duration.zero,
@@ -5654,7 +5700,7 @@ class SpeakWidget extends StatelessWidget {
       );
     }
 
-    WidgetsBinding.instance?.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       c.listenString = ''.obs;
       c.update();
     });

@@ -27,14 +27,14 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  get: ^4.6.1
+  get: ^4.6.5
   http: ^0.13.3
-  flutter_typeahead: ^3.2.1
+  flutter_typeahead: ^4.0.0
   glassmorphism: ^3.0.0
   glassmorphism_ui: ^0.2.0
   flutter_tts: ^3.3.3
   speech_to_text: ^5.4.2
-  percent_indicator: ^3.4.0
+  percent_indicator: ^4.2.2
   intl: ^0.17.0
   flutter_native_timezone: ^2.0.0
   path_provider: ^2.0.5
@@ -42,7 +42,7 @@ dependencies:
   dots_indicator: ^2.0.0
   toggle_switch: ^1.2.0
   font_awesome_flutter: ^9.1.0
-  share_plus: ^3.0.4
+  share_plus: ^4.0.9
   introduction_screen: ^2.1.0
   google_mobile_ads: ^1.1.0
 #  in_app_purchase: ^2.0.1
