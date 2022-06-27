@@ -1343,7 +1343,7 @@ class _SearchPageState extends State<SearchPage> {
                           children: [
                             const SizedBox(width: 20),
                             CircularPercentIndicator(
-                              radius: 20,
+                              radius: 15,
                               lineWidth: 3.0,
                               animation: true,
                               percent: essentialCount/essentialList.length,
@@ -1615,7 +1615,7 @@ class _SearchPageState extends State<SearchPage> {
                         children: [
                           const SizedBox(width: 20),
                           CircularPercentIndicator(
-                            radius: 20,
+                            radius: 15,
                             lineWidth: 3.0,
                             animation: true,
                             percent: ieltsCount/ieltsList.length,
@@ -1871,7 +1871,7 @@ class _SearchPageState extends State<SearchPage> {
                           children: [
                             const SizedBox(width: 20),
                             CircularPercentIndicator(
-                              radius: 20,
+                              radius: 15,
                               lineWidth: 3.0,
                               animation: true,
                               percent: toeicCount/toeicList.length,
@@ -2127,7 +2127,7 @@ class _SearchPageState extends State<SearchPage> {
                           children: [
                             const SizedBox(width: 20),
                             CircularPercentIndicator(
-                              radius: 20,
+                              radius: 15,
                               lineWidth: 3.0,
                               animation: true,
                               percent: toeflCount/toeflList.length,
@@ -7503,7 +7503,7 @@ class SortPage extends StatelessWidget {
                                         // const SizedBox(width:3),
                                         Expanded(
                                           child: CircularPercentIndicator(
-                                            radius: (MediaQuery.of(context).size.width*0.5 - 40)/4,
+                                            radius: (MediaQuery.of(context).size.width*0.5 - 40)/8,
                                             lineWidth: 3.0,
                                             animation: true,
                                             percent: c.listLearned[c.indexScorePage.value*pageCount+index].word/25,
@@ -7521,7 +7521,7 @@ class SortPage extends StatelessWidget {
                                         ),
                                         Expanded(
                                           child: CircularPercentIndicator(
-                                            radius: (MediaQuery.of(context).size.width*0.5 - 40)/4,
+                                            radius: (MediaQuery.of(context).size.width*0.5 - 40)/8,
                                             lineWidth: 3.0,
                                             animation: true,
                                             percent: c.listLearned[c.indexScorePage.value*pageCount+index].pronun/25,
@@ -7539,7 +7539,7 @@ class SortPage extends StatelessWidget {
                                         ),
                                         Expanded(
                                           child: CircularPercentIndicator(
-                                            radius: (MediaQuery.of(context).size.width*0.5 - 40)/4,
+                                            radius: (MediaQuery.of(context).size.width*0.5 - 40)/8,
                                             lineWidth: 3.0,
                                             animation: true,
                                             percent: c.listLearned[c.indexScorePage.value*pageCount+index].speak/25,
@@ -7557,7 +7557,7 @@ class SortPage extends StatelessWidget {
                                         ),
                                         Expanded(
                                           child: CircularPercentIndicator(
-                                            radius: (MediaQuery.of(context).size.width*0.5 - 40)/4,
+                                            radius: (MediaQuery.of(context).size.width*0.5 - 40)/8,
                                             lineWidth: 3.0,
                                             animation: true,
                                             percent: c.listLearned[c.indexScorePage.value*pageCount+index].mean/25,
@@ -7766,7 +7766,7 @@ class _ScorePageState extends State<ScorePage> {
                         const SizedBox(width: 20),
                         GetBuilder<Controller>(
                           builder: (_) => CircularPercentIndicator(
-                            radius: 20,
+                            radius: 15,
                             lineWidth: 3.0,
                             animation: true,
                             percent: count/c.listWordScorePage.length,
@@ -8043,7 +8043,7 @@ class _ScorePageState extends State<ScorePage> {
                                               children: [
                                                 // const SizedBox(width:10),
                                                 CircularPercentIndicator(
-                                                  radius: (MediaQuery.of(context).size.width-100)/8,
+                                                  radius: (MediaQuery.of(context).size.width-100)/16,
                                                   lineWidth: 2.0,
                                                   animation: true,
                                                   percent: listScore[i].word/25,
@@ -8060,7 +8060,7 @@ class _ScorePageState extends State<ScorePage> {
                                                 ),
                                                 const SizedBox(width:5),
                                                 CircularPercentIndicator(
-                                                  radius: (MediaQuery.of(context).size.width-100)/8,
+                                                  radius: (MediaQuery.of(context).size.width-100)/16,
                                                   lineWidth: 2.0,
                                                   animation: true,
                                                   percent: listScore[i].pronun/25,
@@ -8077,7 +8077,7 @@ class _ScorePageState extends State<ScorePage> {
                                                 ),
                                                 const SizedBox(width:5),
                                                 CircularPercentIndicator(
-                                                  radius: (MediaQuery.of(context).size.width-100)/8,
+                                                  radius: (MediaQuery.of(context).size.width-100)/16,
                                                   lineWidth: 2.0,
                                                   animation: true,
                                                   percent: listScore[i].speak/25,
@@ -8094,7 +8094,7 @@ class _ScorePageState extends State<ScorePage> {
                                                 ),
                                                 const SizedBox(width:5),
                                                 CircularPercentIndicator(
-                                                  radius: (MediaQuery.of(context).size.width-100)/8,
+                                                  radius: (MediaQuery.of(context).size.width-100)/16,
                                                   lineWidth: 2.0,
                                                   animation: true,
                                                   percent: listScore[i].mean/25,
@@ -8264,7 +8264,7 @@ class _ScorePageState extends State<ScorePage> {
                                                   children: [
                                                     // const SizedBox(width:10),
                                                     CircularPercentIndicator(
-                                                      radius: 38,
+                                                      radius: 20,
                                                       lineWidth: 2.0,
                                                       animation: true,
                                                       percent: listScore[i].word/25,
@@ -8281,7 +8281,7 @@ class _ScorePageState extends State<ScorePage> {
                                                     ),
                                                     const SizedBox(height:5),
                                                     CircularPercentIndicator(
-                                                      radius: 38,
+                                                      radius: 20,
                                                       lineWidth: 2.0,
                                                       animation: true,
                                                       percent: listScore[i].pronun/25,
@@ -8298,7 +8298,7 @@ class _ScorePageState extends State<ScorePage> {
                                                     ),
                                                     const SizedBox(height:5),
                                                     CircularPercentIndicator(
-                                                      radius: 38,
+                                                      radius: 20,
                                                       lineWidth: 2.0,
                                                       animation: true,
                                                       percent: listScore[i].speak/25,
@@ -8315,7 +8315,7 @@ class _ScorePageState extends State<ScorePage> {
                                                     ),
                                                     const SizedBox(height:5),
                                                     CircularPercentIndicator(
-                                                      radius: 38,
+                                                      radius: 20,
                                                       lineWidth: 2.0,
                                                       animation: true,
                                                       percent: listScore[i].mean/25,
