@@ -1017,6 +1017,12 @@ class _SearchPageState extends State<SearchPage> {
                               }else{
                                 if (!suggestArray[0].contains('@')) {
                                   await searchToHome(suggestArray[0]);
+                                }else{
+                                  String suggestion = suggestArray[0].toString().split('@')[0];
+                                  var dataRaw = box.get(suggestion);
+                                  if (dataRaw.toString() != 'null'){
+                                    await searchToHome(suggestion);
+                                  }
                                 }
                               }
                             },
@@ -1051,10 +1057,10 @@ class _SearchPageState extends State<SearchPage> {
                               var checkLanguage = await pattern.translate(to:'en');
                               if (checkLanguage.text == pattern){
                                 var google = await pattern.translate(from:'en',to:languageCode);
-                                suggestArray.add(google.text + '@' + pattern);
+                                suggestArray.add(pattern + '@' + google.text.toLowerCase());
                               }else{
                                 var google = await pattern.translate(to:'en');
-                                suggestArray.add(google.text + '@' + pattern);
+                                suggestArray.add(google.text.toLowerCase() + '@' + pattern);
                               }
                             }
                             return suggestArray;
@@ -1067,11 +1073,13 @@ class _SearchPageState extends State<SearchPage> {
                             String mean = '';
                             String image = 'bedict.png';
                             List listMeans = [];
-                            if (suggestion.toString().contains('@')){
-                              mean = suggestion.toString().split('@')[0];
+                            var dataRaw = suggestion.toString().contains('@')?
+                            box.get(suggestion.toString().split('@')[0])
+                            :box.get(suggestion.toString());
+                            if (dataRaw.toString() == 'null'){
+                              mean = suggestion.toString().split('@')[1];
                               listMeans.add(suggestion.toString().split('@')[0]);
                             }else{
-                              var dataRaw = box.get(suggestion.toString());
                               listMeans = jsonDecode(dataRaw['mean']);
                               List listMean = listMeans[0];
                               List meanENAdd = [];
@@ -1118,7 +1126,7 @@ class _SearchPageState extends State<SearchPage> {
                                         children:[
                                           Text(
                                             suggestion.toString().contains('@')?
-                                            suggestion.toString().split('@')[1]
+                                            suggestion.toString().split('@')[0]
                                             :suggestion.toString(),
                                             style: const TextStyle(
                                               fontSize: 18.0,
@@ -1222,6 +1230,11 @@ class _SearchPageState extends State<SearchPage> {
                             // searchField.text = suggestion.toString();
                             if (!suggestion.toString().contains('@')) {
                               await searchToHome(suggestion.toString());
+                            }else{
+                              var dataRaw = box.get(suggestion.toString().split('@')[0]);
+                              if (dataRaw.toString() != 'null'){
+                                await searchToHome(suggestion.toString().split('@')[0]);
+                              }
                             }
                           },
                           animationDuration: Duration.zero,
@@ -4073,6 +4086,12 @@ class Home extends StatelessWidget {
                                       }else{
                                         if (!suggestArray[0].contains('@')) {
                                           await searchToHome(suggestArray[0]);
+                                        }else{
+                                          String suggestion = suggestArray[0].toString().split('@')[0];
+                                          var dataRaw = box.get(suggestion);
+                                          if (dataRaw.toString() != 'null'){
+                                            await searchToHome(suggestion);
+                                          }
                                         }
                                       }
                                     },
@@ -4107,10 +4126,10 @@ class Home extends StatelessWidget {
                                       var checkLanguage = await pattern.translate(to:'en');
                                       if (checkLanguage.text == pattern){
                                         var google = await pattern.translate(from:'en',to:languageCode);
-                                        suggestArray.add(google.text + '@' + pattern);
+                                        suggestArray.add(pattern + '@' + google.text.toLowerCase());
                                       }else{
                                         var google = await pattern.translate(to:'en');
-                                        suggestArray.add(google.text + '@' + pattern);
+                                        suggestArray.add(google.text.toLowerCase() + '@' + pattern);
                                       }
                                     }
                                     return suggestArray;
@@ -4123,11 +4142,13 @@ class Home extends StatelessWidget {
                                     String mean = '';
                                     String image = 'bedict.png';
                                     List listMeans = [];
-                                    if (suggestion.toString().contains('@')){
-                                      mean = suggestion.toString().split('@')[0];
+                                    var dataRaw = suggestion.toString().contains('@')?
+                                    box.get(suggestion.toString().split('@')[0])
+                                    :box.get(suggestion.toString());
+                                    if (dataRaw.toString() == 'null'){
+                                      mean = suggestion.toString().split('@')[1];
                                       listMeans.add(suggestion.toString().split('@')[0]);
                                     }else{
-                                      var dataRaw = box.get(suggestion.toString());
                                       listMeans = jsonDecode(dataRaw['mean']);
                                       List listMean = listMeans[0];
                                       List meanENAdd = [];
@@ -4174,7 +4195,7 @@ class Home extends StatelessWidget {
                                                 children:[
                                                   Text(
                                                     suggestion.toString().contains('@')?
-                                                    suggestion.toString().split('@')[1]
+                                                    suggestion.toString().split('@')[0]
                                                     :suggestion.toString(),
                                                     style: const TextStyle(
                                                       fontSize: 18.0,
@@ -4278,6 +4299,11 @@ class Home extends StatelessWidget {
                                     // searchField.text = suggestion.toString();
                                     if (!suggestion.toString().contains('@')) {
                                       await searchToHome(suggestion.toString());
+                                    }else{
+                                      var dataRaw = box.get(suggestion.toString().split('@')[0]);
+                                      if (dataRaw.toString() != 'null'){
+                                        await searchToHome(suggestion.toString().split('@')[0]);
+                                      }
                                     }
                                   },
                                   animationDuration: Duration.zero,
