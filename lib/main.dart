@@ -784,6 +784,7 @@ class _SearchPageState extends State<SearchPage> {
   List listShowToeic = [];
   List listShowToefl = [];
   List listShowEssential = [];
+  List listShowSearch = [];
   int ieltsCount = 0;
   int toeicCount = 0;
   int toeflCount = 0;
@@ -791,11 +792,27 @@ class _SearchPageState extends State<SearchPage> {
   bool initial = true;
 
   Future getList(int count) async {
+    final Controller c = Get.put(Controller());
     List _listShowIelts = [];
     List _listShowToeic = [];
     List _listShowToefl = [];
     List _listShowEssential = [];
+    List _listShowSearch = [];
     List<int> listIndex = [];
+    List<String> searchWords = await getLastSearch(count+1);
+    for (int i=0;i<searchWords.length;i++){
+      var dataRaw = await box.get(searchWords[i]);
+      _listShowSearch.add(dataRaw);
+    }
+    while (_listShowSearch.length<count+1){
+      int newIndex = Random().nextInt(c.wordArray.length);
+      if (!listIndex.contains(newIndex)){
+        listIndex.add(newIndex);
+        var dataRaw = await box.get(c.wordArray[newIndex]);
+        _listShowSearch.add(dataRaw);
+      }
+    }
+    listIndex = [];
     while (_listShowIelts.length<count){
       int newIndex = Random().nextInt(ieltsList.length);
       if (!listIndex.contains(newIndex)){
@@ -864,6 +881,7 @@ class _SearchPageState extends State<SearchPage> {
       listShowToeic = _listShowToeic;
       listShowToefl = _listShowToefl;
       listShowEssential = _listShowEssential;
+      listShowSearch = _listShowSearch;
       ieltsCount = _ieltsCount;
       toeicCount = _toeicCount;
       toeflCount = _toeflCount;
@@ -911,7 +929,7 @@ class _SearchPageState extends State<SearchPage> {
       c.fromScreen = 0.obs;
       await c.layWord(word);
       Get.offAll(()=>Home());
-      }
+    }
 
     Future getToCategory() async {
       await loadAd();
@@ -1040,7 +1058,7 @@ class _SearchPageState extends State<SearchPage> {
                           suggestionsCallback: (pattern) async {
                             suggestArray = [];
                             if (pattern == ''){
-                              suggestArray = await getLastSearch();
+                              suggestArray = await getLastSearch(9);
                             }
                             for (var i = 0; i < c.wordArray.length; i++){
                               if (suggestArray.length > 9){
@@ -1337,7 +1355,193 @@ class _SearchPageState extends State<SearchPage> {
                   child: ListView(
                     padding: const EdgeInsets.all(0),
                     children:[
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 10),
+                      Row(
+                        // crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            const SizedBox(width: 20),
+                            // const Expanded(child: SizedBox(),),
+                            Text(
+                              c.language.string == 'VN'?'TÌM KIẾM GẦN ĐÂY':'LAST SEARCH WORDS',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                color: textColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const Expanded(child: SizedBox(),),
+                            const SizedBox(width: 10),
+                          ]
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        height: MediaQuery.of(context).size.width > 500? 220*250/300 + 80: (MediaQuery.of(context).size.width-60)*250/300/2 + 80,
+                        child: Row(
+                          children: [
+                            // const SizedBox(width: 10),
+                            Expanded(
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: listShowSearch.length,
+                                addAutomaticKeepAlives: false,
+                                itemBuilder: (BuildContext context, int index) {
+                                  late var dataRaw;
+                                  String mean = '';
+                                  String image = 'bedict.png';
+                                  dataRaw = listShowSearch[index];
+                                  List listMean = jsonDecode(dataRaw['mean'])[0];
+                                  List meanENAdd = [];
+                                  List meanVNAdd = [];
+                                  for(var j = 0; j< listMean.length; j++) {
+                                    String meanENElement = '';
+                                    if(listMean[j].contains('#')){
+                                      meanENElement = listMean[j].split('#')[1];
+                                    }else{
+                                      meanENElement = listMean[j];
+                                    }
+                                    meanENAdd.add(meanENElement);
+                                    String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
+                                    meanVNElement = meanVNElement.substring(0,meanVNElement.length - 2);
+                                    meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length-1);
+                                    meanVNAdd.add(meanVNElement);
+                                  }
+                                  String meanEN = '';
+                                  String meanVN = '';
+                                  for(var j = 0; j< meanENAdd.length; j++) {
+                                    if (j==0){
+                                      meanVN = meanVN + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                                      meanEN = meanEN + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                                    }else{
+                                      meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0,meanVNAdd[j].length - 1);
+                                      meanEN = meanEN + ' | ' + meanENAdd[j].substring(0,meanENAdd[j].length - 1);
+                                    }
+                                  }
+                                  if (c.language.string == 'VN'){
+                                    mean = meanVN;
+                                  }else{
+                                    mean = meanEN;
+                                  }
+                                  if (jsonDecode(dataRaw['imageURL']).length>0){
+                                    image = jsonDecode(dataRaw['imageURL'])[0];
+                                  }
+                                  return GestureDetector(
+                                    onTap: () async {
+                                      await searchToHome(dataRaw['word']);
+                                    },
+                                    child: Column(
+                                        children: [
+                                          Container(
+                                              margin: const EdgeInsets.all(10),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: const BorderRadius.all(
+                                                    Radius.circular(8)
+                                                ),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black.withOpacity(0.6),
+                                                    spreadRadius: 0,
+                                                    blurRadius: 5,
+                                                    offset: const Offset(5, 5), // changes position of shadow
+                                                  ),
+                                                ],
+                                              ),
+                                              width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                              height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                              child: Stack(
+                                                  children:[
+                                                    ClipRRect(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      child: ImageFiltered(
+                                                        imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                                        child: Opacity(
+                                                          opacity: 0.8,
+                                                          child: Image(
+                                                            image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                            fit: BoxFit.cover,
+                                                            width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                                            height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                              return const SizedBox();
+                                                            },
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    ClipRRect(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                      child: Image(
+                                                        image: NetworkImage('https://bedict.com/' + image.replaceAll('\\','')),
+                                                        fit: BoxFit.contain,
+                                                        width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                                        height: MediaQuery.of(context).size.width > 500? 220*250/300: (MediaQuery.of(context).size.width-60)*250/300/2,
+                                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                          return const SizedBox();
+                                                        },
+                                                      ),
+                                                    ),
+                                                    jsonDecode(dataRaw['meanVN']).length>1?
+                                                    Positioned(
+                                                        right: 7,
+                                                        bottom: 7,
+                                                        child: Container(
+                                                            alignment: Alignment.center,
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.white.withOpacity(0.7),
+                                                              borderRadius: const BorderRadius.all(
+                                                                  Radius.circular(20)
+                                                              ),
+                                                            ),
+                                                            height: 40,
+                                                            width: 40,
+                                                            child: Text(
+                                                              '+ ' + (jsonDecode(dataRaw['meanVN']).length-1).toString(),
+                                                            )
+                                                        )
+                                                    )
+                                                        : const SizedBox(),
+                                                  ]
+                                              )
+                                          ),
+                                          const SizedBox(height: 7),
+                                          Container(
+                                            alignment: Alignment.centerLeft,
+                                            width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                            child: Text(
+                                              dataRaw['word'],
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w600,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 5),
+                                          Container(
+                                            alignment: Alignment.centerLeft,
+                                            width: MediaQuery.of(context).size.width > 500? 220: (MediaQuery.of(context).size.width-60)/2,
+                                            child: Text(
+                                              mean,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w400,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10),
+                                        ]
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            // const SizedBox(width: 10),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 15),
                       Row(
                         // crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
@@ -4109,7 +4313,7 @@ class Home extends StatelessWidget {
                                   suggestionsCallback: (pattern) async {
                                     suggestArray = [];
                                     if (pattern == ''){
-                                      suggestArray = await getLastSearch();
+                                      suggestArray = await getLastSearch(9);
                                     }
                                     for (var i = 0; i < c.wordArray.length; i++){
                                       if (suggestArray.length > 9){
@@ -10503,7 +10707,7 @@ Future<List<History>> getHistory(int start, int end) async {
   return findList;
 }
 
-Future<List<String>> getLastSearch() async {
+Future<List<String>> getLastSearch(int max) async {
   final Controller c = Get.put(Controller());
   List<String> findList = <String>[];
   bool kt = true;
@@ -10515,7 +10719,7 @@ Future<List<String>> getLastSearch() async {
       findList.add(nowWord[1]);
     }
     i = i-1;
-    if (i<0 || findList.length>9){
+    if (i<0 || findList.length>max){
       kt = false;
     }
   }
