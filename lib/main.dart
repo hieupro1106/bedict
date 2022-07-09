@@ -1019,7 +1019,22 @@ class _SearchPageState extends State<SearchPage> {
                               hintText: c.hint.string,
                               isDense: true,
                               contentPadding: const EdgeInsets.all(5),
-                              prefixIcon: const Icon(Icons.search),
+                              prefixIcon: IconButton(
+                                  icon: const Icon(Icons.mic),
+                                  onPressed:() async {
+                                    if (stt.isNotListening){
+                                      await stt.listen(
+                                        onResult: (SpeechRecognitionResult result) {
+                                          if (result.finalResult){
+                                            textFieldController.text = result.recognizedWords;
+                                          }
+                                        },
+                                      );
+                                    }else{
+                                      await stt.stop();
+                                    }
+                                  }
+                              ),
                               suffixIcon: IconButton(
                                   icon: const Icon(Icons.close_rounded),
                                   onPressed:(){
@@ -4601,7 +4616,22 @@ class Home extends StatelessWidget {
                                       hintText: c.hint.string,
                                       isDense: true,
                                       contentPadding: const EdgeInsets.all(5),
-                                      prefixIcon: const Icon(Icons.search),
+                                      prefixIcon: IconButton(
+                                          icon: const Icon(Icons.mic),
+                                          onPressed:() async {
+                                            if (stt.isNotListening){
+                                              await stt.listen(
+                                                onResult: (SpeechRecognitionResult result) {
+                                                  if (result.finalResult){
+                                                    textFieldController.text = result.recognizedWords;
+                                                  }
+                                                },
+                                              );
+                                            }else{
+                                              await stt.stop();
+                                            }
+                                          }
+                                      ),
                                       suffixIcon: IconButton(
                                           icon: const Icon(Icons.close_rounded),
                                           onPressed:(){
