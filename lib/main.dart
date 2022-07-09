@@ -87,7 +87,7 @@ Future<void> main() async {
   MobileAds.instance.initialize();
 
   AwesomeNotifications().initialize(
-    'resource://drawable/app_icon',
+    'resource://drawable/notifi',
     [
       NotificationChannel(
         channelKey: 'daily',
