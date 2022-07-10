@@ -206,7 +206,7 @@ class Controller extends GetxController {
     stt = SpeechToText();
     speechEnabled = RxBool(await stt.initialize(
       onError: (err)  {
-        Get.snackbar('voice recognize error',err.errorMsg.replaceAll('_', ' '));
+        // Get.snackbar('voice recognize error',err.errorMsg.replaceAll('_', ' '));
       },
       onStatus: (status){
         if (stt.isNotListening){
