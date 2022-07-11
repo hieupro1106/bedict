@@ -9537,7 +9537,7 @@ class MyUpgradePage extends StatelessWidget {
                     const SizedBox(width:15),
                     Flexible(
                       child: GetBuilder<Controller>(
-                        builder: (_) => Text(
+                        builder: (_) => LinkText(
                           c.language.value == 'VN'?
                               'Số tiền 119,000 đồng cho 1 năm sẽ được áp dụng vào tài khoản '
                               + (Platform.isIOS?'iTunes':'google') + ' khi xác nhận. '
@@ -9546,7 +9546,7 @@ class MyUpgradePage extends StatelessWidget {
                               'tài khoản ' + (Platform.isIOS?'iTunes':'google') +
                               '. Quảng cáo sẽ biến mất khi bạn đăng kí. Chi tiết hơn xem Chính sách và quyền riêng tư của chúng tôi'
                                   ' tại https://bedict.com/privacyPolicy.html và Điều khoản'
-                                  ' dịch vụ tại https://bedict.com/termOfService.html.'
+                                  ' dịch vụ tại https://bedict.com/termOfService.html'
                               : 'register 1 year using this app without advertisement,'
                               ' helping us distribute this app to people\n'
                               'A 4.9\$ for one year purchase will '
@@ -9559,13 +9559,27 @@ class MyUpgradePage extends StatelessWidget {
                               ' Advertisements will disappear if you purchase a subscription. '
                               'For more information, '
                               'see our Privacy Policy at https://bedict.com/privacyPolicy.html'
-                              ' and Terms of Use at https://bedict.com/termOfService.html.',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            // overflow: TextOverflow.ellipsis,
-                            color: textColor,
+                              ' and Terms of Use at https://bedict.com/termOfService.html',
+                          textStyle: const TextStyle(
+                              fontSize: 16.0,
+                              color: textColor,
+                              fontFamily: 'Tahoma',
+                              fontWeight: FontWeight.w400,
+                              decoration: TextDecoration.none
+                          ),
+                          linkStyle: const TextStyle(
+                              fontSize: 16.0,
+                              color: Colors.blue,
+                              fontFamily: 'Tahoma',
+                              fontWeight: FontWeight.w400,
+                              decoration: TextDecoration.underline,
+                              decorationColor: Colors.blue,
+                              decorationStyle: TextDecorationStyle.solid
                           ),
                           textAlign: TextAlign.center,
+                            onLinkTap: (url) async {
+                              if (!await launchUrl(Uri.parse(url))) throw 'Could not launch $url';
+                            }
                         ),
                       ),
                     ),
