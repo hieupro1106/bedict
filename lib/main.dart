@@ -80,6 +80,7 @@ List<String> ieltsList = <String>[];
 List<String> toeflList = <String>[];
 List<String> toeicList = <String>[];
 List<String> essentialList = <String>[];
+List<String> suggestArray = [];
 
 Future<void> main() async {
 
@@ -801,7 +802,7 @@ class _SearchPageState extends State<SearchPage> {
     List _listShowEssential = [];
     List _listShowSearch = [];
     List<int> listIndex = [];
-    List<String> searchWords = await getLastSearch(count+1);
+    List<String> searchWords = await getLastSearch(count);
     for (int i=0;i<searchWords.length;i++){
       var dataRaw = await box.get(searchWords[i]);
       _listShowSearch.add(dataRaw);
@@ -895,7 +896,6 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
     final textFieldController = TextEditingController(text:'');
-    List<String> suggestArray = [];
 
     if (initial){
       getList(MediaQuery.of(context).size.width < 500?5:(MediaQuery.of(context).size.width~/220+3));
@@ -963,7 +963,6 @@ class _SearchPageState extends State<SearchPage> {
                 visible: c.isSearch.value,
                 child: Row(
                     children:[
-                      // const SizedBox(width:15),
                       IconButton(
                         padding: const EdgeInsets.all(0.0),
                         icon: Icon(
@@ -1019,21 +1018,27 @@ class _SearchPageState extends State<SearchPage> {
                               hintText: c.hint.string,
                               isDense: true,
                               contentPadding: const EdgeInsets.all(5),
-                              prefixIcon: IconButton(
-                                  icon: const Icon(Icons.mic),
-                                  onPressed:() async {
-                                    if (stt.isNotListening){
-                                      await stt.listen(
-                                        onResult: (SpeechRecognitionResult result) {
-                                          if (result.finalResult){
-                                            textFieldController.text = result.recognizedWords;
-                                          }
-                                        },
-                                      );
-                                    }else{
-                                      await stt.stop();
+                              prefixIcon: GetBuilder<Controller>(
+                                builder: (_) => IconButton(
+                                    icon: Icon(
+                                      c.speechEnabled.value?
+                                      c.isListening.value? Icons.mic
+                                          : Icons.mic_none : Icons.mic_off,
+                                    ),
+                                    onPressed:() async {
+                                      if (stt.isNotListening){
+                                        await stt.listen(
+                                          onResult: (SpeechRecognitionResult result) {
+                                            if (result.finalResult){
+                                              textFieldController.text = result.recognizedWords;
+                                            }
+                                          },
+                                        );
+                                      }else{
+                                        await stt.stop();
+                                      }
                                     }
-                                  }
+                                ),
                               ),
                               suffixIcon: IconButton(
                                   icon: const Icon(Icons.close_rounded),
@@ -1046,17 +1051,169 @@ class _SearchPageState extends State<SearchPage> {
                             ),
                             onSubmitted: (value) async {
                               if (suggestArray.isEmpty){
-                                // searchField.text = c.word.string;
-                                if (Get.isSnackbarOpen) Get.closeAllSnackbars();
-                                Get.snackbar(c.learnWrongTitle.string, c.notFound.string);
+                                String suggestion = '';
+                                String languageCode = languagesCode[languages.indexOf(c.languageLocal.string)];
+                                var checkLanguage = await value.translate(to:'en');
+                                if (checkLanguage.text == value){
+                                  var google = await value.translate(from:'en',to:languageCode);
+                                  String imageUrl = await getImage(value,'small');
+                                  suggestion = value + '@' + google.text.toLowerCase() + '@' + imageUrl;
+                                }else{
+                                  var google = await value.translate(to:'en');
+                                  String imageUrl = await getImage(google.text,'small');
+                                  suggestion = google.text.toLowerCase() + '@' + value + '@' + imageUrl;
+                                }
+                                var dataRaw = box.get(suggestion.split('@')[0]);
+                                if (dataRaw.toString() != 'null'){
+                                  await searchToHome(suggestion.split('@')[0]);
+                                }else{
+                                  String imageUrl = await getImage(suggestion.toString().split('@')[0],'medium');
+                                  if (imageUrl.split('@')[0] != 'null'){
+                                    Get.dialog(
+                                        Column(
+                                            children:[
+                                              const Expanded(child:SizedBox()),
+                                              Container(
+                                                  margin: const EdgeInsets.all(10),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius: const BorderRadius.all(
+                                                        Radius.circular(20)
+                                                    ),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.black.withOpacity(0.6),
+                                                        spreadRadius: 0,
+                                                        blurRadius: 3,
+                                                        offset: const Offset(3, 3), // changes position of shadow
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  width: 320,
+                                                  child: Column(
+                                                      children:[
+                                                        const SizedBox(height:10),
+                                                        Text(
+                                                          suggestion.toString().split('@')[0],
+                                                          style: const TextStyle(
+                                                              fontSize: 18.0,
+                                                              color: textColor,
+                                                              fontWeight: FontWeight.w600,
+                                                              fontFamily: 'Tahoma',
+                                                              decoration: TextDecoration.none
+                                                          ),
+                                                          overflow: TextOverflow.ellipsis,
+                                                        ),
+                                                        const SizedBox(height:5),
+                                                        Text(
+                                                          suggestion.toString().split('@')[1],
+                                                          style: const TextStyle(
+                                                              fontSize: 16.0,
+                                                              color: textColor,
+                                                              fontFamily: 'Tahoma',
+                                                              fontWeight: FontWeight.w400,
+                                                              decoration: TextDecoration.none
+                                                          ),
+                                                          overflow: TextOverflow.ellipsis,
+                                                        ),
+                                                        Container(
+                                                            margin: const EdgeInsets.all(10),
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.white,
+                                                              borderRadius: const BorderRadius.all(
+                                                                  Radius.circular(15)
+                                                              ),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                  color: Colors.black.withOpacity(0.6),
+                                                                  spreadRadius: 0,
+                                                                  blurRadius: 3,
+                                                                  offset: const Offset(3, 3), // changes position of shadow
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            width: 280,
+                                                            height: 200,
+                                                            child: Stack(
+                                                                children:[
+                                                                  ClipRRect(
+                                                                    borderRadius: BorderRadius.circular(15),
+                                                                    child: ImageFiltered(
+                                                                      imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                                                      child: Opacity(
+                                                                        opacity: 0.8,
+                                                                        child: Image(
+                                                                          image: NetworkImage(imageUrl),
+                                                                          fit: BoxFit.cover,
+                                                                          width: 280,
+                                                                          height: 200,
+                                                                          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                                            return const SizedBox();
+                                                                          },
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  ClipRRect(
+                                                                    borderRadius: BorderRadius.circular(15),
+                                                                    child: Image(
+                                                                      image: NetworkImage(imageUrl),
+                                                                      fit: BoxFit.contain,
+                                                                      width: 280,
+                                                                      height: 200,
+                                                                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                                        return const SizedBox();
+                                                                      },
+                                                                    ),
+                                                                  ),
+                                                                ]
+                                                            )
+                                                        ),
+                                                        (suggestion.toString().split('@')[2] != 'null')?
+                                                        Opacity(
+                                                            opacity:0.5,
+                                                            child: LinkText(
+                                                                'Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
+                                                                textAlign: TextAlign.center,
+                                                                textStyle: const TextStyle(
+                                                                    fontSize: 12.0,
+                                                                    color: textColor,
+                                                                    fontFamily: 'Tahoma',
+                                                                    fontWeight: FontWeight.w400,
+                                                                    decoration: TextDecoration.none
+                                                                ),
+                                                                linkStyle: const TextStyle(
+                                                                    fontSize: 12.0,
+                                                                    color: Colors.blue,
+                                                                    fontFamily: 'Tahoma',
+                                                                    fontWeight: FontWeight.w400,
+                                                                    decoration: TextDecoration.underline,
+                                                                    decorationColor: Colors.blue,
+                                                                    decorationStyle: TextDecorationStyle.solid
+                                                                ),
+                                                                onLinkTap: (url) async {
+                                                                  if (!await launchUrl(Uri.parse(url))) throw 'Could not launch $url';
+                                                                }
+                                                            )
+                                                        ):const SizedBox(),
+                                                        const SizedBox(height:10),
+                                                      ]
+                                                  )
+                                              ),
+                                              const Expanded(child:SizedBox()),
+                                            ]
+                                        )
+                                    );
+                                  }
+                                }
                               }else{
                                 if (!suggestArray[0].contains('@')) {
                                   await searchToHome(suggestArray[0]);
                                 }else{
                                   String suggestion = suggestArray[0].toString();
-                                  var dataRaw = box.get(suggestion.split('@')[0]);
+                                  var dataRaw = await box.get(suggestion.split('@')[0]);
                                   if (dataRaw.toString() != 'null'){
-                                    await searchToHome(suggestion);
+                                    await searchToHome(suggestion.split('@')[0]);
                                   }else{
                                     String imageUrl = await getImage(suggestion.toString().split('@')[0],'medium');
                                     if (imageUrl.split('@')[0] != 'null'){
@@ -3211,7 +3368,7 @@ class TranslatePage extends StatelessWidget {
                         stopListening();
                       }
                     },
-                ),
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(
@@ -3493,11 +3650,11 @@ class SettingPage extends StatelessWidget {
                       builder: (_) => Switch(
                         value: c.notifyWord.value,
                         onChanged: (value) async {
+                          await boxSetting.put('notifyWord',value);
                           c.notifyWord = RxBool(value);
                           c.update();
-                          await boxSetting.put('notifyWord',value);
                           if (value) {
-                            showNotificationWord();
+                            await showNotificationWord();
                           }else{
                             await AwesomeNotifications().dismissNotificationsByChannelKey('word');
                             await AwesomeNotifications().cancelSchedulesByChannelKey('word');
@@ -3545,7 +3702,7 @@ class SettingPage extends StatelessWidget {
                                   c.update();
                                   await AwesomeNotifications().dismissNotificationsByChannelKey('word');
                                   await AwesomeNotifications().cancelSchedulesByChannelKey('word');
-                                  showNotificationWord();
+                                  await showNotificationWord();
                                 },
                               ),
                             ),
@@ -4198,7 +4355,6 @@ class Home extends StatelessWidget {
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
     final textFieldController = TextEditingController(text:'');
-    List<String> suggestArray = [];
 
     Future searchToHome(String word) async {
       c.nowWord = RxInt(c.wordArray.indexOf(word));
@@ -4561,7 +4717,6 @@ class Home extends StatelessWidget {
                         visible: c.isSearch.value,
                         child: Row(
                             children:[
-                              // const SizedBox(width:15),
                               IconButton(
                                 padding: const EdgeInsets.all(0.0),
                                 icon: Icon(
@@ -4616,21 +4771,27 @@ class Home extends StatelessWidget {
                                       hintText: c.hint.string,
                                       isDense: true,
                                       contentPadding: const EdgeInsets.all(5),
-                                      prefixIcon: IconButton(
-                                          icon: const Icon(Icons.mic),
-                                          onPressed:() async {
-                                            if (stt.isNotListening){
-                                              await stt.listen(
-                                                onResult: (SpeechRecognitionResult result) {
-                                                  if (result.finalResult){
-                                                    textFieldController.text = result.recognizedWords;
-                                                  }
-                                                },
-                                              );
-                                            }else{
-                                              await stt.stop();
+                                      prefixIcon: GetBuilder<Controller>(
+                                        builder: (_) => IconButton(
+                                            icon: Icon(
+                                              c.speechEnabled.value?
+                                              c.isListening.value? Icons.mic
+                                                  : Icons.mic_none : Icons.mic_off,
+                                            ),
+                                            onPressed:() async {
+                                              if (stt.isNotListening){
+                                                await stt.listen(
+                                                  onResult: (SpeechRecognitionResult result) {
+                                                    if (result.finalResult){
+                                                      textFieldController.text = result.recognizedWords;
+                                                    }
+                                                  },
+                                                );
+                                              }else{
+                                                await stt.stop();
+                                              }
                                             }
-                                          }
+                                        ),
                                       ),
                                       suffixIcon: IconButton(
                                           icon: const Icon(Icons.close_rounded),
@@ -4643,17 +4804,169 @@ class Home extends StatelessWidget {
                                     ),
                                     onSubmitted: (value) async {
                                       if (suggestArray.isEmpty){
-                                        // searchField.text = c.word.string;
-                                        if (Get.isSnackbarOpen) Get.closeAllSnackbars();
-                                        Get.snackbar(c.learnWrongTitle.string, c.notFound.string);
+                                        String suggestion = '';
+                                        String languageCode = languagesCode[languages.indexOf(c.languageLocal.string)];
+                                        var checkLanguage = await value.translate(to:'en');
+                                        if (checkLanguage.text == value){
+                                          var google = await value.translate(from:'en',to:languageCode);
+                                          String imageUrl = await getImage(value,'small');
+                                          suggestion = value + '@' + google.text.toLowerCase() + '@' + imageUrl;
+                                        }else{
+                                          var google = await value.translate(to:'en');
+                                          String imageUrl = await getImage(google.text,'small');
+                                          suggestion = google.text.toLowerCase() + '@' + value + '@' + imageUrl;
+                                        }
+                                        var dataRaw = box.get(suggestion.split('@')[0]);
+                                        if (dataRaw.toString() != 'null'){
+                                          await searchToHome(suggestion.split('@')[0]);
+                                        }else{
+                                          String imageUrl = await getImage(suggestion.toString().split('@')[0],'medium');
+                                          if (imageUrl.split('@')[0] != 'null'){
+                                            Get.dialog(
+                                                Column(
+                                                    children:[
+                                                      const Expanded(child:SizedBox()),
+                                                      Container(
+                                                          margin: const EdgeInsets.all(10),
+                                                          decoration: BoxDecoration(
+                                                            color: Colors.white,
+                                                            borderRadius: const BorderRadius.all(
+                                                                Radius.circular(20)
+                                                            ),
+                                                            boxShadow: [
+                                                              BoxShadow(
+                                                                color: Colors.black.withOpacity(0.6),
+                                                                spreadRadius: 0,
+                                                                blurRadius: 3,
+                                                                offset: const Offset(3, 3), // changes position of shadow
+                                                              ),
+                                                            ],
+                                                          ),
+                                                          width: 320,
+                                                          child: Column(
+                                                              children:[
+                                                                const SizedBox(height:10),
+                                                                Text(
+                                                                  suggestion.toString().split('@')[0],
+                                                                  style: const TextStyle(
+                                                                      fontSize: 18.0,
+                                                                      color: textColor,
+                                                                      fontWeight: FontWeight.w600,
+                                                                      fontFamily: 'Tahoma',
+                                                                      decoration: TextDecoration.none
+                                                                  ),
+                                                                  overflow: TextOverflow.ellipsis,
+                                                                ),
+                                                                const SizedBox(height:5),
+                                                                Text(
+                                                                  suggestion.toString().split('@')[1],
+                                                                  style: const TextStyle(
+                                                                      fontSize: 16.0,
+                                                                      color: textColor,
+                                                                      fontFamily: 'Tahoma',
+                                                                      fontWeight: FontWeight.w400,
+                                                                      decoration: TextDecoration.none
+                                                                  ),
+                                                                  overflow: TextOverflow.ellipsis,
+                                                                ),
+                                                                Container(
+                                                                    margin: const EdgeInsets.all(10),
+                                                                    decoration: BoxDecoration(
+                                                                      color: Colors.white,
+                                                                      borderRadius: const BorderRadius.all(
+                                                                          Radius.circular(15)
+                                                                      ),
+                                                                      boxShadow: [
+                                                                        BoxShadow(
+                                                                          color: Colors.black.withOpacity(0.6),
+                                                                          spreadRadius: 0,
+                                                                          blurRadius: 3,
+                                                                          offset: const Offset(3, 3), // changes position of shadow
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                    width: 280,
+                                                                    height: 200,
+                                                                    child: Stack(
+                                                                        children:[
+                                                                          ClipRRect(
+                                                                            borderRadius: BorderRadius.circular(15),
+                                                                            child: ImageFiltered(
+                                                                              imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                                                              child: Opacity(
+                                                                                opacity: 0.8,
+                                                                                child: Image(
+                                                                                  image: NetworkImage(imageUrl),
+                                                                                  fit: BoxFit.cover,
+                                                                                  width: 280,
+                                                                                  height: 200,
+                                                                                  errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                                                    return const SizedBox();
+                                                                                  },
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                          ClipRRect(
+                                                                            borderRadius: BorderRadius.circular(15),
+                                                                            child: Image(
+                                                                              image: NetworkImage(imageUrl),
+                                                                              fit: BoxFit.contain,
+                                                                              width: 280,
+                                                                              height: 200,
+                                                                              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                                                return const SizedBox();
+                                                                              },
+                                                                            ),
+                                                                          ),
+                                                                        ]
+                                                                    )
+                                                                ),
+                                                                (suggestion.toString().split('@')[2] != 'null')?
+                                                                Opacity(
+                                                                    opacity:0.5,
+                                                                    child: LinkText(
+                                                                        'Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
+                                                                        textAlign: TextAlign.center,
+                                                                        textStyle: const TextStyle(
+                                                                            fontSize: 12.0,
+                                                                            color: textColor,
+                                                                            fontFamily: 'Tahoma',
+                                                                            fontWeight: FontWeight.w400,
+                                                                            decoration: TextDecoration.none
+                                                                        ),
+                                                                        linkStyle: const TextStyle(
+                                                                            fontSize: 12.0,
+                                                                            color: Colors.blue,
+                                                                            fontFamily: 'Tahoma',
+                                                                            fontWeight: FontWeight.w400,
+                                                                            decoration: TextDecoration.underline,
+                                                                            decorationColor: Colors.blue,
+                                                                            decorationStyle: TextDecorationStyle.solid
+                                                                        ),
+                                                                        onLinkTap: (url) async {
+                                                                          if (!await launchUrl(Uri.parse(url))) throw 'Could not launch $url';
+                                                                        }
+                                                                    )
+                                                                ):const SizedBox(),
+                                                                const SizedBox(height:10),
+                                                              ]
+                                                          )
+                                                      ),
+                                                      const Expanded(child:SizedBox()),
+                                                    ]
+                                                )
+                                            );
+                                          }
+                                        }
                                       }else{
                                         if (!suggestArray[0].contains('@')) {
                                           await searchToHome(suggestArray[0]);
                                         }else{
                                           String suggestion = suggestArray[0].toString();
-                                          var dataRaw = box.get(suggestion.split('@')[0]);
+                                          var dataRaw = await box.get(suggestion.split('@')[0]);
                                           if (dataRaw.toString() != 'null'){
-                                            await searchToHome(suggestion);
+                                            await searchToHome(suggestion.split('@')[0]);
                                           }else{
                                             String imageUrl = await getImage(suggestion.toString().split('@')[0],'medium');
                                             if (imageUrl.split('@')[0] != 'null'){
