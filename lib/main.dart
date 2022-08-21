@@ -291,6 +291,7 @@ class Controller extends GetxController {
   var part = 0.obs;
   var isReverse = false.obs;
 
+  List<String> listWord = <String>[].obs;
   var nowDuration = 0.obs;
   var fromScreen = 0.obs;
   var translateIn = ''.obs;
@@ -817,7 +818,7 @@ class MainScreen extends StatelessWidget {
                 label: c.language.string == 'VN' ? 'Trang chủ' : 'Home',
               ),
               BottomNavigationBarItem(
-                icon: const Icon(Icons.category_rounded),
+                icon: const Icon(Icons.sort),
                 // backgroundColor: backgroundColor,
                 label: c.language.string == 'VN' ? 'Phân loại' : 'Category',
               ),
@@ -982,6 +983,25 @@ class _SearchPageState extends State<SearchPage> {
       c.isSearch = false.obs;
       await loadAd();
       c.bundle = RxString(bundle);
+      switch (c.bundle.string) {
+        case 'IELTS':
+          c.listWord = RxList(ieltsList);
+          break;
+        case 'TOEIC':
+          c.listWord = RxList(toeicList);
+          break;
+        case 'TOEFL':
+          c.listWord = RxList(toeflList);
+          break;
+        case 'ESSENTIAL':
+          c.listWord = RxList(essentialList);
+          break;
+        case 'CƠ BẢN':
+          c.listWord = RxList(essentialList);
+          break;
+        default:
+          c.listWord = RxList(c.listWordScore.toList());
+      }
       c.category = 'all category'.obs;
       c.type = 'all type'.obs;
       listWordRandom = [word];
@@ -1116,185 +1136,200 @@ class _SearchPageState extends State<SearchPage> {
                         ),
                         onSubmitted: (value) async {
                           if (suggestArray.isEmpty) {
-                            String suggestion = '';
-                            String languageCode = languagesCode[
-                                languages.indexOf(c.languageLocal.string)];
-                            var checkLanguage = await value.translate(to: 'en');
-                            if (checkLanguage.text == value) {
-                              var google = await value.translate(
-                                  from: 'en', to: languageCode);
-                              String imageUrl = await getImage(value, 'small');
-                              suggestion = value +
-                                  '@' +
-                                  google.text.toLowerCase() +
-                                  '@' +
-                                  imageUrl;
-                            } else {
-                              var google = await value.translate(to: 'en');
-                              String imageUrl =
-                                  await getImage(google.text, 'small');
-                              suggestion = google.text.toLowerCase() +
-                                  '@' +
-                                  value +
-                                  '@' +
-                                  imageUrl;
-                            }
-                            var dataRaw = box.get(suggestion.split('@')[0]);
-                            if (dataRaw.toString() != 'null') {
-                              await searchToHome(suggestion.split('@')[0]);
-                            } else {
-                              String imageUrl = await getImage(
-                                  suggestion.toString().split('@')[0],
-                                  'medium');
-                              if (imageUrl.split('@')[0] != 'null') {
-                                Get.dialog(Column(children: [
-                                  const Expanded(child: SizedBox()),
-                                  Container(
-                                      margin: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: const BorderRadius.all(
-                                            Radius.circular(20)),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color:
-                                                Colors.black.withOpacity(0.6),
-                                            spreadRadius: 0,
-                                            blurRadius: 3,
-                                            offset: const Offset(3,
-                                                3), // changes position of shadow
-                                          ),
-                                        ],
-                                      ),
-                                      width: 320,
-                                      child: Column(children: [
-                                        const SizedBox(height: 10),
-                                        Text(
-                                          suggestion.toString().split('@')[0],
-                                          style: const TextStyle(
-                                              fontSize: 18.0,
-                                              color: textColor,
-                                              fontWeight: FontWeight.w600,
-                                              fontFamily: 'Tahoma',
-                                              decoration: TextDecoration.none),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 5),
-                                        Text(
-                                          suggestion.toString().split('@')[1],
-                                          style: const TextStyle(
-                                              fontSize: 16.0,
-                                              color: textColor,
-                                              fontFamily: 'Tahoma',
-                                              fontWeight: FontWeight.w400,
-                                              decoration: TextDecoration.none),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        Container(
-                                            margin: const EdgeInsets.all(10),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius:
-                                                  const BorderRadius.all(
-                                                      Radius.circular(15)),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.black
-                                                      .withOpacity(0.6),
-                                                  spreadRadius: 0,
-                                                  blurRadius: 3,
-                                                  offset: const Offset(3,
-                                                      3), // changes position of shadow
-                                                ),
-                                              ],
+                            try {
+                              String suggestion = '';
+                              String languageCode = languagesCode[
+                                  languages.indexOf(c.languageLocal.string)];
+                              var checkLanguage =
+                                  await value.translate(to: 'en');
+                              if (checkLanguage.text == value) {
+                                var google = await value.translate(
+                                    from: 'en', to: languageCode);
+                                String imageUrl =
+                                    await getImage(value, 'small');
+                                suggestion = value +
+                                    '@' +
+                                    google.text.toLowerCase() +
+                                    '@' +
+                                    imageUrl;
+                              } else {
+                                var google = await value.translate(to: 'en');
+                                String imageUrl =
+                                    await getImage(google.text, 'small');
+                                suggestion = google.text.toLowerCase() +
+                                    '@' +
+                                    value +
+                                    '@' +
+                                    imageUrl;
+                              }
+                              var dataRaw = box.get(suggestion.split('@')[0]);
+                              if (dataRaw.toString() != 'null') {
+                                await searchToHome(suggestion.split('@')[0]);
+                              } else {
+                                String imageUrl = await getImage(
+                                    suggestion.toString().split('@')[0],
+                                    'medium');
+                                if (imageUrl.split('@')[0] != 'null') {
+                                  Get.dialog(Column(children: [
+                                    const Expanded(child: SizedBox()),
+                                    Container(
+                                        margin: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: const BorderRadius.all(
+                                              Radius.circular(20)),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color:
+                                                  Colors.black.withOpacity(0.6),
+                                              spreadRadius: 0,
+                                              blurRadius: 3,
+                                              offset: const Offset(3,
+                                                  3), // changes position of shadow
                                             ),
-                                            width: 280,
-                                            height: 200,
-                                            child: Stack(children: [
-                                              ClipRRect(
+                                          ],
+                                        ),
+                                        width: 320,
+                                        child: Column(children: [
+                                          const SizedBox(height: 10),
+                                          Text(
+                                            suggestion.toString().split('@')[0],
+                                            style: const TextStyle(
+                                                fontSize: 18.0,
+                                                color: textColor,
+                                                fontWeight: FontWeight.w600,
+                                                fontFamily: 'Tahoma',
+                                                decoration:
+                                                    TextDecoration.none),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 5),
+                                          Text(
+                                            suggestion.toString().split('@')[1],
+                                            style: const TextStyle(
+                                                fontSize: 16.0,
+                                                color: textColor,
+                                                fontFamily: 'Tahoma',
+                                                fontWeight: FontWeight.w400,
+                                                decoration:
+                                                    TextDecoration.none),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          Container(
+                                              margin: const EdgeInsets.all(10),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
                                                 borderRadius:
-                                                    BorderRadius.circular(15),
-                                                child: ImageFiltered(
-                                                  imageFilter: ImageFilter.blur(
-                                                      sigmaX: 6, sigmaY: 6),
-                                                  child: Opacity(
-                                                    opacity: 0.8,
-                                                    child: Image(
-                                                      image: NetworkImage(
-                                                          imageUrl),
-                                                      fit: BoxFit.cover,
-                                                      width: 280,
-                                                      height: 200,
-                                                      errorBuilder:
-                                                          (BuildContext context,
-                                                              Object exception,
-                                                              StackTrace?
-                                                                  stackTrace) {
-                                                        return const SizedBox();
-                                                      },
+                                                    const BorderRadius.all(
+                                                        Radius.circular(15)),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: Colors.black
+                                                        .withOpacity(0.6),
+                                                    spreadRadius: 0,
+                                                    blurRadius: 3,
+                                                    offset: const Offset(3,
+                                                        3), // changes position of shadow
+                                                  ),
+                                                ],
+                                              ),
+                                              width: 280,
+                                              height: 200,
+                                              child: Stack(children: [
+                                                ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(15),
+                                                  child: ImageFiltered(
+                                                    imageFilter:
+                                                        ImageFilter.blur(
+                                                            sigmaX: 6,
+                                                            sigmaY: 6),
+                                                    child: Opacity(
+                                                      opacity: 0.8,
+                                                      child: Image(
+                                                        image: NetworkImage(
+                                                            imageUrl),
+                                                        fit: BoxFit.cover,
+                                                        width: 280,
+                                                        height: 200,
+                                                        errorBuilder:
+                                                            (BuildContext
+                                                                    context,
+                                                                Object
+                                                                    exception,
+                                                                StackTrace?
+                                                                    stackTrace) {
+                                                          return const SizedBox();
+                                                        },
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
-                                              ),
-                                              ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                child: Image(
-                                                  image: NetworkImage(imageUrl),
-                                                  fit: BoxFit.contain,
-                                                  width: 280,
-                                                  height: 200,
-                                                  errorBuilder: (BuildContext
-                                                          context,
-                                                      Object exception,
-                                                      StackTrace? stackTrace) {
-                                                    return const SizedBox();
-                                                  },
+                                                ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(15),
+                                                  child: Image(
+                                                    image:
+                                                        NetworkImage(imageUrl),
+                                                    fit: BoxFit.contain,
+                                                    width: 280,
+                                                    height: 200,
+                                                    errorBuilder:
+                                                        (BuildContext context,
+                                                            Object exception,
+                                                            StackTrace?
+                                                                stackTrace) {
+                                                      return const SizedBox();
+                                                    },
+                                                  ),
                                                 ),
-                                              ),
-                                            ])),
-                                        (suggestion.toString().split('@')[2] !=
-                                                'null')
-                                            ? Opacity(
-                                                opacity: 0.5,
-                                                child: LinkText(
-                                                    'Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
-                                                    textAlign: TextAlign.center,
-                                                    textStyle: const TextStyle(
-                                                        fontSize: 12.0,
-                                                        color: textColor,
-                                                        fontFamily: 'Tahoma',
-                                                        fontWeight:
-                                                            FontWeight.w400,
-                                                        decoration:
-                                                            TextDecoration
-                                                                .none),
-                                                    linkStyle: const TextStyle(
-                                                        fontSize: 12.0,
-                                                        color: Colors.blue,
-                                                        fontFamily: 'Tahoma',
-                                                        fontWeight:
-                                                            FontWeight.w400,
-                                                        decoration:
-                                                            TextDecoration
-                                                                .underline,
-                                                        decorationColor:
-                                                            Colors.blue,
-                                                        decorationStyle:
-                                                            TextDecorationStyle
-                                                                .solid),
-                                                    onLinkTap: (url) async {
-                                                  if (!await launchUrl(
-                                                      Uri.parse(url)))
-                                                    throw 'Could not launch $url';
-                                                }))
-                                            : const SizedBox(),
-                                        const SizedBox(height: 10),
-                                      ])),
-                                  const Expanded(child: SizedBox()),
-                                ]));
+                                              ])),
+                                          (suggestion
+                                                      .toString()
+                                                      .split('@')[2] !=
+                                                  'null')
+                                              ? Opacity(
+                                                  opacity: 0.5,
+                                                  child: LinkText(
+                                                      'Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      textStyle: const TextStyle(
+                                                          fontSize: 12.0,
+                                                          color: textColor,
+                                                          fontFamily: 'Tahoma',
+                                                          fontWeight:
+                                                              FontWeight.w400,
+                                                          decoration:
+                                                              TextDecoration
+                                                                  .none),
+                                                      linkStyle: const TextStyle(
+                                                          fontSize: 12.0,
+                                                          color: Colors.blue,
+                                                          fontFamily: 'Tahoma',
+                                                          fontWeight:
+                                                              FontWeight.w400,
+                                                          decoration:
+                                                              TextDecoration
+                                                                  .underline,
+                                                          decorationColor:
+                                                              Colors.blue,
+                                                          decorationStyle:
+                                                              TextDecorationStyle
+                                                                  .solid),
+                                                      onLinkTap: (url) async {
+                                                    if (!await launchUrl(
+                                                        Uri.parse(url)))
+                                                      throw 'Could not launch $url';
+                                                  }))
+                                              : const SizedBox(),
+                                          const SizedBox(height: 10),
+                                        ])),
+                                    const Expanded(child: SizedBox()),
+                                  ]));
+                                }
                               }
-                            }
+                            } catch (_) {}
                           } else {
                             if (!suggestArray[0].contains('@')) {
                               await searchToHome(suggestArray[0]);
@@ -1526,7 +1561,7 @@ class _SearchPageState extends State<SearchPage> {
                                   '@' +
                                   imageUrl);
                             }
-                          } on PlatformException catch (_) {}
+                          } catch (_) {}
                         }
                         return suggestArray;
                       },
@@ -5331,6 +5366,7 @@ class Home extends StatelessWidget {
   Home({Key? key}) : super(key: key);
   final GlobalKey<ProcessWidgetState> processKey =
       GlobalKey<ProcessWidgetState>();
+  final int pageCount = 50;
 
   @override
   Widget build(BuildContext context) {
@@ -5565,6 +5601,20 @@ class Home extends StatelessWidget {
       await Future.delayed(Duration(milliseconds: duration));
     }
 
+    Future getList(int i) async {
+      c.listWordScorePage.clear();
+      for (var j = 0;
+          j <
+              (i < (c.listWord.length / pageCount).ceil() - 1
+                  ? pageCount
+                  : (c.listWord.length - pageCount * i));
+          j++) {
+        c.listWordScorePage.add(c.listWord[i * pageCount + j]);
+      }
+      c.part = RxInt(i);
+      await getRandom();
+    }
+
     return WillPopScope(
       onWillPop: () async {
         // getBack();
@@ -5572,9 +5622,11 @@ class Home extends StatelessWidget {
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,
-        backgroundColor: Colors.white,
+        // extendBodyBehindAppBar: true,
+        backgroundColor: Colors.transparent,
         body: AnnotatedRegion<SystemUiOverlayStyle>(
           value: const SystemUiOverlayStyle(
+            // systemStatusBarContrastEnforced: true,
             statusBarColor: Colors.transparent, //i like transaparent :-)
             systemNavigationBarColor:
                 Colors.transparent, // navigation bar color
@@ -5690,23 +5742,103 @@ class Home extends StatelessWidget {
                               },
                             ),
                       Expanded(
-                        child: Text(
-                          c.fromScreen.value == 0
-                              ? ''
-                              : (c.language.string == 'VN'
-                                      ? 'phần '
-                                      : 'part ') +
-                                  (c.part.value + 1).toString() +
-                                  ' - ' +
-                                  c.bundle.string.toLowerCase(),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: textColor,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.left,
-                        ),
-                      ),
+                          child: c.fromScreen.value == 0
+                              ? const SizedBox()
+                              : Row(
+                                  children: [
+                                    Text(
+                                      c.bundle.string.toLowerCase() + ' - ',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: textColor,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.left,
+                                    ),
+                                    GetBuilder<Controller>(
+                                      builder: (_) => PopupMenuButton<String>(
+                                        onSelected: (String word) async {
+                                          c.part = RxInt(int.parse(
+                                                  word.substring(
+                                                      5, word.indexOf('/'))) -
+                                              1);
+                                          c.update();
+                                          getList(c.part.value);
+                                        },
+                                        padding: const EdgeInsets.all(0),
+                                        itemBuilder: (BuildContext context) =>
+                                            <PopupMenuEntry<String>>[
+                                          for (int i = 0;
+                                              i <
+                                                  (c.listWord.length /
+                                                          pageCount)
+                                                      .ceil();
+                                              i++)
+                                            PopupMenuItem<String>(
+                                                value:
+                                                    (c.language.string == 'VN'
+                                                            ? 'Phần '
+                                                            : 'Part ') +
+                                                        (i + 1).toString() +
+                                                        '/' +
+                                                        (c.listWord.length /
+                                                                pageCount)
+                                                            .ceil()
+                                                            .toString(),
+                                                padding:
+                                                    const EdgeInsets.fromLTRB(
+                                                        5, 0, 5, 0),
+                                                child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      Text(
+                                                        (c.language.string ==
+                                                                    'VN'
+                                                                ? 'Phần '
+                                                                : 'Part ') +
+                                                            (i + 1).toString() +
+                                                            '/' +
+                                                            (c.listWord.length /
+                                                                    pageCount)
+                                                                .ceil()
+                                                                .toString(),
+                                                        style: const TextStyle(
+                                                          fontSize: 18,
+                                                          color: textColor,
+                                                        ),
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                      ),
+                                                    ])),
+                                        ],
+                                        // color: themeColor,
+                                        child: Row(children: [
+                                          Text(
+                                            (c.language.string == 'VN'
+                                                    ? 'phần '
+                                                    : 'part ') +
+                                                (c.part.value + 1).toString() +
+                                                '/' +
+                                                (c.listWord.length / pageCount)
+                                                    .ceil()
+                                                    .toString(),
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: textColor,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.left,
+                                          ),
+                                        ]),
+                                        shape: const RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(20.0))),
+                                      ),
+                                    ),
+                                  ],
+                                )),
                       IconButton(
                         icon: const Icon(
                           Icons.search,
@@ -5913,208 +6045,217 @@ class Home extends StatelessWidget {
                             ),
                             onSubmitted: (value) async {
                               if (suggestArray.isEmpty) {
-                                String suggestion = '';
-                                String languageCode = languagesCode[
-                                    languages.indexOf(c.languageLocal.string)];
-                                var checkLanguage =
-                                    await value.translate(to: 'en');
-                                if (checkLanguage.text == value) {
-                                  var google = await value.translate(
-                                      from: 'en', to: languageCode);
-                                  String imageUrl =
-                                      await getImage(value, 'small');
-                                  suggestion = value +
-                                      '@' +
-                                      google.text.toLowerCase() +
-                                      '@' +
-                                      imageUrl;
-                                } else {
-                                  var google = await value.translate(to: 'en');
-                                  String imageUrl =
-                                      await getImage(google.text, 'small');
-                                  suggestion = google.text.toLowerCase() +
-                                      '@' +
-                                      value +
-                                      '@' +
-                                      imageUrl;
-                                }
-                                var dataRaw = box.get(suggestion.split('@')[0]);
-                                if (dataRaw.toString() != 'null') {
-                                  await searchToHome(suggestion.split('@')[0]);
-                                } else {
-                                  String imageUrl = await getImage(
-                                      suggestion.toString().split('@')[0],
-                                      'medium');
-                                  if (imageUrl.split('@')[0] != 'null') {
-                                    Get.dialog(Column(children: [
-                                      const Expanded(child: SizedBox()),
-                                      Container(
-                                          margin: const EdgeInsets.all(10),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius:
-                                                const BorderRadius.all(
-                                                    Radius.circular(20)),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black
-                                                    .withOpacity(0.6),
-                                                spreadRadius: 0,
-                                                blurRadius: 3,
-                                                offset: const Offset(3,
-                                                    3), // changes position of shadow
-                                              ),
-                                            ],
-                                          ),
-                                          width: 320,
-                                          child: Column(children: [
-                                            const SizedBox(height: 10),
-                                            Text(
-                                              suggestion
-                                                  .toString()
-                                                  .split('@')[0],
-                                              style: const TextStyle(
-                                                  fontSize: 18.0,
-                                                  color: textColor,
-                                                  fontWeight: FontWeight.w600,
-                                                  fontFamily: 'Tahoma',
-                                                  decoration:
-                                                      TextDecoration.none),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            const SizedBox(height: 5),
-                                            Text(
-                                              suggestion
-                                                  .toString()
-                                                  .split('@')[1],
-                                              style: const TextStyle(
-                                                  fontSize: 16.0,
-                                                  color: textColor,
-                                                  fontFamily: 'Tahoma',
-                                                  fontWeight: FontWeight.w400,
-                                                  decoration:
-                                                      TextDecoration.none),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            Container(
-                                                margin:
-                                                    const EdgeInsets.all(10),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white,
-                                                  borderRadius:
-                                                      const BorderRadius.all(
-                                                          Radius.circular(15)),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.black
-                                                          .withOpacity(0.6),
-                                                      spreadRadius: 0,
-                                                      blurRadius: 3,
-                                                      offset: const Offset(3,
-                                                          3), // changes position of shadow
-                                                    ),
-                                                  ],
+                                try {
+                                  String suggestion = '';
+                                  String languageCode = languagesCode[languages
+                                      .indexOf(c.languageLocal.string)];
+                                  var checkLanguage =
+                                      await value.translate(to: 'en');
+                                  if (checkLanguage.text == value) {
+                                    var google = await value.translate(
+                                        from: 'en', to: languageCode);
+                                    String imageUrl =
+                                        await getImage(value, 'small');
+                                    suggestion = value +
+                                        '@' +
+                                        google.text.toLowerCase() +
+                                        '@' +
+                                        imageUrl;
+                                  } else {
+                                    var google =
+                                        await value.translate(to: 'en');
+                                    String imageUrl =
+                                        await getImage(google.text, 'small');
+                                    suggestion = google.text.toLowerCase() +
+                                        '@' +
+                                        value +
+                                        '@' +
+                                        imageUrl;
+                                  }
+                                  var dataRaw =
+                                      box.get(suggestion.split('@')[0]);
+                                  if (dataRaw.toString() != 'null') {
+                                    await searchToHome(
+                                        suggestion.split('@')[0]);
+                                  } else {
+                                    String imageUrl = await getImage(
+                                        suggestion.toString().split('@')[0],
+                                        'medium');
+                                    if (imageUrl.split('@')[0] != 'null') {
+                                      Get.dialog(Column(children: [
+                                        const Expanded(child: SizedBox()),
+                                        Container(
+                                            margin: const EdgeInsets.all(10),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  const BorderRadius.all(
+                                                      Radius.circular(20)),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black
+                                                      .withOpacity(0.6),
+                                                  spreadRadius: 0,
+                                                  blurRadius: 3,
+                                                  offset: const Offset(3,
+                                                      3), // changes position of shadow
                                                 ),
-                                                width: 280,
-                                                height: 200,
-                                                child: Stack(children: [
-                                                  ClipRRect(
+                                              ],
+                                            ),
+                                            width: 320,
+                                            child: Column(children: [
+                                              const SizedBox(height: 10),
+                                              Text(
+                                                suggestion
+                                                    .toString()
+                                                    .split('@')[0],
+                                                style: const TextStyle(
+                                                    fontSize: 18.0,
+                                                    color: textColor,
+                                                    fontWeight: FontWeight.w600,
+                                                    fontFamily: 'Tahoma',
+                                                    decoration:
+                                                        TextDecoration.none),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              const SizedBox(height: 5),
+                                              Text(
+                                                suggestion
+                                                    .toString()
+                                                    .split('@')[1],
+                                                style: const TextStyle(
+                                                    fontSize: 16.0,
+                                                    color: textColor,
+                                                    fontFamily: 'Tahoma',
+                                                    fontWeight: FontWeight.w400,
+                                                    decoration:
+                                                        TextDecoration.none),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              Container(
+                                                  margin:
+                                                      const EdgeInsets.all(10),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
                                                     borderRadius:
-                                                        BorderRadius.circular(
-                                                            15),
-                                                    child: ImageFiltered(
-                                                      imageFilter:
-                                                          ImageFilter.blur(
-                                                              sigmaX: 6,
-                                                              sigmaY: 6),
-                                                      child: Opacity(
-                                                        opacity: 0.8,
-                                                        child: Image(
-                                                          image: NetworkImage(
-                                                              imageUrl),
-                                                          fit: BoxFit.cover,
-                                                          width: 280,
-                                                          height: 200,
-                                                          errorBuilder:
-                                                              (BuildContext
-                                                                      context,
-                                                                  Object
-                                                                      exception,
-                                                                  StackTrace?
-                                                                      stackTrace) {
-                                                            return const SizedBox();
-                                                          },
+                                                        const BorderRadius.all(
+                                                            Radius.circular(
+                                                                15)),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.black
+                                                            .withOpacity(0.6),
+                                                        spreadRadius: 0,
+                                                        blurRadius: 3,
+                                                        offset: const Offset(3,
+                                                            3), // changes position of shadow
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  width: 280,
+                                                  height: 200,
+                                                  child: Stack(children: [
+                                                    ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              15),
+                                                      child: ImageFiltered(
+                                                        imageFilter:
+                                                            ImageFilter.blur(
+                                                                sigmaX: 6,
+                                                                sigmaY: 6),
+                                                        child: Opacity(
+                                                          opacity: 0.8,
+                                                          child: Image(
+                                                            image: NetworkImage(
+                                                                imageUrl),
+                                                            fit: BoxFit.cover,
+                                                            width: 280,
+                                                            height: 200,
+                                                            errorBuilder:
+                                                                (BuildContext
+                                                                        context,
+                                                                    Object
+                                                                        exception,
+                                                                    StackTrace?
+                                                                        stackTrace) {
+                                                              return const SizedBox();
+                                                            },
+                                                          ),
                                                         ),
                                                       ),
                                                     ),
-                                                  ),
-                                                  ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            15),
-                                                    child: Image(
-                                                      image: NetworkImage(
-                                                          imageUrl),
-                                                      fit: BoxFit.contain,
-                                                      width: 280,
-                                                      height: 200,
-                                                      errorBuilder:
-                                                          (BuildContext context,
-                                                              Object exception,
-                                                              StackTrace?
-                                                                  stackTrace) {
-                                                        return const SizedBox();
-                                                      },
+                                                    ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              15),
+                                                      child: Image(
+                                                        image: NetworkImage(
+                                                            imageUrl),
+                                                        fit: BoxFit.contain,
+                                                        width: 280,
+                                                        height: 200,
+                                                        errorBuilder:
+                                                            (BuildContext
+                                                                    context,
+                                                                Object
+                                                                    exception,
+                                                                StackTrace?
+                                                                    stackTrace) {
+                                                          return const SizedBox();
+                                                        },
+                                                      ),
                                                     ),
-                                                  ),
-                                                ])),
-                                            (suggestion
-                                                        .toString()
-                                                        .split('@')[2] !=
-                                                    'null')
-                                                ? Opacity(
-                                                    opacity: 0.5,
-                                                    child: LinkText(
-                                                        'Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                        textStyle: const TextStyle(
-                                                            fontSize: 12.0,
-                                                            color: textColor,
-                                                            fontFamily:
-                                                                'Tahoma',
-                                                            fontWeight:
-                                                                FontWeight.w400,
-                                                            decoration:
-                                                                TextDecoration
-                                                                    .none),
-                                                        linkStyle: const TextStyle(
-                                                            fontSize: 12.0,
-                                                            color: Colors.blue,
-                                                            fontFamily:
-                                                                'Tahoma',
-                                                            fontWeight:
-                                                                FontWeight.w400,
-                                                            decoration:
-                                                                TextDecoration
-                                                                    .underline,
-                                                            decorationColor:
-                                                                Colors.blue,
-                                                            decorationStyle:
-                                                                TextDecorationStyle
-                                                                    .solid),
-                                                        onLinkTap: (url) async {
-                                                      if (!await launchUrl(
-                                                          Uri.parse(url)))
-                                                        throw 'Could not launch $url';
-                                                    }))
-                                                : const SizedBox(),
-                                            const SizedBox(height: 10),
-                                          ])),
-                                      const Expanded(child: SizedBox()),
-                                    ]));
+                                                  ])),
+                                              (suggestion.toString().split('@')[2] !=
+                                                      'null')
+                                                  ? Opacity(
+                                                      opacity: 0.5,
+                                                      child: LinkText(
+                                                          'Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          textStyle: const TextStyle(
+                                                              fontSize: 12.0,
+                                                              color: textColor,
+                                                              fontFamily:
+                                                                  'Tahoma',
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w400,
+                                                              decoration:
+                                                                  TextDecoration
+                                                                      .none),
+                                                          linkStyle: const TextStyle(
+                                                              fontSize: 12.0,
+                                                              color:
+                                                                  Colors.blue,
+                                                              fontFamily:
+                                                                  'Tahoma',
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w400,
+                                                              decoration:
+                                                                  TextDecoration
+                                                                      .underline,
+                                                              decorationColor:
+                                                                  Colors.blue,
+                                                              decorationStyle:
+                                                                  TextDecorationStyle
+                                                                      .solid),
+                                                          onLinkTap: (url) async {
+                                                        if (!await launchUrl(
+                                                            Uri.parse(url)))
+                                                          throw 'Could not launch $url';
+                                                      }))
+                                                  : const SizedBox(),
+                                              const SizedBox(height: 10),
+                                            ])),
+                                        const Expanded(child: SizedBox()),
+                                      ]));
+                                    }
                                   }
-                                }
+                                } catch (_) {}
                               } else {
                                 if (!suggestArray[0].contains('@')) {
                                   await searchToHome(suggestArray[0]);
@@ -6364,7 +6505,7 @@ class Home extends StatelessWidget {
                                       '@' +
                                       imageUrl);
                                 }
-                              } on PlatformException catch (_) {}
+                              } catch (_) {}
                             }
                             return suggestArray;
                           },
@@ -6786,7 +6927,7 @@ class Home extends StatelessWidget {
                     ]),
                   ),
                 ),
-                // const SizedBox(height: 5),
+                const SizedBox(height: 15),
                 Expanded(
                   child: GestureDetector(
                     onVerticalDragEnd: (details) async {
@@ -10436,7 +10577,7 @@ class ScorePage extends StatefulWidget {
 class _ScorePageState extends State<ScorePage> {
   final Controller c = Get.put(Controller());
   final int pageCount = 50;
-  List<String> listWord = [];
+  // List<String> listWord = [];
   List listShow = [];
   List<Score> listScore = [];
   int count = 0;
@@ -10450,33 +10591,32 @@ class _ScorePageState extends State<ScorePage> {
   Future getList(int i) async {
     switch (c.bundle.string) {
       case 'IELTS':
-        listWord = ieltsList;
+        c.listWord = RxList(ieltsList);
         break;
       case 'TOEIC':
-        listWord = toeicList;
+        c.listWord = RxList(toeicList);
         break;
       case 'TOEFL':
-        listWord = toeflList;
+        c.listWord = RxList(toeflList);
         break;
       case 'ESSENTIAL':
-        listWord = essentialList;
+        c.listWord = RxList(essentialList);
         break;
       case 'CƠ BẢN':
-        listWord = essentialList;
+        c.listWord = RxList(essentialList);
         break;
       default:
-        listWord = c.listWordScore.toList();
+        c.listWord = RxList(c.listWordScore.toList());
     }
     c.listWordScorePage.clear();
     for (var j = 0;
         j <
-            (i < (listWord.length / pageCount).ceil() - 1
+            (i < (c.listWord.length / pageCount).ceil() - 1
                 ? pageCount
-                : (listWord.length - pageCount * i));
+                : (c.listWord.length - pageCount * i));
         j++) {
-      c.listWordScorePage.add(listWord[i * pageCount + j]);
+      c.listWordScorePage.add(c.listWord[i * pageCount + j]);
     }
-    // print(c.listWordScorePage);
     c.part = RxInt(i);
     List _listShow = [];
     List<Score> _listScore = [];
@@ -10529,7 +10669,7 @@ class _ScorePageState extends State<ScorePage> {
 
     Future getNext() async {
       await loadAd();
-      if (listWord.length > pageCount * (c.part.value + 1)) {
+      if (c.listWord.length > pageCount * (c.part.value + 1)) {
         c.part = RxInt(c.part.value + 1);
         getList(c.part.value);
       }
@@ -10634,7 +10774,7 @@ class _ScorePageState extends State<ScorePage> {
                         itemBuilder: (BuildContext context) =>
                             <PopupMenuEntry<String>>[
                           for (int i = 0;
-                              i < (listWord.length / pageCount).ceil();
+                              i < (c.listWord.length / pageCount).ceil();
                               i++)
                             PopupMenuItem<String>(
                                 value: (c.language.string == 'VN'
@@ -10642,7 +10782,7 @@ class _ScorePageState extends State<ScorePage> {
                                         : 'Part ') +
                                     (i + 1).toString() +
                                     '/' +
-                                    (listWord.length / pageCount)
+                                    (c.listWord.length / pageCount)
                                         .ceil()
                                         .toString(),
                                 padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
@@ -10655,7 +10795,7 @@ class _ScorePageState extends State<ScorePage> {
                                                 : 'Part ') +
                                             (i + 1).toString() +
                                             '/' +
-                                            (listWord.length / pageCount)
+                                            (c.listWord.length / pageCount)
                                                 .ceil()
                                                 .toString(),
                                         style: const TextStyle(
@@ -10672,7 +10812,9 @@ class _ScorePageState extends State<ScorePage> {
                             (c.language.string == 'VN' ? 'Phần ' : 'Part ') +
                                 (c.part.value + 1).toString() +
                                 '/' +
-                                (listWord.length / pageCount).ceil().toString(),
+                                (c.listWord.length / pageCount)
+                                    .ceil()
+                                    .toString(),
                             style: const TextStyle(
                               fontSize: 18,
                               color: textColor,
@@ -10706,7 +10848,7 @@ class _ScorePageState extends State<ScorePage> {
                     GetBuilder<Controller>(
                       builder: (_) => Opacity(
                         opacity:
-                            listWord.length > pageCount * (c.part.value + 1)
+                            c.listWord.length > pageCount * (c.part.value + 1)
                                 ? 1
                                 : 0.3,
                         child: IconButton(
