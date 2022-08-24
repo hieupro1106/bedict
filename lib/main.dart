@@ -1033,4924 +1033,26 @@ class _SearchPageState extends State<SearchPage> {
       Get.offAll(() => const TypeScreen());
     }
 
-    return GestureDetector(
-        onTap: () {
-          if (searchFocusNode.hasFocus) {
-            searchFocusNode.unfocus();
-          }
-          if (c.isSearch.value) {
-            c.isSearch = false.obs;
-            c.update();
-          }
+    return WillPopScope(
+        onWillPop: () async {
+          c.currentPage = 0.obs;
+          c.update();
+          return false;
         },
-        child: Container(
-          color: Colors.white,
-          child: Column(children: [
-            SizedBox(height: MediaQuery.of(context).padding.top + 10),
-            GetBuilder<Controller>(
-              builder: (_) => Visibility(
-                visible: c.isSearch.value,
-                child: Row(children: [
-                  IconButton(
-                    padding: const EdgeInsets.all(0.0),
-                    icon: Icon(
-                      Icons.arrow_back_ios_rounded,
-                      size: 20,
-                      color: textColor.withOpacity(0.7),
-                    ),
-                    tooltip: 'Back',
-                    onPressed: () {
-                      if (searchFocusNode.hasFocus) {
-                        searchFocusNode.unfocus();
-                      }
-                      if (c.isSearch.value) {
-                        c.isSearch = false.obs;
-                        c.update();
-                      }
-                    },
-                  ),
-                  Expanded(
-                    child: TypeAheadField(
-                      textFieldConfiguration: TextFieldConfiguration(
-                        // controller: searchField,
-                        controller: textFieldController,
-                        autofocus: false,
-                        autocorrect: false,
-                        textInputAction: TextInputAction.done,
-                        focusNode: searchFocusNode,
-                        style: const TextStyle(
-                          fontSize: 15.0,
-                          color: textColor,
-                        ),
-                        decoration: InputDecoration(
-                          fillColor: backgroundColor.withOpacity(0.5),
-                          filled: true,
-                          border: const OutlineInputBorder(
-                            borderSide: BorderSide.none,
-                            borderRadius: BorderRadius.all(Radius.circular(30)),
-                          ),
-                          focusedBorder: const OutlineInputBorder(
-                            borderSide: BorderSide.none,
-                            borderRadius: BorderRadius.all(Radius.circular(30)),
-                          ),
-                          enabledBorder: const OutlineInputBorder(
-                            borderSide: BorderSide.none,
-                            borderRadius: BorderRadius.all(Radius.circular(30)),
-                          ),
-                          // prefixIcon: Icon(Icons.search_outlined,size:15),
-                          hintText: c.hint.string,
-                          isDense: true,
-                          contentPadding: const EdgeInsets.all(5),
-                          prefixIcon: GetBuilder<Controller>(
-                            builder: (_) => IconButton(
-                                icon: Icon(
-                                  c.speechEnabled.value
-                                      ? c.isListening.value
-                                          ? Icons.mic
-                                          : Icons.mic_none
-                                      : Icons.mic_off,
-                                ),
-                                onPressed: () async {
-                                  if (stt.isNotListening) {
-                                    await stt.listen(
-                                      onResult:
-                                          (SpeechRecognitionResult result) {
-                                        if (result.finalResult) {
-                                          textFieldController.text =
-                                              result.recognizedWords;
-                                        }
-                                      },
-                                    );
-                                  } else {
-                                    await stt.stop();
-                                  }
-                                }),
-                          ),
-                          suffixIcon: IconButton(
-                              icon: const Icon(Icons.close_rounded),
-                              onPressed: () {
-                                textFieldController.text = '';
-                              }),
-                          // icon: Icon(Icons.search),
-                          // isCollapsed: true,
-                        ),
-                        onSubmitted: (value) async {
-                          if (suggestArray.isEmpty) {
-                            try {
-                              String suggestion = '';
-                              String languageCode = languagesCode[
-                                  languages.indexOf(c.languageLocal.string)];
-                              var checkLanguage =
-                                  await value.translate(to: 'en');
-                              if (checkLanguage.text == value) {
-                                var google = await value.translate(
-                                    from: 'en', to: languageCode);
-                                String imageUrl =
-                                    await getImage(value, 'small');
-                                suggestion = value +
-                                    '@' +
-                                    google.text.toLowerCase() +
-                                    '@' +
-                                    imageUrl;
-                              } else {
-                                var google = await value.translate(to: 'en');
-                                String imageUrl =
-                                    await getImage(google.text, 'small');
-                                suggestion = google.text.toLowerCase() +
-                                    '@' +
-                                    value +
-                                    '@' +
-                                    imageUrl;
-                              }
-                              var dataRaw = box.get(suggestion.split('@')[0]);
-                              if (dataRaw.toString() != 'null') {
-                                await searchToHome(suggestion.split('@')[0]);
-                              } else {
-                                String imageUrl = await getImage(
-                                    suggestion.toString().split('@')[0],
-                                    'medium');
-                                if (imageUrl.split('@')[0] != 'null') {
-                                  Get.dialog(Column(children: [
-                                    const Expanded(child: SizedBox()),
-                                    Container(
-                                        margin: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: const BorderRadius.all(
-                                              Radius.circular(20)),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color:
-                                                  Colors.black.withOpacity(0.6),
-                                              spreadRadius: 0,
-                                              blurRadius: 3,
-                                              offset: const Offset(3,
-                                                  3), // changes position of shadow
-                                            ),
-                                          ],
-                                        ),
-                                        width: 320,
-                                        child: Column(children: [
-                                          const SizedBox(height: 10),
-                                          Text(
-                                            suggestion.toString().split('@')[0],
-                                            style: const TextStyle(
-                                                fontSize: 18.0,
-                                                color: textColor,
-                                                fontWeight: FontWeight.w600,
-                                                fontFamily: 'Tahoma',
-                                                decoration:
-                                                    TextDecoration.none),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          const SizedBox(height: 5),
-                                          Text(
-                                            suggestion.toString().split('@')[1],
-                                            style: const TextStyle(
-                                                fontSize: 16.0,
-                                                color: textColor,
-                                                fontFamily: 'Tahoma',
-                                                fontWeight: FontWeight.w400,
-                                                decoration:
-                                                    TextDecoration.none),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          Container(
-                                              margin: const EdgeInsets.all(10),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius:
-                                                    const BorderRadius.all(
-                                                        Radius.circular(15)),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black
-                                                        .withOpacity(0.6),
-                                                    spreadRadius: 0,
-                                                    blurRadius: 3,
-                                                    offset: const Offset(3,
-                                                        3), // changes position of shadow
-                                                  ),
-                                                ],
-                                              ),
-                                              width: 280,
-                                              height: 200,
-                                              child: Stack(children: [
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(15),
-                                                  child: ImageFiltered(
-                                                    imageFilter:
-                                                        ImageFilter.blur(
-                                                            sigmaX: 6,
-                                                            sigmaY: 6),
-                                                    child: Opacity(
-                                                      opacity: 0.8,
-                                                      child: Image(
-                                                        image: NetworkImage(
-                                                            imageUrl),
-                                                        fit: BoxFit.cover,
-                                                        width: 280,
-                                                        height: 200,
-                                                        errorBuilder:
-                                                            (BuildContext
-                                                                    context,
-                                                                Object
-                                                                    exception,
-                                                                StackTrace?
-                                                                    stackTrace) {
-                                                          return const SizedBox();
-                                                        },
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(15),
-                                                  child: Image(
-                                                    image:
-                                                        NetworkImage(imageUrl),
-                                                    fit: BoxFit.contain,
-                                                    width: 280,
-                                                    height: 200,
-                                                    errorBuilder:
-                                                        (BuildContext context,
-                                                            Object exception,
-                                                            StackTrace?
-                                                                stackTrace) {
-                                                      return const SizedBox();
-                                                    },
-                                                  ),
-                                                ),
-                                              ])),
-                                          (suggestion
-                                                      .toString()
-                                                      .split('@')[2] !=
-                                                  'null')
-                                              ? Opacity(
-                                                  opacity: 0.5,
-                                                  child: LinkText(
-                                                      'Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
-                                                      textAlign:
-                                                          TextAlign.center,
-                                                      textStyle: const TextStyle(
-                                                          fontSize: 12.0,
-                                                          color: textColor,
-                                                          fontFamily: 'Tahoma',
-                                                          fontWeight:
-                                                              FontWeight.w400,
-                                                          decoration:
-                                                              TextDecoration
-                                                                  .none),
-                                                      linkStyle: const TextStyle(
-                                                          fontSize: 12.0,
-                                                          color: Colors.blue,
-                                                          fontFamily: 'Tahoma',
-                                                          fontWeight:
-                                                              FontWeight.w400,
-                                                          decoration:
-                                                              TextDecoration
-                                                                  .underline,
-                                                          decorationColor:
-                                                              Colors.blue,
-                                                          decorationStyle:
-                                                              TextDecorationStyle
-                                                                  .solid),
-                                                      onLinkTap: (url) async {
-                                                    if (!await launchUrl(
-                                                        Uri.parse(url)))
-                                                      throw 'Could not launch $url';
-                                                  }))
-                                              : const SizedBox(),
-                                          const SizedBox(height: 10),
-                                        ])),
-                                    const Expanded(child: SizedBox()),
-                                  ]));
-                                }
-                              }
-                            } catch (_) {}
-                          } else {
-                            if (!suggestArray[0].contains('@')) {
-                              await searchToHome(suggestArray[0]);
-                            } else {
-                              String suggestion = suggestArray[0].toString();
-                              var dataRaw =
-                                  await box.get(suggestion.split('@')[0]);
-                              if (dataRaw.toString() != 'null') {
-                                await searchToHome(suggestion.split('@')[0]);
-                              } else {
-                                String imageUrl = await getImage(
-                                    suggestion.toString().split('@')[0],
-                                    'medium');
-                                if (imageUrl.split('@')[0] != 'null') {
-                                  Get.dialog(Column(children: [
-                                    const Expanded(child: SizedBox()),
-                                    Container(
-                                        margin: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: const BorderRadius.all(
-                                              Radius.circular(20)),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color:
-                                                  Colors.black.withOpacity(0.6),
-                                              spreadRadius: 0,
-                                              blurRadius: 3,
-                                              offset: const Offset(3,
-                                                  3), // changes position of shadow
-                                            ),
-                                          ],
-                                        ),
-                                        width: 320,
-                                        child: Column(children: [
-                                          const SizedBox(height: 10),
-                                          Text(
-                                            suggestion.toString().split('@')[0],
-                                            style: const TextStyle(
-                                                fontSize: 18.0,
-                                                color: textColor,
-                                                fontWeight: FontWeight.w600,
-                                                fontFamily: 'Tahoma',
-                                                decoration:
-                                                    TextDecoration.none),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          const SizedBox(height: 5),
-                                          Text(
-                                            suggestion.toString().split('@')[1],
-                                            style: const TextStyle(
-                                                fontSize: 16.0,
-                                                color: textColor,
-                                                fontFamily: 'Tahoma',
-                                                fontWeight: FontWeight.w400,
-                                                decoration:
-                                                    TextDecoration.none),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          Container(
-                                              margin: const EdgeInsets.all(10),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius:
-                                                    const BorderRadius.all(
-                                                        Radius.circular(15)),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black
-                                                        .withOpacity(0.6),
-                                                    spreadRadius: 0,
-                                                    blurRadius: 3,
-                                                    offset: const Offset(3,
-                                                        3), // changes position of shadow
-                                                  ),
-                                                ],
-                                              ),
-                                              width: 280,
-                                              height: 200,
-                                              child: Stack(children: [
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(15),
-                                                  child: ImageFiltered(
-                                                    imageFilter:
-                                                        ImageFilter.blur(
-                                                            sigmaX: 6,
-                                                            sigmaY: 6),
-                                                    child: Opacity(
-                                                      opacity: 0.8,
-                                                      child: Image(
-                                                        image: NetworkImage(
-                                                            imageUrl),
-                                                        fit: BoxFit.cover,
-                                                        width: 280,
-                                                        height: 200,
-                                                        errorBuilder:
-                                                            (BuildContext
-                                                                    context,
-                                                                Object
-                                                                    exception,
-                                                                StackTrace?
-                                                                    stackTrace) {
-                                                          return const SizedBox();
-                                                        },
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(15),
-                                                  child: Image(
-                                                    image:
-                                                        NetworkImage(imageUrl),
-                                                    fit: BoxFit.contain,
-                                                    width: 280,
-                                                    height: 200,
-                                                    errorBuilder:
-                                                        (BuildContext context,
-                                                            Object exception,
-                                                            StackTrace?
-                                                                stackTrace) {
-                                                      return const SizedBox();
-                                                    },
-                                                  ),
-                                                ),
-                                              ])),
-                                          (suggestion
-                                                      .toString()
-                                                      .split('@')[2] !=
-                                                  'null')
-                                              ? Opacity(
-                                                  opacity: 0.5,
-                                                  child: LinkText(
-                                                      'Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
-                                                      textAlign:
-                                                          TextAlign.center,
-                                                      textStyle: const TextStyle(
-                                                          fontSize: 12.0,
-                                                          color: textColor,
-                                                          fontFamily: 'Tahoma',
-                                                          fontWeight:
-                                                              FontWeight.w400,
-                                                          decoration:
-                                                              TextDecoration
-                                                                  .none),
-                                                      linkStyle: const TextStyle(
-                                                          fontSize: 12.0,
-                                                          color: Colors.blue,
-                                                          fontFamily: 'Tahoma',
-                                                          fontWeight:
-                                                              FontWeight.w400,
-                                                          decoration:
-                                                              TextDecoration
-                                                                  .underline,
-                                                          decorationColor:
-                                                              Colors.blue,
-                                                          decorationStyle:
-                                                              TextDecorationStyle
-                                                                  .solid),
-                                                      onLinkTap: (url) async {
-                                                    if (!await launchUrl(
-                                                        Uri.parse(url)))
-                                                      throw 'Could not launch $url';
-                                                  }))
-                                              : const SizedBox(),
-                                          const SizedBox(height: 10),
-                                        ])),
-                                    const Expanded(child: SizedBox()),
-                                  ]));
-                                }
-                              }
-                            }
-                          }
-                        },
-                      ),
-                      suggestionsBoxVerticalOffset: 10,
-                      noItemsFoundBuilder: (BuildContext context) => ListTile(
-                        title: Text(
-                          c.notFound.string,
-                          style: const TextStyle(
-                            fontSize: 15.0,
-                            color: textColor,
-                          ),
-                        ),
-                      ),
-                      suggestionsCallback: (pattern) async {
-                        suggestArray = [];
-                        if (pattern == '') {
-                          suggestArray = await getLastSearch(9);
-                        }
-                        for (var i = 0; i < c.wordArray.length; i++) {
-                          if (suggestArray.length > 9) {
-                            break;
-                          }
-                          if (c.wordArray[i]
-                              .toString()
-                              .toLowerCase()
-                              .startsWith(pattern.toLowerCase())) {
-                            if (!suggestArray.contains(c.wordArray[i])) {
-                              suggestArray.add(c.wordArray[i]);
-                            }
-                          }
-                        }
-                        if (suggestArray.isEmpty) {
-                          try {
-                            String languageCode = languagesCode[
-                                languages.indexOf(c.languageLocal.string)];
-                            var checkLanguage =
-                                await pattern.translate(to: 'en');
-                            if (checkLanguage.text == pattern) {
-                              var google = await pattern.translate(
-                                  from: 'en', to: languageCode);
-                              String imageUrl =
-                                  await getImage(pattern, 'small');
-                              suggestArray.add(pattern +
-                                  '@' +
-                                  google.text.toLowerCase() +
-                                  '@' +
-                                  imageUrl);
-                            } else {
-                              var google = await pattern.translate(to: 'en');
-                              String imageUrl =
-                                  await getImage(google.text, 'small');
-                              suggestArray.add(google.text.toLowerCase() +
-                                  '@' +
-                                  pattern +
-                                  '@' +
-                                  imageUrl);
-                            }
-                          } catch (_) {}
-                        }
-                        return suggestArray;
-                      },
-                      suggestionsBoxDecoration: SuggestionsBoxDecoration(
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(15)),
-                        color: Colors.white.withOpacity(1.0),
-                      ),
-                      itemBuilder: (context, suggestion) {
-                        String mean = '';
-                        String image = 'bedict.png';
-                        List listMeans = [];
-                        var dataRaw = suggestion.toString().contains('@')
-                            ? box.get(suggestion.toString().split('@')[0])
-                            : box.get(suggestion.toString());
-                        if (dataRaw.toString() == 'null') {
-                          mean = suggestion.toString().split('@')[1];
-                          if (suggestion.toString().split('@')[2] != 'null') {
-                            image = suggestion.toString().split('@')[2];
-                          } else {
-                            image = 'https://bedict.com/bedict.png';
-                          }
-                          listMeans.add(suggestion.toString().split('@')[0]);
-                        } else {
-                          listMeans = jsonDecode(dataRaw['mean']);
-                          List listMean = listMeans[0];
-                          List meanENAdd = [];
-                          List meanVNAdd = [];
-                          for (var j = 0; j < listMean.length; j++) {
-                            String meanENElement = '';
-                            if (listMean[j].contains('#')) {
-                              meanENElement = listMean[j].split('#')[1];
-                            } else {
-                              meanENElement = listMean[j];
-                            }
-                            meanENAdd.add(meanENElement);
-                            String meanVNElement =
-                                jsonDecode(dataRaw['meanVN'])[0][j];
-                            meanVNElement = meanVNElement.substring(
-                                0, meanVNElement.length - 2);
-                            meanVNElement = meanVNElement +
-                                listMean[j].substring(listMean[j].length - 1);
-                            meanVNAdd.add(meanVNElement);
-                          }
-                          String meanEN = '';
-                          String meanVN = '';
-                          for (var j = 0; j < meanENAdd.length; j++) {
-                            if (j == 0) {
-                              meanVN = meanVN +
-                                  meanVNAdd[j]
-                                      .substring(0, meanVNAdd[j].length - 1);
-                              meanEN = meanEN +
-                                  meanENAdd[j]
-                                      .substring(0, meanENAdd[j].length - 1);
-                            } else {
-                              meanVN = meanVN +
-                                  ' | ' +
-                                  meanVNAdd[j]
-                                      .substring(0, meanVNAdd[j].length - 1);
-                              meanEN = meanEN +
-                                  ' | ' +
-                                  meanENAdd[j]
-                                      .substring(0, meanENAdd[j].length - 1);
-                            }
-                          }
-                          if (c.language.string == 'VN') {
-                            mean = meanVN;
-                          } else {
-                            mean = meanEN;
-                          }
-                          if (jsonDecode(dataRaw['imageURL']).length > 0) {
-                            image = jsonDecode(dataRaw['imageURL'])[0];
-                          }
-                        }
-                        return Column(children: [
-                          Row(children: [
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      suggestion.toString().contains('@')
-                                          ? suggestion.toString().split('@')[0]
-                                          : suggestion.toString(),
-                                      style: const TextStyle(
-                                        fontSize: 18.0,
-                                        color: textColor,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 5),
-                                    Text(
-                                      mean,
-                                      style: const TextStyle(
-                                        fontSize: 14.0,
-                                        color: textColor,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ]),
-                            ),
-                            Container(
-                                margin: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(8)),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.6),
-                                      spreadRadius: 0,
-                                      blurRadius: 3,
-                                      offset: const Offset(
-                                          3, 3), // changes position of shadow
-                                    ),
-                                  ],
-                                ),
-                                width: 70,
-                                height: 50,
-                                child: Stack(children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: ImageFiltered(
-                                      imageFilter: ImageFilter.blur(
-                                          sigmaX: 6, sigmaY: 6),
-                                      child: Opacity(
-                                        opacity: 0.8,
-                                        child: Image(
-                                          image: NetworkImage(
-                                              dataRaw.toString() == 'null'
-                                                  ? image
-                                                  : 'https://bedict.com/' +
-                                                      image.replaceAll(
-                                                          '\\', '')),
-                                          fit: BoxFit.cover,
-                                          width: 70,
-                                          height: 50,
-                                          errorBuilder: (BuildContext context,
-                                              Object exception,
-                                              StackTrace? stackTrace) {
-                                            return const SizedBox();
-                                          },
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image(
-                                      image: NetworkImage(
-                                          dataRaw.toString() == 'null'
-                                              ? image
-                                              : 'https://bedict.com/' +
-                                                  image.replaceAll('\\', '')),
-                                      fit: BoxFit.contain,
-                                      width: 70,
-                                      height: 50,
-                                      errorBuilder: (BuildContext context,
-                                          Object exception,
-                                          StackTrace? stackTrace) {
-                                        return const SizedBox();
-                                      },
-                                    ),
-                                  ),
-                                  listMeans.length > 1
-                                      ? Positioned(
-                                          right: 4,
-                                          bottom: 4,
-                                          child: Container(
-                                              alignment: Alignment.center,
-                                              decoration: BoxDecoration(
-                                                color: Colors.white
-                                                    .withOpacity(0.7),
-                                                borderRadius:
-                                                    const BorderRadius.all(
-                                                        Radius.circular(20)),
-                                              ),
-                                              height: 20,
-                                              width: 20,
-                                              child: Text(
-                                                '+ ' +
-                                                    (listMeans.length - 1)
-                                                        .toString(),
-                                                style: const TextStyle(
-                                                  fontSize: 9,
-                                                ),
-                                              )))
-                                      : const SizedBox(),
-                                ])),
-                          ]),
-                          (dataRaw.toString() == 'null' &&
-                                  suggestion.toString().split('@')[2] != 'null')
-                              ? Opacity(
-                                  opacity: 0.3,
-                                  child: LinkText(
-                                      'Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
-                                      textAlign: TextAlign.center,
-                                      textStyle: const TextStyle(
-                                          fontSize: 10.0,
-                                          color: textColor,
-                                          fontFamily: 'Tahoma',
-                                          fontWeight: FontWeight.w400,
-                                          decoration: TextDecoration.none),
-                                      linkStyle: const TextStyle(
-                                          fontSize: 10.0,
-                                          color: Colors.blue,
-                                          fontFamily: 'Tahoma',
-                                          fontWeight: FontWeight.w400,
-                                          decoration: TextDecoration.underline,
-                                          decorationColor: Colors.blue,
-                                          decorationStyle: TextDecorationStyle
-                                              .solid), onLinkTap: (url) async {
-                                    if (!await launchUrl(Uri.parse(url)))
-                                      throw 'Could not launch $url';
-                                  }))
-                              : const SizedBox(),
-                          (dataRaw.toString() == 'null' &&
-                                  suggestion.toString().split('@')[2] != 'null')
-                              ? const SizedBox(height: 5)
-                              : const SizedBox(),
-                        ]);
-                      },
-                      onSuggestionSelected: (suggestion) async {
-                        // searchField.text = suggestion.toString();
-                        if (!suggestion.toString().contains('@')) {
-                          await searchToHome(suggestion.toString());
-                        } else {
-                          var dataRaw =
-                              box.get(suggestion.toString().split('@')[0]);
-                          if (dataRaw.toString() != 'null') {
-                            await searchToHome(
-                                suggestion.toString().split('@')[0]);
-                          } else {
-                            String imageUrl = await getImage(
-                                suggestion.toString().split('@')[0], 'medium');
-                            if (imageUrl.split('@')[0] != 'null') {
-                              Get.dialog(Column(children: [
-                                const Expanded(child: SizedBox()),
-                                Container(
-                                    margin: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: const BorderRadius.all(
-                                          Radius.circular(20)),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.6),
-                                          spreadRadius: 0,
-                                          blurRadius: 3,
-                                          offset: const Offset(3,
-                                              3), // changes position of shadow
-                                        ),
-                                      ],
-                                    ),
-                                    width: 320,
-                                    child: Column(children: [
-                                      const SizedBox(height: 10),
-                                      Text(
-                                        suggestion.toString().split('@')[0],
-                                        style: const TextStyle(
-                                            fontSize: 18.0,
-                                            color: textColor,
-                                            fontWeight: FontWeight.w600,
-                                            fontFamily: 'Tahoma',
-                                            decoration: TextDecoration.none),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 5),
-                                      Text(
-                                        suggestion.toString().split('@')[1],
-                                        style: const TextStyle(
-                                            fontSize: 16.0,
-                                            color: textColor,
-                                            fontFamily: 'Tahoma',
-                                            fontWeight: FontWeight.w400,
-                                            decoration: TextDecoration.none),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      Container(
-                                          margin: const EdgeInsets.all(10),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius:
-                                                const BorderRadius.all(
-                                                    Radius.circular(15)),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black
-                                                    .withOpacity(0.6),
-                                                spreadRadius: 0,
-                                                blurRadius: 3,
-                                                offset: const Offset(3,
-                                                    3), // changes position of shadow
-                                              ),
-                                            ],
-                                          ),
-                                          width: 280,
-                                          height: 200,
-                                          child: Stack(children: [
-                                            ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(15),
-                                              child: ImageFiltered(
-                                                imageFilter: ImageFilter.blur(
-                                                    sigmaX: 6, sigmaY: 6),
-                                                child: Opacity(
-                                                  opacity: 0.8,
-                                                  child: Image(
-                                                    image:
-                                                        NetworkImage(imageUrl),
-                                                    fit: BoxFit.cover,
-                                                    width: 280,
-                                                    height: 200,
-                                                    errorBuilder:
-                                                        (BuildContext context,
-                                                            Object exception,
-                                                            StackTrace?
-                                                                stackTrace) {
-                                                      return const SizedBox();
-                                                    },
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(15),
-                                              child: Image(
-                                                image: NetworkImage(imageUrl),
-                                                fit: BoxFit.contain,
-                                                width: 280,
-                                                height: 200,
-                                                errorBuilder: (BuildContext
-                                                        context,
-                                                    Object exception,
-                                                    StackTrace? stackTrace) {
-                                                  return const SizedBox();
-                                                },
-                                              ),
-                                            ),
-                                          ])),
-                                      (suggestion.toString().split('@')[2] !=
-                                              'null')
-                                          ? Opacity(
-                                              opacity: 0.5,
-                                              child: LinkText(
-                                                  'Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
-                                                  textAlign: TextAlign.center,
-                                                  textStyle: const TextStyle(
-                                                      fontSize: 12.0,
-                                                      color: textColor,
-                                                      fontFamily: 'Tahoma',
-                                                      fontWeight:
-                                                          FontWeight.w400,
-                                                      decoration:
-                                                          TextDecoration.none),
-                                                  linkStyle: const TextStyle(
-                                                      fontSize: 12.0,
-                                                      color: Colors.blue,
-                                                      fontFamily: 'Tahoma',
-                                                      fontWeight:
-                                                          FontWeight.w400,
-                                                      decoration: TextDecoration
-                                                          .underline,
-                                                      decorationColor:
-                                                          Colors.blue,
-                                                      decorationStyle:
-                                                          TextDecorationStyle
-                                                              .solid),
-                                                  onLinkTap: (url) async {
-                                                if (!await launchUrl(
-                                                    Uri.parse(url)))
-                                                  throw 'Could not launch $url';
-                                              }))
-                                          : const SizedBox(),
-                                      const SizedBox(height: 10),
-                                    ])),
-                                const Expanded(child: SizedBox()),
-                              ]));
-                            }
-                          }
-                        }
-                      },
-                      animationDuration: Duration.zero,
-                      debounceDuration: Duration.zero,
-                    ),
-                  ),
-                  const SizedBox(width: 15),
-                ]),
-              ),
-            ),
-            GetBuilder<Controller>(
-              builder: (_) => Visibility(
-                visible: !c.isSearch.value,
-                child: Row(
-                  children: [
-                    const SizedBox(width: 20),
-                    OutlinedButton(
-                      style: ButtonStyle(
-                        // backgroundColor: MaterialStateProperty.all<Color>(backgroundColor.withOpacity(0.2)),
-                        // foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                        padding: MaterialStateProperty.all<EdgeInsets>(
-                            const EdgeInsets.all(12)),
-                        shape: MaterialStateProperty.all<OutlinedBorder?>(
-                            RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30.0),
-                        )),
-                      ),
-                      onPressed: () {
-                        getToCategory();
-                      },
-                      child: Text(
-                          c.language.string == 'VN' ? 'Chủ đề' : 'Category',
-                          style: const TextStyle(
-                            color: textColor,
-                          )),
-                    ),
-                    const SizedBox(width: 10),
-                    OutlinedButton(
-                      style: ButtonStyle(
-                        // backgroundColor: MaterialStateProperty.all<Color>(backgroundColor.withOpacity(0.2)),
-                        // foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                        padding: MaterialStateProperty.all<EdgeInsets>(
-                            const EdgeInsets.all(12)),
-                        shape: MaterialStateProperty.all<OutlinedBorder?>(
-                            RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30.0),
-                        )),
-                      ),
-                      onPressed: () {
-                        getToType();
-                      },
-                      child:
-                          Text(c.language.string == 'VN' ? 'Từ loại' : 'Type',
-                              style: const TextStyle(
-                                color: textColor,
-                              )),
-                    ),
-                    const Expanded(child: SizedBox()),
-                    TextButton(
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            backgroundColor.withOpacity(0.5)),
-                        foregroundColor:
-                            MaterialStateProperty.all<Color>(Colors.grey),
-                        padding: MaterialStateProperty.all<EdgeInsets>(
-                            const EdgeInsets.fromLTRB(0, 10, 0, 10)),
-                        shape: MaterialStateProperty.all<OutlinedBorder?>(
-                            RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15.0),
-                        )),
-                      ),
-                      onPressed: () {
-                        c.isSearch = true.obs;
-                        c.update();
-                        searchFocusNode.requestFocus();
-                      },
-                      child: const Icon(
-                        Icons.search,
-                        size: 20,
-                        color: textColor,
-                      ),
-                    ),
-                    const SizedBox(width: 20),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: GetBuilder<Controller>(
-                builder: (_) => Visibility(
-                  visible: !c.isSearch.value,
-                  child: ListView(padding: const EdgeInsets.all(0), children: [
-                    // const SizedBox(height: 10),
-                    // Row(
-                    //     // crossAxisAlignment: CrossAxisAlignment.end,
-                    //     children: [
-                    //       const SizedBox(width: 20),
-                    //       // const Expanded(child: SizedBox(),),
-                    //       Text(
-                    //         c.language.string == 'VN'
-                    //             ? 'TÌM KIẾM GẦN ĐÂY'
-                    //             : 'LAST SEARCH WORDS',
-                    //         style: const TextStyle(
-                    //           fontSize: 20,
-                    //           color: textColor,
-                    //           fontWeight: FontWeight.w600,
-                    //         ),
-                    //         overflow: TextOverflow.ellipsis,
-                    //       ),
-                    //       const Expanded(
-                    //         child: SizedBox(),
-                    //       ),
-                    //       const SizedBox(width: 10),
-                    //     ]),
-                    // const SizedBox(height: 10),
-                    // SizedBox(
-                    //   height: MediaQuery.of(context).size.width > 500
-                    //       ? 220 * 250 / 300 + 80
-                    //       : (MediaQuery.of(context).size.width - 60) *
-                    //               250 /
-                    //               300 /
-                    //               2 +
-                    //           80,
-                    //   child: Row(
-                    //     children: [
-                    //       // const SizedBox(width: 10),
-                    //       Expanded(
-                    //         child: ListView.builder(
-                    //           scrollDirection: Axis.horizontal,
-                    //           itemCount: listShowSearch.length,
-                    //           addAutomaticKeepAlives: false,
-                    //           itemBuilder: (BuildContext context, int index) {
-                    //             late var dataRaw;
-                    //             String mean = '';
-                    //             String image = 'bedict.png';
-                    //             dataRaw = listShowSearch[index];
-                    //             List listMean = jsonDecode(dataRaw['mean'])[0];
-                    //             List meanENAdd = [];
-                    //             List meanVNAdd = [];
-                    //             for (var j = 0; j < listMean.length; j++) {
-                    //               String meanENElement = '';
-                    //               if (listMean[j].contains('#')) {
-                    //                 meanENElement = listMean[j].split('#')[1];
-                    //               } else {
-                    //                 meanENElement = listMean[j];
-                    //               }
-                    //               meanENAdd.add(meanENElement);
-                    //               String meanVNElement =
-                    //                   jsonDecode(dataRaw['meanVN'])[0][j];
-                    //               meanVNElement = meanVNElement.substring(
-                    //                   0, meanVNElement.length - 2);
-                    //               meanVNElement = meanVNElement +
-                    //                   listMean[j]
-                    //                       .substring(listMean[j].length - 1);
-                    //               meanVNAdd.add(meanVNElement);
-                    //             }
-                    //             String meanEN = '';
-                    //             String meanVN = '';
-                    //             for (var j = 0; j < meanENAdd.length; j++) {
-                    //               if (j == 0) {
-                    //                 meanVN = meanVN +
-                    //                     meanVNAdd[j].substring(
-                    //                         0, meanVNAdd[j].length - 1);
-                    //                 meanEN = meanEN +
-                    //                     meanENAdd[j].substring(
-                    //                         0, meanENAdd[j].length - 1);
-                    //               } else {
-                    //                 meanVN = meanVN +
-                    //                     ' | ' +
-                    //                     meanVNAdd[j].substring(
-                    //                         0, meanVNAdd[j].length - 1);
-                    //                 meanEN = meanEN +
-                    //                     ' | ' +
-                    //                     meanENAdd[j].substring(
-                    //                         0, meanENAdd[j].length - 1);
-                    //               }
-                    //             }
-                    //             if (c.language.string == 'VN') {
-                    //               mean = meanVN;
-                    //             } else {
-                    //               mean = meanEN;
-                    //             }
-                    //             if (jsonDecode(dataRaw['imageURL']).length >
-                    //                 0) {
-                    //               image = jsonDecode(dataRaw['imageURL'])[0];
-                    //             }
-                    //             return GestureDetector(
-                    //               onTap: () async {
-                    //                 await searchToHome(dataRaw['word']);
-                    //               },
-                    //               child: Column(children: [
-                    //                 Container(
-                    //                     margin: const EdgeInsets.all(10),
-                    //                     decoration: BoxDecoration(
-                    //                       color: Colors.white,
-                    //                       borderRadius: const BorderRadius.all(
-                    //                           Radius.circular(8)),
-                    //                       boxShadow: [
-                    //                         BoxShadow(
-                    //                           color:
-                    //                               Colors.black.withOpacity(0.6),
-                    //                           spreadRadius: 0,
-                    //                           blurRadius: 5,
-                    //                           offset: const Offset(5,
-                    //                               5), // changes position of shadow
-                    //                         ),
-                    //                       ],
-                    //                     ),
-                    //                     width:
-                    //                         MediaQuery.of(context).size.width >
-                    //                                 500
-                    //                             ? 220
-                    //                             : (MediaQuery.of(context)
-                    //                                         .size
-                    //                                         .width -
-                    //                                     60) /
-                    //                                 2,
-                    //                     height:
-                    //                         MediaQuery.of(context).size.width >
-                    //                                 500
-                    //                             ? 220 * 250 / 300
-                    //                             : (MediaQuery.of(context)
-                    //                                         .size
-                    //                                         .width -
-                    //                                     60) *
-                    //                                 250 /
-                    //                                 300 /
-                    //                                 2,
-                    //                     child: Stack(children: [
-                    //                       ClipRRect(
-                    //                         borderRadius:
-                    //                             BorderRadius.circular(8),
-                    //                         child: ImageFiltered(
-                    //                           imageFilter: ImageFilter.blur(
-                    //                               sigmaX: 6, sigmaY: 6),
-                    //                           child: Opacity(
-                    //                             opacity: 0.8,
-                    //                             child: Image(
-                    //                               image: NetworkImage(
-                    //                                   'https://bedict.com/' +
-                    //                                       image.replaceAll(
-                    //                                           '\\', '')),
-                    //                               fit: BoxFit.cover,
-                    //                               width: MediaQuery.of(context)
-                    //                                           .size
-                    //                                           .width >
-                    //                                       500
-                    //                                   ? 220
-                    //                                   : (MediaQuery.of(context)
-                    //                                               .size
-                    //                                               .width -
-                    //                                           60) /
-                    //                                       2,
-                    //                               height: MediaQuery.of(context)
-                    //                                           .size
-                    //                                           .width >
-                    //                                       500
-                    //                                   ? 220 * 250 / 300
-                    //                                   : (MediaQuery.of(context)
-                    //                                               .size
-                    //                                               .width -
-                    //                                           60) *
-                    //                                       250 /
-                    //                                       300 /
-                    //                                       2,
-                    //                               errorBuilder: (BuildContext
-                    //                                       context,
-                    //                                   Object exception,
-                    //                                   StackTrace? stackTrace) {
-                    //                                 return const SizedBox();
-                    //                               },
-                    //                             ),
-                    //                           ),
-                    //                         ),
-                    //                       ),
-                    //                       ClipRRect(
-                    //                         borderRadius:
-                    //                             BorderRadius.circular(8),
-                    //                         child: Image(
-                    //                           image: NetworkImage(
-                    //                               'https://bedict.com/' +
-                    //                                   image.replaceAll(
-                    //                                       '\\', '')),
-                    //                           fit: BoxFit.contain,
-                    //                           width: MediaQuery.of(context)
-                    //                                       .size
-                    //                                       .width >
-                    //                                   500
-                    //                               ? 220
-                    //                               : (MediaQuery.of(context)
-                    //                                           .size
-                    //                                           .width -
-                    //                                       60) /
-                    //                                   2,
-                    //                           height: MediaQuery.of(context)
-                    //                                       .size
-                    //                                       .width >
-                    //                                   500
-                    //                               ? 220 * 250 / 300
-                    //                               : (MediaQuery.of(context)
-                    //                                           .size
-                    //                                           .width -
-                    //                                       60) *
-                    //                                   250 /
-                    //                                   300 /
-                    //                                   2,
-                    //                           errorBuilder:
-                    //                               (BuildContext context,
-                    //                                   Object exception,
-                    //                                   StackTrace? stackTrace) {
-                    //                             return const SizedBox();
-                    //                           },
-                    //                         ),
-                    //                       ),
-                    //                       jsonDecode(dataRaw['meanVN']).length >
-                    //                               1
-                    //                           ? Positioned(
-                    //                               right: 7,
-                    //                               bottom: 7,
-                    //                               child: Container(
-                    //                                   alignment:
-                    //                                       Alignment.center,
-                    //                                   decoration: BoxDecoration(
-                    //                                     color: Colors.white
-                    //                                         .withOpacity(0.7),
-                    //                                     borderRadius:
-                    //                                         const BorderRadius
-                    //                                                 .all(
-                    //                                             Radius.circular(
-                    //                                                 20)),
-                    //                                   ),
-                    //                                   height: 40,
-                    //                                   width: 40,
-                    //                                   child: Text(
-                    //                                     '+ ' +
-                    //                                         (jsonDecode(dataRaw[
-                    //                                                         'meanVN'])
-                    //                                                     .length -
-                    //                                                 1)
-                    //                                             .toString(),
-                    //                                   )))
-                    //                           : const SizedBox(),
-                    //                     ])),
-                    //                 const SizedBox(height: 7),
-                    //                 Container(
-                    //                   alignment: Alignment.centerLeft,
-                    //                   width: MediaQuery.of(context).size.width >
-                    //                           500
-                    //                       ? 220
-                    //                       : (MediaQuery.of(context).size.width -
-                    //                               60) /
-                    //                           2,
-                    //                   child: Text(
-                    //                     dataRaw['word'],
-                    //                     style: const TextStyle(
-                    //                       fontSize: 18,
-                    //                       fontWeight: FontWeight.w600,
-                    //                       overflow: TextOverflow.ellipsis,
-                    //                     ),
-                    //                   ),
-                    //                 ),
-                    //                 const SizedBox(height: 5),
-                    //                 Container(
-                    //                   alignment: Alignment.centerLeft,
-                    //                   width: MediaQuery.of(context).size.width >
-                    //                           500
-                    //                       ? 220
-                    //                       : (MediaQuery.of(context).size.width -
-                    //                               60) /
-                    //                           2,
-                    //                   child: Text(
-                    //                     mean,
-                    //                     style: const TextStyle(
-                    //                       fontSize: 14,
-                    //                       fontWeight: FontWeight.w400,
-                    //                       overflow: TextOverflow.ellipsis,
-                    //                     ),
-                    //                   ),
-                    //                 ),
-                    //                 const SizedBox(height: 10),
-                    //               ]),
-                    //             );
-                    //           },
-                    //         ),
-                    //       ),
-                    //       // const SizedBox(width: 10),
-                    //     ],
-                    //   ),
-                    // ),
-                    // const SizedBox(height: 15),
-                    Row(
-                        // crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const SizedBox(width: 20),
-                          CircularPercentIndicator(
-                            radius: 13,
-                            lineWidth: 3.0,
-                            animation: true,
-                            percent: essentialCount / essentialList.length,
-                            backgroundColor:
-                                const Color.fromRGBO(240, 240, 240, 1),
-                            progressColor: backgroundColor,
-                            // center: Text(
-                            //   c.learnedIelts.length.toString(),
-                            //   style: const TextStyle(
-                            //     fontSize: 9,
-                            //     color: textColor,
-                            //   ),
-                            // ),
-                            circularStrokeCap: CircularStrokeCap.round,
-                          ),
-                          const SizedBox(width: 15),
-                          GestureDetector(
-                            onTap: () {
-                              if (c.language.string == 'VN') {
-                                getToScore('CƠ BẢN');
-                              } else {
-                                getToScore('ESSENTIAL');
-                              }
-                            },
-                            child: Text(
-                              c.language.string == 'VN'
-                                  ? 'CƠ BẢN'
-                                  : 'ESSENTIAL',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                color: textColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const Expanded(
-                            child: SizedBox(),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.arrow_forward),
-                            onPressed: () {
-                              if (c.language.string == 'VN') {
-                                getToScore('CƠ BẢN');
-                              } else {
-                                getToScore('ESSENTIAL');
-                              }
-                            },
-                          ),
-                          const SizedBox(width: 10),
-                        ]),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.width > 500
-                          ? 220 * 250 / 300 + 80
-                          : (MediaQuery.of(context).size.width - 60) *
-                                  250 /
-                                  300 /
-                                  2 +
-                              80,
-                      child: Row(
-                        children: [
-                          // const SizedBox(width: 10),
-                          Expanded(
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: listShowEssential.length + 1,
-                              addAutomaticKeepAlives: false,
-                              itemBuilder: (BuildContext context, int index) {
-                                late var dataRaw;
-                                String mean = '';
-                                String image = 'bedict.png';
-                                if (index < listShowEssential.length) {
-                                  dataRaw = listShowEssential[index];
-                                  List listMean =
-                                      jsonDecode(dataRaw['mean'])[0];
-                                  List meanENAdd = [];
-                                  List meanVNAdd = [];
-                                  for (var j = 0; j < listMean.length; j++) {
-                                    String meanENElement = '';
-                                    if (listMean[j].contains('#')) {
-                                      meanENElement = listMean[j].split('#')[1];
-                                    } else {
-                                      meanENElement = listMean[j];
-                                    }
-                                    meanENAdd.add(meanENElement);
-                                    String meanVNElement =
-                                        jsonDecode(dataRaw['meanVN'])[0][j];
-                                    meanVNElement = meanVNElement.substring(
-                                        0, meanVNElement.length - 2);
-                                    meanVNElement = meanVNElement +
-                                        listMean[j]
-                                            .substring(listMean[j].length - 1);
-                                    meanVNAdd.add(meanVNElement);
-                                  }
-                                  String meanEN = '';
-                                  String meanVN = '';
-                                  for (var j = 0; j < meanENAdd.length; j++) {
-                                    if (j == 0) {
-                                      meanVN = meanVN +
-                                          meanVNAdd[j].substring(
-                                              0, meanVNAdd[j].length - 1);
-                                      meanEN = meanEN +
-                                          meanENAdd[j].substring(
-                                              0, meanENAdd[j].length - 1);
-                                    } else {
-                                      meanVN = meanVN +
-                                          ' | ' +
-                                          meanVNAdd[j].substring(
-                                              0, meanVNAdd[j].length - 1);
-                                      meanEN = meanEN +
-                                          ' | ' +
-                                          meanENAdd[j].substring(
-                                              0, meanENAdd[j].length - 1);
-                                    }
-                                  }
-                                  if (c.language.string == 'VN') {
-                                    mean = meanVN;
-                                  } else {
-                                    mean = meanEN;
-                                  }
-                                  if (jsonDecode(dataRaw['imageURL']).length >
-                                      0) {
-                                    image = jsonDecode(dataRaw['imageURL'])[0];
-                                  }
-                                }
-                                return index < listShowEssential.length
-                                    ? GestureDetector(
-                                        onTap: () async {
-                                          c.part = RxInt(essentialList
-                                                  .indexOf(dataRaw['word']) ~/
-                                              50);
-                                          c.listWordScorePage.clear();
-                                          for (var j = 0;
-                                              j <
-                                                  (c.part.value <
-                                                          (essentialList.length /
-                                                                      50)
-                                                                  .ceil() -
-                                                              1
-                                                      ? 50
-                                                      : (essentialList.length -
-                                                          50 * c.part.value));
-                                              j++) {
-                                            c.listWordScorePage.add(
-                                                essentialList[
-                                                    c.part.value * 50 + j]);
-                                          }
-                                          c.nowWord = RxInt(c.listWordScorePage
-                                              .indexOf(dataRaw['word']));
-                                          if (c.language.string == 'VN') {
-                                            getToHome(
-                                                'CƠ BẢN', dataRaw['word']);
-                                          } else {
-                                            getToHome(
-                                                'ESSENTIAL', dataRaw['word']);
-                                          }
-                                        },
-                                        child: Column(children: [
-                                          Container(
-                                              margin: const EdgeInsets.all(10),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius:
-                                                    const BorderRadius.all(
-                                                        Radius.circular(8)),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black
-                                                        .withOpacity(0.6),
-                                                    spreadRadius: 0,
-                                                    blurRadius: 5,
-                                                    offset: const Offset(5,
-                                                        5), // changes position of shadow
-                                                  ),
-                                                ],
-                                              ),
-                                              width: MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      500
-                                                  ? 220
-                                                  : (MediaQuery.of(context)
-                                                              .size
-                                                              .width -
-                                                          60) /
-                                                      2,
-                                              height: MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      500
-                                                  ? 220 * 250 / 300
-                                                  : (MediaQuery.of(context)
-                                                              .size
-                                                              .width -
-                                                          60) *
-                                                      250 /
-                                                      300 /
-                                                      2,
-                                              child: Stack(children: [
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  child: ImageFiltered(
-                                                    imageFilter:
-                                                        ImageFilter.blur(
-                                                            sigmaX: 6,
-                                                            sigmaY: 6),
-                                                    child: Opacity(
-                                                      opacity: 0.8,
-                                                      child: Image(
-                                                        image: NetworkImage(
-                                                            'https://bedict.com/' +
-                                                                image
-                                                                    .replaceAll(
-                                                                        '\\',
-                                                                        '')),
-                                                        fit: BoxFit.cover,
-                                                        width: MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width >
-                                                                500
-                                                            ? 220
-                                                            : (MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width -
-                                                                    60) /
-                                                                2,
-                                                        height: MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width >
-                                                                500
-                                                            ? 220 * 250 / 300
-                                                            : (MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width -
-                                                                    60) *
-                                                                250 /
-                                                                300 /
-                                                                2,
-                                                        errorBuilder:
-                                                            (BuildContext
-                                                                    context,
-                                                                Object
-                                                                    exception,
-                                                                StackTrace?
-                                                                    stackTrace) {
-                                                          return const SizedBox();
-                                                        },
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  child: Image(
-                                                    image: NetworkImage(
-                                                        'https://bedict.com/' +
-                                                            image.replaceAll(
-                                                                '\\', '')),
-                                                    fit: BoxFit.contain,
-                                                    width: MediaQuery.of(
-                                                                    context)
-                                                                .size
-                                                                .width >
-                                                            500
-                                                        ? 220
-                                                        : (MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width -
-                                                                60) /
-                                                            2,
-                                                    height: MediaQuery.of(
-                                                                    context)
-                                                                .size
-                                                                .width >
-                                                            500
-                                                        ? 220 * 250 / 300
-                                                        : (MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width -
-                                                                60) *
-                                                            250 /
-                                                            300 /
-                                                            2,
-                                                    errorBuilder:
-                                                        (BuildContext context,
-                                                            Object exception,
-                                                            StackTrace?
-                                                                stackTrace) {
-                                                      return const SizedBox();
-                                                    },
-                                                  ),
-                                                ),
-                                                jsonDecode(dataRaw[
-                                                                'meanVN'])
-                                                            .length >
-                                                        1
-                                                    ? Positioned(
-                                                        right: 7,
-                                                        bottom: 7,
-                                                        child: Container(
-                                                            alignment: Alignment
-                                                                .center,
-                                                            decoration:
-                                                                BoxDecoration(
-                                                              color: Colors
-                                                                  .white
-                                                                  .withOpacity(
-                                                                      0.7),
-                                                              borderRadius:
-                                                                  const BorderRadius
-                                                                          .all(
-                                                                      Radius.circular(
-                                                                          20)),
-                                                            ),
-                                                            height: 40,
-                                                            width: 40,
-                                                            child: Text(
-                                                              '+ ' +
-                                                                  (jsonDecode(dataRaw['meanVN'])
-                                                                              .length -
-                                                                          1)
-                                                                      .toString(),
-                                                            )))
-                                                    : const SizedBox(),
-                                              ])),
-                                          const SizedBox(height: 7),
-                                          Container(
-                                            alignment: Alignment.centerLeft,
-                                            width: MediaQuery.of(context)
-                                                        .size
-                                                        .width >
-                                                    500
-                                                ? 220
-                                                : (MediaQuery.of(context)
-                                                            .size
-                                                            .width -
-                                                        60) /
-                                                    2,
-                                            child: Text(
-                                              dataRaw['word'],
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w600,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 5),
-                                          Container(
-                                            alignment: Alignment.centerLeft,
-                                            width: MediaQuery.of(context)
-                                                        .size
-                                                        .width >
-                                                    500
-                                                ? 220
-                                                : (MediaQuery.of(context)
-                                                            .size
-                                                            .width -
-                                                        60) /
-                                                    2,
-                                            child: Text(
-                                              mean,
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w400,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 10),
-                                        ]),
-                                      )
-                                    : GestureDetector(
-                                        onTap: () {
-                                          if (c.language.string == 'VN') {
-                                            getToScore('CƠ BẢN');
-                                          } else {
-                                            getToScore('ESSENTIAL');
-                                          }
-                                        },
-                                        child: Column(
-                                          children: [
-                                            Container(
-                                              alignment: Alignment.center,
-                                              margin: const EdgeInsets.all(10),
-                                              // decoration: BoxDecoration(
-                                              //   color: Colors.white,
-                                              //   borderRadius: const BorderRadius.all(
-                                              //       Radius.circular(8)
-                                              //   ),
-                                              //   boxShadow: [
-                                              //     BoxShadow(
-                                              //       color: Colors.black.withOpacity(0.6),
-                                              //       spreadRadius: 0,
-                                              //       blurRadius: 5,
-                                              //       offset: const Offset(5, 5), // changes position of shadow
-                                              //     ),
-                                              //   ],
-                                              // ),
-                                              width: MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      500
-                                                  ? 220
-                                                  : (MediaQuery.of(context)
-                                                              .size
-                                                              .width -
-                                                          60) /
-                                                      2,
-                                              height: MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      500
-                                                  ? 220 * 250 / 300
-                                                  : (MediaQuery.of(context)
-                                                                  .size
-                                                                  .width -
-                                                              60) *
-                                                          250 /
-                                                          300 /
-                                                          2 +
-                                                      60,
-                                              child: const Text('+ 2948',
-                                                  style: TextStyle(
-                                                    fontSize: 30,
-                                                  )),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                              },
-                            ),
-                          ),
-                          // const SizedBox(width: 10),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    Row(
-                        // crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const SizedBox(width: 20),
-                          CircularPercentIndicator(
-                            radius: 13,
-                            lineWidth: 3.0,
-                            animation: true,
-                            percent: ieltsCount / ieltsList.length,
-                            backgroundColor:
-                                const Color.fromRGBO(240, 240, 240, 1),
-                            progressColor: backgroundColor,
-                            // center: Text(
-                            //   c.learnedIelts.length.toString(),
-                            //   style: const TextStyle(
-                            //     fontSize: 9,
-                            //     color: textColor,
-                            //   ),
-                            // ),
-                            circularStrokeCap: CircularStrokeCap.round,
-                          ),
-                          const SizedBox(width: 15),
-                          GestureDetector(
-                            onTap: () {
-                              getToScore('IELTS');
-                            },
-                            child: const Text(
-                              'IELTS',
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: textColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const Expanded(
-                            child: SizedBox(),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.arrow_forward),
-                            onPressed: () {
-                              getToScore('IELTS');
-                            },
-                          ),
-                          const SizedBox(width: 10),
-                        ]),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.width > 500
-                          ? 220 * 250 / 300 + 80
-                          : (MediaQuery.of(context).size.width - 60) *
-                                  250 /
-                                  300 /
-                                  2 +
-                              80,
-                      child: Row(
-                        children: [
-                          // const SizedBox(width: 10),
-                          Expanded(
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: listShowIelts.length + 1,
-                              addAutomaticKeepAlives: false,
-                              itemBuilder: (BuildContext context, int index) {
-                                late var dataRaw;
-                                String mean = '';
-                                String image = 'bedict.png';
-                                if (index < listShowIelts.length) {
-                                  dataRaw = listShowIelts[index];
-                                  List listMean =
-                                      jsonDecode(dataRaw['mean'])[0];
-                                  List meanENAdd = [];
-                                  List meanVNAdd = [];
-                                  for (var j = 0; j < listMean.length; j++) {
-                                    String meanENElement = '';
-                                    if (listMean[j].contains('#')) {
-                                      meanENElement = listMean[j].split('#')[1];
-                                    } else {
-                                      meanENElement = listMean[j];
-                                    }
-                                    meanENAdd.add(meanENElement);
-                                    String meanVNElement =
-                                        jsonDecode(dataRaw['meanVN'])[0][j];
-                                    meanVNElement = meanVNElement.substring(
-                                        0, meanVNElement.length - 2);
-                                    meanVNElement = meanVNElement +
-                                        listMean[j]
-                                            .substring(listMean[j].length - 1);
-                                    meanVNAdd.add(meanVNElement);
-                                  }
-                                  String meanEN = '';
-                                  String meanVN = '';
-                                  for (var j = 0; j < meanENAdd.length; j++) {
-                                    if (j == 0) {
-                                      meanVN = meanVN +
-                                          meanVNAdd[j].substring(
-                                              0, meanVNAdd[j].length - 1);
-                                      meanEN = meanEN +
-                                          meanENAdd[j].substring(
-                                              0, meanENAdd[j].length - 1);
-                                    } else {
-                                      meanVN = meanVN +
-                                          ' | ' +
-                                          meanVNAdd[j].substring(
-                                              0, meanVNAdd[j].length - 1);
-                                      meanEN = meanEN +
-                                          ' | ' +
-                                          meanENAdd[j].substring(
-                                              0, meanENAdd[j].length - 1);
-                                    }
-                                  }
-                                  if (c.language.string == 'VN') {
-                                    mean = meanVN;
-                                  } else {
-                                    mean = meanEN;
-                                  }
-                                  if (jsonDecode(dataRaw['imageURL']).length >
-                                      0) {
-                                    image = jsonDecode(dataRaw['imageURL'])[0];
-                                  }
-                                }
-                                return index < listShowIelts.length
-                                    ? GestureDetector(
-                                        onTap: () async {
-                                          c.part = RxInt(ieltsList
-                                                  .indexOf(dataRaw['word']) ~/
-                                              50);
-                                          c.listWordScorePage.clear();
-                                          for (var j = 0;
-                                              j <
-                                                  (c.part.value <
-                                                          (ieltsList.length /
-                                                                      50)
-                                                                  .ceil() -
-                                                              1
-                                                      ? 50
-                                                      : (ieltsList.length -
-                                                          50 * c.part.value));
-                                              j++) {
-                                            c.listWordScorePage.add(ieltsList[
-                                                c.part.value * 50 + j]);
-                                          }
-                                          c.nowWord = RxInt(c.listWordScorePage
-                                              .indexOf(dataRaw['word']));
-                                          getToHome('IELTS', dataRaw['word']);
-                                        },
-                                        child: Column(children: [
-                                          Container(
-                                              margin: const EdgeInsets.all(10),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius:
-                                                    const BorderRadius.all(
-                                                        Radius.circular(8)),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black
-                                                        .withOpacity(0.6),
-                                                    spreadRadius: 0,
-                                                    blurRadius: 5,
-                                                    offset: const Offset(5,
-                                                        5), // changes position of shadow
-                                                  ),
-                                                ],
-                                              ),
-                                              width: MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      500
-                                                  ? 220
-                                                  : (MediaQuery.of(context)
-                                                              .size
-                                                              .width -
-                                                          60) /
-                                                      2,
-                                              height: MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      500
-                                                  ? 220 * 250 / 300
-                                                  : (MediaQuery.of(context)
-                                                              .size
-                                                              .width -
-                                                          60) *
-                                                      250 /
-                                                      300 /
-                                                      2,
-                                              child: Stack(children: [
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  child: ImageFiltered(
-                                                    imageFilter:
-                                                        ImageFilter.blur(
-                                                            sigmaX: 6,
-                                                            sigmaY: 6),
-                                                    child: Opacity(
-                                                      opacity: 0.8,
-                                                      child: Image(
-                                                        image: NetworkImage(
-                                                            'https://bedict.com/' +
-                                                                image
-                                                                    .replaceAll(
-                                                                        '\\',
-                                                                        '')),
-                                                        fit: BoxFit.cover,
-                                                        width: MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width >
-                                                                500
-                                                            ? 220
-                                                            : (MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width -
-                                                                    60) /
-                                                                2,
-                                                        height: MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width >
-                                                                500
-                                                            ? 220 * 250 / 300
-                                                            : (MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width -
-                                                                    60) *
-                                                                250 /
-                                                                300 /
-                                                                2,
-                                                        errorBuilder:
-                                                            (BuildContext
-                                                                    context,
-                                                                Object
-                                                                    exception,
-                                                                StackTrace?
-                                                                    stackTrace) {
-                                                          return const SizedBox();
-                                                        },
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  child: Image(
-                                                    image: NetworkImage(
-                                                        'https://bedict.com/' +
-                                                            image.replaceAll(
-                                                                '\\', '')),
-                                                    fit: BoxFit.contain,
-                                                    width: MediaQuery.of(
-                                                                    context)
-                                                                .size
-                                                                .width >
-                                                            500
-                                                        ? 220
-                                                        : (MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width -
-                                                                60) /
-                                                            2,
-                                                    height: MediaQuery.of(
-                                                                    context)
-                                                                .size
-                                                                .width >
-                                                            500
-                                                        ? 220 * 250 / 300
-                                                        : (MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width -
-                                                                60) *
-                                                            250 /
-                                                            300 /
-                                                            2,
-                                                    errorBuilder:
-                                                        (BuildContext context,
-                                                            Object exception,
-                                                            StackTrace?
-                                                                stackTrace) {
-                                                      return const SizedBox();
-                                                    },
-                                                  ),
-                                                ),
-                                                jsonDecode(dataRaw[
-                                                                'meanVN'])
-                                                            .length >
-                                                        1
-                                                    ? Positioned(
-                                                        right: 7,
-                                                        bottom: 7,
-                                                        child: Container(
-                                                            alignment: Alignment
-                                                                .center,
-                                                            decoration:
-                                                                BoxDecoration(
-                                                              color: Colors
-                                                                  .white
-                                                                  .withOpacity(
-                                                                      0.7),
-                                                              borderRadius:
-                                                                  const BorderRadius
-                                                                          .all(
-                                                                      Radius.circular(
-                                                                          20)),
-                                                            ),
-                                                            height: 40,
-                                                            width: 40,
-                                                            child: Text(
-                                                              '+ ' +
-                                                                  (jsonDecode(dataRaw['meanVN'])
-                                                                              .length -
-                                                                          1)
-                                                                      .toString(),
-                                                            )))
-                                                    : const SizedBox(),
-                                              ])),
-                                          const SizedBox(height: 7),
-                                          Container(
-                                            alignment: Alignment.centerLeft,
-                                            width: MediaQuery.of(context)
-                                                        .size
-                                                        .width >
-                                                    500
-                                                ? 220
-                                                : (MediaQuery.of(context)
-                                                            .size
-                                                            .width -
-                                                        60) /
-                                                    2,
-                                            child: Text(
-                                              dataRaw['word'],
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w600,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 5),
-                                          Container(
-                                            alignment: Alignment.centerLeft,
-                                            width: MediaQuery.of(context)
-                                                        .size
-                                                        .width >
-                                                    500
-                                                ? 220
-                                                : (MediaQuery.of(context)
-                                                            .size
-                                                            .width -
-                                                        60) /
-                                                    2,
-                                            child: Text(
-                                              mean,
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w400,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 10),
-                                        ]),
-                                      )
-                                    : GestureDetector(
-                                        onTap: () {
-                                          getToScore('IELTS');
-                                        },
-                                        child: Column(
-                                          children: [
-                                            Container(
-                                              alignment: Alignment.center,
-                                              margin: const EdgeInsets.all(10),
-                                              // decoration: BoxDecoration(
-                                              //   color: Colors.white,
-                                              //   borderRadius: const BorderRadius.all(
-                                              //       Radius.circular(8)
-                                              //   ),
-                                              //   boxShadow: [
-                                              //     BoxShadow(
-                                              //       color: Colors.black.withOpacity(0.6),
-                                              //       spreadRadius: 0,
-                                              //       blurRadius: 5,
-                                              //       offset: const Offset(5, 5), // changes position of shadow
-                                              //     ),
-                                              //   ],
-                                              // ),
-                                              width: MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      500
-                                                  ? 220
-                                                  : (MediaQuery.of(context)
-                                                              .size
-                                                              .width -
-                                                          60) /
-                                                      2,
-                                              height: MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      500
-                                                  ? 220 * 250 / 300
-                                                  : (MediaQuery.of(context)
-                                                                  .size
-                                                                  .width -
-                                                              60) *
-                                                          250 /
-                                                          300 /
-                                                          2 +
-                                                      60,
-                                              child: const Text('+ 545',
-                                                  style: TextStyle(
-                                                    fontSize: 30,
-                                                  )),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                              },
-                            ),
-                          ),
-                          // const SizedBox(width: 10),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    Row(
-                        // crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const SizedBox(width: 20),
-                          CircularPercentIndicator(
-                            radius: 13,
-                            lineWidth: 3.0,
-                            animation: true,
-                            percent: toeicCount / toeicList.length,
-                            backgroundColor:
-                                const Color.fromRGBO(240, 240, 240, 1),
-                            progressColor: backgroundColor,
-                            // center: Text(
-                            //   c.learnedIelts.length.toString(),
-                            //   style: const TextStyle(
-                            //     fontSize: 9,
-                            //     color: textColor,
-                            //   ),
-                            // ),
-                            circularStrokeCap: CircularStrokeCap.round,
-                          ),
-                          const SizedBox(width: 15),
-                          GestureDetector(
-                            onTap: () {
-                              getToScore('TOEIC');
-                            },
-                            child: const Text(
-                              'TOEIC',
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: textColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const Expanded(
-                            child: SizedBox(),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.arrow_forward),
-                            onPressed: () {
-                              getToScore('TOEIC');
-                            },
-                          ),
-                          const SizedBox(width: 10),
-                        ]),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.width > 500
-                          ? 220 * 250 / 300 + 80
-                          : (MediaQuery.of(context).size.width - 60) *
-                                  250 /
-                                  300 /
-                                  2 +
-                              80,
-                      child: Row(
-                        children: [
-                          // const SizedBox(width: 10),
-                          Expanded(
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: listShowToeic.length + 1,
-                              addAutomaticKeepAlives: false,
-                              itemBuilder: (BuildContext context, int index) {
-                                late var dataRaw;
-                                String mean = '';
-                                String image = 'bedict.png';
-                                if (index < listShowToeic.length) {
-                                  dataRaw = listShowToeic[index];
-                                  List listMean =
-                                      jsonDecode(dataRaw['mean'])[0];
-                                  List meanENAdd = [];
-                                  List meanVNAdd = [];
-                                  for (var j = 0; j < listMean.length; j++) {
-                                    String meanENElement = '';
-                                    if (listMean[j].contains('#')) {
-                                      meanENElement = listMean[j].split('#')[1];
-                                    } else {
-                                      meanENElement = listMean[j];
-                                    }
-                                    meanENAdd.add(meanENElement);
-                                    String meanVNElement =
-                                        jsonDecode(dataRaw['meanVN'])[0][j];
-                                    meanVNElement = meanVNElement.substring(
-                                        0, meanVNElement.length - 2);
-                                    meanVNElement = meanVNElement +
-                                        listMean[j]
-                                            .substring(listMean[j].length - 1);
-                                    meanVNAdd.add(meanVNElement);
-                                  }
-                                  String meanEN = '';
-                                  String meanVN = '';
-                                  for (var j = 0; j < meanENAdd.length; j++) {
-                                    if (j == 0) {
-                                      meanVN = meanVN +
-                                          meanVNAdd[j].substring(
-                                              0, meanVNAdd[j].length - 1);
-                                      meanEN = meanEN +
-                                          meanENAdd[j].substring(
-                                              0, meanENAdd[j].length - 1);
-                                    } else {
-                                      meanVN = meanVN +
-                                          ' | ' +
-                                          meanVNAdd[j].substring(
-                                              0, meanVNAdd[j].length - 1);
-                                      meanEN = meanEN +
-                                          ' | ' +
-                                          meanENAdd[j].substring(
-                                              0, meanENAdd[j].length - 1);
-                                    }
-                                  }
-                                  if (c.language.string == 'VN') {
-                                    mean = meanVN;
-                                  } else {
-                                    mean = meanEN;
-                                  }
-                                  if (jsonDecode(dataRaw['imageURL']).length >
-                                      0) {
-                                    image = jsonDecode(dataRaw['imageURL'])[0];
-                                  }
-                                }
-                                return index < listShowToeic.length
-                                    ? GestureDetector(
-                                        onTap: () async {
-                                          c.part = RxInt(toeicList
-                                                  .indexOf(dataRaw['word']) ~/
-                                              50);
-                                          c.listWordScorePage.clear();
-                                          for (var j = 0;
-                                              j <
-                                                  (c.part.value <
-                                                          (toeicList.length /
-                                                                      50)
-                                                                  .ceil() -
-                                                              1
-                                                      ? 50
-                                                      : (toeicList.length -
-                                                          50 * c.part.value));
-                                              j++) {
-                                            c.listWordScorePage.add(toeicList[
-                                                c.part.value * 50 + j]);
-                                          }
-                                          c.nowWord = RxInt(c.listWordScorePage
-                                              .indexOf(dataRaw['word']));
-                                          getToHome('TOEIC', dataRaw['word']);
-                                        },
-                                        child: Column(children: [
-                                          Container(
-                                              margin: const EdgeInsets.all(10),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius:
-                                                    const BorderRadius.all(
-                                                        Radius.circular(8)),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black
-                                                        .withOpacity(0.6),
-                                                    spreadRadius: 0,
-                                                    blurRadius: 5,
-                                                    offset: const Offset(5,
-                                                        5), // changes position of shadow
-                                                  ),
-                                                ],
-                                              ),
-                                              width: MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      500
-                                                  ? 220
-                                                  : (MediaQuery.of(context)
-                                                              .size
-                                                              .width -
-                                                          60) /
-                                                      2,
-                                              height: MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      500
-                                                  ? 220 * 250 / 300
-                                                  : (MediaQuery.of(context)
-                                                              .size
-                                                              .width -
-                                                          60) *
-                                                      250 /
-                                                      300 /
-                                                      2,
-                                              child: Stack(children: [
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  child: ImageFiltered(
-                                                    imageFilter:
-                                                        ImageFilter.blur(
-                                                            sigmaX: 6,
-                                                            sigmaY: 6),
-                                                    child: Opacity(
-                                                      opacity: 0.8,
-                                                      child: Image(
-                                                        image: NetworkImage(
-                                                            'https://bedict.com/' +
-                                                                image
-                                                                    .replaceAll(
-                                                                        '\\',
-                                                                        '')),
-                                                        fit: BoxFit.cover,
-                                                        width: MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width >
-                                                                500
-                                                            ? 220
-                                                            : (MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width -
-                                                                    60) /
-                                                                2,
-                                                        height: MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width >
-                                                                500
-                                                            ? 220 * 250 / 300
-                                                            : (MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width -
-                                                                    60) *
-                                                                250 /
-                                                                300 /
-                                                                2,
-                                                        errorBuilder:
-                                                            (BuildContext
-                                                                    context,
-                                                                Object
-                                                                    exception,
-                                                                StackTrace?
-                                                                    stackTrace) {
-                                                          return const SizedBox();
-                                                        },
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  child: Image(
-                                                    image: NetworkImage(
-                                                        'https://bedict.com/' +
-                                                            image.replaceAll(
-                                                                '\\', '')),
-                                                    fit: BoxFit.contain,
-                                                    width: MediaQuery.of(
-                                                                    context)
-                                                                .size
-                                                                .width >
-                                                            500
-                                                        ? 220
-                                                        : (MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width -
-                                                                60) /
-                                                            2,
-                                                    height: MediaQuery.of(
-                                                                    context)
-                                                                .size
-                                                                .width >
-                                                            500
-                                                        ? 220 * 250 / 300
-                                                        : (MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width -
-                                                                60) *
-                                                            250 /
-                                                            300 /
-                                                            2,
-                                                    errorBuilder:
-                                                        (BuildContext context,
-                                                            Object exception,
-                                                            StackTrace?
-                                                                stackTrace) {
-                                                      return const SizedBox();
-                                                    },
-                                                  ),
-                                                ),
-                                                jsonDecode(dataRaw[
-                                                                'meanVN'])
-                                                            .length >
-                                                        1
-                                                    ? Positioned(
-                                                        right: 7,
-                                                        bottom: 7,
-                                                        child: Container(
-                                                            alignment: Alignment
-                                                                .center,
-                                                            decoration:
-                                                                BoxDecoration(
-                                                              color: Colors
-                                                                  .white
-                                                                  .withOpacity(
-                                                                      0.7),
-                                                              borderRadius:
-                                                                  const BorderRadius
-                                                                          .all(
-                                                                      Radius.circular(
-                                                                          20)),
-                                                            ),
-                                                            height: 40,
-                                                            width: 40,
-                                                            child: Text(
-                                                              '+ ' +
-                                                                  (jsonDecode(dataRaw['meanVN'])
-                                                                              .length -
-                                                                          1)
-                                                                      .toString(),
-                                                            )))
-                                                    : const SizedBox(),
-                                              ])),
-                                          const SizedBox(height: 7),
-                                          Container(
-                                            alignment: Alignment.centerLeft,
-                                            width: MediaQuery.of(context)
-                                                        .size
-                                                        .width >
-                                                    500
-                                                ? 220
-                                                : (MediaQuery.of(context)
-                                                            .size
-                                                            .width -
-                                                        60) /
-                                                    2,
-                                            child: Text(
-                                              dataRaw['word'],
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w600,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 5),
-                                          Container(
-                                            alignment: Alignment.centerLeft,
-                                            width: MediaQuery.of(context)
-                                                        .size
-                                                        .width >
-                                                    500
-                                                ? 220
-                                                : (MediaQuery.of(context)
-                                                            .size
-                                                            .width -
-                                                        60) /
-                                                    2,
-                                            child: Text(
-                                              mean,
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w400,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 10),
-                                        ]),
-                                      )
-                                    : GestureDetector(
-                                        onTap: () {
-                                          getToScore('TOEIC');
-                                        },
-                                        child: Column(
-                                          children: [
-                                            Container(
-                                              alignment: Alignment.center,
-                                              margin: const EdgeInsets.all(10),
-                                              // decoration: BoxDecoration(
-                                              //   color: Colors.white,
-                                              //   borderRadius: const BorderRadius.all(
-                                              //       Radius.circular(8)
-                                              //   ),
-                                              //   boxShadow: [
-                                              //     BoxShadow(
-                                              //       color: Colors.black.withOpacity(0.6),
-                                              //       spreadRadius: 0,
-                                              //       blurRadius: 5,
-                                              //       offset: const Offset(5, 5), // changes position of shadow
-                                              //     ),
-                                              //   ],
-                                              // ),
-                                              width: MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      500
-                                                  ? 220
-                                                  : (MediaQuery.of(context)
-                                                              .size
-                                                              .width -
-                                                          60) /
-                                                      2,
-                                              height: MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      500
-                                                  ? 220 * 250 / 300
-                                                  : (MediaQuery.of(context)
-                                                                  .size
-                                                                  .width -
-                                                              60) *
-                                                          250 /
-                                                          300 /
-                                                          2 +
-                                                      60,
-                                              child: const Text('+ 1014',
-                                                  style: TextStyle(
-                                                    fontSize: 30,
-                                                  )),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                              },
-                            ),
-                          ),
-                          // const SizedBox(width: 10),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    Row(
-                        // crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const SizedBox(width: 20),
-                          CircularPercentIndicator(
-                            radius: 13,
-                            lineWidth: 3.0,
-                            animation: true,
-                            percent: toeflCount / toeflList.length,
-                            backgroundColor:
-                                const Color.fromRGBO(240, 240, 240, 1),
-                            progressColor: backgroundColor,
-                            // center: Text(
-                            //   c.learnedIelts.length.toString(),
-                            //   style: const TextStyle(
-                            //     fontSize: 9,
-                            //     color: textColor,
-                            //   ),
-                            // ),
-                            circularStrokeCap: CircularStrokeCap.round,
-                          ),
-                          const SizedBox(width: 15),
-                          GestureDetector(
-                            onTap: () {
-                              getToScore('TOEFL');
-                            },
-                            child: const Text(
-                              'TOEFL',
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: textColor,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const Expanded(
-                            child: SizedBox(),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.arrow_forward),
-                            onPressed: () {
-                              getToScore('TOEFL');
-                            },
-                          ),
-                          const SizedBox(width: 10),
-                        ]),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.width > 500
-                          ? 220 * 250 / 300 + 80
-                          : (MediaQuery.of(context).size.width - 60) *
-                                  250 /
-                                  300 /
-                                  2 +
-                              80,
-                      child: Row(
-                        children: [
-                          // const SizedBox(width: 10),
-                          Expanded(
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: listShowToefl.length + 1,
-                              addAutomaticKeepAlives: false,
-                              itemBuilder: (BuildContext context, int index) {
-                                late var dataRaw;
-                                String mean = '';
-                                String image = 'bedict.png';
-                                if (index < listShowToefl.length) {
-                                  dataRaw = listShowToefl[index];
-                                  List listMean =
-                                      jsonDecode(dataRaw['mean'])[0];
-                                  List meanENAdd = [];
-                                  List meanVNAdd = [];
-                                  for (var j = 0; j < listMean.length; j++) {
-                                    String meanENElement = '';
-                                    if (listMean[j].contains('#')) {
-                                      meanENElement = listMean[j].split('#')[1];
-                                    } else {
-                                      meanENElement = listMean[j];
-                                    }
-                                    meanENAdd.add(meanENElement);
-                                    String meanVNElement =
-                                        jsonDecode(dataRaw['meanVN'])[0][j];
-                                    meanVNElement = meanVNElement.substring(
-                                        0, meanVNElement.length - 2);
-                                    meanVNElement = meanVNElement +
-                                        listMean[j]
-                                            .substring(listMean[j].length - 1);
-                                    meanVNAdd.add(meanVNElement);
-                                  }
-                                  String meanEN = '';
-                                  String meanVN = '';
-                                  for (var j = 0; j < meanENAdd.length; j++) {
-                                    if (j == 0) {
-                                      meanVN = meanVN +
-                                          meanVNAdd[j].substring(
-                                              0, meanVNAdd[j].length - 1);
-                                      meanEN = meanEN +
-                                          meanENAdd[j].substring(
-                                              0, meanENAdd[j].length - 1);
-                                    } else {
-                                      meanVN = meanVN +
-                                          ' | ' +
-                                          meanVNAdd[j].substring(
-                                              0, meanVNAdd[j].length - 1);
-                                      meanEN = meanEN +
-                                          ' | ' +
-                                          meanENAdd[j].substring(
-                                              0, meanENAdd[j].length - 1);
-                                    }
-                                  }
-                                  if (c.language.string == 'VN') {
-                                    mean = meanVN;
-                                  } else {
-                                    mean = meanEN;
-                                  }
-                                  if (jsonDecode(dataRaw['imageURL']).length >
-                                      0) {
-                                    image = jsonDecode(dataRaw['imageURL'])[0];
-                                  }
-                                }
-                                return index < listShowToefl.length
-                                    ? GestureDetector(
-                                        onTap: () async {
-                                          c.part = RxInt(toeflList
-                                                  .indexOf(dataRaw['word']) ~/
-                                              50);
-                                          c.listWordScorePage.clear();
-                                          for (var j = 0;
-                                              j <
-                                                  (c.part.value <
-                                                          (toeflList.length /
-                                                                      50)
-                                                                  .ceil() -
-                                                              1
-                                                      ? 50
-                                                      : (toeflList.length -
-                                                          50 * c.part.value));
-                                              j++) {
-                                            c.listWordScorePage.add(toeflList[
-                                                c.part.value * 50 + j]);
-                                          }
-                                          c.nowWord = RxInt(c.listWordScorePage
-                                              .indexOf(dataRaw['word']));
-                                          getToHome('TOEFL', dataRaw['word']);
-                                        },
-                                        child: Column(children: [
-                                          Container(
-                                              margin: const EdgeInsets.all(10),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius:
-                                                    const BorderRadius.all(
-                                                        Radius.circular(8)),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black
-                                                        .withOpacity(0.6),
-                                                    spreadRadius: 0,
-                                                    blurRadius: 5,
-                                                    offset: const Offset(5,
-                                                        5), // changes position of shadow
-                                                  ),
-                                                ],
-                                              ),
-                                              width: MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      500
-                                                  ? 220
-                                                  : (MediaQuery.of(context)
-                                                              .size
-                                                              .width -
-                                                          60) /
-                                                      2,
-                                              height: MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      500
-                                                  ? 220 * 250 / 300
-                                                  : (MediaQuery.of(context)
-                                                              .size
-                                                              .width -
-                                                          60) *
-                                                      250 /
-                                                      300 /
-                                                      2,
-                                              child: Stack(children: [
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  child: ImageFiltered(
-                                                    imageFilter:
-                                                        ImageFilter.blur(
-                                                            sigmaX: 6,
-                                                            sigmaY: 6),
-                                                    child: Opacity(
-                                                      opacity: 0.8,
-                                                      child: Image(
-                                                        image: NetworkImage(
-                                                            'https://bedict.com/' +
-                                                                image
-                                                                    .replaceAll(
-                                                                        '\\',
-                                                                        '')),
-                                                        fit: BoxFit.cover,
-                                                        width: MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width >
-                                                                500
-                                                            ? 220
-                                                            : (MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width -
-                                                                    60) /
-                                                                2,
-                                                        height: MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width >
-                                                                500
-                                                            ? 220 * 250 / 300
-                                                            : (MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width -
-                                                                    60) *
-                                                                250 /
-                                                                300 /
-                                                                2,
-                                                        errorBuilder:
-                                                            (BuildContext
-                                                                    context,
-                                                                Object
-                                                                    exception,
-                                                                StackTrace?
-                                                                    stackTrace) {
-                                                          return const SizedBox();
-                                                        },
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  child: Image(
-                                                    image: NetworkImage(
-                                                        'https://bedict.com/' +
-                                                            image.replaceAll(
-                                                                '\\', '')),
-                                                    fit: BoxFit.contain,
-                                                    width: MediaQuery.of(
-                                                                    context)
-                                                                .size
-                                                                .width >
-                                                            500
-                                                        ? 220
-                                                        : (MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width -
-                                                                60) /
-                                                            2,
-                                                    height: MediaQuery.of(
-                                                                    context)
-                                                                .size
-                                                                .width >
-                                                            500
-                                                        ? 220 * 250 / 300
-                                                        : (MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width -
-                                                                60) *
-                                                            250 /
-                                                            300 /
-                                                            2,
-                                                    errorBuilder:
-                                                        (BuildContext context,
-                                                            Object exception,
-                                                            StackTrace?
-                                                                stackTrace) {
-                                                      return const SizedBox();
-                                                    },
-                                                  ),
-                                                ),
-                                                jsonDecode(dataRaw[
-                                                                'meanVN'])
-                                                            .length >
-                                                        1
-                                                    ? Positioned(
-                                                        right: 7,
-                                                        bottom: 7,
-                                                        child: Container(
-                                                            alignment: Alignment
-                                                                .center,
-                                                            decoration:
-                                                                BoxDecoration(
-                                                              color: Colors
-                                                                  .white
-                                                                  .withOpacity(
-                                                                      0.7),
-                                                              borderRadius:
-                                                                  const BorderRadius
-                                                                          .all(
-                                                                      Radius.circular(
-                                                                          20)),
-                                                            ),
-                                                            height: 40,
-                                                            width: 40,
-                                                            child: Text(
-                                                              '+ ' +
-                                                                  (jsonDecode(dataRaw['meanVN'])
-                                                                              .length -
-                                                                          1)
-                                                                      .toString(),
-                                                            )))
-                                                    : const SizedBox(),
-                                              ])),
-                                          const SizedBox(height: 7),
-                                          Container(
-                                            alignment: Alignment.centerLeft,
-                                            width: MediaQuery.of(context)
-                                                        .size
-                                                        .width >
-                                                    500
-                                                ? 220
-                                                : (MediaQuery.of(context)
-                                                            .size
-                                                            .width -
-                                                        60) /
-                                                    2,
-                                            child: Text(
-                                              dataRaw['word'],
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w600,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 5),
-                                          Container(
-                                            alignment: Alignment.centerLeft,
-                                            width: MediaQuery.of(context)
-                                                        .size
-                                                        .width >
-                                                    500
-                                                ? 220
-                                                : (MediaQuery.of(context)
-                                                            .size
-                                                            .width -
-                                                        60) /
-                                                    2,
-                                            child: Text(
-                                              mean,
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w400,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 10),
-                                        ]),
-                                      )
-                                    : GestureDetector(
-                                        onTap: () {
-                                          getToScore('TOEFL');
-                                        },
-                                        child: Column(
-                                          children: [
-                                            Container(
-                                              alignment: Alignment.center,
-                                              margin: const EdgeInsets.all(10),
-                                              // decoration: BoxDecoration(
-                                              //   color: Colors.white,
-                                              //   borderRadius: const BorderRadius.all(
-                                              //       Radius.circular(8)
-                                              //   ),
-                                              //   boxShadow: [
-                                              //     BoxShadow(
-                                              //       color: Colors.black.withOpacity(0.6),
-                                              //       spreadRadius: 0,
-                                              //       blurRadius: 5,
-                                              //       offset: const Offset(5, 5), // changes position of shadow
-                                              //     ),
-                                              //   ],
-                                              // ),
-                                              width: MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      500
-                                                  ? 220
-                                                  : (MediaQuery.of(context)
-                                                              .size
-                                                              .width -
-                                                          60) /
-                                                      2,
-                                              height: MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      500
-                                                  ? 220 * 250 / 300
-                                                  : (MediaQuery.of(context)
-                                                                  .size
-                                                                  .width -
-                                                              60) *
-                                                          250 /
-                                                          300 /
-                                                          2 +
-                                                      60,
-                                              child: const Text('+ 365',
-                                                  style: TextStyle(
-                                                    fontSize: 30,
-                                                  )),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                              },
-                            ),
-                          ),
-                          // const SizedBox(width: 10),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    SizedBox(height: MediaQuery.of(context).padding.bottom),
-                  ]),
-                ),
-              ),
-            ),
-          ]),
-        ));
-  }
-}
-
-class TranslatePage extends StatelessWidget {
-  TranslatePage({Key? key}) : super(key: key);
-
-  final FocusNode inFocusNode = FocusNode();
-
-  @override
-  Widget build(BuildContext context) {
-    final Controller c = Get.put(Controller());
-
-    Future translation() async {
-      if (inFocusNode.hasFocus) {
-        inFocusNode.unfocus();
-      }
-      if (inController.value.text != '') {
-        String languageCode =
-            languagesCode[languages.indexOf(c.languageLocal.string)];
-        if (!c.isReverse.value) {
-          var translation = await inController.value.text
-              .translate(from: 'en', to: languageCode);
-          c.translateOut = RxString(translation.text);
-        } else {
-          var translation = await inController.value.text
-              .translate(from: languageCode, to: 'en');
-          c.translateOut = RxString(translation.text);
-        }
-      } else {
-        c.translateOut = ''.obs;
-      }
-      c.update();
-    }
-
-    void onSpeechResult(SpeechRecognitionResult result) async {
-      inController.text = result.recognizedWords;
-      if (result.finalResult) {
-        await translation();
-      }
-    }
-
-    Future startListening() async {
-      if (!c.isReverse.value) {
-        await stt.listen(
-          onResult: onSpeechResult,
-          localeId: c.locale.string,
-          // partialResults: false,
-        );
-      } else {
-        await stt.listen(
-          onResult: onSpeechResult,
-        );
-      }
-    }
-
-    void stopListening() async {
-      await stt.stop();
-    }
-
-    return GestureDetector(
-      onTap: () {
-        if (inFocusNode.hasFocus) {
-          inFocusNode.unfocus();
-        }
-      },
-      child: Container(
-        color: Colors.white,
-        child: Column(children: [
-          SizedBox(height: MediaQuery.of(context).padding.top + 10),
-          GetBuilder<Controller>(
-            builder: (_) => c.isReverse.value
-                ? Row(children: [
-                    Expanded(
-                      child: PopupMenuButton<String>(
-                        onSelected: (String word) async {
-                          c.languageLocal = RxString(word);
-                          await boxSetting.put('languageLocal', word);
-                          c.update();
-                        },
-                        padding: const EdgeInsets.all(0),
-                        itemBuilder: (BuildContext context) =>
-                            <PopupMenuEntry<String>>[
-                          for (int i = 0; i < languages.length; i++)
-                            PopupMenuItem<String>(
-                                value: languages[i],
-                                padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
-                                child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        languages[i],
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          color: textColor,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ])),
-                        ],
-                        // color: themeColor,
-                        child: Text(
-                          c.languageLocal.string,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            color: textColor,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                        ),
-                        shape: const RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(20.0))),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.compare_arrows_rounded),
-                      onPressed: () {
-                        c.isReverse = RxBool(!c.isReverse.value);
-                        c.update();
-                      },
-                    ),
-                    const Expanded(
-                      child: Text(
-                        'English',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 20,
-                        ),
-                      ),
-                    ),
-                  ])
-                : Row(children: [
-                    const Expanded(
-                      child: Text(
-                        'English',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 20,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.compare_arrows_rounded),
-                      onPressed: () {
-                        c.isReverse = RxBool(!c.isReverse.value);
-                        c.update();
-                      },
-                    ),
-                    Expanded(
-                      child: PopupMenuButton<String>(
-                        onSelected: (String word) async {
-                          c.languageLocal = RxString(word);
-                          await boxSetting.put('languageLocal', word);
-                          c.update();
-                        },
-                        padding: const EdgeInsets.all(0),
-                        itemBuilder: (BuildContext context) =>
-                            <PopupMenuEntry<String>>[
-                          for (int i = 0; i < languages.length; i++)
-                            PopupMenuItem<String>(
-                                value: languages[i],
-                                padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
-                                child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        languages[i],
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          color: textColor,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ])),
-                        ],
-                        // color: themeColor,
-                        child: Text(
-                          c.languageLocal.string,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            color: textColor,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                        ),
-                        shape: const RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(20.0))),
-                      ),
-                    ),
-                  ]),
-          ),
-          Row(children: [
-            const SizedBox(width: 10),
-            Expanded(
-              child: TextFormField(
-                controller: inController,
-                textInputAction: TextInputAction.done,
-                focusNode: inFocusNode,
-                autocorrect: false,
-                maxLines: null,
-                minLines: null,
-                style: const TextStyle(
-                  fontSize: 20,
-                ),
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  hintText: c.language.string == 'VN'
-                      ? 'Nhập văn bản ...'
-                      : 'Type here ...',
-                  isDense: true,
-                  contentPadding: const EdgeInsets.all(5),
-                ),
-                // onChanged: (text) async {
-                //   await translation();
-                // },
-                // onSubmitted: (text) async {
-                //   await translation();
-                // },
-                onFieldSubmitted: (string) async {
-                  await translation();
-                },
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.close_rounded),
-              onPressed: () {
-                inController.text = '';
-                c.translateOut = ''.obs;
+        child: GestureDetector(
+            onTap: () {
+              if (searchFocusNode.hasFocus) {
+                searchFocusNode.unfocus();
+              }
+              if (c.isSearch.value) {
+                c.isSearch = false.obs;
                 c.update();
-              },
-            ),
-            TextButton(
-              style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all<Color>(
-                    backgroundColor.withOpacity(0.5)),
-                foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                padding: MaterialStateProperty.all<EdgeInsets>(
-                    const EdgeInsets.all(0)),
-                shape: MaterialStateProperty.all<OutlinedBorder?>(
-                    RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30.0),
-                )),
-              ),
-              child: const Icon(Icons.arrow_forward_rounded, color: textColor),
-              onPressed: () async {
-                await translation();
-              },
-            ),
-            const SizedBox(width: 10),
-          ]),
-          const SizedBox(height: 20),
-          Row(children: [
-            GetBuilder<Controller>(
-              builder: (_) => IconButton(
-                icon: Icon(
-                  c.speechEnabled.value
-                      ? c.isListening.value
-                          ? Icons.mic
-                          : Icons.mic_none
-                      : Icons.mic_off,
-                  size: 35,
-                ),
-                onPressed: () {
-                  if (stt.isNotListening) {
-                    startListening();
-                  } else {
-                    stopListening();
-                  }
-                },
-              ),
-            ),
-            IconButton(
-              icon: const Icon(
-                Icons.volume_up_outlined,
-                size: 35,
-              ),
-              onPressed: () {
-                if (!c.isReverse.value) {
-                  _speak(inController.value.text);
-                } else {
-                  _speak(c.translateOut.string);
-                }
-              },
-            ),
-            const Expanded(child: SizedBox()),
-          ]),
-          Row(children: [
-            const SizedBox(width: 10),
-            Expanded(
-              child: Container(
-                  color: backgroundColor.withOpacity(0.5),
-                  padding: const EdgeInsets.all(10),
-                  child: Row(children: [
-                    Flexible(
-                      child: GetBuilder<Controller>(
-                        builder: (_) => Text(
-                          c.translateOut.string,
-                          style: const TextStyle(
-                            fontSize: 20,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ])),
-            ),
-            const SizedBox(width: 10),
-          ]),
-          Expanded(
-            child: Container(
-              alignment: Alignment.center,
-              child: c.isVip.value
-                  ? const SizedBox()
-                  : SingleChildScrollView(
-                      child: SizedBox(
-                        height: (MediaQuery.of(context).size.width - 20) *
-                            250 /
-                            300,
-                        width: MediaQuery.of(context).size.width - 20,
-                        child: BannerAdWidget(
-                          adWidth: MediaQuery.of(context).size.width - 20,
-                          adHeight: (MediaQuery.of(context).size.width - 20) *
-                              250 /
-                              300,
-                        ),
-                      ),
-                    ),
-            ),
-          ),
-          SizedBox(height: MediaQuery.of(context).padding.bottom),
-        ]),
-      ),
-    );
-  }
-}
-
-class SettingPage extends StatelessWidget {
-  const SettingPage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final Controller c = Get.put(Controller());
-
-    Future<void> showTime() async {
-      final TimeOfDay? result =
-          await showTimePicker(context: context, initialTime: TimeOfDay.now());
-      if (result != null) {
-        c.selectedTime = RxString(result.format(context));
-        c.update();
-        showNotification();
-        await boxSetting.put('timeDaily', c.selectedTime.string);
-      }
-    }
-
-    // WidgetsBinding.instance?.addPostFrameCallback((_) async {
-    //
-    // });
-
-    return Container(
-      color: Colors.white,
-      child: Column(children: [
-        SizedBox(height: MediaQuery.of(context).padding.top + 10),
-        Expanded(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              ListTile(
-                title: GetBuilder<Controller>(
-                  builder: (_) => Text(
-                    c.isVip.value ? 'VIP' : c.drawerUpgrade.string,
-                    style: const TextStyle(
-                      color: textColor,
-                      fontSize: 16,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                onTap: () {
-                  Get.offAll(() => const MyUpgradePage());
-                },
-              ),
-              const Divider(height: 1),
-              ListTile(
-                title: GetBuilder<Controller>(
-                  builder: (_) => Text(
-                    c.drawerHistory.string,
-                    style: const TextStyle(
-                      color: textColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                onTap: () {
-                  Get.offAll(() => const HistoryPage());
-                },
-              ),
-              const Divider(
-                height: 1,
-              ),
-              ListTile(
-                title: GetBuilder<Controller>(
-                  builder: (_) => Text(
-                    c.drawerScore.string,
-                    style: const TextStyle(
-                      color: textColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                onTap: () {
-                  Get.offAll(() => const SortPage());
-                },
-              ),
-              const Divider(
-                height: 1,
-              ),
-              const SizedBox(height: 5),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  GetBuilder<Controller>(
-                    builder: (_) => Text(
-                      c.drawerDaily.string,
-                      style: const TextStyle(
-                        color: textColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  GetBuilder<Controller>(
-                    builder: (_) => Switch(
-                      value: c.notifyDaily.value,
-                      onChanged: (value) async {
-                        c.notifyDaily = RxBool(value);
-                        c.update();
-                        await boxSetting.put('notifyDaily', value);
-                        if (value) {
-                          showNotification();
-                        } else {
-                          await AwesomeNotifications().dismiss(0);
-                          await AwesomeNotifications().cancelSchedule(0);
-                        }
-                      },
-                      activeTrackColor: themeColor,
-                      activeColor: backgroundColor,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 5),
-              GetBuilder<Controller>(
-                builder: (_) => Visibility(
-                    visible: c.notifyDaily.value,
-                    child: Column(children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            c.drawerTime.string,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: textColor,
-                              fontWeight: FontWeight.w400,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          ),
-                          TextButton(
-                            style: ButtonStyle(
-                              backgroundColor:
-                                  MaterialStateProperty.all<Color>(themeColor),
-                              foregroundColor:
-                                  MaterialStateProperty.all<Color>(Colors.grey),
-                              padding: MaterialStateProperty.all<EdgeInsets>(
-                                  const EdgeInsets.all(0)),
-                            ),
-                            child: Row(children: [
-                              const SizedBox(
-                                width: 10,
-                              ),
-                              GetBuilder<Controller>(
-                                builder: (_) => Text(
-                                  c.selectedTime.string,
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    color: textColor,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(
-                                width: 10,
-                              ),
-                            ]),
-                            onPressed: () async {
-                              await showTime();
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 15),
-                      // GetBuilder<Controller>(
-                      //   builder: (_) => Text(
-                      //     c.drawerTarget.string,
-                      //     style: const TextStyle(
-                      //       color: textColor,
-                      //       fontSize: 14,
-                      //       fontWeight: FontWeight.w400,
-                      //     ),
-                      //     textAlign: TextAlign.center,
-                      //   ),),
-                      // GetBuilder<Controller>(
-                      //   builder: (_) => Slider(
-                      //     value: c.target.value.toDouble(),
-                      //     min: 5,
-                      //     max: 50,
-                      //     divisions: 9,
-                      //     activeColor: backgroundColor,
-                      //     inactiveColor: themeColor,
-                      //     thumbColor: backgroundColor,
-                      //     label: c.target.value.toString(),
-                      //     onChanged: (double value) async {
-                      //       c.target = RxInt(value.toInt());
-                      //       await boxSetting.put('target',value.toInt());
-                      //       c.update();
-                      //     },
-                      //   ),
-                      // ),
-                    ])),
-              ),
-              const Divider(height: 1),
-              const SizedBox(height: 5),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  GetBuilder<Controller>(
-                    builder: (_) => Text(
-                      c.drawerWord.string,
-                      style: const TextStyle(
-                        color: textColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  GetBuilder<Controller>(
-                    builder: (_) => Switch(
-                      value: c.notifyWord.value,
-                      onChanged: (value) async {
-                        await boxSetting.put('notifyWord', value);
-                        c.notifyWord = RxBool(value);
-                        c.update();
-                        if (value) {
-                          await showNotificationWord();
-                        } else {
-                          await AwesomeNotifications()
-                              .dismissNotificationsByChannelKey('word');
-                          await AwesomeNotifications()
-                              .cancelSchedulesByChannelKey('word');
-                        }
-                      },
-                      activeTrackColor: themeColor,
-                      activeColor: backgroundColor,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 5),
-              GetBuilder<Controller>(
-                builder: (_) => Visibility(
-                    visible: c.notifyWord.value,
-                    child: Column(children: [
-                      GetBuilder<Controller>(
-                        builder: (_) => Text(
-                          c.language.string == 'VN'
-                              ? 'Thông báo sau mỗi (phút):'
-                              : 'Notify interval (minutes)',
-                          style: const TextStyle(
-                            color: textColor,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      GetBuilder<Controller>(
-                        builder: (_) => Slider(
-                          value: c.notificationInterval.value.toDouble(),
-                          min: 15,
-                          max: 120,
-                          divisions: 7,
-                          activeColor: backgroundColor,
-                          inactiveColor: themeColor,
-                          thumbColor: backgroundColor,
-                          label: c.notificationInterval.value.toString() +
-                              (c.language.string == 'VN'
-                                  ? ' phút'
-                                  : ' minutes'),
-                          onChanged: (double value) async {
-                            c.notificationInterval = RxInt(value.toInt());
-                            await boxSetting.put(
-                                'notificationInterval', value.toInt());
-                            c.update();
-                            await AwesomeNotifications()
-                                .dismissNotificationsByChannelKey('word');
-                            await AwesomeNotifications()
-                                .cancelSchedulesByChannelKey('word');
-                            await showNotificationWord();
-                          },
-                        ),
-                      ),
-                    ])),
-              ),
-              const Divider(
-                height: 1,
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const SizedBox(
-                    height: 15,
-                  ),
-                  GetBuilder<Controller>(
-                    builder: (_) => Text(
-                      c.drawerSpeech.string,
-                      style: const TextStyle(
-                        color: textColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  GetBuilder<Controller>(
-                    builder: (_) => Slider(
-                      value: c.speakSpeed.value,
-                      min: 0.1,
-                      max: 1,
-                      divisions: 9,
-                      activeColor: backgroundColor,
-                      inactiveColor: themeColor,
-                      thumbColor: backgroundColor,
-                      label:
-                          double.parse((c.speakSpeed.value).toStringAsFixed(1))
-                              .toString(),
-                      onChanged: (double value) async {
-                        c.speakSpeed = RxDouble(value);
-                        await boxSetting.put('speakSpeed', value);
-                        c.update();
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const Divider(
-                height: 1,
-              ),
-              const SizedBox(height: 5),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  GetBuilder<Controller>(
-                    builder: (_) => Text(
-                      c.drawerInitSpeak.string,
-                      style: const TextStyle(
-                        color: textColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  GetBuilder<Controller>(
-                    builder: (_) => Switch(
-                      activeColor: backgroundColor,
-                      activeTrackColor: themeColor,
-                      value: c.initSpeak.value,
-                      onChanged: (value) async {
-                        c.initSpeak = value.obs;
-                        c.update();
-                        await boxSetting.put('initSpeak', value);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 5),
-              const Divider(
-                height: 1,
-              ),
-              const SizedBox(height: 5),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  GetBuilder<Controller>(
-                    builder: (_) => Text(
-                      c.drawerEnableSound.string,
-                      style: const TextStyle(
-                        color: textColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  GetBuilder<Controller>(
-                    builder: (_) => Switch(
-                      activeColor: backgroundColor,
-                      activeTrackColor: themeColor,
-                      value: c.enableSound.value,
-                      onChanged: (value) async {
-                        c.enableSound = value.obs;
-                        c.update();
-                        await boxSetting.put('enableSound', value);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 5),
-              const Divider(
-                height: 1,
-              ),
-              const SizedBox(height: 15),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  GetBuilder<Controller>(
-                    builder: (_) => Text(
-                      c.drawerLanguage.string,
-                      style: const TextStyle(
-                        color: textColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  ToggleSwitch(
-                    minWidth: 50.0,
-                    minHeight: 30.0,
-                    fontSize: 14.0,
-                    initialLabelIndex: initLanguageIndex,
-                    activeBgColor: const [backgroundColor],
-                    activeFgColor: Colors.white,
-                    inactiveBgColor: const Color.fromRGBO(240, 240, 240, 1),
-                    inactiveFgColor: textColor,
-                    totalSwitches: 2,
-                    changeOnTap: true,
-                    labels: const ['VN', 'EN'],
-                    onToggle: (index) async {
-                      if (index == 0) {
-                        c.changeLanguage('VN');
-                      } else {
-                        c.changeLanguage('EN');
-                      }
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 15),
-              const Divider(height: 1),
-              ListTile(
-                title: GetBuilder<Controller>(
-                  builder: (_) => Text(
-                    c.language.string == 'VN'
-                        ? 'Tải lại dữ liệu'
-                        : 'Reload data',
-                    style: const TextStyle(
-                      color: textColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                onTap: () {
-                  Get.offAll(() => const LoadingPage());
-                },
-              ),
-              const Divider(height: 1),
-              ListTile(
-                title: GetBuilder<Controller>(
-                  builder: (_) => Text(
-                    c.drawerPolicy.string,
-                    style: const TextStyle(
-                      color: textColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                onTap: () {
-                  Get.to(() => const PolicyPage());
-                },
-              ),
-              const Divider(height: 1),
-              ListTile(
-                title: GetBuilder<Controller>(
-                  builder: (_) => Text(
-                    c.language.string == 'VN'
-                        ? 'Điều khoản sử dụng'
-                        : 'Terms of Use',
-                    style: const TextStyle(
-                      color: textColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                onTap: () {
-                  Get.to(() => const TermPage());
-                },
-              ),
-              const Divider(height: 1),
-              ListTile(
-                title: GetBuilder<Controller>(
-                  builder: (_) => Text(
-                    c.drawerContact.string,
-                    style: const TextStyle(
-                      color: textColor,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                onTap: () {
-                  Get.offAll(() => const ContactPage());
-                },
-              ),
-              // const Divider(height:1),
-              SizedBox(height: MediaQuery.of(context).padding.bottom),
-            ],
-          ),
-        ),
-      ]),
-    );
-  }
-}
-
-class CategoryScreen extends StatefulWidget {
-  const CategoryScreen({Key? key}) : super(key: key);
-
-  @override
-  State<CategoryScreen> createState() => _CategoryScreenState();
-}
-
-class _CategoryScreenState extends State<CategoryScreen> {
-  List listCategoryShow = [];
-  final textFieldController = TextEditingController();
-
-  @override
-  void initState() {
-    setState(() {
-      listCategoryShow = listCategory;
-    });
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final Controller c = Get.put(Controller());
-
-    Future getToScore(int i) async {
-      await loadAd();
-      c.bundle = RxString(listCategoryShow[i][c.typeState.value]);
-      c.listWordScore = RxList(await getListCategory(listCategoryShow[i][0]));
-      c.category = RxString(listCategoryShow[i][0]);
-      c.type = 'all type'.obs;
-      c.part = 0.obs;
-      c.isSearch = false.obs;
-      Get.offAll(() => const ScorePage());
-    }
-
-    Future getToMainScreen() async {
-      await loadAd();
-      c.isSearch = false.obs;
-      Get.offAll(() => MainScreen());
-    }
-
-    return WillPopScope(
-      onWillPop: () async {
-        c.isSearch = false.obs;
-        Get.offAll(() => MainScreen());
-        return false;
-      },
-      child: Scaffold(
-        body: GestureDetector(
-          onTap: () {
-            if (searchFocusNode.hasFocus) {
-              searchFocusNode.unfocus();
-            }
-            if (c.isSearch.value) {
-              c.isSearch = false.obs;
-              c.update();
-            }
-          },
-          child: Container(
-            color: Colors.white,
-            // padding: EdgeInsets.all(10),
-            child: Column(children: [
-              SizedBox(height: MediaQuery.of(context).padding.top + 10),
-              GetBuilder<Controller>(
-                builder: (_) => Visibility(
-                  visible: c.isSearch.value,
-                  child: Column(children: [
-                    Row(children: [
-                      // const SizedBox(width:15),
-                      IconButton(
-                        padding: const EdgeInsets.all(0.0),
-                        icon: Icon(
-                          Icons.arrow_back_ios_rounded,
-                          size: 20,
-                          color: textColor.withOpacity(0.7),
-                        ),
-                        tooltip: 'Back',
-                        onPressed: () {
-                          if (searchFocusNode.hasFocus) {
-                            searchFocusNode.unfocus();
-                          }
-                          if (c.isSearch.value) {
-                            c.isSearch = false.obs;
-                            c.update();
-                          }
-                        },
-                      ),
-                      Expanded(
-                        child: TextFormField(
-                          // controller: searchField,
-                          controller: textFieldController,
-                          autofocus: true,
-                          autocorrect: false,
-                          textInputAction: TextInputAction.done,
-                          // focusNode: searchFocusNode,
-                          style: const TextStyle(
-                            fontSize: 15.0,
-                            color: textColor,
-                          ),
-                          decoration: InputDecoration(
-                            fillColor: Colors.transparent,
-                            filled: true,
-                            border: const OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(width: 1, color: Colors.black),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(30)),
-                            ),
-                            focusedBorder: const OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(width: 1, color: Colors.black),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(30)),
-                            ),
-                            enabledBorder: const OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(width: 1, color: Colors.black),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(30)),
-                            ),
-                            // prefixIcon: Icon(Icons.search_outlined,size:15),
-                            hintText: c.hint.string,
-                            isDense: true,
-                            contentPadding: const EdgeInsets.all(5),
-                            prefixIcon: const Icon(Icons.search),
-                            suffixIcon: IconButton(
-                                icon: const Icon(Icons.close_rounded),
-                                onPressed: () {
-                                  textFieldController.text = '';
-                                  setState(() {
-                                    listCategoryShow = listCategory;
-                                  });
-                                }),
-                            // icon: Icon(Icons.search),
-                            // isCollapsed: true,
-                          ),
-                          onChanged: (value) {
-                            // textFieldController.text = value;
-                            List list = [];
-                            for (int i = 0; i < listCategory.length; i++) {
-                              if (TiengViet.parse(
-                                      listCategory[i][c.typeState.value])
-                                  .startsWith(TiengViet.parse(value))) {
-                                list.add(listCategory[i]);
-                              }
-                            }
-                            setState(() {
-                              listCategoryShow = list;
-                            });
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 15),
-                    ]),
-                    const SizedBox(height: 10),
-                  ]),
-                ),
-              ),
-              GetBuilder<Controller>(
-                builder: (_) => Visibility(
-                  visible: !c.isSearch.value,
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 10),
-                      IconButton(
-                        padding: const EdgeInsets.all(0.0),
-                        icon: Icon(
-                          Icons.arrow_back_ios_rounded,
-                          size: 20,
-                          color: textColor.withOpacity(0.7),
-                        ),
-                        tooltip: 'Back to MainScreen',
-                        onPressed: () {
-                          getToMainScreen();
-                        },
-                      ),
-                      Expanded(
-                        child: Text(
-                          c.language.string == 'VN' ? 'Chủ đề' : 'Category',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            color: textColor,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.search,
-                          size: 25,
-                        ),
-                        onPressed: () {
-                          c.isSearch = true.obs;
-                          c.update();
-                        },
-                      ),
-                      const SizedBox(width: 10),
-                    ],
-                  ),
-                ),
-              ),
-              Expanded(
-                child: GridView.count(
-                  crossAxisCount: MediaQuery.of(context).size.width ~/ 120,
-                  addAutomaticKeepAlives: false,
-                  padding: const EdgeInsets.all(5),
-                  childAspectRatio: 4 / 3,
-                  // mainAxisSpacing: 10,
-                  // crossAxisSpacing: 10,
-                  children: List.generate(listCategoryShow.length, (i) {
-                    String url = '';
-                    switch (listCategoryShow[i][0]) {
-                      case 'heraldry':
-                        url = 'assets/temp/armory2.png';
-                        break;
-                      case 'no category':
-                        url = 'assets/temp/no.png';
-                        break;
-                      case 'past participle':
-                        url = 'assets/temp/no.png';
-                        break;
-                      case 'internet':
-                        url = 'assets/temp/Internet1.png';
-                        break;
-                      case 'bell-ringing':
-                        url = 'assets/temp/bob7.png';
-                        break;
-                      default:
-                        url = 'assets/temp/' + listCategoryShow[i][0] + '1.png';
-                    }
-                    return GestureDetector(
-                      onTap: () {
-                        getToScore(i);
-                      },
-                      child: Stack(children: [
-                        Container(
-                          height: double.infinity,
-                          width: double.infinity,
-                          margin: const EdgeInsets.all(7),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(10)),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.6),
-                                spreadRadius: 0,
-                                blurRadius: 3,
-                                offset: const Offset(
-                                    0, 0), // changes position of shadow
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.asset(
-                              url,
-                              fit: BoxFit.cover,
-                              // width: MediaQuery.of(context).size.width<500? MediaQuery.of(context).size.width-100:400,
-                              errorBuilder: (BuildContext context,
-                                  Object exception, StackTrace? stackTrace) {
-                                return const SizedBox();
-                              },
-                            ),
-                          ),
-                        ),
-                        Column(children: [
-                          const Expanded(child: SizedBox()),
-                          Container(
-                            height: 25,
-                            // alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.5),
-                              borderRadius: const BorderRadius.only(
-                                bottomLeft: Radius.circular(10),
-                                bottomRight: Radius.circular(10),
-                              ),
-                            ),
-                            margin: const EdgeInsets.all(7),
-                            child: Row(children: [
-                              const SizedBox(width: 5),
-                              Expanded(
-                                child: Text(
-                                  listCategoryShow[i][c.typeState.value],
-                                  // textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    overflow: TextOverflow.ellipsis,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 5),
-                            ]),
-                          ),
-                        ]),
-                      ]),
-                    );
-                  }),
-                ),
-              ),
-            ]),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class TypeScreen extends StatelessWidget {
-  const TypeScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final Controller c = Get.put(Controller());
-
-    Future getToScore(int i) async {
-      await loadAd();
-      c.bundle = RxString(listType[i][c.typeState.value]);
-      c.listWordScore = RxList(await getListType(listType[i][0]));
-      c.category = 'all category'.obs;
-      c.type = RxString(listType[i][0]);
-      c.part = 0.obs;
-      Get.offAll(() => const ScorePage());
-    }
-
-    Future getToMainScreen() async {
-      await loadAd();
-      Get.offAll(() => MainScreen());
-    }
-
-    return WillPopScope(
-      onWillPop: () async {
-        Get.offAll(() => MainScreen());
-        return false;
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            c.language.string == 'VN' ? 'Từ loại' : 'Type',
-            style: TextStyle(
-              fontSize: 18,
-              color: textColor.withOpacity(0.7),
-            ),
-            overflow: TextOverflow.ellipsis,
-            // textAlign: TextAlign.left,
-          ),
-          leading: IconButton(
-            padding: const EdgeInsets.all(0.0),
-            icon: Icon(
-              Icons.arrow_back_ios_rounded,
-              size: 20,
-              color: textColor.withOpacity(0.7),
-            ),
-            tooltip: 'Back to MainScreen',
-            onPressed: () {
-              getToMainScreen();
+              }
             },
-          ),
-          centerTitle: true,
-          backgroundColor: Colors.white,
-          bottomOpacity: 0.0,
-          elevation: 0.0,
-        ),
-        body: Container(
-          color: Colors.white,
-          height: double.infinity,
-          alignment: Alignment.center,
-          child: GridView.count(
-            crossAxisCount: MediaQuery.of(context).size.width ~/ 180,
-            addAutomaticKeepAlives: false,
-            padding: const EdgeInsets.all(5),
-            shrinkWrap: true,
-            childAspectRatio: 5 / 2,
-            // mainAxisSpacing: 10,
-            // crossAxisSpacing: 10,
-            children: List.generate(listType.length, (i) {
-              return GestureDetector(
-                onTap: () {
-                  getToScore(i);
-                },
-                child: Container(
-                    // width: (MediaQuery.of(context).size.width-50)/3,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Color.fromRGBO(
-                          150 + Random().nextInt(55),
-                          201 + Random().nextInt(55),
-                          150 + Random().nextInt(55),
-                          1),
-                      borderRadius: const BorderRadius.all(Radius.circular(50)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.6),
-                          spreadRadius: 0,
-                          blurRadius: 3,
-                          offset:
-                              const Offset(0, 0), // changes position of shadow
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(5),
-                    margin: const EdgeInsets.all(8),
-                    child: Text(
-                      listType[i][c.typeState.value],
-                      style: const TextStyle(
-                        fontSize: 18,
-                        color: Colors.black,
-                        fontWeight: FontWeight.w600,
-                        // shadows: <Shadow>[
-                        //   Shadow(
-                        //     offset: Offset(0.0, 0.0),
-                        //     blurRadius: 3.0,
-                        //     color: Colors.black,
-                        //   ),
-                        // ],
-                      ),
-                      textAlign: TextAlign.center,
-                      // overflow: TextOverflow.ellipsis,
-                    )),
-              );
-            }),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class Home extends StatelessWidget {
-  Home({Key? key}) : super(key: key);
-  final GlobalKey<ProcessWidgetState> processKey =
-      GlobalKey<ProcessWidgetState>();
-  final int pageCount = 50;
-
-  @override
-  Widget build(BuildContext context) {
-    final Controller c = Get.put(Controller());
-    final textFieldController = TextEditingController(text: '');
-
-    Future searchToHome(String word) async {
-      c.nowWord = RxInt(c.wordArray.indexOf(word));
-      await loadAd();
-      c.isSearch = false.obs;
-      c.category = 'all category'.obs;
-      c.type = 'all type'.obs;
-      c.fromScreen = 0.obs;
-      listWordRandom = [word];
-      nowRandom = 0;
-      await c.layWord(word);
-    }
-
-    // Future getBack() async {
-    //   await loadAd();
-    //   if (searchFocusNode.hasFocus) {
-    //     searchFocusNode.unfocus();
-    //   }
-    //   if (c.isSearch.value) {
-    //     c.isSearch = false.obs;
-    //   }
-    //   switch (c.fromScreen.value) {
-    //     case 0:
-    //       Get.offAll(() => MainScreen());
-    //       break;
-    //     default:
-    //       Get.offAll(() => const ScorePage());
-    //   }
-    // }
-
-    Future getToLearn() async {
-      await loadAd();
-      c.currentTab = 0.obs;
-      if (searchFocusNode.hasFocus) {
-        searchFocusNode.unfocus();
-      }
-      if (c.isSearch.value) {
-        c.isSearch = false.obs;
-      }
-      Get.offAll(() => const LearnWord());
-    }
-
-    Future getNext() async {
-      await loadAd();
-      if (searchFocusNode.hasFocus) {
-        searchFocusNode.unfocus();
-      }
-      if (c.isSearch.value) {
-        c.isSearch = false.obs;
-      }
-      if (c.fromScreen.value == 0) {
-        if (c.nowWord.value < (c.wordArray.length - 1)) {
-          c.nowWord = RxInt(c.nowWord.value + 1);
-        } else {
-          c.nowWord = 0.obs;
-        }
-        listWordRandom = [c.wordArray[c.nowWord.value]];
-        nowRandom = 0;
-        await c.layWord(c.wordArray[c.nowWord.value]);
-      } else {
-        if (c.nowWord.value < (c.listWordScorePage.length - 1)) {
-          c.nowWord = RxInt(c.nowWord.value + 1);
-        } else {
-          c.nowWord = 0.obs;
-        }
-        listWordRandom = [c.listWordScorePage[c.nowWord.value]];
-        nowRandom = 0;
-        await c.layWord(c.listWordScorePage[c.nowWord.value]);
-      }
-    }
-
-    Future getPrevious() async {
-      await loadAd();
-      if (searchFocusNode.hasFocus) {
-        searchFocusNode.unfocus();
-      }
-      if (c.isSearch.value) {
-        c.isSearch = false.obs;
-      }
-      if (c.fromScreen.value == 0) {
-        if (c.nowWord.value > 0) {
-          c.nowWord = RxInt(c.nowWord.value - 1);
-        } else {
-          c.nowWord = RxInt(c.wordArray.length - 1);
-        }
-        listWordRandom = [c.wordArray[c.nowWord.value]];
-        nowRandom = 0;
-        await c.layWord(c.wordArray[c.nowWord.value]);
-      } else {
-        if (c.nowWord.value > 0) {
-          c.nowWord = RxInt(c.nowWord.value - 1);
-        } else {
-          c.nowWord = RxInt(c.listWordScorePage.length - 1);
-        }
-        listWordRandom = [c.listWordScorePage[c.nowWord.value]];
-        nowRandom = 0;
-        await c.layWord(c.listWordScorePage[c.nowWord.value]);
-      }
-    }
-
-    Future getRandom() async {
-      await loadAd();
-      if (searchFocusNode.hasFocus) {
-        searchFocusNode.unfocus();
-      }
-      if (c.isSearch.value) {
-        c.isSearch = false.obs;
-      }
-      if (c.fromScreen.value == 0) {
-        c.nowWord = RxInt(Random().nextInt(c.wordArray.length));
-        listWordRandom = [c.wordArray[c.nowWord.value]];
-        nowRandom = 0;
-        await c.layWord(c.wordArray[c.nowWord.value]);
-      } else {
-        c.nowWord = RxInt(Random().nextInt(c.listWordScorePage.length));
-        listWordRandom = [c.listWordScorePage[c.nowWord.value]];
-        nowRandom = 0;
-        await c.layWord(c.listWordScorePage[c.nowWord.value]);
-      }
-    }
-
-    Future getNextRandom() async {
-      await loadAd();
-      if (searchFocusNode.hasFocus) {
-        searchFocusNode.unfocus();
-      }
-      if (c.isSearch.value) {
-        c.isSearch = false.obs;
-      }
-      if (c.fromScreen.value == 0) {
-        if (nowRandom >= listWordRandom.length - 1) {
-          int random = Random().nextInt(c.wordArray.length);
-          listWordRandom.add(c.wordArray[random]);
-          nowRandom = listWordRandom.length - 1;
-          c.nowWord = RxInt(random);
-          await c.layWord(c.wordArray[random]);
-        } else {
-          nowRandom = nowRandom + 1;
-          c.nowWord = RxInt(c.wordArray.indexOf(listWordRandom[nowRandom]));
-          await c.layWord(listWordRandom[nowRandom]);
-        }
-      } else {
-        if (nowRandom >= listWordRandom.length - 1) {
-          int random = Random().nextInt(c.listWordScorePage.length);
-          listWordRandom.add(c.listWordScorePage[random]);
-          nowRandom = listWordRandom.length - 1;
-          c.nowWord = RxInt(random);
-          await c.layWord(c.listWordScorePage[random]);
-        } else {
-          nowRandom = nowRandom + 1;
-          c.nowWord =
-              RxInt(c.listWordScorePage.indexOf(listWordRandom[nowRandom]));
-          await c.layWord(listWordRandom[nowRandom]);
-        }
-      }
-    }
-
-    Future getPreviousRandom() async {
-      await loadAd();
-      if (searchFocusNode.hasFocus) {
-        searchFocusNode.unfocus();
-      }
-      if (c.isSearch.value) {
-        c.isSearch = false.obs;
-      }
-      if (c.fromScreen.value == 0) {
-        if (nowRandom <= 0) {
-          await getRandom();
-        } else {
-          nowRandom = nowRandom - 1;
-          c.nowWord = RxInt(c.wordArray.indexOf(listWordRandom[nowRandom]));
-          await c.layWord(listWordRandom[nowRandom]);
-        }
-      } else {
-        if (nowRandom <= 0) {
-          await getRandom();
-        } else {
-          nowRandom = nowRandom - 1;
-          c.nowWord =
-              RxInt(c.listWordScorePage.indexOf(listWordRandom[nowRandom]));
-          await c.layWord(listWordRandom[nowRandom]);
-        }
-      }
-    }
-
-    Future getNextMean() async {
-      await loadAd();
-      if (searchFocusNode.hasFocus) {
-        searchFocusNode.unfocus();
-      }
-      if (c.isSearch.value) {
-        c.isSearch = false.obs;
-      }
-      if (c.nowMean.value < (c.mean.length - 1)) {
-        c.nowMean = RxInt(c.nowMean.value + 1);
-        c.update();
-      } else {
-        c.nowMean = 0.obs;
-        c.update();
-      }
-    }
-
-    Future getPreviousMean() async {
-      await loadAd();
-      if (searchFocusNode.hasFocus) {
-        searchFocusNode.unfocus();
-      }
-      if (c.isSearch.value) {
-        c.isSearch = false.obs;
-      }
-      if (c.nowMean.value > 0) {
-        c.nowMean = RxInt(c.nowMean.value - 1);
-        c.update();
-      } else {
-        c.nowMean = RxInt(c.imageURL.length - 1);
-        c.update();
-      }
-    }
-
-    Future waitSpeak(int i) async {
-      int duration = 0;
-      int wordCount = 0;
-      for (var j = 0; j < i; j++) {
-        wordCount += c.mean[c.nowMean.value][j].split(' ').length as int;
-      }
-      duration += (i + 1) * 1000 + wordCount * 50 ~/ c.speakSpeed.value;
-      await Future.delayed(Duration(milliseconds: duration));
-    }
-
-    Future getList(int i) async {
-      c.listWordScorePage.clear();
-      for (var j = 0;
-          j <
-              (i < (c.listWord.length / pageCount).ceil() - 1
-                  ? pageCount
-                  : (c.listWord.length - pageCount * i));
-          j++) {
-        c.listWordScorePage.add(c.listWord[i * pageCount + j]);
-      }
-      c.part = RxInt(i);
-      await getRandom();
-    }
-
-    return WillPopScope(
-      onWillPop: () async {
-        // getBack();
-        return false;
-      },
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        // extendBodyBehindAppBar: true,
-        backgroundColor: Colors.transparent,
-        body: AnnotatedRegion<SystemUiOverlayStyle>(
-          value: const SystemUiOverlayStyle(
-            // systemStatusBarContrastEnforced: true,
-            statusBarColor: Colors.transparent, //i like transaparent :-)
-            systemNavigationBarColor:
-                Colors.transparent, // navigation bar color
-            statusBarIconBrightness:
-                Brightness.light, // status bar icons' color
-            systemNavigationBarIconBrightness:
-                Brightness.light, //navigation bar icons' color
-          ),
-          child: Stack(children: [
-            GetBuilder<Controller>(
-              builder: (_) => c.imageURL.isNotEmpty
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(0),
-                      child: ImageFiltered(
-                        imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                        child: Opacity(
-                          opacity: 0.8,
-                          child: Image(
-                            image: NetworkImage('https://bedict.com/' +
-                                c.imageURL[c.nowMean.value]
-                                    .replaceAll('\\', '')),
-                            fit: BoxFit.cover,
-                            width: MediaQuery.of(context).size.width,
-                            height: MediaQuery.of(context).size.height,
-                            errorBuilder: (BuildContext context,
-                                Object exception, StackTrace? stackTrace) {
-                              return const SizedBox();
-                            },
-                          ),
-                        ),
-                      ),
-                    )
-                  : const SizedBox(),
-            ),
-            Column(children: [
-              Expanded(
-                child: GetBuilder<Controller>(
-                  builder: (_) => AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 500),
-                    transitionBuilder:
-                        (Widget child, Animation<double> animation) {
-                      return ScaleTransition(child: child, scale: animation);
-                    },
-                    child: Container(
-                      key: ValueKey<String>(c.nowMean.value.toString()),
-                      alignment: Alignment.center,
-                      color: Colors.transparent,
-                      child: c.imageURL.isNotEmpty
-                          ? SingleChildScrollView(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(20)),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.6),
-                                      spreadRadius: 0,
-                                      blurRadius: 5,
-                                      offset: const Offset(
-                                          5, 5), // changes position of shadow
-                                    ),
-                                  ],
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Image(
-                                    image: NetworkImage('https://bedict.com/' +
-                                        c.imageURL[c.nowMean.value]
-                                            .replaceAll('\\', '')),
-                                    fit: BoxFit.contain,
-                                    width: MediaQuery.of(context).size.width <
-                                            500
-                                        ? MediaQuery.of(context).size.width -
-                                            100
-                                        : 400,
-                                    errorBuilder: (BuildContext context,
-                                        Object exception,
-                                        StackTrace? stackTrace) {
-                                      return const SizedBox();
-                                    },
-                                  ),
-                                ),
-                              ),
-                            )
-                          : const SizedBox(),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 30)
-            ]),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: <Widget>[
-                SizedBox(height: MediaQuery.of(context).padding.top + 5),
-                GetBuilder<Controller>(
-                  builder: (_) => Visibility(
-                    visible: !c.isSearch.value,
-                    child: Row(children: [
-                      c.fromScreen.value == 0
-                          ? const SizedBox(width: 10)
-                          : IconButton(
-                              padding: const EdgeInsets.all(0.0),
-                              icon: const Icon(
-                                Icons.close,
-                                size: 15,
-                              ),
-                              tooltip: 'clear',
-                              onPressed: () async {
-                                await searchToHome(c.wordArray[
-                                    Random().nextInt(c.wordArray.length)]);
-                              },
-                            ),
-                      Expanded(
-                          child: c.fromScreen.value == 0
-                              ? const SizedBox()
-                              : Row(
-                                  children: [
-                                    Text(
-                                      c.bundle.string.toLowerCase() + ' - ',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: textColor,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                      textAlign: TextAlign.left,
-                                    ),
-                                    GetBuilder<Controller>(
-                                      builder: (_) => PopupMenuButton<String>(
-                                        onSelected: (String word) async {
-                                          c.part = RxInt(int.parse(
-                                                  word.substring(
-                                                      5, word.indexOf('/'))) -
-                                              1);
-                                          c.update();
-                                          getList(c.part.value);
-                                        },
-                                        padding: const EdgeInsets.all(0),
-                                        itemBuilder: (BuildContext context) =>
-                                            <PopupMenuEntry<String>>[
-                                          for (int i = 0;
-                                              i <
-                                                  (c.listWord.length /
-                                                          pageCount)
-                                                      .ceil();
-                                              i++)
-                                            PopupMenuItem<String>(
-                                                value:
-                                                    (c.language.string == 'VN'
-                                                            ? 'Phần '
-                                                            : 'Part ') +
-                                                        (i + 1).toString() +
-                                                        '/' +
-                                                        (c.listWord.length /
-                                                                pageCount)
-                                                            .ceil()
-                                                            .toString(),
-                                                padding:
-                                                    const EdgeInsets.fromLTRB(
-                                                        5, 0, 5, 0),
-                                                child: Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
-                                                    children: [
-                                                      Text(
-                                                        (c.language.string ==
-                                                                    'VN'
-                                                                ? 'Phần '
-                                                                : 'Part ') +
-                                                            (i + 1).toString() +
-                                                            '/' +
-                                                            (c.listWord.length /
-                                                                    pageCount)
-                                                                .ceil()
-                                                                .toString(),
-                                                        style: const TextStyle(
-                                                          fontSize: 18,
-                                                          color: textColor,
-                                                        ),
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                      ),
-                                                    ])),
-                                        ],
-                                        // color: themeColor,
-                                        child: Row(children: [
-                                          Text(
-                                            (c.language.string == 'VN'
-                                                    ? 'phần '
-                                                    : 'part ') +
-                                                (c.part.value + 1).toString() +
-                                                '/' +
-                                                (c.listWord.length / pageCount)
-                                                    .ceil()
-                                                    .toString(),
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                              color: textColor,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                            textAlign: TextAlign.left,
-                                          ),
-                                        ]),
-                                        shape: const RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(20.0))),
-                                      ),
-                                    ),
-                                  ],
-                                )),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.search,
-                          size: 25,
-                        ),
-                        onPressed: () {
-                          c.isSearch = true.obs;
-                          c.update();
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.share,
-                          size: 25,
-                        ),
-                        onPressed: () async {
-                          // double pixelRatio = MediaQuery.of(context).devicePixelRatio;
-                          // await screenshotController.capture(
-                          //     delay: const Duration(milliseconds: 10),
-                          //     pixelRatio: pixelRatio
-                          // ).then((image) async {
-                          //   if (image != null) {
-                          //     final directory = await getApplicationDocumentsDirectory();
-                          //     final imagePath = await File('${directory.path}/image.png').create();
-                          //     await imagePath.writeAsBytes(image);
-                          //     await Share.shareFiles([imagePath.path]);
-                          //   }
-                          // });
-                          String mean = '';
-                          for (int i = 0;
-                              i < c.mean[c.nowMean.value].length;
-                              i++) {
-                            String subMean = c.mean[c.nowMean.value][i];
-                            mean += '(' +
-                                laytuloai(subMean.substring(
-                                        subMean.length - 1))[c.typeState.value]
-                                    .toLowerCase();
-                            mean += ') ';
-                            mean += subMean.substring(0, subMean.length - 1);
-                            mean += '\n';
-                          }
-                          final response = await http.get(Uri.parse(
-                              'https://bedict.com/' +
-                                  c.imageURL[c.nowMean.value]
-                                      .replaceAll('\\', '')));
-                          final bytes = response.bodyBytes;
-                          final temp = await getApplicationDocumentsDirectory();
-                          final path = '${temp.path}/image.jpg';
-                          File(path).writeAsBytes(bytes);
-                          String string = '';
-                          if (c.language.string == 'VN') {
-                            string =
-                                'BeDict - Ứng dụng từ điển hình ảnh Tiếng Anh' +
-                                    '\n\n' +
-                                    c.word.string +
-                                    '\n/' +
-                                    c.pronun.string +
-                                    '/\n' +
-                                    mean +
-                                    '\nIos: https://apple.co/3M6FDxy\n' +
-                                    'Android: https://play.google.com/store/apps/details?id=com.bedict.bedict\n' +
-                                    'Web: https://bedict.com/\n';
-                          } else {
-                            string =
-                                'BeDict - English Picture Dictionary Application' +
-                                    '\n\n' +
-                                    c.word.string +
-                                    '\n/' +
-                                    c.pronun.string +
-                                    '/\n' +
-                                    mean +
-                                    '\nIos: https://apple.co/3M6FDxy\n' +
-                                    'Android: https://play.google.com/store/apps/details?id=com.bedict.bedict\n' +
-                                    'Web: https://bedict.com/\n';
-                          }
-                          await Share.shareFiles([path], text: string);
-                        },
-                      ),
-                      const SizedBox(width: 20),
-                      OutlinedButton(
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              Colors.transparent),
-                          foregroundColor:
-                              MaterialStateProperty.all<Color>(Colors.grey),
-                          padding: MaterialStateProperty.all<EdgeInsets>(
-                              const EdgeInsets.all(0)),
-                          shape: MaterialStateProperty.all<OutlinedBorder?>(
-                              RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30.0),
-                          )),
-                          fixedSize: MaterialStateProperty.all<Size>(
-                              const Size.fromHeight(40)),
-                        ),
-                        onPressed: () {
-                          getToLearn();
-                        },
-                        child: GetBuilder<Controller>(
-                          builder: (_) => Text(
-                            c.language.string == 'VN' ? 'Học' : 'Learn',
-                            style: const TextStyle(
-                              color: textColor,
-                              fontSize: 14,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 15),
-                    ]),
-                  ),
-                ),
+            child: Container(
+              color: Colors.white,
+              child: Column(children: [
+                SizedBox(height: MediaQuery.of(context).padding.top + 10),
                 GetBuilder<Controller>(
                   builder: (_) => Visibility(
                     visible: c.isSearch.value,
@@ -5976,33 +1078,31 @@ class Home extends StatelessWidget {
                       Expanded(
                         child: TypeAheadField(
                           textFieldConfiguration: TextFieldConfiguration(
+                            // controller: searchField,
                             controller: textFieldController,
-                            autofocus: true,
+                            autofocus: false,
                             autocorrect: false,
                             textInputAction: TextInputAction.done,
-                            // focusNode: searchFocusNodeHome,
+                            focusNode: searchFocusNode,
                             style: const TextStyle(
                               fontSize: 15.0,
                               color: textColor,
                             ),
                             decoration: InputDecoration(
-                              fillColor: Colors.transparent,
+                              fillColor: backgroundColor.withOpacity(0.5),
                               filled: true,
                               border: const OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(width: 1, color: Colors.black),
+                                borderSide: BorderSide.none,
                                 borderRadius:
                                     BorderRadius.all(Radius.circular(30)),
                               ),
                               focusedBorder: const OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(width: 1, color: Colors.black),
+                                borderSide: BorderSide.none,
                                 borderRadius:
                                     BorderRadius.all(Radius.circular(30)),
                               ),
                               enabledBorder: const OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(width: 1, color: Colors.black),
+                                borderSide: BorderSide.none,
                                 borderRadius:
                                     BorderRadius.all(Radius.circular(30)),
                               ),
@@ -6927,425 +2027,5440 @@ class Home extends StatelessWidget {
                     ]),
                   ),
                 ),
-                const SizedBox(height: 15),
+                GetBuilder<Controller>(
+                  builder: (_) => Visibility(
+                    visible: !c.isSearch.value,
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 20),
+                        OutlinedButton(
+                          style: ButtonStyle(
+                            // backgroundColor: MaterialStateProperty.all<Color>(backgroundColor.withOpacity(0.2)),
+                            // foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                            padding: MaterialStateProperty.all<EdgeInsets>(
+                                const EdgeInsets.all(12)),
+                            shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30.0),
+                            )),
+                          ),
+                          onPressed: () {
+                            getToCategory();
+                          },
+                          child: Text(
+                              c.language.string == 'VN' ? 'Chủ đề' : 'Category',
+                              style: const TextStyle(
+                                color: textColor,
+                              )),
+                        ),
+                        const SizedBox(width: 10),
+                        OutlinedButton(
+                          style: ButtonStyle(
+                            // backgroundColor: MaterialStateProperty.all<Color>(backgroundColor.withOpacity(0.2)),
+                            // foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
+                            padding: MaterialStateProperty.all<EdgeInsets>(
+                                const EdgeInsets.all(12)),
+                            shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30.0),
+                            )),
+                          ),
+                          onPressed: () {
+                            getToType();
+                          },
+                          child: Text(
+                              c.language.string == 'VN' ? 'Từ loại' : 'Type',
+                              style: const TextStyle(
+                                color: textColor,
+                              )),
+                        ),
+                        const Expanded(child: SizedBox()),
+                        TextButton(
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(
+                                backgroundColor.withOpacity(0.5)),
+                            foregroundColor:
+                                MaterialStateProperty.all<Color>(Colors.grey),
+                            padding: MaterialStateProperty.all<EdgeInsets>(
+                                const EdgeInsets.fromLTRB(0, 10, 0, 10)),
+                            shape: MaterialStateProperty.all<OutlinedBorder?>(
+                                RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15.0),
+                            )),
+                          ),
+                          onPressed: () {
+                            c.isSearch = true.obs;
+                            c.update();
+                            searchFocusNode.requestFocus();
+                          },
+                          child: const Icon(
+                            Icons.search,
+                            size: 20,
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
                 Expanded(
-                  child: GestureDetector(
-                    onVerticalDragEnd: (details) async {
-                      if (details.primaryVelocity! > 0) {
-                        await getPreviousRandom();
-                      }
-                      if (details.primaryVelocity! < -0) {
-                        await getNextRandom();
-                      }
-                    },
-                    onHorizontalDragEnd: (details) {
-                      if (details.primaryVelocity! > 0) {
-                        getPreviousMean();
-                      }
-                      if (details.primaryVelocity! < 0) {
-                        getNextMean();
-                      }
-                    },
-                    onDoubleTap: () {
-                      getToLearn();
-                    },
-                    onTap: () async {
-                      if (searchFocusNode.hasFocus) {
-                        searchFocusNode.unfocus();
-                      }
-                      if (c.isSearch.value) {
-                        c.isSearch = false.obs;
-                        c.update();
-                      }
-                      if (processKey.currentState!.controller.isAnimating) {
-                        processKey.currentState!.controller.stop();
-                      } else {
-                        processKey.currentState!.controller.forward();
-                      }
-                    },
-                    child: Column(children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          GetBuilder<Controller>(
-                            builder: (_) => Flexible(
-                              child: AnimatedTextKit(
-                                key: ValueKey<String>(c.word.string),
-                                animatedTexts: [
-                                  ColorizeAnimatedText(
-                                    c.word.string,
-                                    textAlign: TextAlign.center,
-                                    speed: const Duration(milliseconds: 300),
-                                    textStyle: TextStyle(
-                                      fontSize: 50,
-                                      letterSpacing: 1,
-                                      fontWeight: FontWeight.w600,
-                                      shadows: [
-                                        Shadow(
-                                          blurRadius: 15,
-                                          color: Colors.black.withOpacity(0.5),
-                                          offset: const Offset(3, 3),
-                                        ),
-                                      ],
-                                    ),
-                                    colors: colorizeColors,
-                                  ),
-                                ],
-                                isRepeatingAnimation: true,
-                                repeatForever: true,
-                                onTap: () {},
+                  child: GetBuilder<Controller>(
+                    builder: (_) => Visibility(
+                      visible: !c.isSearch.value,
+                      child:
+                          ListView(padding: const EdgeInsets.all(0), children: [
+                        // const SizedBox(height: 10),
+                        // Row(
+                        //     // crossAxisAlignment: CrossAxisAlignment.end,
+                        //     children: [
+                        //       const SizedBox(width: 20),
+                        //       // const Expanded(child: SizedBox(),),
+                        //       Text(
+                        //         c.language.string == 'VN'
+                        //             ? 'TÌM KIẾM GẦN ĐÂY'
+                        //             : 'LAST SEARCH WORDS',
+                        //         style: const TextStyle(
+                        //           fontSize: 20,
+                        //           color: textColor,
+                        //           fontWeight: FontWeight.w600,
+                        //         ),
+                        //         overflow: TextOverflow.ellipsis,
+                        //       ),
+                        //       const Expanded(
+                        //         child: SizedBox(),
+                        //       ),
+                        //       const SizedBox(width: 10),
+                        //     ]),
+                        // const SizedBox(height: 10),
+                        // SizedBox(
+                        //   height: MediaQuery.of(context).size.width > 500
+                        //       ? 220 * 250 / 300 + 80
+                        //       : (MediaQuery.of(context).size.width - 60) *
+                        //               250 /
+                        //               300 /
+                        //               2 +
+                        //           80,
+                        //   child: Row(
+                        //     children: [
+                        //       // const SizedBox(width: 10),
+                        //       Expanded(
+                        //         child: ListView.builder(
+                        //           scrollDirection: Axis.horizontal,
+                        //           itemCount: listShowSearch.length,
+                        //           addAutomaticKeepAlives: false,
+                        //           itemBuilder: (BuildContext context, int index) {
+                        //             late var dataRaw;
+                        //             String mean = '';
+                        //             String image = 'bedict.png';
+                        //             dataRaw = listShowSearch[index];
+                        //             List listMean = jsonDecode(dataRaw['mean'])[0];
+                        //             List meanENAdd = [];
+                        //             List meanVNAdd = [];
+                        //             for (var j = 0; j < listMean.length; j++) {
+                        //               String meanENElement = '';
+                        //               if (listMean[j].contains('#')) {
+                        //                 meanENElement = listMean[j].split('#')[1];
+                        //               } else {
+                        //                 meanENElement = listMean[j];
+                        //               }
+                        //               meanENAdd.add(meanENElement);
+                        //               String meanVNElement =
+                        //                   jsonDecode(dataRaw['meanVN'])[0][j];
+                        //               meanVNElement = meanVNElement.substring(
+                        //                   0, meanVNElement.length - 2);
+                        //               meanVNElement = meanVNElement +
+                        //                   listMean[j]
+                        //                       .substring(listMean[j].length - 1);
+                        //               meanVNAdd.add(meanVNElement);
+                        //             }
+                        //             String meanEN = '';
+                        //             String meanVN = '';
+                        //             for (var j = 0; j < meanENAdd.length; j++) {
+                        //               if (j == 0) {
+                        //                 meanVN = meanVN +
+                        //                     meanVNAdd[j].substring(
+                        //                         0, meanVNAdd[j].length - 1);
+                        //                 meanEN = meanEN +
+                        //                     meanENAdd[j].substring(
+                        //                         0, meanENAdd[j].length - 1);
+                        //               } else {
+                        //                 meanVN = meanVN +
+                        //                     ' | ' +
+                        //                     meanVNAdd[j].substring(
+                        //                         0, meanVNAdd[j].length - 1);
+                        //                 meanEN = meanEN +
+                        //                     ' | ' +
+                        //                     meanENAdd[j].substring(
+                        //                         0, meanENAdd[j].length - 1);
+                        //               }
+                        //             }
+                        //             if (c.language.string == 'VN') {
+                        //               mean = meanVN;
+                        //             } else {
+                        //               mean = meanEN;
+                        //             }
+                        //             if (jsonDecode(dataRaw['imageURL']).length >
+                        //                 0) {
+                        //               image = jsonDecode(dataRaw['imageURL'])[0];
+                        //             }
+                        //             return GestureDetector(
+                        //               onTap: () async {
+                        //                 await searchToHome(dataRaw['word']);
+                        //               },
+                        //               child: Column(children: [
+                        //                 Container(
+                        //                     margin: const EdgeInsets.all(10),
+                        //                     decoration: BoxDecoration(
+                        //                       color: Colors.white,
+                        //                       borderRadius: const BorderRadius.all(
+                        //                           Radius.circular(8)),
+                        //                       boxShadow: [
+                        //                         BoxShadow(
+                        //                           color:
+                        //                               Colors.black.withOpacity(0.6),
+                        //                           spreadRadius: 0,
+                        //                           blurRadius: 5,
+                        //                           offset: const Offset(5,
+                        //                               5), // changes position of shadow
+                        //                         ),
+                        //                       ],
+                        //                     ),
+                        //                     width:
+                        //                         MediaQuery.of(context).size.width >
+                        //                                 500
+                        //                             ? 220
+                        //                             : (MediaQuery.of(context)
+                        //                                         .size
+                        //                                         .width -
+                        //                                     60) /
+                        //                                 2,
+                        //                     height:
+                        //                         MediaQuery.of(context).size.width >
+                        //                                 500
+                        //                             ? 220 * 250 / 300
+                        //                             : (MediaQuery.of(context)
+                        //                                         .size
+                        //                                         .width -
+                        //                                     60) *
+                        //                                 250 /
+                        //                                 300 /
+                        //                                 2,
+                        //                     child: Stack(children: [
+                        //                       ClipRRect(
+                        //                         borderRadius:
+                        //                             BorderRadius.circular(8),
+                        //                         child: ImageFiltered(
+                        //                           imageFilter: ImageFilter.blur(
+                        //                               sigmaX: 6, sigmaY: 6),
+                        //                           child: Opacity(
+                        //                             opacity: 0.8,
+                        //                             child: Image(
+                        //                               image: NetworkImage(
+                        //                                   'https://bedict.com/' +
+                        //                                       image.replaceAll(
+                        //                                           '\\', '')),
+                        //                               fit: BoxFit.cover,
+                        //                               width: MediaQuery.of(context)
+                        //                                           .size
+                        //                                           .width >
+                        //                                       500
+                        //                                   ? 220
+                        //                                   : (MediaQuery.of(context)
+                        //                                               .size
+                        //                                               .width -
+                        //                                           60) /
+                        //                                       2,
+                        //                               height: MediaQuery.of(context)
+                        //                                           .size
+                        //                                           .width >
+                        //                                       500
+                        //                                   ? 220 * 250 / 300
+                        //                                   : (MediaQuery.of(context)
+                        //                                               .size
+                        //                                               .width -
+                        //                                           60) *
+                        //                                       250 /
+                        //                                       300 /
+                        //                                       2,
+                        //                               errorBuilder: (BuildContext
+                        //                                       context,
+                        //                                   Object exception,
+                        //                                   StackTrace? stackTrace) {
+                        //                                 return const SizedBox();
+                        //                               },
+                        //                             ),
+                        //                           ),
+                        //                         ),
+                        //                       ),
+                        //                       ClipRRect(
+                        //                         borderRadius:
+                        //                             BorderRadius.circular(8),
+                        //                         child: Image(
+                        //                           image: NetworkImage(
+                        //                               'https://bedict.com/' +
+                        //                                   image.replaceAll(
+                        //                                       '\\', '')),
+                        //                           fit: BoxFit.contain,
+                        //                           width: MediaQuery.of(context)
+                        //                                       .size
+                        //                                       .width >
+                        //                                   500
+                        //                               ? 220
+                        //                               : (MediaQuery.of(context)
+                        //                                           .size
+                        //                                           .width -
+                        //                                       60) /
+                        //                                   2,
+                        //                           height: MediaQuery.of(context)
+                        //                                       .size
+                        //                                       .width >
+                        //                                   500
+                        //                               ? 220 * 250 / 300
+                        //                               : (MediaQuery.of(context)
+                        //                                           .size
+                        //                                           .width -
+                        //                                       60) *
+                        //                                   250 /
+                        //                                   300 /
+                        //                                   2,
+                        //                           errorBuilder:
+                        //                               (BuildContext context,
+                        //                                   Object exception,
+                        //                                   StackTrace? stackTrace) {
+                        //                             return const SizedBox();
+                        //                           },
+                        //                         ),
+                        //                       ),
+                        //                       jsonDecode(dataRaw['meanVN']).length >
+                        //                               1
+                        //                           ? Positioned(
+                        //                               right: 7,
+                        //                               bottom: 7,
+                        //                               child: Container(
+                        //                                   alignment:
+                        //                                       Alignment.center,
+                        //                                   decoration: BoxDecoration(
+                        //                                     color: Colors.white
+                        //                                         .withOpacity(0.7),
+                        //                                     borderRadius:
+                        //                                         const BorderRadius
+                        //                                                 .all(
+                        //                                             Radius.circular(
+                        //                                                 20)),
+                        //                                   ),
+                        //                                   height: 40,
+                        //                                   width: 40,
+                        //                                   child: Text(
+                        //                                     '+ ' +
+                        //                                         (jsonDecode(dataRaw[
+                        //                                                         'meanVN'])
+                        //                                                     .length -
+                        //                                                 1)
+                        //                                             .toString(),
+                        //                                   )))
+                        //                           : const SizedBox(),
+                        //                     ])),
+                        //                 const SizedBox(height: 7),
+                        //                 Container(
+                        //                   alignment: Alignment.centerLeft,
+                        //                   width: MediaQuery.of(context).size.width >
+                        //                           500
+                        //                       ? 220
+                        //                       : (MediaQuery.of(context).size.width -
+                        //                               60) /
+                        //                           2,
+                        //                   child: Text(
+                        //                     dataRaw['word'],
+                        //                     style: const TextStyle(
+                        //                       fontSize: 18,
+                        //                       fontWeight: FontWeight.w600,
+                        //                       overflow: TextOverflow.ellipsis,
+                        //                     ),
+                        //                   ),
+                        //                 ),
+                        //                 const SizedBox(height: 5),
+                        //                 Container(
+                        //                   alignment: Alignment.centerLeft,
+                        //                   width: MediaQuery.of(context).size.width >
+                        //                           500
+                        //                       ? 220
+                        //                       : (MediaQuery.of(context).size.width -
+                        //                               60) /
+                        //                           2,
+                        //                   child: Text(
+                        //                     mean,
+                        //                     style: const TextStyle(
+                        //                       fontSize: 14,
+                        //                       fontWeight: FontWeight.w400,
+                        //                       overflow: TextOverflow.ellipsis,
+                        //                     ),
+                        //                   ),
+                        //                 ),
+                        //                 const SizedBox(height: 10),
+                        //               ]),
+                        //             );
+                        //           },
+                        //         ),
+                        //       ),
+                        //       // const SizedBox(width: 10),
+                        //     ],
+                        //   ),
+                        // ),
+                        // const SizedBox(height: 15),
+                        Row(
+                            // crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              const SizedBox(width: 20),
+                              CircularPercentIndicator(
+                                radius: 13,
+                                lineWidth: 3.0,
+                                animation: true,
+                                percent: essentialCount / essentialList.length,
+                                backgroundColor:
+                                    const Color.fromRGBO(240, 240, 240, 1),
+                                progressColor: backgroundColor,
+                                // center: Text(
+                                //   c.learnedIelts.length.toString(),
+                                //   style: const TextStyle(
+                                //     fontSize: 9,
+                                //     color: textColor,
+                                //   ),
+                                // ),
+                                circularStrokeCap: CircularStrokeCap.round,
                               ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          GetBuilder<Controller>(
-                            builder: (_) => Flexible(
-                              child: AnimatedTextKit(
-                                key: ValueKey<String>(c.word.string),
-                                animatedTexts: [
-                                  ColorizeAnimatedText(
-                                    c.pronun.string,
-                                    textAlign: TextAlign.center,
-                                    speed: const Duration(milliseconds: 300),
-                                    textStyle: TextStyle(
-                                      fontSize: 20,
-                                      letterSpacing: 1,
-                                      fontWeight: FontWeight.w600,
-                                      shadows: [
-                                        Shadow(
-                                          blurRadius: 15,
-                                          color: Colors.black.withOpacity(0.5),
-                                          offset: const Offset(3, 3),
-                                        ),
-                                      ],
-                                    ),
-                                    colors: colorizeColors,
+                              const SizedBox(width: 15),
+                              GestureDetector(
+                                onTap: () {
+                                  if (c.language.string == 'VN') {
+                                    getToScore('CƠ BẢN');
+                                  } else {
+                                    getToScore('ESSENTIAL');
+                                  }
+                                },
+                                child: Text(
+                                  c.language.string == 'VN'
+                                      ? 'CƠ BẢN'
+                                      : 'ESSENTIAL',
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    color: textColor,
+                                    fontWeight: FontWeight.w600,
                                   ),
-                                ],
-                                isRepeatingAnimation: true,
-                                repeatForever: true,
-                                onTap: () {},
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Expanded(
-                        child: Container(color: Colors.transparent),
-                      ),
-                      GetBuilder<Controller>(
-                        builder: (_) => Row(children: [
-                          const SizedBox(width: 10),
-                          c.mean.isNotEmpty
-                              ? Flexible(
-                                  child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: c.mean[c.nowMean.value]
-                                      .asMap()
-                                      .entries
-                                      .map<Widget>(
-                                        (subMean) => FutureBuilder(
-                                          // future: Future.delayed(Duration(milliseconds: (subMean.key+1)*1000)),
-                                          future: waitSpeak(subMean.key),
-                                          builder: (context, snapshot) {
-                                            Widget child;
-
-                                            if (snapshot.connectionState ==
-                                                ConnectionState.waiting) {
-                                              child = const SizedBox();
-                                            } else {
-                                              child = Container(
-                                                margin:
-                                                    const EdgeInsets.fromLTRB(
-                                                        0, 0, 0, 5),
-                                                padding:
-                                                    const EdgeInsets.all(5),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white
-                                                      .withOpacity(0.3),
-                                                  borderRadius:
-                                                      const BorderRadius.all(
-                                                          Radius.circular(10)),
-                                                ),
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    const SizedBox(
-                                                      height: 3,
-                                                    ),
-                                                    Opacity(
-                                                      opacity: 0.3,
-                                                      child: Text(
-                                                        laytuloai(subMean.value
-                                                            .substring(subMean
-                                                                    .value
-                                                                    .length -
-                                                                1))[c
-                                                            .typeState.value],
-                                                        style: const TextStyle(
-                                                          fontSize: 11,
-                                                          color: textColor,
+                              const Expanded(
+                                child: SizedBox(),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.arrow_forward),
+                                onPressed: () {
+                                  if (c.language.string == 'VN') {
+                                    getToScore('CƠ BẢN');
+                                  } else {
+                                    getToScore('ESSENTIAL');
+                                  }
+                                },
+                              ),
+                              const SizedBox(width: 10),
+                            ]),
+                        SizedBox(
+                          height: MediaQuery.of(context).size.width > 500
+                              ? 220 * 250 / 300 + 80
+                              : (MediaQuery.of(context).size.width - 60) *
+                                      250 /
+                                      300 /
+                                      2 +
+                                  80,
+                          child: Row(
+                            children: [
+                              // const SizedBox(width: 10),
+                              Expanded(
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: listShowEssential.length + 1,
+                                  addAutomaticKeepAlives: false,
+                                  itemBuilder:
+                                      (BuildContext context, int index) {
+                                    late var dataRaw;
+                                    String mean = '';
+                                    String image = 'bedict.png';
+                                    if (index < listShowEssential.length) {
+                                      dataRaw = listShowEssential[index];
+                                      List listMean =
+                                          jsonDecode(dataRaw['mean'])[0];
+                                      List meanENAdd = [];
+                                      List meanVNAdd = [];
+                                      for (var j = 0;
+                                          j < listMean.length;
+                                          j++) {
+                                        String meanENElement = '';
+                                        if (listMean[j].contains('#')) {
+                                          meanENElement =
+                                              listMean[j].split('#')[1];
+                                        } else {
+                                          meanENElement = listMean[j];
+                                        }
+                                        meanENAdd.add(meanENElement);
+                                        String meanVNElement =
+                                            jsonDecode(dataRaw['meanVN'])[0][j];
+                                        meanVNElement = meanVNElement.substring(
+                                            0, meanVNElement.length - 2);
+                                        meanVNElement = meanVNElement +
+                                            listMean[j].substring(
+                                                listMean[j].length - 1);
+                                        meanVNAdd.add(meanVNElement);
+                                      }
+                                      String meanEN = '';
+                                      String meanVN = '';
+                                      for (var j = 0;
+                                          j < meanENAdd.length;
+                                          j++) {
+                                        if (j == 0) {
+                                          meanVN = meanVN +
+                                              meanVNAdd[j].substring(
+                                                  0, meanVNAdd[j].length - 1);
+                                          meanEN = meanEN +
+                                              meanENAdd[j].substring(
+                                                  0, meanENAdd[j].length - 1);
+                                        } else {
+                                          meanVN = meanVN +
+                                              ' | ' +
+                                              meanVNAdd[j].substring(
+                                                  0, meanVNAdd[j].length - 1);
+                                          meanEN = meanEN +
+                                              ' | ' +
+                                              meanENAdd[j].substring(
+                                                  0, meanENAdd[j].length - 1);
+                                        }
+                                      }
+                                      if (c.language.string == 'VN') {
+                                        mean = meanVN;
+                                      } else {
+                                        mean = meanEN;
+                                      }
+                                      if (jsonDecode(dataRaw['imageURL'])
+                                              .length >
+                                          0) {
+                                        image =
+                                            jsonDecode(dataRaw['imageURL'])[0];
+                                      }
+                                    }
+                                    return index < listShowEssential.length
+                                        ? GestureDetector(
+                                            onTap: () async {
+                                              c.part = RxInt(
+                                                  essentialList.indexOf(
+                                                          dataRaw['word']) ~/
+                                                      50);
+                                              c.listWordScorePage.clear();
+                                              for (var j = 0;
+                                                  j <
+                                                      (c.part.value <
+                                                              (essentialList.length /
+                                                                          50)
+                                                                      .ceil() -
+                                                                  1
+                                                          ? 50
+                                                          : (essentialList
+                                                                  .length -
+                                                              50 *
+                                                                  c.part
+                                                                      .value));
+                                                  j++) {
+                                                c.listWordScorePage.add(
+                                                    essentialList[
+                                                        c.part.value * 50 + j]);
+                                              }
+                                              c.nowWord = RxInt(c
+                                                  .listWordScorePage
+                                                  .indexOf(dataRaw['word']));
+                                              if (c.language.string == 'VN') {
+                                                getToHome(
+                                                    'CƠ BẢN', dataRaw['word']);
+                                              } else {
+                                                getToHome('ESSENTIAL',
+                                                    dataRaw['word']);
+                                              }
+                                            },
+                                            child: Column(children: [
+                                              Container(
+                                                  margin:
+                                                      const EdgeInsets.all(10),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius:
+                                                        const BorderRadius.all(
+                                                            Radius.circular(8)),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.black
+                                                            .withOpacity(0.6),
+                                                        spreadRadius: 0,
+                                                        blurRadius: 5,
+                                                        offset: const Offset(5,
+                                                            5), // changes position of shadow
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  width: MediaQuery.of(context)
+                                                              .size
+                                                              .width >
+                                                          500
+                                                      ? 220
+                                                      : (MediaQuery.of(context)
+                                                                  .size
+                                                                  .width -
+                                                              60) /
+                                                          2,
+                                                  height: MediaQuery.of(context)
+                                                              .size
+                                                              .width >
+                                                          500
+                                                      ? 220 * 250 / 300
+                                                      : (MediaQuery.of(context)
+                                                                  .size
+                                                                  .width -
+                                                              60) *
+                                                          250 /
+                                                          300 /
+                                                          2,
+                                                  child: Stack(children: [
+                                                    ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                      child: ImageFiltered(
+                                                        imageFilter:
+                                                            ImageFilter.blur(
+                                                                sigmaX: 6,
+                                                                sigmaY: 6),
+                                                        child: Opacity(
+                                                          opacity: 0.8,
+                                                          child: Image(
+                                                            image: NetworkImage(
+                                                                'https://bedict.com/' +
+                                                                    image.replaceAll(
+                                                                        '\\',
+                                                                        '')),
+                                                            fit: BoxFit.cover,
+                                                            width: MediaQuery.of(
+                                                                            context)
+                                                                        .size
+                                                                        .width >
+                                                                    500
+                                                                ? 220
+                                                                : (MediaQuery.of(context)
+                                                                            .size
+                                                                            .width -
+                                                                        60) /
+                                                                    2,
+                                                            height: MediaQuery.of(
+                                                                            context)
+                                                                        .size
+                                                                        .width >
+                                                                    500
+                                                                ? 220 *
+                                                                    250 /
+                                                                    300
+                                                                : (MediaQuery.of(context)
+                                                                            .size
+                                                                            .width -
+                                                                        60) *
+                                                                    250 /
+                                                                    300 /
+                                                                    2,
+                                                            errorBuilder:
+                                                                (BuildContext
+                                                                        context,
+                                                                    Object
+                                                                        exception,
+                                                                    StackTrace?
+                                                                        stackTrace) {
+                                                              return const SizedBox();
+                                                            },
+                                                          ),
                                                         ),
-                                                        textAlign:
-                                                            TextAlign.left,
                                                       ),
                                                     ),
-                                                    const SizedBox(height: 2),
+                                                    ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                      child: Image(
+                                                        image: NetworkImage(
+                                                            'https://bedict.com/' +
+                                                                image
+                                                                    .replaceAll(
+                                                                        '\\',
+                                                                        '')),
+                                                        fit: BoxFit.contain,
+                                                        width: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .width >
+                                                                500
+                                                            ? 220
+                                                            : (MediaQuery.of(
+                                                                            context)
+                                                                        .size
+                                                                        .width -
+                                                                    60) /
+                                                                2,
+                                                        height: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .width >
+                                                                500
+                                                            ? 220 * 250 / 300
+                                                            : (MediaQuery.of(
+                                                                            context)
+                                                                        .size
+                                                                        .width -
+                                                                    60) *
+                                                                250 /
+                                                                300 /
+                                                                2,
+                                                        errorBuilder:
+                                                            (BuildContext
+                                                                    context,
+                                                                Object
+                                                                    exception,
+                                                                StackTrace?
+                                                                    stackTrace) {
+                                                          return const SizedBox();
+                                                        },
+                                                      ),
+                                                    ),
+                                                    jsonDecode(dataRaw[
+                                                                    'meanVN'])
+                                                                .length >
+                                                            1
+                                                        ? Positioned(
+                                                            right: 7,
+                                                            bottom: 7,
+                                                            child: Container(
+                                                                alignment:
+                                                                    Alignment
+                                                                        .center,
+                                                                decoration:
+                                                                    BoxDecoration(
+                                                                  color: Colors
+                                                                      .white
+                                                                      .withOpacity(
+                                                                          0.7),
+                                                                  borderRadius: const BorderRadius
+                                                                          .all(
+                                                                      Radius.circular(
+                                                                          20)),
+                                                                ),
+                                                                height: 40,
+                                                                width: 40,
+                                                                child: Text(
+                                                                  '+ ' +
+                                                                      (jsonDecode(dataRaw['meanVN']).length -
+                                                                              1)
+                                                                          .toString(),
+                                                                )))
+                                                        : const SizedBox(),
+                                                  ])),
+                                              const SizedBox(height: 7),
+                                              Container(
+                                                alignment: Alignment.centerLeft,
+                                                width: MediaQuery.of(context)
+                                                            .size
+                                                            .width >
+                                                        500
+                                                    ? 220
+                                                    : (MediaQuery.of(context)
+                                                                .size
+                                                                .width -
+                                                            60) /
+                                                        2,
+                                                child: Text(
+                                                  dataRaw['word'],
+                                                  style: const TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.w600,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 5),
+                                              Container(
+                                                alignment: Alignment.centerLeft,
+                                                width: MediaQuery.of(context)
+                                                            .size
+                                                            .width >
+                                                        500
+                                                    ? 220
+                                                    : (MediaQuery.of(context)
+                                                                .size
+                                                                .width -
+                                                            60) /
+                                                        2,
+                                                child: Text(
+                                                  mean,
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w400,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 10),
+                                            ]),
+                                          )
+                                        : GestureDetector(
+                                            onTap: () {
+                                              if (c.language.string == 'VN') {
+                                                getToScore('CƠ BẢN');
+                                              } else {
+                                                getToScore('ESSENTIAL');
+                                              }
+                                            },
+                                            child: Column(
+                                              children: [
+                                                Container(
+                                                  alignment: Alignment.center,
+                                                  margin:
+                                                      const EdgeInsets.all(10),
+                                                  // decoration: BoxDecoration(
+                                                  //   color: Colors.white,
+                                                  //   borderRadius: const BorderRadius.all(
+                                                  //       Radius.circular(8)
+                                                  //   ),
+                                                  //   boxShadow: [
+                                                  //     BoxShadow(
+                                                  //       color: Colors.black.withOpacity(0.6),
+                                                  //       spreadRadius: 0,
+                                                  //       blurRadius: 5,
+                                                  //       offset: const Offset(5, 5), // changes position of shadow
+                                                  //     ),
+                                                  //   ],
+                                                  // ),
+                                                  width: MediaQuery.of(context)
+                                                              .size
+                                                              .width >
+                                                          500
+                                                      ? 220
+                                                      : (MediaQuery.of(context)
+                                                                  .size
+                                                                  .width -
+                                                              60) /
+                                                          2,
+                                                  height: MediaQuery.of(context)
+                                                              .size
+                                                              .width >
+                                                          500
+                                                      ? 220 * 250 / 300
+                                                      : (MediaQuery.of(context)
+                                                                      .size
+                                                                      .width -
+                                                                  60) *
+                                                              250 /
+                                                              300 /
+                                                              2 +
+                                                          60,
+                                                  child: const Text('+ 2948',
+                                                      style: TextStyle(
+                                                        fontSize: 30,
+                                                      )),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                  },
+                                ),
+                              ),
+                              // const SizedBox(width: 10),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        Row(
+                            // crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              const SizedBox(width: 20),
+                              CircularPercentIndicator(
+                                radius: 13,
+                                lineWidth: 3.0,
+                                animation: true,
+                                percent: ieltsCount / ieltsList.length,
+                                backgroundColor:
+                                    const Color.fromRGBO(240, 240, 240, 1),
+                                progressColor: backgroundColor,
+                                // center: Text(
+                                //   c.learnedIelts.length.toString(),
+                                //   style: const TextStyle(
+                                //     fontSize: 9,
+                                //     color: textColor,
+                                //   ),
+                                // ),
+                                circularStrokeCap: CircularStrokeCap.round,
+                              ),
+                              const SizedBox(width: 15),
+                              GestureDetector(
+                                onTap: () {
+                                  getToScore('IELTS');
+                                },
+                                child: const Text(
+                                  'IELTS',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    color: textColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const Expanded(
+                                child: SizedBox(),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.arrow_forward),
+                                onPressed: () {
+                                  getToScore('IELTS');
+                                },
+                              ),
+                              const SizedBox(width: 10),
+                            ]),
+                        SizedBox(
+                          height: MediaQuery.of(context).size.width > 500
+                              ? 220 * 250 / 300 + 80
+                              : (MediaQuery.of(context).size.width - 60) *
+                                      250 /
+                                      300 /
+                                      2 +
+                                  80,
+                          child: Row(
+                            children: [
+                              // const SizedBox(width: 10),
+                              Expanded(
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: listShowIelts.length + 1,
+                                  addAutomaticKeepAlives: false,
+                                  itemBuilder:
+                                      (BuildContext context, int index) {
+                                    late var dataRaw;
+                                    String mean = '';
+                                    String image = 'bedict.png';
+                                    if (index < listShowIelts.length) {
+                                      dataRaw = listShowIelts[index];
+                                      List listMean =
+                                          jsonDecode(dataRaw['mean'])[0];
+                                      List meanENAdd = [];
+                                      List meanVNAdd = [];
+                                      for (var j = 0;
+                                          j < listMean.length;
+                                          j++) {
+                                        String meanENElement = '';
+                                        if (listMean[j].contains('#')) {
+                                          meanENElement =
+                                              listMean[j].split('#')[1];
+                                        } else {
+                                          meanENElement = listMean[j];
+                                        }
+                                        meanENAdd.add(meanENElement);
+                                        String meanVNElement =
+                                            jsonDecode(dataRaw['meanVN'])[0][j];
+                                        meanVNElement = meanVNElement.substring(
+                                            0, meanVNElement.length - 2);
+                                        meanVNElement = meanVNElement +
+                                            listMean[j].substring(
+                                                listMean[j].length - 1);
+                                        meanVNAdd.add(meanVNElement);
+                                      }
+                                      String meanEN = '';
+                                      String meanVN = '';
+                                      for (var j = 0;
+                                          j < meanENAdd.length;
+                                          j++) {
+                                        if (j == 0) {
+                                          meanVN = meanVN +
+                                              meanVNAdd[j].substring(
+                                                  0, meanVNAdd[j].length - 1);
+                                          meanEN = meanEN +
+                                              meanENAdd[j].substring(
+                                                  0, meanENAdd[j].length - 1);
+                                        } else {
+                                          meanVN = meanVN +
+                                              ' | ' +
+                                              meanVNAdd[j].substring(
+                                                  0, meanVNAdd[j].length - 1);
+                                          meanEN = meanEN +
+                                              ' | ' +
+                                              meanENAdd[j].substring(
+                                                  0, meanENAdd[j].length - 1);
+                                        }
+                                      }
+                                      if (c.language.string == 'VN') {
+                                        mean = meanVN;
+                                      } else {
+                                        mean = meanEN;
+                                      }
+                                      if (jsonDecode(dataRaw['imageURL'])
+                                              .length >
+                                          0) {
+                                        image =
+                                            jsonDecode(dataRaw['imageURL'])[0];
+                                      }
+                                    }
+                                    return index < listShowIelts.length
+                                        ? GestureDetector(
+                                            onTap: () async {
+                                              c.part = RxInt(ieltsList.indexOf(
+                                                      dataRaw['word']) ~/
+                                                  50);
+                                              c.listWordScorePage.clear();
+                                              for (var j = 0;
+                                                  j <
+                                                      (c.part.value <
+                                                              (ieltsList.length /
+                                                                          50)
+                                                                      .ceil() -
+                                                                  1
+                                                          ? 50
+                                                          : (ieltsList.length -
+                                                              50 *
+                                                                  c.part
+                                                                      .value));
+                                                  j++) {
+                                                c.listWordScorePage.add(
+                                                    ieltsList[
+                                                        c.part.value * 50 + j]);
+                                              }
+                                              c.nowWord = RxInt(c
+                                                  .listWordScorePage
+                                                  .indexOf(dataRaw['word']));
+                                              getToHome(
+                                                  'IELTS', dataRaw['word']);
+                                            },
+                                            child: Column(children: [
+                                              Container(
+                                                  margin:
+                                                      const EdgeInsets.all(10),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius:
+                                                        const BorderRadius.all(
+                                                            Radius.circular(8)),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.black
+                                                            .withOpacity(0.6),
+                                                        spreadRadius: 0,
+                                                        blurRadius: 5,
+                                                        offset: const Offset(5,
+                                                            5), // changes position of shadow
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  width: MediaQuery.of(context)
+                                                              .size
+                                                              .width >
+                                                          500
+                                                      ? 220
+                                                      : (MediaQuery.of(context)
+                                                                  .size
+                                                                  .width -
+                                                              60) /
+                                                          2,
+                                                  height: MediaQuery.of(context)
+                                                              .size
+                                                              .width >
+                                                          500
+                                                      ? 220 * 250 / 300
+                                                      : (MediaQuery.of(context)
+                                                                  .size
+                                                                  .width -
+                                                              60) *
+                                                          250 /
+                                                          300 /
+                                                          2,
+                                                  child: Stack(children: [
+                                                    ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                      child: ImageFiltered(
+                                                        imageFilter:
+                                                            ImageFilter.blur(
+                                                                sigmaX: 6,
+                                                                sigmaY: 6),
+                                                        child: Opacity(
+                                                          opacity: 0.8,
+                                                          child: Image(
+                                                            image: NetworkImage(
+                                                                'https://bedict.com/' +
+                                                                    image.replaceAll(
+                                                                        '\\',
+                                                                        '')),
+                                                            fit: BoxFit.cover,
+                                                            width: MediaQuery.of(
+                                                                            context)
+                                                                        .size
+                                                                        .width >
+                                                                    500
+                                                                ? 220
+                                                                : (MediaQuery.of(context)
+                                                                            .size
+                                                                            .width -
+                                                                        60) /
+                                                                    2,
+                                                            height: MediaQuery.of(
+                                                                            context)
+                                                                        .size
+                                                                        .width >
+                                                                    500
+                                                                ? 220 *
+                                                                    250 /
+                                                                    300
+                                                                : (MediaQuery.of(context)
+                                                                            .size
+                                                                            .width -
+                                                                        60) *
+                                                                    250 /
+                                                                    300 /
+                                                                    2,
+                                                            errorBuilder:
+                                                                (BuildContext
+                                                                        context,
+                                                                    Object
+                                                                        exception,
+                                                                    StackTrace?
+                                                                        stackTrace) {
+                                                              return const SizedBox();
+                                                            },
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                      child: Image(
+                                                        image: NetworkImage(
+                                                            'https://bedict.com/' +
+                                                                image
+                                                                    .replaceAll(
+                                                                        '\\',
+                                                                        '')),
+                                                        fit: BoxFit.contain,
+                                                        width: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .width >
+                                                                500
+                                                            ? 220
+                                                            : (MediaQuery.of(
+                                                                            context)
+                                                                        .size
+                                                                        .width -
+                                                                    60) /
+                                                                2,
+                                                        height: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .width >
+                                                                500
+                                                            ? 220 * 250 / 300
+                                                            : (MediaQuery.of(
+                                                                            context)
+                                                                        .size
+                                                                        .width -
+                                                                    60) *
+                                                                250 /
+                                                                300 /
+                                                                2,
+                                                        errorBuilder:
+                                                            (BuildContext
+                                                                    context,
+                                                                Object
+                                                                    exception,
+                                                                StackTrace?
+                                                                    stackTrace) {
+                                                          return const SizedBox();
+                                                        },
+                                                      ),
+                                                    ),
+                                                    jsonDecode(dataRaw[
+                                                                    'meanVN'])
+                                                                .length >
+                                                            1
+                                                        ? Positioned(
+                                                            right: 7,
+                                                            bottom: 7,
+                                                            child: Container(
+                                                                alignment:
+                                                                    Alignment
+                                                                        .center,
+                                                                decoration:
+                                                                    BoxDecoration(
+                                                                  color: Colors
+                                                                      .white
+                                                                      .withOpacity(
+                                                                          0.7),
+                                                                  borderRadius: const BorderRadius
+                                                                          .all(
+                                                                      Radius.circular(
+                                                                          20)),
+                                                                ),
+                                                                height: 40,
+                                                                width: 40,
+                                                                child: Text(
+                                                                  '+ ' +
+                                                                      (jsonDecode(dataRaw['meanVN']).length -
+                                                                              1)
+                                                                          .toString(),
+                                                                )))
+                                                        : const SizedBox(),
+                                                  ])),
+                                              const SizedBox(height: 7),
+                                              Container(
+                                                alignment: Alignment.centerLeft,
+                                                width: MediaQuery.of(context)
+                                                            .size
+                                                            .width >
+                                                        500
+                                                    ? 220
+                                                    : (MediaQuery.of(context)
+                                                                .size
+                                                                .width -
+                                                            60) /
+                                                        2,
+                                                child: Text(
+                                                  dataRaw['word'],
+                                                  style: const TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.w600,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 5),
+                                              Container(
+                                                alignment: Alignment.centerLeft,
+                                                width: MediaQuery.of(context)
+                                                            .size
+                                                            .width >
+                                                        500
+                                                    ? 220
+                                                    : (MediaQuery.of(context)
+                                                                .size
+                                                                .width -
+                                                            60) /
+                                                        2,
+                                                child: Text(
+                                                  mean,
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w400,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 10),
+                                            ]),
+                                          )
+                                        : GestureDetector(
+                                            onTap: () {
+                                              getToScore('IELTS');
+                                            },
+                                            child: Column(
+                                              children: [
+                                                Container(
+                                                  alignment: Alignment.center,
+                                                  margin:
+                                                      const EdgeInsets.all(10),
+                                                  // decoration: BoxDecoration(
+                                                  //   color: Colors.white,
+                                                  //   borderRadius: const BorderRadius.all(
+                                                  //       Radius.circular(8)
+                                                  //   ),
+                                                  //   boxShadow: [
+                                                  //     BoxShadow(
+                                                  //       color: Colors.black.withOpacity(0.6),
+                                                  //       spreadRadius: 0,
+                                                  //       blurRadius: 5,
+                                                  //       offset: const Offset(5, 5), // changes position of shadow
+                                                  //     ),
+                                                  //   ],
+                                                  // ),
+                                                  width: MediaQuery.of(context)
+                                                              .size
+                                                              .width >
+                                                          500
+                                                      ? 220
+                                                      : (MediaQuery.of(context)
+                                                                  .size
+                                                                  .width -
+                                                              60) /
+                                                          2,
+                                                  height: MediaQuery.of(context)
+                                                              .size
+                                                              .width >
+                                                          500
+                                                      ? 220 * 250 / 300
+                                                      : (MediaQuery.of(context)
+                                                                      .size
+                                                                      .width -
+                                                                  60) *
+                                                              250 /
+                                                              300 /
+                                                              2 +
+                                                          60,
+                                                  child: const Text('+ 545',
+                                                      style: TextStyle(
+                                                        fontSize: 30,
+                                                      )),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                  },
+                                ),
+                              ),
+                              // const SizedBox(width: 10),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        Row(
+                            // crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              const SizedBox(width: 20),
+                              CircularPercentIndicator(
+                                radius: 13,
+                                lineWidth: 3.0,
+                                animation: true,
+                                percent: toeicCount / toeicList.length,
+                                backgroundColor:
+                                    const Color.fromRGBO(240, 240, 240, 1),
+                                progressColor: backgroundColor,
+                                // center: Text(
+                                //   c.learnedIelts.length.toString(),
+                                //   style: const TextStyle(
+                                //     fontSize: 9,
+                                //     color: textColor,
+                                //   ),
+                                // ),
+                                circularStrokeCap: CircularStrokeCap.round,
+                              ),
+                              const SizedBox(width: 15),
+                              GestureDetector(
+                                onTap: () {
+                                  getToScore('TOEIC');
+                                },
+                                child: const Text(
+                                  'TOEIC',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    color: textColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const Expanded(
+                                child: SizedBox(),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.arrow_forward),
+                                onPressed: () {
+                                  getToScore('TOEIC');
+                                },
+                              ),
+                              const SizedBox(width: 10),
+                            ]),
+                        SizedBox(
+                          height: MediaQuery.of(context).size.width > 500
+                              ? 220 * 250 / 300 + 80
+                              : (MediaQuery.of(context).size.width - 60) *
+                                      250 /
+                                      300 /
+                                      2 +
+                                  80,
+                          child: Row(
+                            children: [
+                              // const SizedBox(width: 10),
+                              Expanded(
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: listShowToeic.length + 1,
+                                  addAutomaticKeepAlives: false,
+                                  itemBuilder:
+                                      (BuildContext context, int index) {
+                                    late var dataRaw;
+                                    String mean = '';
+                                    String image = 'bedict.png';
+                                    if (index < listShowToeic.length) {
+                                      dataRaw = listShowToeic[index];
+                                      List listMean =
+                                          jsonDecode(dataRaw['mean'])[0];
+                                      List meanENAdd = [];
+                                      List meanVNAdd = [];
+                                      for (var j = 0;
+                                          j < listMean.length;
+                                          j++) {
+                                        String meanENElement = '';
+                                        if (listMean[j].contains('#')) {
+                                          meanENElement =
+                                              listMean[j].split('#')[1];
+                                        } else {
+                                          meanENElement = listMean[j];
+                                        }
+                                        meanENAdd.add(meanENElement);
+                                        String meanVNElement =
+                                            jsonDecode(dataRaw['meanVN'])[0][j];
+                                        meanVNElement = meanVNElement.substring(
+                                            0, meanVNElement.length - 2);
+                                        meanVNElement = meanVNElement +
+                                            listMean[j].substring(
+                                                listMean[j].length - 1);
+                                        meanVNAdd.add(meanVNElement);
+                                      }
+                                      String meanEN = '';
+                                      String meanVN = '';
+                                      for (var j = 0;
+                                          j < meanENAdd.length;
+                                          j++) {
+                                        if (j == 0) {
+                                          meanVN = meanVN +
+                                              meanVNAdd[j].substring(
+                                                  0, meanVNAdd[j].length - 1);
+                                          meanEN = meanEN +
+                                              meanENAdd[j].substring(
+                                                  0, meanENAdd[j].length - 1);
+                                        } else {
+                                          meanVN = meanVN +
+                                              ' | ' +
+                                              meanVNAdd[j].substring(
+                                                  0, meanVNAdd[j].length - 1);
+                                          meanEN = meanEN +
+                                              ' | ' +
+                                              meanENAdd[j].substring(
+                                                  0, meanENAdd[j].length - 1);
+                                        }
+                                      }
+                                      if (c.language.string == 'VN') {
+                                        mean = meanVN;
+                                      } else {
+                                        mean = meanEN;
+                                      }
+                                      if (jsonDecode(dataRaw['imageURL'])
+                                              .length >
+                                          0) {
+                                        image =
+                                            jsonDecode(dataRaw['imageURL'])[0];
+                                      }
+                                    }
+                                    return index < listShowToeic.length
+                                        ? GestureDetector(
+                                            onTap: () async {
+                                              c.part = RxInt(toeicList.indexOf(
+                                                      dataRaw['word']) ~/
+                                                  50);
+                                              c.listWordScorePage.clear();
+                                              for (var j = 0;
+                                                  j <
+                                                      (c.part.value <
+                                                              (toeicList.length /
+                                                                          50)
+                                                                      .ceil() -
+                                                                  1
+                                                          ? 50
+                                                          : (toeicList.length -
+                                                              50 *
+                                                                  c.part
+                                                                      .value));
+                                                  j++) {
+                                                c.listWordScorePage.add(
+                                                    toeicList[
+                                                        c.part.value * 50 + j]);
+                                              }
+                                              c.nowWord = RxInt(c
+                                                  .listWordScorePage
+                                                  .indexOf(dataRaw['word']));
+                                              getToHome(
+                                                  'TOEIC', dataRaw['word']);
+                                            },
+                                            child: Column(children: [
+                                              Container(
+                                                  margin:
+                                                      const EdgeInsets.all(10),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius:
+                                                        const BorderRadius.all(
+                                                            Radius.circular(8)),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.black
+                                                            .withOpacity(0.6),
+                                                        spreadRadius: 0,
+                                                        blurRadius: 5,
+                                                        offset: const Offset(5,
+                                                            5), // changes position of shadow
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  width: MediaQuery.of(context)
+                                                              .size
+                                                              .width >
+                                                          500
+                                                      ? 220
+                                                      : (MediaQuery.of(context)
+                                                                  .size
+                                                                  .width -
+                                                              60) /
+                                                          2,
+                                                  height: MediaQuery.of(context)
+                                                              .size
+                                                              .width >
+                                                          500
+                                                      ? 220 * 250 / 300
+                                                      : (MediaQuery.of(context)
+                                                                  .size
+                                                                  .width -
+                                                              60) *
+                                                          250 /
+                                                          300 /
+                                                          2,
+                                                  child: Stack(children: [
+                                                    ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                      child: ImageFiltered(
+                                                        imageFilter:
+                                                            ImageFilter.blur(
+                                                                sigmaX: 6,
+                                                                sigmaY: 6),
+                                                        child: Opacity(
+                                                          opacity: 0.8,
+                                                          child: Image(
+                                                            image: NetworkImage(
+                                                                'https://bedict.com/' +
+                                                                    image.replaceAll(
+                                                                        '\\',
+                                                                        '')),
+                                                            fit: BoxFit.cover,
+                                                            width: MediaQuery.of(
+                                                                            context)
+                                                                        .size
+                                                                        .width >
+                                                                    500
+                                                                ? 220
+                                                                : (MediaQuery.of(context)
+                                                                            .size
+                                                                            .width -
+                                                                        60) /
+                                                                    2,
+                                                            height: MediaQuery.of(
+                                                                            context)
+                                                                        .size
+                                                                        .width >
+                                                                    500
+                                                                ? 220 *
+                                                                    250 /
+                                                                    300
+                                                                : (MediaQuery.of(context)
+                                                                            .size
+                                                                            .width -
+                                                                        60) *
+                                                                    250 /
+                                                                    300 /
+                                                                    2,
+                                                            errorBuilder:
+                                                                (BuildContext
+                                                                        context,
+                                                                    Object
+                                                                        exception,
+                                                                    StackTrace?
+                                                                        stackTrace) {
+                                                              return const SizedBox();
+                                                            },
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                      child: Image(
+                                                        image: NetworkImage(
+                                                            'https://bedict.com/' +
+                                                                image
+                                                                    .replaceAll(
+                                                                        '\\',
+                                                                        '')),
+                                                        fit: BoxFit.contain,
+                                                        width: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .width >
+                                                                500
+                                                            ? 220
+                                                            : (MediaQuery.of(
+                                                                            context)
+                                                                        .size
+                                                                        .width -
+                                                                    60) /
+                                                                2,
+                                                        height: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .width >
+                                                                500
+                                                            ? 220 * 250 / 300
+                                                            : (MediaQuery.of(
+                                                                            context)
+                                                                        .size
+                                                                        .width -
+                                                                    60) *
+                                                                250 /
+                                                                300 /
+                                                                2,
+                                                        errorBuilder:
+                                                            (BuildContext
+                                                                    context,
+                                                                Object
+                                                                    exception,
+                                                                StackTrace?
+                                                                    stackTrace) {
+                                                          return const SizedBox();
+                                                        },
+                                                      ),
+                                                    ),
+                                                    jsonDecode(dataRaw[
+                                                                    'meanVN'])
+                                                                .length >
+                                                            1
+                                                        ? Positioned(
+                                                            right: 7,
+                                                            bottom: 7,
+                                                            child: Container(
+                                                                alignment:
+                                                                    Alignment
+                                                                        .center,
+                                                                decoration:
+                                                                    BoxDecoration(
+                                                                  color: Colors
+                                                                      .white
+                                                                      .withOpacity(
+                                                                          0.7),
+                                                                  borderRadius: const BorderRadius
+                                                                          .all(
+                                                                      Radius.circular(
+                                                                          20)),
+                                                                ),
+                                                                height: 40,
+                                                                width: 40,
+                                                                child: Text(
+                                                                  '+ ' +
+                                                                      (jsonDecode(dataRaw['meanVN']).length -
+                                                                              1)
+                                                                          .toString(),
+                                                                )))
+                                                        : const SizedBox(),
+                                                  ])),
+                                              const SizedBox(height: 7),
+                                              Container(
+                                                alignment: Alignment.centerLeft,
+                                                width: MediaQuery.of(context)
+                                                            .size
+                                                            .width >
+                                                        500
+                                                    ? 220
+                                                    : (MediaQuery.of(context)
+                                                                .size
+                                                                .width -
+                                                            60) /
+                                                        2,
+                                                child: Text(
+                                                  dataRaw['word'],
+                                                  style: const TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.w600,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 5),
+                                              Container(
+                                                alignment: Alignment.centerLeft,
+                                                width: MediaQuery.of(context)
+                                                            .size
+                                                            .width >
+                                                        500
+                                                    ? 220
+                                                    : (MediaQuery.of(context)
+                                                                .size
+                                                                .width -
+                                                            60) /
+                                                        2,
+                                                child: Text(
+                                                  mean,
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w400,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 10),
+                                            ]),
+                                          )
+                                        : GestureDetector(
+                                            onTap: () {
+                                              getToScore('TOEIC');
+                                            },
+                                            child: Column(
+                                              children: [
+                                                Container(
+                                                  alignment: Alignment.center,
+                                                  margin:
+                                                      const EdgeInsets.all(10),
+                                                  // decoration: BoxDecoration(
+                                                  //   color: Colors.white,
+                                                  //   borderRadius: const BorderRadius.all(
+                                                  //       Radius.circular(8)
+                                                  //   ),
+                                                  //   boxShadow: [
+                                                  //     BoxShadow(
+                                                  //       color: Colors.black.withOpacity(0.6),
+                                                  //       spreadRadius: 0,
+                                                  //       blurRadius: 5,
+                                                  //       offset: const Offset(5, 5), // changes position of shadow
+                                                  //     ),
+                                                  //   ],
+                                                  // ),
+                                                  width: MediaQuery.of(context)
+                                                              .size
+                                                              .width >
+                                                          500
+                                                      ? 220
+                                                      : (MediaQuery.of(context)
+                                                                  .size
+                                                                  .width -
+                                                              60) /
+                                                          2,
+                                                  height: MediaQuery.of(context)
+                                                              .size
+                                                              .width >
+                                                          500
+                                                      ? 220 * 250 / 300
+                                                      : (MediaQuery.of(context)
+                                                                      .size
+                                                                      .width -
+                                                                  60) *
+                                                              250 /
+                                                              300 /
+                                                              2 +
+                                                          60,
+                                                  child: const Text('+ 1014',
+                                                      style: TextStyle(
+                                                        fontSize: 30,
+                                                      )),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                  },
+                                ),
+                              ),
+                              // const SizedBox(width: 10),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        Row(
+                            // crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              const SizedBox(width: 20),
+                              CircularPercentIndicator(
+                                radius: 13,
+                                lineWidth: 3.0,
+                                animation: true,
+                                percent: toeflCount / toeflList.length,
+                                backgroundColor:
+                                    const Color.fromRGBO(240, 240, 240, 1),
+                                progressColor: backgroundColor,
+                                // center: Text(
+                                //   c.learnedIelts.length.toString(),
+                                //   style: const TextStyle(
+                                //     fontSize: 9,
+                                //     color: textColor,
+                                //   ),
+                                // ),
+                                circularStrokeCap: CircularStrokeCap.round,
+                              ),
+                              const SizedBox(width: 15),
+                              GestureDetector(
+                                onTap: () {
+                                  getToScore('TOEFL');
+                                },
+                                child: const Text(
+                                  'TOEFL',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    color: textColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const Expanded(
+                                child: SizedBox(),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.arrow_forward),
+                                onPressed: () {
+                                  getToScore('TOEFL');
+                                },
+                              ),
+                              const SizedBox(width: 10),
+                            ]),
+                        SizedBox(
+                          height: MediaQuery.of(context).size.width > 500
+                              ? 220 * 250 / 300 + 80
+                              : (MediaQuery.of(context).size.width - 60) *
+                                      250 /
+                                      300 /
+                                      2 +
+                                  80,
+                          child: Row(
+                            children: [
+                              // const SizedBox(width: 10),
+                              Expanded(
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: listShowToefl.length + 1,
+                                  addAutomaticKeepAlives: false,
+                                  itemBuilder:
+                                      (BuildContext context, int index) {
+                                    late var dataRaw;
+                                    String mean = '';
+                                    String image = 'bedict.png';
+                                    if (index < listShowToefl.length) {
+                                      dataRaw = listShowToefl[index];
+                                      List listMean =
+                                          jsonDecode(dataRaw['mean'])[0];
+                                      List meanENAdd = [];
+                                      List meanVNAdd = [];
+                                      for (var j = 0;
+                                          j < listMean.length;
+                                          j++) {
+                                        String meanENElement = '';
+                                        if (listMean[j].contains('#')) {
+                                          meanENElement =
+                                              listMean[j].split('#')[1];
+                                        } else {
+                                          meanENElement = listMean[j];
+                                        }
+                                        meanENAdd.add(meanENElement);
+                                        String meanVNElement =
+                                            jsonDecode(dataRaw['meanVN'])[0][j];
+                                        meanVNElement = meanVNElement.substring(
+                                            0, meanVNElement.length - 2);
+                                        meanVNElement = meanVNElement +
+                                            listMean[j].substring(
+                                                listMean[j].length - 1);
+                                        meanVNAdd.add(meanVNElement);
+                                      }
+                                      String meanEN = '';
+                                      String meanVN = '';
+                                      for (var j = 0;
+                                          j < meanENAdd.length;
+                                          j++) {
+                                        if (j == 0) {
+                                          meanVN = meanVN +
+                                              meanVNAdd[j].substring(
+                                                  0, meanVNAdd[j].length - 1);
+                                          meanEN = meanEN +
+                                              meanENAdd[j].substring(
+                                                  0, meanENAdd[j].length - 1);
+                                        } else {
+                                          meanVN = meanVN +
+                                              ' | ' +
+                                              meanVNAdd[j].substring(
+                                                  0, meanVNAdd[j].length - 1);
+                                          meanEN = meanEN +
+                                              ' | ' +
+                                              meanENAdd[j].substring(
+                                                  0, meanENAdd[j].length - 1);
+                                        }
+                                      }
+                                      if (c.language.string == 'VN') {
+                                        mean = meanVN;
+                                      } else {
+                                        mean = meanEN;
+                                      }
+                                      if (jsonDecode(dataRaw['imageURL'])
+                                              .length >
+                                          0) {
+                                        image =
+                                            jsonDecode(dataRaw['imageURL'])[0];
+                                      }
+                                    }
+                                    return index < listShowToefl.length
+                                        ? GestureDetector(
+                                            onTap: () async {
+                                              c.part = RxInt(toeflList.indexOf(
+                                                      dataRaw['word']) ~/
+                                                  50);
+                                              c.listWordScorePage.clear();
+                                              for (var j = 0;
+                                                  j <
+                                                      (c.part.value <
+                                                              (toeflList.length /
+                                                                          50)
+                                                                      .ceil() -
+                                                                  1
+                                                          ? 50
+                                                          : (toeflList.length -
+                                                              50 *
+                                                                  c.part
+                                                                      .value));
+                                                  j++) {
+                                                c.listWordScorePage.add(
+                                                    toeflList[
+                                                        c.part.value * 50 + j]);
+                                              }
+                                              c.nowWord = RxInt(c
+                                                  .listWordScorePage
+                                                  .indexOf(dataRaw['word']));
+                                              getToHome(
+                                                  'TOEFL', dataRaw['word']);
+                                            },
+                                            child: Column(children: [
+                                              Container(
+                                                  margin:
+                                                      const EdgeInsets.all(10),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius:
+                                                        const BorderRadius.all(
+                                                            Radius.circular(8)),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.black
+                                                            .withOpacity(0.6),
+                                                        spreadRadius: 0,
+                                                        blurRadius: 5,
+                                                        offset: const Offset(5,
+                                                            5), // changes position of shadow
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  width: MediaQuery.of(context)
+                                                              .size
+                                                              .width >
+                                                          500
+                                                      ? 220
+                                                      : (MediaQuery.of(context)
+                                                                  .size
+                                                                  .width -
+                                                              60) /
+                                                          2,
+                                                  height: MediaQuery.of(context)
+                                                              .size
+                                                              .width >
+                                                          500
+                                                      ? 220 * 250 / 300
+                                                      : (MediaQuery.of(context)
+                                                                  .size
+                                                                  .width -
+                                                              60) *
+                                                          250 /
+                                                          300 /
+                                                          2,
+                                                  child: Stack(children: [
+                                                    ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                      child: ImageFiltered(
+                                                        imageFilter:
+                                                            ImageFilter.blur(
+                                                                sigmaX: 6,
+                                                                sigmaY: 6),
+                                                        child: Opacity(
+                                                          opacity: 0.8,
+                                                          child: Image(
+                                                            image: NetworkImage(
+                                                                'https://bedict.com/' +
+                                                                    image.replaceAll(
+                                                                        '\\',
+                                                                        '')),
+                                                            fit: BoxFit.cover,
+                                                            width: MediaQuery.of(
+                                                                            context)
+                                                                        .size
+                                                                        .width >
+                                                                    500
+                                                                ? 220
+                                                                : (MediaQuery.of(context)
+                                                                            .size
+                                                                            .width -
+                                                                        60) /
+                                                                    2,
+                                                            height: MediaQuery.of(
+                                                                            context)
+                                                                        .size
+                                                                        .width >
+                                                                    500
+                                                                ? 220 *
+                                                                    250 /
+                                                                    300
+                                                                : (MediaQuery.of(context)
+                                                                            .size
+                                                                            .width -
+                                                                        60) *
+                                                                    250 /
+                                                                    300 /
+                                                                    2,
+                                                            errorBuilder:
+                                                                (BuildContext
+                                                                        context,
+                                                                    Object
+                                                                        exception,
+                                                                    StackTrace?
+                                                                        stackTrace) {
+                                                              return const SizedBox();
+                                                            },
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    ClipRRect(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                      child: Image(
+                                                        image: NetworkImage(
+                                                            'https://bedict.com/' +
+                                                                image
+                                                                    .replaceAll(
+                                                                        '\\',
+                                                                        '')),
+                                                        fit: BoxFit.contain,
+                                                        width: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .width >
+                                                                500
+                                                            ? 220
+                                                            : (MediaQuery.of(
+                                                                            context)
+                                                                        .size
+                                                                        .width -
+                                                                    60) /
+                                                                2,
+                                                        height: MediaQuery.of(
+                                                                        context)
+                                                                    .size
+                                                                    .width >
+                                                                500
+                                                            ? 220 * 250 / 300
+                                                            : (MediaQuery.of(
+                                                                            context)
+                                                                        .size
+                                                                        .width -
+                                                                    60) *
+                                                                250 /
+                                                                300 /
+                                                                2,
+                                                        errorBuilder:
+                                                            (BuildContext
+                                                                    context,
+                                                                Object
+                                                                    exception,
+                                                                StackTrace?
+                                                                    stackTrace) {
+                                                          return const SizedBox();
+                                                        },
+                                                      ),
+                                                    ),
+                                                    jsonDecode(dataRaw[
+                                                                    'meanVN'])
+                                                                .length >
+                                                            1
+                                                        ? Positioned(
+                                                            right: 7,
+                                                            bottom: 7,
+                                                            child: Container(
+                                                                alignment:
+                                                                    Alignment
+                                                                        .center,
+                                                                decoration:
+                                                                    BoxDecoration(
+                                                                  color: Colors
+                                                                      .white
+                                                                      .withOpacity(
+                                                                          0.7),
+                                                                  borderRadius: const BorderRadius
+                                                                          .all(
+                                                                      Radius.circular(
+                                                                          20)),
+                                                                ),
+                                                                height: 40,
+                                                                width: 40,
+                                                                child: Text(
+                                                                  '+ ' +
+                                                                      (jsonDecode(dataRaw['meanVN']).length -
+                                                                              1)
+                                                                          .toString(),
+                                                                )))
+                                                        : const SizedBox(),
+                                                  ])),
+                                              const SizedBox(height: 7),
+                                              Container(
+                                                alignment: Alignment.centerLeft,
+                                                width: MediaQuery.of(context)
+                                                            .size
+                                                            .width >
+                                                        500
+                                                    ? 220
+                                                    : (MediaQuery.of(context)
+                                                                .size
+                                                                .width -
+                                                            60) /
+                                                        2,
+                                                child: Text(
+                                                  dataRaw['word'],
+                                                  style: const TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.w600,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 5),
+                                              Container(
+                                                alignment: Alignment.centerLeft,
+                                                width: MediaQuery.of(context)
+                                                            .size
+                                                            .width >
+                                                        500
+                                                    ? 220
+                                                    : (MediaQuery.of(context)
+                                                                .size
+                                                                .width -
+                                                            60) /
+                                                        2,
+                                                child: Text(
+                                                  mean,
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w400,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 10),
+                                            ]),
+                                          )
+                                        : GestureDetector(
+                                            onTap: () {
+                                              getToScore('TOEFL');
+                                            },
+                                            child: Column(
+                                              children: [
+                                                Container(
+                                                  alignment: Alignment.center,
+                                                  margin:
+                                                      const EdgeInsets.all(10),
+                                                  // decoration: BoxDecoration(
+                                                  //   color: Colors.white,
+                                                  //   borderRadius: const BorderRadius.all(
+                                                  //       Radius.circular(8)
+                                                  //   ),
+                                                  //   boxShadow: [
+                                                  //     BoxShadow(
+                                                  //       color: Colors.black.withOpacity(0.6),
+                                                  //       spreadRadius: 0,
+                                                  //       blurRadius: 5,
+                                                  //       offset: const Offset(5, 5), // changes position of shadow
+                                                  //     ),
+                                                  //   ],
+                                                  // ),
+                                                  width: MediaQuery.of(context)
+                                                              .size
+                                                              .width >
+                                                          500
+                                                      ? 220
+                                                      : (MediaQuery.of(context)
+                                                                  .size
+                                                                  .width -
+                                                              60) /
+                                                          2,
+                                                  height: MediaQuery.of(context)
+                                                              .size
+                                                              .width >
+                                                          500
+                                                      ? 220 * 250 / 300
+                                                      : (MediaQuery.of(context)
+                                                                      .size
+                                                                      .width -
+                                                                  60) *
+                                                              250 /
+                                                              300 /
+                                                              2 +
+                                                          60,
+                                                  child: const Text('+ 365',
+                                                      style: TextStyle(
+                                                        fontSize: 30,
+                                                      )),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                  },
+                                ),
+                              ),
+                              // const SizedBox(width: 10),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        SizedBox(height: MediaQuery.of(context).padding.bottom),
+                      ]),
+                    ),
+                  ),
+                ),
+              ]),
+            )));
+  }
+}
+
+class TranslatePage extends StatelessWidget {
+  TranslatePage({Key? key}) : super(key: key);
+
+  final FocusNode inFocusNode = FocusNode();
+
+  @override
+  Widget build(BuildContext context) {
+    final Controller c = Get.put(Controller());
+
+    Future translation() async {
+      if (inFocusNode.hasFocus) {
+        inFocusNode.unfocus();
+      }
+      if (inController.value.text != '') {
+        String languageCode =
+            languagesCode[languages.indexOf(c.languageLocal.string)];
+        if (!c.isReverse.value) {
+          var translation = await inController.value.text
+              .translate(from: 'en', to: languageCode);
+          c.translateOut = RxString(translation.text);
+        } else {
+          var translation = await inController.value.text
+              .translate(from: languageCode, to: 'en');
+          c.translateOut = RxString(translation.text);
+        }
+      } else {
+        c.translateOut = ''.obs;
+      }
+      c.update();
+    }
+
+    void onSpeechResult(SpeechRecognitionResult result) async {
+      inController.text = result.recognizedWords;
+      if (result.finalResult) {
+        await translation();
+      }
+    }
+
+    Future startListening() async {
+      if (!c.isReverse.value) {
+        await stt.listen(
+          onResult: onSpeechResult,
+          localeId: c.locale.string,
+          // partialResults: false,
+        );
+      } else {
+        await stt.listen(
+          onResult: onSpeechResult,
+        );
+      }
+    }
+
+    void stopListening() async {
+      await stt.stop();
+    }
+
+    return WillPopScope(
+        onWillPop: () async {
+          c.currentPage = 0.obs;
+          c.update();
+          return false;
+        },
+        child: GestureDetector(
+          onTap: () {
+            if (inFocusNode.hasFocus) {
+              inFocusNode.unfocus();
+            }
+          },
+          child: Container(
+            color: Colors.white,
+            child: Column(children: [
+              SizedBox(height: MediaQuery.of(context).padding.top + 10),
+              GetBuilder<Controller>(
+                builder: (_) => c.isReverse.value
+                    ? Row(children: [
+                        Expanded(
+                          child: PopupMenuButton<String>(
+                            onSelected: (String word) async {
+                              c.languageLocal = RxString(word);
+                              await boxSetting.put('languageLocal', word);
+                              c.update();
+                            },
+                            padding: const EdgeInsets.all(0),
+                            itemBuilder: (BuildContext context) =>
+                                <PopupMenuEntry<String>>[
+                              for (int i = 0; i < languages.length; i++)
+                                PopupMenuItem<String>(
+                                    value: languages[i],
+                                    padding:
+                                        const EdgeInsets.fromLTRB(5, 0, 5, 0),
+                                    child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            languages[i],
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              color: textColor,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ])),
+                            ],
+                            // color: themeColor,
+                            child: Text(
+                              c.languageLocal.string,
+                              style: const TextStyle(
+                                fontSize: 20,
+                                color: textColor,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                            ),
+                            shape: const RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(20.0))),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.compare_arrows_rounded),
+                          onPressed: () {
+                            c.isReverse = RxBool(!c.isReverse.value);
+                            c.update();
+                          },
+                        ),
+                        const Expanded(
+                          child: Text(
+                            'English',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 20,
+                            ),
+                          ),
+                        ),
+                      ])
+                    : Row(children: [
+                        const Expanded(
+                          child: Text(
+                            'English',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 20,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.compare_arrows_rounded),
+                          onPressed: () {
+                            c.isReverse = RxBool(!c.isReverse.value);
+                            c.update();
+                          },
+                        ),
+                        Expanded(
+                          child: PopupMenuButton<String>(
+                            onSelected: (String word) async {
+                              c.languageLocal = RxString(word);
+                              await boxSetting.put('languageLocal', word);
+                              c.update();
+                            },
+                            padding: const EdgeInsets.all(0),
+                            itemBuilder: (BuildContext context) =>
+                                <PopupMenuEntry<String>>[
+                              for (int i = 0; i < languages.length; i++)
+                                PopupMenuItem<String>(
+                                    value: languages[i],
+                                    padding:
+                                        const EdgeInsets.fromLTRB(5, 0, 5, 0),
+                                    child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            languages[i],
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              color: textColor,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ])),
+                            ],
+                            // color: themeColor,
+                            child: Text(
+                              c.languageLocal.string,
+                              style: const TextStyle(
+                                fontSize: 20,
+                                color: textColor,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                            ),
+                            shape: const RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(20.0))),
+                          ),
+                        ),
+                      ]),
+              ),
+              Row(children: [
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextFormField(
+                    controller: inController,
+                    textInputAction: TextInputAction.done,
+                    focusNode: inFocusNode,
+                    autocorrect: false,
+                    maxLines: null,
+                    minLines: null,
+                    style: const TextStyle(
+                      fontSize: 20,
+                    ),
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      hintText: c.language.string == 'VN'
+                          ? 'Nhập văn bản ...'
+                          : 'Type here ...',
+                      isDense: true,
+                      contentPadding: const EdgeInsets.all(5),
+                    ),
+                    // onChanged: (text) async {
+                    //   await translation();
+                    // },
+                    // onSubmitted: (text) async {
+                    //   await translation();
+                    // },
+                    onFieldSubmitted: (string) async {
+                      await translation();
+                    },
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close_rounded),
+                  onPressed: () {
+                    inController.text = '';
+                    c.translateOut = ''.obs;
+                    c.update();
+                  },
+                ),
+                TextButton(
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                        backgroundColor.withOpacity(0.5)),
+                    foregroundColor:
+                        MaterialStateProperty.all<Color>(Colors.grey),
+                    padding: MaterialStateProperty.all<EdgeInsets>(
+                        const EdgeInsets.all(0)),
+                    shape: MaterialStateProperty.all<OutlinedBorder?>(
+                        RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    )),
+                  ),
+                  child:
+                      const Icon(Icons.arrow_forward_rounded, color: textColor),
+                  onPressed: () async {
+                    await translation();
+                  },
+                ),
+                const SizedBox(width: 10),
+              ]),
+              const SizedBox(height: 20),
+              Row(children: [
+                GetBuilder<Controller>(
+                  builder: (_) => IconButton(
+                    icon: Icon(
+                      c.speechEnabled.value
+                          ? c.isListening.value
+                              ? Icons.mic
+                              : Icons.mic_none
+                          : Icons.mic_off,
+                      size: 35,
+                    ),
+                    onPressed: () {
+                      if (stt.isNotListening) {
+                        startListening();
+                      } else {
+                        stopListening();
+                      }
+                    },
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.volume_up_outlined,
+                    size: 35,
+                  ),
+                  onPressed: () {
+                    if (!c.isReverse.value) {
+                      _speak(inController.value.text);
+                    } else {
+                      _speak(c.translateOut.string);
+                    }
+                  },
+                ),
+                const Expanded(child: SizedBox()),
+              ]),
+              Row(children: [
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Container(
+                      color: backgroundColor.withOpacity(0.5),
+                      padding: const EdgeInsets.all(10),
+                      child: Row(children: [
+                        Flexible(
+                          child: GetBuilder<Controller>(
+                            builder: (_) => Text(
+                              c.translateOut.string,
+                              style: const TextStyle(
+                                fontSize: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ])),
+                ),
+                const SizedBox(width: 10),
+              ]),
+              Expanded(
+                child: Container(
+                  alignment: Alignment.center,
+                  child: c.isVip.value
+                      ? const SizedBox()
+                      : SingleChildScrollView(
+                          child: SizedBox(
+                            height: (MediaQuery.of(context).size.width - 20) *
+                                250 /
+                                300,
+                            width: MediaQuery.of(context).size.width - 20,
+                            child: BannerAdWidget(
+                              adWidth: MediaQuery.of(context).size.width - 20,
+                              adHeight:
+                                  (MediaQuery.of(context).size.width - 20) *
+                                      250 /
+                                      300,
+                            ),
+                          ),
+                        ),
+                ),
+              ),
+              SizedBox(height: MediaQuery.of(context).padding.bottom),
+            ]),
+          ),
+        ));
+  }
+}
+
+class SettingPage extends StatelessWidget {
+  const SettingPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final Controller c = Get.put(Controller());
+
+    Future<void> showTime() async {
+      final TimeOfDay? result =
+          await showTimePicker(context: context, initialTime: TimeOfDay.now());
+      if (result != null) {
+        c.selectedTime = RxString(result.format(context));
+        c.update();
+        showNotification();
+        await boxSetting.put('timeDaily', c.selectedTime.string);
+      }
+    }
+
+    // WidgetsBinding.instance?.addPostFrameCallback((_) async {
+    //
+    // });
+
+    return WillPopScope(
+        onWillPop: () async {
+          c.currentPage = 0.obs;
+          c.update();
+          return false;
+        },
+        child: Container(
+          color: Colors.white,
+          child: Column(children: [
+            SizedBox(height: MediaQuery.of(context).padding.top + 10),
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  ListTile(
+                    title: GetBuilder<Controller>(
+                      builder: (_) => Text(
+                        c.isVip.value ? 'VIP' : c.drawerUpgrade.string,
+                        style: const TextStyle(
+                          color: textColor,
+                          fontSize: 16,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    onTap: () {
+                      Get.offAll(() => const MyUpgradePage());
+                    },
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    title: GetBuilder<Controller>(
+                      builder: (_) => Text(
+                        c.drawerHistory.string,
+                        style: const TextStyle(
+                          color: textColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    onTap: () {
+                      Get.offAll(() => const HistoryPage());
+                    },
+                  ),
+                  const Divider(
+                    height: 1,
+                  ),
+                  ListTile(
+                    title: GetBuilder<Controller>(
+                      builder: (_) => Text(
+                        c.drawerScore.string,
+                        style: const TextStyle(
+                          color: textColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    onTap: () {
+                      Get.offAll(() => const SortPage());
+                    },
+                  ),
+                  const Divider(
+                    height: 1,
+                  ),
+                  const SizedBox(height: 5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      GetBuilder<Controller>(
+                        builder: (_) => Text(
+                          c.drawerDaily.string,
+                          style: const TextStyle(
+                            color: textColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      GetBuilder<Controller>(
+                        builder: (_) => Switch(
+                          value: c.notifyDaily.value,
+                          onChanged: (value) async {
+                            c.notifyDaily = RxBool(value);
+                            c.update();
+                            await boxSetting.put('notifyDaily', value);
+                            if (value) {
+                              showNotification();
+                            } else {
+                              await AwesomeNotifications().dismiss(0);
+                              await AwesomeNotifications().cancelSchedule(0);
+                            }
+                          },
+                          activeTrackColor: themeColor,
+                          activeColor: backgroundColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  GetBuilder<Controller>(
+                    builder: (_) => Visibility(
+                        visible: c.notifyDaily.value,
+                        child: Column(children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                c.drawerTime.string,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: textColor,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(
+                                width: 10,
+                              ),
+                              TextButton(
+                                style: ButtonStyle(
+                                  backgroundColor:
+                                      MaterialStateProperty.all<Color>(
+                                          themeColor),
+                                  foregroundColor:
+                                      MaterialStateProperty.all<Color>(
+                                          Colors.grey),
+                                  padding:
+                                      MaterialStateProperty.all<EdgeInsets>(
+                                          const EdgeInsets.all(0)),
+                                ),
+                                child: Row(children: [
+                                  const SizedBox(
+                                    width: 10,
+                                  ),
+                                  GetBuilder<Controller>(
+                                    builder: (_) => Text(
+                                      c.selectedTime.string,
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        color: textColor,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    width: 10,
+                                  ),
+                                ]),
+                                onPressed: () async {
+                                  await showTime();
+                                },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 15),
+                          // GetBuilder<Controller>(
+                          //   builder: (_) => Text(
+                          //     c.drawerTarget.string,
+                          //     style: const TextStyle(
+                          //       color: textColor,
+                          //       fontSize: 14,
+                          //       fontWeight: FontWeight.w400,
+                          //     ),
+                          //     textAlign: TextAlign.center,
+                          //   ),),
+                          // GetBuilder<Controller>(
+                          //   builder: (_) => Slider(
+                          //     value: c.target.value.toDouble(),
+                          //     min: 5,
+                          //     max: 50,
+                          //     divisions: 9,
+                          //     activeColor: backgroundColor,
+                          //     inactiveColor: themeColor,
+                          //     thumbColor: backgroundColor,
+                          //     label: c.target.value.toString(),
+                          //     onChanged: (double value) async {
+                          //       c.target = RxInt(value.toInt());
+                          //       await boxSetting.put('target',value.toInt());
+                          //       c.update();
+                          //     },
+                          //   ),
+                          // ),
+                        ])),
+                  ),
+                  const Divider(height: 1),
+                  const SizedBox(height: 5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      GetBuilder<Controller>(
+                        builder: (_) => Text(
+                          c.drawerWord.string,
+                          style: const TextStyle(
+                            color: textColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      GetBuilder<Controller>(
+                        builder: (_) => Switch(
+                          value: c.notifyWord.value,
+                          onChanged: (value) async {
+                            await boxSetting.put('notifyWord', value);
+                            c.notifyWord = RxBool(value);
+                            c.update();
+                            if (value) {
+                              await showNotificationWord();
+                            } else {
+                              await AwesomeNotifications()
+                                  .dismissNotificationsByChannelKey('word');
+                              await AwesomeNotifications()
+                                  .cancelSchedulesByChannelKey('word');
+                            }
+                          },
+                          activeTrackColor: themeColor,
+                          activeColor: backgroundColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  GetBuilder<Controller>(
+                    builder: (_) => Visibility(
+                        visible: c.notifyWord.value,
+                        child: Column(children: [
+                          GetBuilder<Controller>(
+                            builder: (_) => Text(
+                              c.language.string == 'VN'
+                                  ? 'Thông báo sau mỗi (phút):'
+                                  : 'Notify interval (minutes)',
+                              style: const TextStyle(
+                                color: textColor,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          GetBuilder<Controller>(
+                            builder: (_) => Slider(
+                              value: c.notificationInterval.value.toDouble(),
+                              min: 15,
+                              max: 120,
+                              divisions: 7,
+                              activeColor: backgroundColor,
+                              inactiveColor: themeColor,
+                              thumbColor: backgroundColor,
+                              label: c.notificationInterval.value.toString() +
+                                  (c.language.string == 'VN'
+                                      ? ' phút'
+                                      : ' minutes'),
+                              onChanged: (double value) async {
+                                c.notificationInterval = RxInt(value.toInt());
+                                await boxSetting.put(
+                                    'notificationInterval', value.toInt());
+                                c.update();
+                                await AwesomeNotifications()
+                                    .dismissNotificationsByChannelKey('word');
+                                await AwesomeNotifications()
+                                    .cancelSchedulesByChannelKey('word');
+                                await showNotificationWord();
+                              },
+                            ),
+                          ),
+                        ])),
+                  ),
+                  const Divider(
+                    height: 1,
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(
+                        height: 15,
+                      ),
+                      GetBuilder<Controller>(
+                        builder: (_) => Text(
+                          c.drawerSpeech.string,
+                          style: const TextStyle(
+                            color: textColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      GetBuilder<Controller>(
+                        builder: (_) => Slider(
+                          value: c.speakSpeed.value,
+                          min: 0.1,
+                          max: 1,
+                          divisions: 9,
+                          activeColor: backgroundColor,
+                          inactiveColor: themeColor,
+                          thumbColor: backgroundColor,
+                          label: double.parse(
+                                  (c.speakSpeed.value).toStringAsFixed(1))
+                              .toString(),
+                          onChanged: (double value) async {
+                            c.speakSpeed = RxDouble(value);
+                            await boxSetting.put('speakSpeed', value);
+                            c.update();
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Divider(
+                    height: 1,
+                  ),
+                  const SizedBox(height: 5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      GetBuilder<Controller>(
+                        builder: (_) => Text(
+                          c.drawerInitSpeak.string,
+                          style: const TextStyle(
+                            color: textColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      GetBuilder<Controller>(
+                        builder: (_) => Switch(
+                          activeColor: backgroundColor,
+                          activeTrackColor: themeColor,
+                          value: c.initSpeak.value,
+                          onChanged: (value) async {
+                            c.initSpeak = value.obs;
+                            c.update();
+                            await boxSetting.put('initSpeak', value);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  const Divider(
+                    height: 1,
+                  ),
+                  const SizedBox(height: 5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      GetBuilder<Controller>(
+                        builder: (_) => Text(
+                          c.drawerEnableSound.string,
+                          style: const TextStyle(
+                            color: textColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      GetBuilder<Controller>(
+                        builder: (_) => Switch(
+                          activeColor: backgroundColor,
+                          activeTrackColor: themeColor,
+                          value: c.enableSound.value,
+                          onChanged: (value) async {
+                            c.enableSound = value.obs;
+                            c.update();
+                            await boxSetting.put('enableSound', value);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  const Divider(
+                    height: 1,
+                  ),
+                  const SizedBox(height: 15),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      GetBuilder<Controller>(
+                        builder: (_) => Text(
+                          c.drawerLanguage.string,
+                          style: const TextStyle(
+                            color: textColor,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      ToggleSwitch(
+                        minWidth: 50.0,
+                        minHeight: 30.0,
+                        fontSize: 14.0,
+                        initialLabelIndex: initLanguageIndex,
+                        activeBgColor: const [backgroundColor],
+                        activeFgColor: Colors.white,
+                        inactiveBgColor: const Color.fromRGBO(240, 240, 240, 1),
+                        inactiveFgColor: textColor,
+                        totalSwitches: 2,
+                        changeOnTap: true,
+                        labels: const ['VN', 'EN'],
+                        onToggle: (index) async {
+                          if (index == 0) {
+                            c.changeLanguage('VN');
+                          } else {
+                            c.changeLanguage('EN');
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+                  const Divider(height: 1),
+                  ListTile(
+                    title: GetBuilder<Controller>(
+                      builder: (_) => Text(
+                        c.language.string == 'VN'
+                            ? 'Tải lại dữ liệu'
+                            : 'Reload data',
+                        style: const TextStyle(
+                          color: textColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    onTap: () {
+                      Get.offAll(() => const LoadingPage());
+                    },
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    title: GetBuilder<Controller>(
+                      builder: (_) => Text(
+                        c.drawerPolicy.string,
+                        style: const TextStyle(
+                          color: textColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    onTap: () {
+                      Get.to(() => const PolicyPage());
+                    },
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    title: GetBuilder<Controller>(
+                      builder: (_) => Text(
+                        c.language.string == 'VN'
+                            ? 'Điều khoản sử dụng'
+                            : 'Terms of Use',
+                        style: const TextStyle(
+                          color: textColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    onTap: () {
+                      Get.to(() => const TermPage());
+                    },
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    title: GetBuilder<Controller>(
+                      builder: (_) => Text(
+                        c.drawerContact.string,
+                        style: const TextStyle(
+                          color: textColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    onTap: () {
+                      Get.offAll(() => const ContactPage());
+                    },
+                  ),
+                  // const Divider(height:1),
+                  SizedBox(height: MediaQuery.of(context).padding.bottom),
+                ],
+              ),
+            ),
+          ]),
+        ));
+  }
+}
+
+class CategoryScreen extends StatefulWidget {
+  const CategoryScreen({Key? key}) : super(key: key);
+
+  @override
+  State<CategoryScreen> createState() => _CategoryScreenState();
+}
+
+class _CategoryScreenState extends State<CategoryScreen> {
+  List listCategoryShow = [];
+  final textFieldController = TextEditingController();
+
+  @override
+  void initState() {
+    setState(() {
+      listCategoryShow = listCategory;
+    });
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Controller c = Get.put(Controller());
+
+    Future getToScore(int i) async {
+      await loadAd();
+      c.bundle = RxString(listCategoryShow[i][c.typeState.value]);
+      c.listWordScore = RxList(await getListCategory(listCategoryShow[i][0]));
+      c.category = RxString(listCategoryShow[i][0]);
+      c.type = 'all type'.obs;
+      c.part = 0.obs;
+      c.isSearch = false.obs;
+      Get.offAll(() => const ScorePage());
+    }
+
+    Future getToMainScreen() async {
+      await loadAd();
+      c.isSearch = false.obs;
+      c.currentPage = 1.obs;
+      Get.offAll(() => MainScreen());
+    }
+
+    return WillPopScope(
+      onWillPop: () async {
+        c.isSearch = false.obs;
+        c.currentPage = 1.obs;
+        Get.offAll(() => MainScreen());
+        return false;
+      },
+      child: Scaffold(
+        body: GestureDetector(
+          onTap: () {
+            if (searchFocusNode.hasFocus) {
+              searchFocusNode.unfocus();
+            }
+            if (c.isSearch.value) {
+              c.isSearch = false.obs;
+              c.update();
+            }
+          },
+          child: Container(
+            color: Colors.white,
+            // padding: EdgeInsets.all(10),
+            child: Column(children: [
+              SizedBox(height: MediaQuery.of(context).padding.top + 10),
+              GetBuilder<Controller>(
+                builder: (_) => Visibility(
+                  visible: c.isSearch.value,
+                  child: Column(children: [
+                    Row(children: [
+                      // const SizedBox(width:15),
+                      IconButton(
+                        padding: const EdgeInsets.all(0.0),
+                        icon: Icon(
+                          Icons.arrow_back_ios_rounded,
+                          size: 20,
+                          color: textColor.withOpacity(0.7),
+                        ),
+                        tooltip: 'Back',
+                        onPressed: () {
+                          if (searchFocusNode.hasFocus) {
+                            searchFocusNode.unfocus();
+                          }
+                          if (c.isSearch.value) {
+                            c.isSearch = false.obs;
+                            c.update();
+                          }
+                        },
+                      ),
+                      Expanded(
+                        child: TextFormField(
+                          // controller: searchField,
+                          controller: textFieldController,
+                          autofocus: true,
+                          autocorrect: false,
+                          textInputAction: TextInputAction.done,
+                          // focusNode: searchFocusNode,
+                          style: const TextStyle(
+                            fontSize: 15.0,
+                            color: textColor,
+                          ),
+                          decoration: InputDecoration(
+                            fillColor: Colors.transparent,
+                            filled: true,
+                            border: const OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(width: 1, color: Colors.black),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(30)),
+                            ),
+                            focusedBorder: const OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(width: 1, color: Colors.black),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(30)),
+                            ),
+                            enabledBorder: const OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(width: 1, color: Colors.black),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(30)),
+                            ),
+                            // prefixIcon: Icon(Icons.search_outlined,size:15),
+                            hintText: c.hint.string,
+                            isDense: true,
+                            contentPadding: const EdgeInsets.all(5),
+                            prefixIcon: const Icon(Icons.search),
+                            suffixIcon: IconButton(
+                                icon: const Icon(Icons.close_rounded),
+                                onPressed: () {
+                                  textFieldController.text = '';
+                                  setState(() {
+                                    listCategoryShow = listCategory;
+                                  });
+                                }),
+                            // icon: Icon(Icons.search),
+                            // isCollapsed: true,
+                          ),
+                          onChanged: (value) {
+                            // textFieldController.text = value;
+                            List list = [];
+                            for (int i = 0; i < listCategory.length; i++) {
+                              if (TiengViet.parse(
+                                      listCategory[i][c.typeState.value])
+                                  .startsWith(TiengViet.parse(value))) {
+                                list.add(listCategory[i]);
+                              }
+                            }
+                            setState(() {
+                              listCategoryShow = list;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 15),
+                    ]),
+                    const SizedBox(height: 10),
+                  ]),
+                ),
+              ),
+              GetBuilder<Controller>(
+                builder: (_) => Visibility(
+                  visible: !c.isSearch.value,
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 10),
+                      IconButton(
+                        padding: const EdgeInsets.all(0.0),
+                        icon: Icon(
+                          Icons.arrow_back_ios_rounded,
+                          size: 20,
+                          color: textColor.withOpacity(0.7),
+                        ),
+                        tooltip: 'Back to MainScreen',
+                        onPressed: () {
+                          getToMainScreen();
+                        },
+                      ),
+                      Expanded(
+                        child: Text(
+                          c.language.string == 'VN' ? 'Chủ đề' : 'Category',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            color: textColor,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.search,
+                          size: 25,
+                        ),
+                        onPressed: () {
+                          c.isSearch = true.obs;
+                          c.update();
+                        },
+                      ),
+                      const SizedBox(width: 10),
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                child: GridView.count(
+                  crossAxisCount: MediaQuery.of(context).size.width ~/ 120,
+                  addAutomaticKeepAlives: false,
+                  padding: const EdgeInsets.all(5),
+                  childAspectRatio: 4 / 3,
+                  // mainAxisSpacing: 10,
+                  // crossAxisSpacing: 10,
+                  children: List.generate(listCategoryShow.length, (i) {
+                    String url = '';
+                    switch (listCategoryShow[i][0]) {
+                      case 'heraldry':
+                        url = 'assets/temp/armory2.png';
+                        break;
+                      case 'no category':
+                        url = 'assets/temp/no.png';
+                        break;
+                      case 'past participle':
+                        url = 'assets/temp/no.png';
+                        break;
+                      case 'internet':
+                        url = 'assets/temp/Internet1.png';
+                        break;
+                      case 'bell-ringing':
+                        url = 'assets/temp/bob7.png';
+                        break;
+                      default:
+                        url = 'assets/temp/' + listCategoryShow[i][0] + '1.png';
+                    }
+                    return GestureDetector(
+                      onTap: () {
+                        getToScore(i);
+                      },
+                      child: Stack(children: [
+                        Container(
+                          height: double.infinity,
+                          width: double.infinity,
+                          margin: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(10)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.6),
+                                spreadRadius: 0,
+                                blurRadius: 3,
+                                offset: const Offset(
+                                    0, 0), // changes position of shadow
+                              ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.asset(
+                              url,
+                              fit: BoxFit.cover,
+                              // width: MediaQuery.of(context).size.width<500? MediaQuery.of(context).size.width-100:400,
+                              errorBuilder: (BuildContext context,
+                                  Object exception, StackTrace? stackTrace) {
+                                return const SizedBox();
+                              },
+                            ),
+                          ),
+                        ),
+                        Column(children: [
+                          const Expanded(child: SizedBox()),
+                          Container(
+                            height: 25,
+                            // alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.5),
+                              borderRadius: const BorderRadius.only(
+                                bottomLeft: Radius.circular(10),
+                                bottomRight: Radius.circular(10),
+                              ),
+                            ),
+                            margin: const EdgeInsets.all(7),
+                            child: Row(children: [
+                              const SizedBox(width: 5),
+                              Expanded(
+                                child: Text(
+                                  listCategoryShow[i][c.typeState.value],
+                                  // textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    overflow: TextOverflow.ellipsis,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 5),
+                            ]),
+                          ),
+                        ]),
+                      ]),
+                    );
+                  }),
+                ),
+              ),
+              SizedBox(height: MediaQuery.of(context).padding.bottom),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class TypeScreen extends StatelessWidget {
+  const TypeScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final Controller c = Get.put(Controller());
+
+    Future getToScore(int i) async {
+      await loadAd();
+      c.bundle = RxString(listType[i][c.typeState.value]);
+      c.listWordScore = RxList(await getListType(listType[i][0]));
+      c.category = 'all category'.obs;
+      c.type = RxString(listType[i][0]);
+      c.part = 0.obs;
+      Get.offAll(() => const ScorePage());
+    }
+
+    Future getToMainScreen() async {
+      await loadAd();
+      c.currentPage = 1.obs;
+      Get.offAll(() => MainScreen());
+    }
+
+    return WillPopScope(
+      onWillPop: () async {
+        c.currentPage = 1.obs;
+        Get.offAll(() => MainScreen());
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            c.language.string == 'VN' ? 'Từ loại' : 'Type',
+            style: TextStyle(
+              fontSize: 18,
+              color: textColor.withOpacity(0.7),
+            ),
+            overflow: TextOverflow.ellipsis,
+            // textAlign: TextAlign.left,
+          ),
+          leading: IconButton(
+            padding: const EdgeInsets.all(0.0),
+            icon: Icon(
+              Icons.arrow_back_ios_rounded,
+              size: 20,
+              color: textColor.withOpacity(0.7),
+            ),
+            tooltip: 'Back to MainScreen',
+            onPressed: () {
+              getToMainScreen();
+            },
+          ),
+          centerTitle: true,
+          backgroundColor: Colors.white,
+          bottomOpacity: 0.0,
+          elevation: 0.0,
+        ),
+        body: Column(children: [
+          Expanded(
+            child: Container(
+              color: Colors.white,
+              height: double.infinity,
+              alignment: Alignment.center,
+              child: GridView.count(
+                crossAxisCount: MediaQuery.of(context).size.width ~/ 180,
+                addAutomaticKeepAlives: false,
+                padding: const EdgeInsets.all(5),
+                shrinkWrap: true,
+                childAspectRatio: 5 / 2,
+                // mainAxisSpacing: 10,
+                // crossAxisSpacing: 10,
+                children: List.generate(listType.length, (i) {
+                  return GestureDetector(
+                    onTap: () {
+                      getToScore(i);
+                    },
+                    child: Container(
+                        // width: (MediaQuery.of(context).size.width-50)/3,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: Color.fromRGBO(
+                              150 + Random().nextInt(55),
+                              201 + Random().nextInt(55),
+                              150 + Random().nextInt(55),
+                              1),
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(50)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.6),
+                              spreadRadius: 0,
+                              blurRadius: 3,
+                              offset: const Offset(
+                                  0, 0), // changes position of shadow
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(5),
+                        margin: const EdgeInsets.all(8),
+                        child: Text(
+                          listType[i][c.typeState.value],
+                          style: const TextStyle(
+                            fontSize: 18,
+                            color: Colors.black,
+                            fontWeight: FontWeight.w600,
+                            // shadows: <Shadow>[
+                            //   Shadow(
+                            //     offset: Offset(0.0, 0.0),
+                            //     blurRadius: 3.0,
+                            //     color: Colors.black,
+                            //   ),
+                            // ],
+                          ),
+                          textAlign: TextAlign.center,
+                          // overflow: TextOverflow.ellipsis,
+                        )),
+                  );
+                }),
+              ),
+            ),
+          ),
+          SizedBox(height: MediaQuery.of(context).padding.bottom),
+        ]),
+      ),
+    );
+  }
+}
+
+class Home extends StatelessWidget {
+  Home({Key? key}) : super(key: key);
+  final GlobalKey<ProcessWidgetState> processKey =
+      GlobalKey<ProcessWidgetState>();
+  final int pageCount = 50;
+
+  @override
+  Widget build(BuildContext context) {
+    final Controller c = Get.put(Controller());
+    final textFieldController = TextEditingController(text: '');
+
+    Future searchToHome(String word) async {
+      c.nowWord = RxInt(c.wordArray.indexOf(word));
+      await loadAd();
+      c.isSearch = false.obs;
+      c.category = 'all category'.obs;
+      c.type = 'all type'.obs;
+      c.fromScreen = 0.obs;
+      listWordRandom = [word];
+      nowRandom = 0;
+      await c.layWord(word);
+    }
+
+    Future getToLearn() async {
+      await loadAd();
+      c.currentTab = 0.obs;
+      if (searchFocusNode.hasFocus) {
+        searchFocusNode.unfocus();
+      }
+      if (c.isSearch.value) {
+        c.isSearch = false.obs;
+      }
+      Get.offAll(() => const LearnWord());
+    }
+
+    Future getNext() async {
+      await loadAd();
+      if (searchFocusNode.hasFocus) {
+        searchFocusNode.unfocus();
+      }
+      if (c.isSearch.value) {
+        c.isSearch = false.obs;
+      }
+      if (c.fromScreen.value == 0) {
+        if (c.nowWord.value < (c.wordArray.length - 1)) {
+          c.nowWord = RxInt(c.nowWord.value + 1);
+        } else {
+          c.nowWord = 0.obs;
+        }
+        listWordRandom = [c.wordArray[c.nowWord.value]];
+        nowRandom = 0;
+        await c.layWord(c.wordArray[c.nowWord.value]);
+      } else {
+        if (c.nowWord.value < (c.listWordScorePage.length - 1)) {
+          c.nowWord = RxInt(c.nowWord.value + 1);
+        } else {
+          c.nowWord = 0.obs;
+        }
+        listWordRandom = [c.listWordScorePage[c.nowWord.value]];
+        nowRandom = 0;
+        await c.layWord(c.listWordScorePage[c.nowWord.value]);
+      }
+    }
+
+    Future getPrevious() async {
+      await loadAd();
+      if (searchFocusNode.hasFocus) {
+        searchFocusNode.unfocus();
+      }
+      if (c.isSearch.value) {
+        c.isSearch = false.obs;
+      }
+      if (c.fromScreen.value == 0) {
+        if (c.nowWord.value > 0) {
+          c.nowWord = RxInt(c.nowWord.value - 1);
+        } else {
+          c.nowWord = RxInt(c.wordArray.length - 1);
+        }
+        listWordRandom = [c.wordArray[c.nowWord.value]];
+        nowRandom = 0;
+        await c.layWord(c.wordArray[c.nowWord.value]);
+      } else {
+        if (c.nowWord.value > 0) {
+          c.nowWord = RxInt(c.nowWord.value - 1);
+        } else {
+          c.nowWord = RxInt(c.listWordScorePage.length - 1);
+        }
+        listWordRandom = [c.listWordScorePage[c.nowWord.value]];
+        nowRandom = 0;
+        await c.layWord(c.listWordScorePage[c.nowWord.value]);
+      }
+    }
+
+    Future getRandom() async {
+      await loadAd();
+      if (searchFocusNode.hasFocus) {
+        searchFocusNode.unfocus();
+      }
+      if (c.isSearch.value) {
+        c.isSearch = false.obs;
+      }
+      if (c.fromScreen.value == 0) {
+        c.nowWord = RxInt(Random().nextInt(c.wordArray.length));
+        listWordRandom = [c.wordArray[c.nowWord.value]];
+        nowRandom = 0;
+        await c.layWord(c.wordArray[c.nowWord.value]);
+      } else {
+        c.nowWord = RxInt(Random().nextInt(c.listWordScorePage.length));
+        listWordRandom = [c.listWordScorePage[c.nowWord.value]];
+        nowRandom = 0;
+        await c.layWord(c.listWordScorePage[c.nowWord.value]);
+      }
+    }
+
+    Future getNextRandom() async {
+      await loadAd();
+      if (searchFocusNode.hasFocus) {
+        searchFocusNode.unfocus();
+      }
+      if (c.isSearch.value) {
+        c.isSearch = false.obs;
+      }
+      if (c.fromScreen.value == 0) {
+        if (nowRandom >= listWordRandom.length - 1) {
+          int random = Random().nextInt(c.wordArray.length);
+          listWordRandom.add(c.wordArray[random]);
+          nowRandom = listWordRandom.length - 1;
+          c.nowWord = RxInt(random);
+          await c.layWord(c.wordArray[random]);
+        } else {
+          nowRandom = nowRandom + 1;
+          c.nowWord = RxInt(c.wordArray.indexOf(listWordRandom[nowRandom]));
+          await c.layWord(listWordRandom[nowRandom]);
+        }
+      } else {
+        if (nowRandom >= listWordRandom.length - 1) {
+          int random = Random().nextInt(c.listWordScorePage.length);
+          listWordRandom.add(c.listWordScorePage[random]);
+          nowRandom = listWordRandom.length - 1;
+          c.nowWord = RxInt(random);
+          await c.layWord(c.listWordScorePage[random]);
+        } else {
+          nowRandom = nowRandom + 1;
+          c.nowWord =
+              RxInt(c.listWordScorePage.indexOf(listWordRandom[nowRandom]));
+          await c.layWord(listWordRandom[nowRandom]);
+        }
+      }
+    }
+
+    Future getPreviousRandom() async {
+      await loadAd();
+      if (searchFocusNode.hasFocus) {
+        searchFocusNode.unfocus();
+      }
+      if (c.isSearch.value) {
+        c.isSearch = false.obs;
+      }
+      if (c.fromScreen.value == 0) {
+        if (nowRandom <= 0) {
+          await getRandom();
+        } else {
+          nowRandom = nowRandom - 1;
+          c.nowWord = RxInt(c.wordArray.indexOf(listWordRandom[nowRandom]));
+          await c.layWord(listWordRandom[nowRandom]);
+        }
+      } else {
+        if (nowRandom <= 0) {
+          await getRandom();
+        } else {
+          nowRandom = nowRandom - 1;
+          c.nowWord =
+              RxInt(c.listWordScorePage.indexOf(listWordRandom[nowRandom]));
+          await c.layWord(listWordRandom[nowRandom]);
+        }
+      }
+    }
+
+    Future getNextMean() async {
+      await loadAd();
+      if (searchFocusNode.hasFocus) {
+        searchFocusNode.unfocus();
+      }
+      if (c.isSearch.value) {
+        c.isSearch = false.obs;
+      }
+      if (c.nowMean.value < (c.mean.length - 1)) {
+        c.nowMean = RxInt(c.nowMean.value + 1);
+        c.update();
+      } else {
+        c.nowMean = 0.obs;
+        c.update();
+      }
+    }
+
+    Future getPreviousMean() async {
+      await loadAd();
+      if (searchFocusNode.hasFocus) {
+        searchFocusNode.unfocus();
+      }
+      if (c.isSearch.value) {
+        c.isSearch = false.obs;
+      }
+      if (c.nowMean.value > 0) {
+        c.nowMean = RxInt(c.nowMean.value - 1);
+        c.update();
+      } else {
+        c.nowMean = RxInt(c.imageURL.length - 1);
+        c.update();
+      }
+    }
+
+    Future waitSpeak(int i) async {
+      int duration = 0;
+      int wordCount = 0;
+      for (var j = 0; j < i; j++) {
+        wordCount += c.mean[c.nowMean.value][j].split(' ').length as int;
+      }
+      duration += (i + 1) * 1000 + wordCount * 50 ~/ c.speakSpeed.value;
+      await Future.delayed(Duration(milliseconds: duration));
+    }
+
+    Future getList(int i) async {
+      c.listWordScorePage.clear();
+      for (var j = 0;
+          j <
+              (i < (c.listWord.length / pageCount).ceil() - 1
+                  ? pageCount
+                  : (c.listWord.length - pageCount * i));
+          j++) {
+        c.listWordScorePage.add(c.listWord[i * pageCount + j]);
+      }
+      c.part = RxInt(i);
+      await getRandom();
+    }
+
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: Colors.transparent,
+      body: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent, //i like transaparent :-)
+          systemNavigationBarColor: Colors.transparent, // navigation bar color
+          statusBarIconBrightness: Brightness.light, // status bar icons' color
+          systemNavigationBarIconBrightness:
+              Brightness.light, //navigation bar icons' color
+        ),
+        child: Stack(children: [
+          GetBuilder<Controller>(
+            builder: (_) => c.imageURL.isNotEmpty
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(0),
+                    child: ImageFiltered(
+                      imageFilter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                      child: Opacity(
+                        opacity: 0.8,
+                        child: Image(
+                          image: NetworkImage('https://bedict.com/' +
+                              c.imageURL[c.nowMean.value].replaceAll('\\', '')),
+                          fit: BoxFit.cover,
+                          width: MediaQuery.of(context).size.width,
+                          height: MediaQuery.of(context).size.height,
+                          errorBuilder: (BuildContext context, Object exception,
+                              StackTrace? stackTrace) {
+                            return const SizedBox();
+                          },
+                        ),
+                      ),
+                    ),
+                  )
+                : const SizedBox(),
+          ),
+          Column(children: [
+            Expanded(
+              child: GetBuilder<Controller>(
+                builder: (_) => AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 500),
+                  transitionBuilder:
+                      (Widget child, Animation<double> animation) {
+                    return ScaleTransition(child: child, scale: animation);
+                  },
+                  child: Container(
+                    key: ValueKey<String>(c.nowMean.value.toString()),
+                    alignment: Alignment.center,
+                    color: Colors.transparent,
+                    child: c.imageURL.isNotEmpty
+                        ? SingleChildScrollView(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius:
+                                    const BorderRadius.all(Radius.circular(20)),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.6),
+                                    spreadRadius: 0,
+                                    blurRadius: 5,
+                                    offset: const Offset(
+                                        5, 5), // changes position of shadow
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: Image(
+                                  image: NetworkImage('https://bedict.com/' +
+                                      c.imageURL[c.nowMean.value]
+                                          .replaceAll('\\', '')),
+                                  fit: BoxFit.contain,
+                                  width: MediaQuery.of(context).size.width < 500
+                                      ? MediaQuery.of(context).size.width - 100
+                                      : 400,
+                                  errorBuilder: (BuildContext context,
+                                      Object exception,
+                                      StackTrace? stackTrace) {
+                                    return const SizedBox();
+                                  },
+                                ),
+                              ),
+                            ),
+                          )
+                        : const SizedBox(),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 30)
+          ]),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              SizedBox(height: MediaQuery.of(context).padding.top + 5),
+              GetBuilder<Controller>(
+                builder: (_) => Visibility(
+                  visible: !c.isSearch.value,
+                  child: Row(children: [
+                    c.fromScreen.value == 0
+                        ? const SizedBox(width: 10)
+                        : IconButton(
+                            padding: const EdgeInsets.all(0.0),
+                            icon: const Icon(
+                              Icons.close,
+                              size: 15,
+                            ),
+                            tooltip: 'clear',
+                            onPressed: () async {
+                              await searchToHome(c.wordArray[
+                                  Random().nextInt(c.wordArray.length)]);
+                            },
+                          ),
+                    Expanded(
+                        child: c.fromScreen.value == 0
+                            ? const SizedBox()
+                            : Row(
+                                children: [
+                                  Text(
+                                    c.bundle.string.toLowerCase() + ' - ',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: textColor,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.left,
+                                  ),
+                                  GetBuilder<Controller>(
+                                    builder: (_) => PopupMenuButton<String>(
+                                      onSelected: (String word) async {
+                                        c.part = RxInt(int.parse(word.substring(
+                                                5, word.indexOf('/'))) -
+                                            1);
+                                        c.update();
+                                        getList(c.part.value);
+                                      },
+                                      padding: const EdgeInsets.all(0),
+                                      itemBuilder: (BuildContext context) =>
+                                          <PopupMenuEntry<String>>[
+                                        for (int i = 0;
+                                            i <
+                                                (c.listWord.length / pageCount)
+                                                    .ceil();
+                                            i++)
+                                          PopupMenuItem<String>(
+                                              value: (c.language.string == 'VN'
+                                                      ? 'Phần '
+                                                      : 'Part ') +
+                                                  (i + 1).toString() +
+                                                  '/' +
+                                                  (c.listWord.length /
+                                                          pageCount)
+                                                      .ceil()
+                                                      .toString(),
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                      5, 0, 5, 0),
+                                              child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
                                                     Text(
-                                                      subMean.value.substring(
-                                                          0,
-                                                          subMean.value.length -
-                                                              1),
+                                                      (c.language.string == 'VN'
+                                                              ? 'Phần '
+                                                              : 'Part ') +
+                                                          (i + 1).toString() +
+                                                          '/' +
+                                                          (c.listWord.length /
+                                                                  pageCount)
+                                                              .ceil()
+                                                              .toString(),
                                                       style: const TextStyle(
                                                         fontSize: 18,
                                                         color: textColor,
                                                       ),
-                                                      textAlign: TextAlign.left,
+                                                      textAlign:
+                                                          TextAlign.center,
                                                     ),
-                                                    const SizedBox(height: 3),
+                                                  ])),
+                                      ],
+                                      // color: themeColor,
+                                      child: Row(children: [
+                                        Text(
+                                          (c.language.string == 'VN'
+                                                  ? 'phần '
+                                                  : 'part ') +
+                                              (c.part.value + 1).toString() +
+                                              '/' +
+                                              (c.listWord.length / pageCount)
+                                                  .ceil()
+                                                  .toString(),
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: textColor,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                          textAlign: TextAlign.left,
+                                        ),
+                                      ]),
+                                      shape: const RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(20.0))),
+                                    ),
+                                  ),
+                                ],
+                              )),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.search,
+                        size: 25,
+                      ),
+                      onPressed: () {
+                        c.isSearch = true.obs;
+                        c.update();
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.share,
+                        size: 25,
+                      ),
+                      onPressed: () async {
+                        // double pixelRatio = MediaQuery.of(context).devicePixelRatio;
+                        // await screenshotController.capture(
+                        //     delay: const Duration(milliseconds: 10),
+                        //     pixelRatio: pixelRatio
+                        // ).then((image) async {
+                        //   if (image != null) {
+                        //     final directory = await getApplicationDocumentsDirectory();
+                        //     final imagePath = await File('${directory.path}/image.png').create();
+                        //     await imagePath.writeAsBytes(image);
+                        //     await Share.shareFiles([imagePath.path]);
+                        //   }
+                        // });
+                        String mean = '';
+                        for (int i = 0;
+                            i < c.mean[c.nowMean.value].length;
+                            i++) {
+                          String subMean = c.mean[c.nowMean.value][i];
+                          mean += '(' +
+                              laytuloai(subMean.substring(subMean.length - 1))[
+                                      c.typeState.value]
+                                  .toLowerCase();
+                          mean += ') ';
+                          mean += subMean.substring(0, subMean.length - 1);
+                          mean += '\n';
+                        }
+                        final response = await http.get(Uri.parse(
+                            'https://bedict.com/' +
+                                c.imageURL[c.nowMean.value]
+                                    .replaceAll('\\', '')));
+                        final bytes = response.bodyBytes;
+                        final temp = await getApplicationDocumentsDirectory();
+                        final path = '${temp.path}/image.jpg';
+                        File(path).writeAsBytes(bytes);
+                        String string = '';
+                        if (c.language.string == 'VN') {
+                          string = 'BeDict - Ứng dụng từ điển hình ảnh Tiếng Anh' +
+                              '\n\n' +
+                              c.word.string +
+                              '\n/' +
+                              c.pronun.string +
+                              '/\n' +
+                              mean +
+                              '\nIos: https://apple.co/3M6FDxy\n' +
+                              'Android: https://play.google.com/store/apps/details?id=com.bedict.bedict\n' +
+                              'Web: https://bedict.com/\n';
+                        } else {
+                          string =
+                              'BeDict - English Picture Dictionary Application' +
+                                  '\n\n' +
+                                  c.word.string +
+                                  '\n/' +
+                                  c.pronun.string +
+                                  '/\n' +
+                                  mean +
+                                  '\nIos: https://apple.co/3M6FDxy\n' +
+                                  'Android: https://play.google.com/store/apps/details?id=com.bedict.bedict\n' +
+                                  'Web: https://bedict.com/\n';
+                        }
+                        await Share.shareFiles([path], text: string);
+                      },
+                    ),
+                    const SizedBox(width: 20),
+                    OutlinedButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                            Colors.transparent),
+                        foregroundColor:
+                            MaterialStateProperty.all<Color>(Colors.grey),
+                        padding: MaterialStateProperty.all<EdgeInsets>(
+                            const EdgeInsets.all(0)),
+                        shape: MaterialStateProperty.all<OutlinedBorder?>(
+                            RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                        )),
+                        fixedSize: MaterialStateProperty.all<Size>(
+                            const Size.fromHeight(40)),
+                      ),
+                      onPressed: () {
+                        getToLearn();
+                      },
+                      child: GetBuilder<Controller>(
+                        builder: (_) => Text(
+                          c.language.string == 'VN' ? 'Học' : 'Learn',
+                          style: const TextStyle(
+                            color: textColor,
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+                  ]),
+                ),
+              ),
+              GetBuilder<Controller>(
+                builder: (_) => Visibility(
+                  visible: c.isSearch.value,
+                  child: Row(children: [
+                    IconButton(
+                      padding: const EdgeInsets.all(0.0),
+                      icon: Icon(
+                        Icons.arrow_back_ios_rounded,
+                        size: 20,
+                        color: textColor.withOpacity(0.7),
+                      ),
+                      tooltip: 'Back',
+                      onPressed: () {
+                        if (searchFocusNode.hasFocus) {
+                          searchFocusNode.unfocus();
+                        }
+                        if (c.isSearch.value) {
+                          c.isSearch = false.obs;
+                          c.update();
+                        }
+                      },
+                    ),
+                    Expanded(
+                      child: TypeAheadField(
+                        textFieldConfiguration: TextFieldConfiguration(
+                          controller: textFieldController,
+                          autofocus: true,
+                          autocorrect: false,
+                          textInputAction: TextInputAction.done,
+                          // focusNode: searchFocusNodeHome,
+                          style: const TextStyle(
+                            fontSize: 15.0,
+                            color: textColor,
+                          ),
+                          decoration: InputDecoration(
+                            fillColor: Colors.transparent,
+                            filled: true,
+                            border: const OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(width: 1, color: Colors.black),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(30)),
+                            ),
+                            focusedBorder: const OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(width: 1, color: Colors.black),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(30)),
+                            ),
+                            enabledBorder: const OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(width: 1, color: Colors.black),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(30)),
+                            ),
+                            // prefixIcon: Icon(Icons.search_outlined,size:15),
+                            hintText: c.hint.string,
+                            isDense: true,
+                            contentPadding: const EdgeInsets.all(5),
+                            prefixIcon: GetBuilder<Controller>(
+                              builder: (_) => IconButton(
+                                  icon: Icon(
+                                    c.speechEnabled.value
+                                        ? c.isListening.value
+                                            ? Icons.mic
+                                            : Icons.mic_none
+                                        : Icons.mic_off,
+                                  ),
+                                  onPressed: () async {
+                                    if (stt.isNotListening) {
+                                      await stt.listen(
+                                        onResult:
+                                            (SpeechRecognitionResult result) {
+                                          if (result.finalResult) {
+                                            textFieldController.text =
+                                                result.recognizedWords;
+                                          }
+                                        },
+                                      );
+                                    } else {
+                                      await stt.stop();
+                                    }
+                                  }),
+                            ),
+                            suffixIcon: IconButton(
+                                icon: const Icon(Icons.close_rounded),
+                                onPressed: () {
+                                  textFieldController.text = '';
+                                }),
+                            // icon: Icon(Icons.search),
+                            // isCollapsed: true,
+                          ),
+                          onSubmitted: (value) async {
+                            if (suggestArray.isEmpty) {
+                              try {
+                                String suggestion = '';
+                                String languageCode = languagesCode[
+                                    languages.indexOf(c.languageLocal.string)];
+                                var checkLanguage =
+                                    await value.translate(to: 'en');
+                                if (checkLanguage.text == value) {
+                                  var google = await value.translate(
+                                      from: 'en', to: languageCode);
+                                  String imageUrl =
+                                      await getImage(value, 'small');
+                                  suggestion = value +
+                                      '@' +
+                                      google.text.toLowerCase() +
+                                      '@' +
+                                      imageUrl;
+                                } else {
+                                  var google = await value.translate(to: 'en');
+                                  String imageUrl =
+                                      await getImage(google.text, 'small');
+                                  suggestion = google.text.toLowerCase() +
+                                      '@' +
+                                      value +
+                                      '@' +
+                                      imageUrl;
+                                }
+                                var dataRaw = box.get(suggestion.split('@')[0]);
+                                if (dataRaw.toString() != 'null') {
+                                  await searchToHome(suggestion.split('@')[0]);
+                                } else {
+                                  String imageUrl = await getImage(
+                                      suggestion.toString().split('@')[0],
+                                      'medium');
+                                  if (imageUrl.split('@')[0] != 'null') {
+                                    Get.dialog(Column(children: [
+                                      const Expanded(child: SizedBox()),
+                                      Container(
+                                          margin: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius:
+                                                const BorderRadius.all(
+                                                    Radius.circular(20)),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black
+                                                    .withOpacity(0.6),
+                                                spreadRadius: 0,
+                                                blurRadius: 3,
+                                                offset: const Offset(3,
+                                                    3), // changes position of shadow
+                                              ),
+                                            ],
+                                          ),
+                                          width: 320,
+                                          child: Column(children: [
+                                            const SizedBox(height: 10),
+                                            Text(
+                                              suggestion
+                                                  .toString()
+                                                  .split('@')[0],
+                                              style: const TextStyle(
+                                                  fontSize: 18.0,
+                                                  color: textColor,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontFamily: 'Tahoma',
+                                                  decoration:
+                                                      TextDecoration.none),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 5),
+                                            Text(
+                                              suggestion
+                                                  .toString()
+                                                  .split('@')[1],
+                                              style: const TextStyle(
+                                                  fontSize: 16.0,
+                                                  color: textColor,
+                                                  fontFamily: 'Tahoma',
+                                                  fontWeight: FontWeight.w400,
+                                                  decoration:
+                                                      TextDecoration.none),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            Container(
+                                                margin:
+                                                    const EdgeInsets.all(10),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      const BorderRadius.all(
+                                                          Radius.circular(15)),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black
+                                                          .withOpacity(0.6),
+                                                      spreadRadius: 0,
+                                                      blurRadius: 3,
+                                                      offset: const Offset(3,
+                                                          3), // changes position of shadow
+                                                    ),
                                                   ],
                                                 ),
-                                              );
-                                            }
-                                            return AnimatedSwitcher(
-                                              duration: const Duration(
-                                                  milliseconds: 500),
-                                              child: child,
-                                            );
-                                          },
+                                                width: 280,
+                                                height: 200,
+                                                child: Stack(children: [
+                                                  ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            15),
+                                                    child: ImageFiltered(
+                                                      imageFilter:
+                                                          ImageFilter.blur(
+                                                              sigmaX: 6,
+                                                              sigmaY: 6),
+                                                      child: Opacity(
+                                                        opacity: 0.8,
+                                                        child: Image(
+                                                          image: NetworkImage(
+                                                              imageUrl),
+                                                          fit: BoxFit.cover,
+                                                          width: 280,
+                                                          height: 200,
+                                                          errorBuilder:
+                                                              (BuildContext
+                                                                      context,
+                                                                  Object
+                                                                      exception,
+                                                                  StackTrace?
+                                                                      stackTrace) {
+                                                            return const SizedBox();
+                                                          },
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            15),
+                                                    child: Image(
+                                                      image: NetworkImage(
+                                                          imageUrl),
+                                                      fit: BoxFit.contain,
+                                                      width: 280,
+                                                      height: 200,
+                                                      errorBuilder:
+                                                          (BuildContext context,
+                                                              Object exception,
+                                                              StackTrace?
+                                                                  stackTrace) {
+                                                        return const SizedBox();
+                                                      },
+                                                    ),
+                                                  ),
+                                                ])),
+                                            (suggestion
+                                                        .toString()
+                                                        .split('@')[2] !=
+                                                    'null')
+                                                ? Opacity(
+                                                    opacity: 0.5,
+                                                    child: LinkText(
+                                                        'Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                        textStyle: const TextStyle(
+                                                            fontSize: 12.0,
+                                                            color: textColor,
+                                                            fontFamily:
+                                                                'Tahoma',
+                                                            fontWeight:
+                                                                FontWeight.w400,
+                                                            decoration:
+                                                                TextDecoration
+                                                                    .none),
+                                                        linkStyle: const TextStyle(
+                                                            fontSize: 12.0,
+                                                            color: Colors.blue,
+                                                            fontFamily:
+                                                                'Tahoma',
+                                                            fontWeight:
+                                                                FontWeight.w400,
+                                                            decoration:
+                                                                TextDecoration
+                                                                    .underline,
+                                                            decorationColor:
+                                                                Colors.blue,
+                                                            decorationStyle:
+                                                                TextDecorationStyle
+                                                                    .solid),
+                                                        onLinkTap: (url) async {
+                                                      if (!await launchUrl(
+                                                          Uri.parse(url)))
+                                                        throw 'Could not launch $url';
+                                                    }))
+                                                : const SizedBox(),
+                                            const SizedBox(height: 10),
+                                          ])),
+                                      const Expanded(child: SizedBox()),
+                                    ]));
+                                  }
+                                }
+                              } catch (_) {}
+                            } else {
+                              if (!suggestArray[0].contains('@')) {
+                                await searchToHome(suggestArray[0]);
+                              } else {
+                                String suggestion = suggestArray[0].toString();
+                                var dataRaw =
+                                    await box.get(suggestion.split('@')[0]);
+                                if (dataRaw.toString() != 'null') {
+                                  await searchToHome(suggestion.split('@')[0]);
+                                } else {
+                                  String imageUrl = await getImage(
+                                      suggestion.toString().split('@')[0],
+                                      'medium');
+                                  if (imageUrl.split('@')[0] != 'null') {
+                                    Get.dialog(Column(children: [
+                                      const Expanded(child: SizedBox()),
+                                      Container(
+                                          margin: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius:
+                                                const BorderRadius.all(
+                                                    Radius.circular(20)),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black
+                                                    .withOpacity(0.6),
+                                                spreadRadius: 0,
+                                                blurRadius: 3,
+                                                offset: const Offset(3,
+                                                    3), // changes position of shadow
+                                              ),
+                                            ],
+                                          ),
+                                          width: 320,
+                                          child: Column(children: [
+                                            const SizedBox(height: 10),
+                                            Text(
+                                              suggestion
+                                                  .toString()
+                                                  .split('@')[0],
+                                              style: const TextStyle(
+                                                  fontSize: 18.0,
+                                                  color: textColor,
+                                                  fontWeight: FontWeight.w600,
+                                                  fontFamily: 'Tahoma',
+                                                  decoration:
+                                                      TextDecoration.none),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 5),
+                                            Text(
+                                              suggestion
+                                                  .toString()
+                                                  .split('@')[1],
+                                              style: const TextStyle(
+                                                  fontSize: 16.0,
+                                                  color: textColor,
+                                                  fontFamily: 'Tahoma',
+                                                  fontWeight: FontWeight.w400,
+                                                  decoration:
+                                                      TextDecoration.none),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            Container(
+                                                margin:
+                                                    const EdgeInsets.all(10),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      const BorderRadius.all(
+                                                          Radius.circular(15)),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black
+                                                          .withOpacity(0.6),
+                                                      spreadRadius: 0,
+                                                      blurRadius: 3,
+                                                      offset: const Offset(3,
+                                                          3), // changes position of shadow
+                                                    ),
+                                                  ],
+                                                ),
+                                                width: 280,
+                                                height: 200,
+                                                child: Stack(children: [
+                                                  ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            15),
+                                                    child: ImageFiltered(
+                                                      imageFilter:
+                                                          ImageFilter.blur(
+                                                              sigmaX: 6,
+                                                              sigmaY: 6),
+                                                      child: Opacity(
+                                                        opacity: 0.8,
+                                                        child: Image(
+                                                          image: NetworkImage(
+                                                              imageUrl),
+                                                          fit: BoxFit.cover,
+                                                          width: 280,
+                                                          height: 200,
+                                                          errorBuilder:
+                                                              (BuildContext
+                                                                      context,
+                                                                  Object
+                                                                      exception,
+                                                                  StackTrace?
+                                                                      stackTrace) {
+                                                            return const SizedBox();
+                                                          },
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            15),
+                                                    child: Image(
+                                                      image: NetworkImage(
+                                                          imageUrl),
+                                                      fit: BoxFit.contain,
+                                                      width: 280,
+                                                      height: 200,
+                                                      errorBuilder:
+                                                          (BuildContext context,
+                                                              Object exception,
+                                                              StackTrace?
+                                                                  stackTrace) {
+                                                        return const SizedBox();
+                                                      },
+                                                    ),
+                                                  ),
+                                                ])),
+                                            (suggestion
+                                                        .toString()
+                                                        .split('@')[2] !=
+                                                    'null')
+                                                ? Opacity(
+                                                    opacity: 0.5,
+                                                    child: LinkText(
+                                                        'Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                        textStyle: const TextStyle(
+                                                            fontSize: 12.0,
+                                                            color: textColor,
+                                                            fontFamily:
+                                                                'Tahoma',
+                                                            fontWeight:
+                                                                FontWeight.w400,
+                                                            decoration:
+                                                                TextDecoration
+                                                                    .none),
+                                                        linkStyle: const TextStyle(
+                                                            fontSize: 12.0,
+                                                            color: Colors.blue,
+                                                            fontFamily:
+                                                                'Tahoma',
+                                                            fontWeight:
+                                                                FontWeight.w400,
+                                                            decoration:
+                                                                TextDecoration
+                                                                    .underline,
+                                                            decorationColor:
+                                                                Colors.blue,
+                                                            decorationStyle:
+                                                                TextDecorationStyle
+                                                                    .solid),
+                                                        onLinkTap: (url) async {
+                                                      if (!await launchUrl(
+                                                          Uri.parse(url)))
+                                                        throw 'Could not launch $url';
+                                                    }))
+                                                : const SizedBox(),
+                                            const SizedBox(height: 10),
+                                          ])),
+                                      const Expanded(child: SizedBox()),
+                                    ]));
+                                  }
+                                }
+                              }
+                            }
+                          },
+                        ),
+                        suggestionsBoxVerticalOffset: 10,
+                        noItemsFoundBuilder: (BuildContext context) => ListTile(
+                          title: Text(
+                            c.notFound.string,
+                            style: const TextStyle(
+                              fontSize: 15.0,
+                              color: textColor,
+                            ),
+                          ),
+                        ),
+                        suggestionsCallback: (pattern) async {
+                          suggestArray = [];
+                          if (pattern == '') {
+                            suggestArray = await getLastSearch(9);
+                          }
+                          for (var i = 0; i < c.wordArray.length; i++) {
+                            if (suggestArray.length > 9) {
+                              break;
+                            }
+                            if (c.wordArray[i]
+                                .toString()
+                                .toLowerCase()
+                                .startsWith(pattern.toLowerCase())) {
+                              if (!suggestArray.contains(c.wordArray[i])) {
+                                suggestArray.add(c.wordArray[i]);
+                              }
+                            }
+                          }
+                          if (suggestArray.isEmpty) {
+                            try {
+                              String languageCode = languagesCode[
+                                  languages.indexOf(c.languageLocal.string)];
+                              var checkLanguage =
+                                  await pattern.translate(to: 'en');
+                              if (checkLanguage.text == pattern) {
+                                var google = await pattern.translate(
+                                    from: 'en', to: languageCode);
+                                String imageUrl =
+                                    await getImage(pattern, 'small');
+                                suggestArray.add(pattern +
+                                    '@' +
+                                    google.text.toLowerCase() +
+                                    '@' +
+                                    imageUrl);
+                              } else {
+                                var google = await pattern.translate(to: 'en');
+                                String imageUrl =
+                                    await getImage(google.text, 'small');
+                                suggestArray.add(google.text.toLowerCase() +
+                                    '@' +
+                                    pattern +
+                                    '@' +
+                                    imageUrl);
+                              }
+                            } catch (_) {}
+                          }
+                          return suggestArray;
+                        },
+                        suggestionsBoxDecoration: SuggestionsBoxDecoration(
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(15)),
+                          color: Colors.white.withOpacity(1.0),
+                        ),
+                        itemBuilder: (context, suggestion) {
+                          String mean = '';
+                          String image = 'bedict.png';
+                          List listMeans = [];
+                          var dataRaw = suggestion.toString().contains('@')
+                              ? box.get(suggestion.toString().split('@')[0])
+                              : box.get(suggestion.toString());
+                          if (dataRaw.toString() == 'null') {
+                            mean = suggestion.toString().split('@')[1];
+                            if (suggestion.toString().split('@')[2] != 'null') {
+                              image = suggestion.toString().split('@')[2];
+                            } else {
+                              image = 'https://bedict.com/bedict.png';
+                            }
+                            listMeans.add(suggestion.toString().split('@')[0]);
+                          } else {
+                            listMeans = jsonDecode(dataRaw['mean']);
+                            List listMean = listMeans[0];
+                            List meanENAdd = [];
+                            List meanVNAdd = [];
+                            for (var j = 0; j < listMean.length; j++) {
+                              String meanENElement = '';
+                              if (listMean[j].contains('#')) {
+                                meanENElement = listMean[j].split('#')[1];
+                              } else {
+                                meanENElement = listMean[j];
+                              }
+                              meanENAdd.add(meanENElement);
+                              String meanVNElement =
+                                  jsonDecode(dataRaw['meanVN'])[0][j];
+                              meanVNElement = meanVNElement.substring(
+                                  0, meanVNElement.length - 2);
+                              meanVNElement = meanVNElement +
+                                  listMean[j].substring(listMean[j].length - 1);
+                              meanVNAdd.add(meanVNElement);
+                            }
+                            String meanEN = '';
+                            String meanVN = '';
+                            for (var j = 0; j < meanENAdd.length; j++) {
+                              if (j == 0) {
+                                meanVN = meanVN +
+                                    meanVNAdd[j]
+                                        .substring(0, meanVNAdd[j].length - 1);
+                                meanEN = meanEN +
+                                    meanENAdd[j]
+                                        .substring(0, meanENAdd[j].length - 1);
+                              } else {
+                                meanVN = meanVN +
+                                    ' | ' +
+                                    meanVNAdd[j]
+                                        .substring(0, meanVNAdd[j].length - 1);
+                                meanEN = meanEN +
+                                    ' | ' +
+                                    meanENAdd[j]
+                                        .substring(0, meanENAdd[j].length - 1);
+                              }
+                            }
+                            if (c.language.string == 'VN') {
+                              mean = meanVN;
+                            } else {
+                              mean = meanEN;
+                            }
+                            if (jsonDecode(dataRaw['imageURL']).length > 0) {
+                              image = jsonDecode(dataRaw['imageURL'])[0];
+                            }
+                          }
+                          return Column(children: [
+                            Row(children: [
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        suggestion.toString().contains('@')
+                                            ? suggestion
+                                                .toString()
+                                                .split('@')[0]
+                                            : suggestion.toString(),
+                                        style: const TextStyle(
+                                          fontSize: 18.0,
+                                          color: textColor,
+                                          fontWeight: FontWeight.w600,
                                         ),
-                                      )
-                                      .toList(),
-                                ))
-                              : const SizedBox(),
-                          const SizedBox(width: 10),
-                        ]),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        mean,
+                                        style: const TextStyle(
+                                          fontSize: 14.0,
+                                          color: textColor,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ]),
+                              ),
+                              Container(
+                                  margin: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: const BorderRadius.all(
+                                        Radius.circular(8)),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.6),
+                                        spreadRadius: 0,
+                                        blurRadius: 3,
+                                        offset: const Offset(
+                                            3, 3), // changes position of shadow
+                                      ),
+                                    ],
+                                  ),
+                                  width: 70,
+                                  height: 50,
+                                  child: Stack(children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: ImageFiltered(
+                                        imageFilter: ImageFilter.blur(
+                                            sigmaX: 6, sigmaY: 6),
+                                        child: Opacity(
+                                          opacity: 0.8,
+                                          child: Image(
+                                            image: NetworkImage(
+                                                dataRaw.toString() == 'null'
+                                                    ? image
+                                                    : 'https://bedict.com/' +
+                                                        image.replaceAll(
+                                                            '\\', '')),
+                                            fit: BoxFit.cover,
+                                            width: 70,
+                                            height: 50,
+                                            errorBuilder: (BuildContext context,
+                                                Object exception,
+                                                StackTrace? stackTrace) {
+                                              return const SizedBox();
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image(
+                                        image: NetworkImage(
+                                            dataRaw.toString() == 'null'
+                                                ? image
+                                                : 'https://bedict.com/' +
+                                                    image.replaceAll('\\', '')),
+                                        fit: BoxFit.contain,
+                                        width: 70,
+                                        height: 50,
+                                        errorBuilder: (BuildContext context,
+                                            Object exception,
+                                            StackTrace? stackTrace) {
+                                          return const SizedBox();
+                                        },
+                                      ),
+                                    ),
+                                    listMeans.length > 1
+                                        ? Positioned(
+                                            right: 4,
+                                            bottom: 4,
+                                            child: Container(
+                                                alignment: Alignment.center,
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white
+                                                      .withOpacity(0.7),
+                                                  borderRadius:
+                                                      const BorderRadius.all(
+                                                          Radius.circular(20)),
+                                                ),
+                                                height: 20,
+                                                width: 20,
+                                                child: Text(
+                                                  '+ ' +
+                                                      (listMeans.length - 1)
+                                                          .toString(),
+                                                  style: const TextStyle(
+                                                    fontSize: 9,
+                                                  ),
+                                                )))
+                                        : const SizedBox(),
+                                  ])),
+                            ]),
+                            (dataRaw.toString() == 'null' &&
+                                    suggestion.toString().split('@')[2] !=
+                                        'null')
+                                ? Opacity(
+                                    opacity: 0.3,
+                                    child: LinkText(
+                                        'Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
+                                        textAlign: TextAlign.center,
+                                        textStyle: const TextStyle(
+                                            fontSize: 10.0,
+                                            color: textColor,
+                                            fontFamily: 'Tahoma',
+                                            fontWeight: FontWeight.w400,
+                                            decoration: TextDecoration.none),
+                                        linkStyle: const TextStyle(
+                                            fontSize: 10.0,
+                                            color: Colors.blue,
+                                            fontFamily: 'Tahoma',
+                                            fontWeight: FontWeight.w400,
+                                            decoration:
+                                                TextDecoration.underline,
+                                            decorationColor: Colors.blue,
+                                            decorationStyle:
+                                                TextDecorationStyle.solid),
+                                        onLinkTap: (url) async {
+                                      if (!await launchUrl(Uri.parse(url)))
+                                        throw 'Could not launch $url';
+                                    }))
+                                : const SizedBox(),
+                            (dataRaw.toString() == 'null' &&
+                                    suggestion.toString().split('@')[2] !=
+                                        'null')
+                                ? const SizedBox(height: 5)
+                                : const SizedBox(),
+                          ]);
+                        },
+                        onSuggestionSelected: (suggestion) async {
+                          // searchField.text = suggestion.toString();
+                          if (!suggestion.toString().contains('@')) {
+                            await searchToHome(suggestion.toString());
+                          } else {
+                            var dataRaw =
+                                box.get(suggestion.toString().split('@')[0]);
+                            if (dataRaw.toString() != 'null') {
+                              await searchToHome(
+                                  suggestion.toString().split('@')[0]);
+                            } else {
+                              String imageUrl = await getImage(
+                                  suggestion.toString().split('@')[0],
+                                  'medium');
+                              if (imageUrl.split('@')[0] != 'null') {
+                                Get.dialog(Column(children: [
+                                  const Expanded(child: SizedBox()),
+                                  Container(
+                                      margin: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: const BorderRadius.all(
+                                            Radius.circular(20)),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.6),
+                                            spreadRadius: 0,
+                                            blurRadius: 3,
+                                            offset: const Offset(3,
+                                                3), // changes position of shadow
+                                          ),
+                                        ],
+                                      ),
+                                      width: 320,
+                                      child: Column(children: [
+                                        const SizedBox(height: 10),
+                                        Text(
+                                          suggestion.toString().split('@')[0],
+                                          style: const TextStyle(
+                                              fontSize: 18.0,
+                                              color: textColor,
+                                              fontWeight: FontWeight.w600,
+                                              fontFamily: 'Tahoma',
+                                              decoration: TextDecoration.none),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 5),
+                                        Text(
+                                          suggestion.toString().split('@')[1],
+                                          style: const TextStyle(
+                                              fontSize: 16.0,
+                                              color: textColor,
+                                              fontFamily: 'Tahoma',
+                                              fontWeight: FontWeight.w400,
+                                              decoration: TextDecoration.none),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        Container(
+                                            margin: const EdgeInsets.all(10),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius:
+                                                  const BorderRadius.all(
+                                                      Radius.circular(15)),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black
+                                                      .withOpacity(0.6),
+                                                  spreadRadius: 0,
+                                                  blurRadius: 3,
+                                                  offset: const Offset(3,
+                                                      3), // changes position of shadow
+                                                ),
+                                              ],
+                                            ),
+                                            width: 280,
+                                            height: 200,
+                                            child: Stack(children: [
+                                              ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(15),
+                                                child: ImageFiltered(
+                                                  imageFilter: ImageFilter.blur(
+                                                      sigmaX: 6, sigmaY: 6),
+                                                  child: Opacity(
+                                                    opacity: 0.8,
+                                                    child: Image(
+                                                      image: NetworkImage(
+                                                          imageUrl),
+                                                      fit: BoxFit.cover,
+                                                      width: 280,
+                                                      height: 200,
+                                                      errorBuilder:
+                                                          (BuildContext context,
+                                                              Object exception,
+                                                              StackTrace?
+                                                                  stackTrace) {
+                                                        return const SizedBox();
+                                                      },
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              ClipRRect(
+                                                borderRadius:
+                                                    BorderRadius.circular(15),
+                                                child: Image(
+                                                  image: NetworkImage(imageUrl),
+                                                  fit: BoxFit.contain,
+                                                  width: 280,
+                                                  height: 200,
+                                                  errorBuilder: (BuildContext
+                                                          context,
+                                                      Object exception,
+                                                      StackTrace? stackTrace) {
+                                                    return const SizedBox();
+                                                  },
+                                                ),
+                                              ),
+                                            ])),
+                                        (suggestion.toString().split('@')[2] !=
+                                                'null')
+                                            ? Opacity(
+                                                opacity: 0.5,
+                                                child: LinkText(
+                                                    'Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
+                                                    textAlign: TextAlign.center,
+                                                    textStyle: const TextStyle(
+                                                        fontSize: 12.0,
+                                                        color: textColor,
+                                                        fontFamily: 'Tahoma',
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        decoration:
+                                                            TextDecoration
+                                                                .none),
+                                                    linkStyle: const TextStyle(
+                                                        fontSize: 12.0,
+                                                        color: Colors.blue,
+                                                        fontFamily: 'Tahoma',
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                        decoration:
+                                                            TextDecoration
+                                                                .underline,
+                                                        decorationColor:
+                                                            Colors.blue,
+                                                        decorationStyle:
+                                                            TextDecorationStyle
+                                                                .solid),
+                                                    onLinkTap: (url) async {
+                                                  if (!await launchUrl(
+                                                      Uri.parse(url)))
+                                                    throw 'Could not launch $url';
+                                                }))
+                                            : const SizedBox(),
+                                        const SizedBox(height: 10),
+                                      ])),
+                                  const Expanded(child: SizedBox()),
+                                ]));
+                              }
+                            }
+                          }
+                        },
+                        animationDuration: Duration.zero,
+                        debounceDuration: Duration.zero,
                       ),
-                    ]),
+                    ),
+                    const SizedBox(width: 15),
+                  ]),
+                ),
+              ),
+              const SizedBox(height: 15),
+              Expanded(
+                child: GestureDetector(
+                  onVerticalDragEnd: (details) async {
+                    if (details.primaryVelocity! > 0) {
+                      await getPreviousRandom();
+                    }
+                    if (details.primaryVelocity! < -0) {
+                      await getNextRandom();
+                    }
+                  },
+                  onHorizontalDragEnd: (details) {
+                    if (details.primaryVelocity! > 0) {
+                      getPreviousMean();
+                    }
+                    if (details.primaryVelocity! < 0) {
+                      getNextMean();
+                    }
+                  },
+                  onDoubleTap: () {
+                    getToLearn();
+                  },
+                  onTap: () async {
+                    if (searchFocusNode.hasFocus) {
+                      searchFocusNode.unfocus();
+                    }
+                    if (c.isSearch.value) {
+                      c.isSearch = false.obs;
+                      c.update();
+                    }
+                    if (processKey.currentState!.controller.isAnimating) {
+                      processKey.currentState!.controller.stop();
+                    } else {
+                      processKey.currentState!.controller.forward();
+                    }
+                  },
+                  child: Column(children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GetBuilder<Controller>(
+                          builder: (_) => Flexible(
+                            child: AnimatedTextKit(
+                              key: ValueKey<String>(c.word.string),
+                              animatedTexts: [
+                                ColorizeAnimatedText(
+                                  c.word.string,
+                                  textAlign: TextAlign.center,
+                                  speed: const Duration(milliseconds: 300),
+                                  textStyle: TextStyle(
+                                    fontSize: 50,
+                                    letterSpacing: 1,
+                                    fontWeight: FontWeight.w600,
+                                    shadows: [
+                                      Shadow(
+                                        blurRadius: 15,
+                                        color: Colors.black.withOpacity(0.5),
+                                        offset: const Offset(3, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  colors: colorizeColors,
+                                ),
+                              ],
+                              isRepeatingAnimation: true,
+                              repeatForever: true,
+                              onTap: () {},
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GetBuilder<Controller>(
+                          builder: (_) => Flexible(
+                            child: AnimatedTextKit(
+                              key: ValueKey<String>(c.word.string),
+                              animatedTexts: [
+                                ColorizeAnimatedText(
+                                  c.pronun.string,
+                                  textAlign: TextAlign.center,
+                                  speed: const Duration(milliseconds: 300),
+                                  textStyle: TextStyle(
+                                    fontSize: 20,
+                                    letterSpacing: 1,
+                                    fontWeight: FontWeight.w600,
+                                    shadows: [
+                                      Shadow(
+                                        blurRadius: 15,
+                                        color: Colors.black.withOpacity(0.5),
+                                        offset: const Offset(3, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  colors: colorizeColors,
+                                ),
+                              ],
+                              isRepeatingAnimation: true,
+                              repeatForever: true,
+                              onTap: () {},
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Expanded(
+                      child: Container(color: Colors.transparent),
+                    ),
+                    GetBuilder<Controller>(
+                      builder: (_) => Row(children: [
+                        const SizedBox(width: 10),
+                        c.mean.isNotEmpty
+                            ? Flexible(
+                                child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: c.mean[c.nowMean.value]
+                                    .asMap()
+                                    .entries
+                                    .map<Widget>(
+                                      (subMean) => FutureBuilder(
+                                        // future: Future.delayed(Duration(milliseconds: (subMean.key+1)*1000)),
+                                        future: waitSpeak(subMean.key),
+                                        builder: (context, snapshot) {
+                                          Widget child;
+
+                                          if (snapshot.connectionState ==
+                                              ConnectionState.waiting) {
+                                            child = const SizedBox();
+                                          } else {
+                                            child = Container(
+                                              margin: const EdgeInsets.fromLTRB(
+                                                  0, 0, 0, 5),
+                                              padding: const EdgeInsets.all(5),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white
+                                                    .withOpacity(0.3),
+                                                borderRadius:
+                                                    const BorderRadius.all(
+                                                        Radius.circular(10)),
+                                              ),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  const SizedBox(
+                                                    height: 3,
+                                                  ),
+                                                  Opacity(
+                                                    opacity: 0.3,
+                                                    child: Text(
+                                                      laytuloai(subMean.value
+                                                              .substring(subMean
+                                                                      .value
+                                                                      .length -
+                                                                  1))[
+                                                          c.typeState.value],
+                                                      style: const TextStyle(
+                                                        fontSize: 11,
+                                                        color: textColor,
+                                                      ),
+                                                      textAlign: TextAlign.left,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 2),
+                                                  Text(
+                                                    subMean.value.substring(
+                                                        0,
+                                                        subMean.value.length -
+                                                            1),
+                                                    style: const TextStyle(
+                                                      fontSize: 18,
+                                                      color: textColor,
+                                                    ),
+                                                    textAlign: TextAlign.left,
+                                                  ),
+                                                  const SizedBox(height: 3),
+                                                ],
+                                              ),
+                                            );
+                                          }
+                                          return AnimatedSwitcher(
+                                            duration: const Duration(
+                                                milliseconds: 500),
+                                            child: child,
+                                          );
+                                        },
+                                      ),
+                                    )
+                                    .toList(),
+                              ))
+                            : const SizedBox(),
+                        const SizedBox(width: 10),
+                      ]),
+                    ),
+                  ]),
+                ),
+              ),
+              const SizedBox(height: 5),
+              GetBuilder<Controller>(
+                builder: (_) => c.mean.length > 1
+                    ? DotsIndicator(
+                        dotsCount: c.mean.length,
+                        position: c.nowMean.value.toDouble(),
+                        axis: Axis.horizontal,
+                        decorator: DotsDecorator(
+                          size: const Size.square(9.0),
+                          activeSize: const Size(14.0, 9.0),
+                          activeColor: Colors.black.withOpacity(0.4),
+                          color: Colors.black.withOpacity(0.1),
+                          activeShape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(4.0)),
+                          spacing: 19 * c.mean.length >
+                                  MediaQuery.of(context).size.width - 20
+                              ? EdgeInsets.fromLTRB(
+                                  ((MediaQuery.of(context).size.width - 20) /
+                                              c.mean.length -
+                                          9) /
+                                      2,
+                                  10,
+                                  ((MediaQuery.of(context).size.width - 20) /
+                                              c.mean.length -
+                                          9) /
+                                      2,
+                                  10)
+                              : const EdgeInsets.fromLTRB(5, 5, 5, 5),
+                        ),
+                        onTap: (index) {
+                          c.nowMean = RxInt(index.toInt());
+                          c.update();
+                        })
+                    : const SizedBox(),
+              ),
+              const SizedBox(height: 5),
+              GetBuilder<Controller>(
+                builder: (_) => c.mean.isNotEmpty
+                    ? ProcessWidget(
+                        meanLength: c.mean[c.nowMean.value].length,
+                        key: processKey,
+                      )
+                    : const SizedBox(),
+              ),
+              // Row(children: [
+              //   const SizedBox(width: 10),
+              //   ToggleSwitch(
+              //     minWidth: 35.0,
+              //     minHeight: 22.0,
+              //     fontSize: 9.0,
+              //     initialLabelIndex: initLanguageIndex,
+              //     activeBgColor: const [backgroundColor],
+              //     activeFgColor: Colors.white,
+              //     inactiveBgColor: const Color.fromRGBO(240, 240, 240, 1),
+              //     inactiveFgColor: textColor,
+              //     totalSwitches: 2,
+              //     changeOnTap: true,
+              //     labels: const ['VN', 'EN'],
+              //     onToggle: (index) async {
+              //       if (index == 0) {
+              //         c.changeLanguage('VN');
+              //       } else {
+              //         c.changeLanguage('EN');
+              //       }
+              //     },
+              //   ),
+              //   const SizedBox(width: 10),
+              //   GetBuilder<Controller>(
+              //     builder: (_) => Text(
+              //       c.language.string == 'VN' ? 'nói' : 'speak',
+              //       style: const TextStyle(
+              //         color: textColor,
+              //         fontSize: 12,
+              //         fontWeight: FontWeight.w400,
+              //       ),
+              //       textAlign: TextAlign.center,
+              //     ),
+              //   ),
+              //   GetBuilder<Controller>(
+              //     builder: (_) => Switch(
+              //       activeColor: backgroundColor,
+              //       activeTrackColor: themeColor,
+              //       value: c.initSpeak.value,
+              //       onChanged: (value) async {
+              //         c.initSpeak = value.obs;
+              //         c.update();
+              //         await boxSetting.put('initSpeak', value);
+              //       },
+              //     ),
+              //   ),
+              //   const SizedBox(width: 10),
+              //   GetBuilder<Controller>(
+              //     builder: (_) => Text(
+              //       c.language.string == 'VN' ? 'tốc độ' : 'speed',
+              //       style: const TextStyle(
+              //         color: textColor,
+              //         fontSize: 12,
+              //         fontWeight: FontWeight.w400,
+              //       ),
+              //       textAlign: TextAlign.center,
+              //     ),
+              //   ),
+              //   Expanded(
+              //     child: GetBuilder<Controller>(
+              //       builder: (_) => Slider(
+              //         value: c.speakSpeed.value,
+              //         min: 0.1,
+              //         max: 1,
+              //         divisions: 9,
+              //         activeColor: backgroundColor,
+              //         inactiveColor: themeColor,
+              //         thumbColor: backgroundColor,
+              //         label: double.parse(
+              //                 (c.speakSpeed.value).toStringAsFixed(1))
+              //             .toString(),
+              //         onChanged: (double value) async {
+              //           c.speakSpeed = RxDouble(value);
+              //           await boxSetting.put('speakSpeed', value);
+              //           c.update();
+              //         },
+              //       ),
+              //     ),
+              //   ),
+              // ]),
+              SizedBox(height: MediaQuery.of(context).padding.bottom),
+            ],
+          ),
+          Container(
+            alignment: Alignment.centerRight,
+            child: Row(children: [
+              Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                const Expanded(child: SizedBox()),
+                IconButton(
+                  padding: const EdgeInsets.all(0.0),
+                  icon: Icon(
+                    Icons.keyboard_arrow_up_rounded,
+                    size: 25,
+                    color: Colors.black.withOpacity(0.3),
+                  ),
+                  tooltip: 'next',
+                  onPressed: () {
+                    getNext();
+                  },
+                ),
+                IconButton(
+                  padding: const EdgeInsets.all(0.0),
+                  icon: Icon(
+                    Icons.refresh_rounded,
+                    size: 25,
+                    color: Colors.black.withOpacity(0.3),
+                  ),
+                  tooltip: 'random',
+                  onPressed: () {
+                    getRandom();
+                  },
+                ),
+                IconButton(
+                  padding: const EdgeInsets.all(0.0),
+                  icon: Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 25,
+                    color: Colors.black.withOpacity(0.3),
+                  ),
+                  tooltip: 'previous',
+                  onPressed: () {
+                    getPrevious();
+                  },
+                ),
+                IconButton(
+                  padding: const EdgeInsets.all(0.0),
+                  icon: Icon(
+                    Icons.volume_up_outlined,
+                    size: 25,
+                    color: Colors.black.withOpacity(0.3),
+                  ),
+                  tooltip: 'speak',
+                  onPressed: () {
+                    _speak(c.word.string);
+                  },
+                ),
+                const Expanded(child: SizedBox()),
+                const SizedBox(height: 30),
+              ]),
+              const Expanded(child: SizedBox()),
+              Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
+                const Expanded(child: SizedBox()),
+                RotatedBox(
+                  quarterTurns: -1,
+                  child: GetBuilder<Controller>(
+                    builder: (_) => LinearPercentIndicator(
+                      alignment: MainAxisAlignment.center,
+                      width: MediaQuery.of(context).size.height * 0.2,
+                      lineHeight: 5.0,
+                      percent: (c.wordScore.value +
+                              c.pronunScore.value +
+                              c.speakScore.value +
+                              c.meanScore.value) /
+                          100,
+                      backgroundColor: Colors.black.withOpacity(0.1),
+                      progressColor: Colors.black.withOpacity(0.4),
+                      padding: const EdgeInsets.all(0),
+                      animation: true,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 5),
-                GetBuilder<Controller>(
-                  builder: (_) => c.mean.length > 1
-                      ? DotsIndicator(
-                          dotsCount: c.mean.length,
-                          position: c.nowMean.value.toDouble(),
-                          axis: Axis.horizontal,
-                          decorator: DotsDecorator(
-                            size: const Size.square(9.0),
-                            activeSize: const Size(14.0, 9.0),
-                            activeColor: Colors.black.withOpacity(0.4),
-                            color: Colors.black.withOpacity(0.1),
-                            activeShape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(4.0)),
-                            spacing: 19 * c.mean.length >
-                                    MediaQuery.of(context).size.width - 20
-                                ? EdgeInsets.fromLTRB(
-                                    ((MediaQuery.of(context).size.width - 20) /
-                                                c.mean.length -
-                                            9) /
-                                        2,
-                                    10,
-                                    ((MediaQuery.of(context).size.width - 20) /
-                                                c.mean.length -
-                                            9) /
-                                        2,
-                                    10)
-                                : const EdgeInsets.fromLTRB(5, 5, 5, 5),
-                          ),
-                          onTap: (index) {
-                            c.nowMean = RxInt(index.toInt());
-                            c.update();
-                          })
-                      : const SizedBox(),
-                ),
-                const SizedBox(height: 5),
-                GetBuilder<Controller>(
-                  builder: (_) => c.mean.isNotEmpty
-                      ? ProcessWidget(
-                          meanLength: c.mean[c.nowMean.value].length,
-                          key: processKey,
-                        )
-                      : const SizedBox(),
-                ),
-                // Row(children: [
-                //   const SizedBox(width: 10),
-                //   ToggleSwitch(
-                //     minWidth: 35.0,
-                //     minHeight: 22.0,
-                //     fontSize: 9.0,
-                //     initialLabelIndex: initLanguageIndex,
-                //     activeBgColor: const [backgroundColor],
-                //     activeFgColor: Colors.white,
-                //     inactiveBgColor: const Color.fromRGBO(240, 240, 240, 1),
-                //     inactiveFgColor: textColor,
-                //     totalSwitches: 2,
-                //     changeOnTap: true,
-                //     labels: const ['VN', 'EN'],
-                //     onToggle: (index) async {
-                //       if (index == 0) {
-                //         c.changeLanguage('VN');
-                //       } else {
-                //         c.changeLanguage('EN');
-                //       }
-                //     },
-                //   ),
-                //   const SizedBox(width: 10),
-                //   GetBuilder<Controller>(
-                //     builder: (_) => Text(
-                //       c.language.string == 'VN' ? 'nói' : 'speak',
-                //       style: const TextStyle(
-                //         color: textColor,
-                //         fontSize: 12,
-                //         fontWeight: FontWeight.w400,
-                //       ),
-                //       textAlign: TextAlign.center,
-                //     ),
-                //   ),
-                //   GetBuilder<Controller>(
-                //     builder: (_) => Switch(
-                //       activeColor: backgroundColor,
-                //       activeTrackColor: themeColor,
-                //       value: c.initSpeak.value,
-                //       onChanged: (value) async {
-                //         c.initSpeak = value.obs;
-                //         c.update();
-                //         await boxSetting.put('initSpeak', value);
-                //       },
-                //     ),
-                //   ),
-                //   const SizedBox(width: 10),
-                //   GetBuilder<Controller>(
-                //     builder: (_) => Text(
-                //       c.language.string == 'VN' ? 'tốc độ' : 'speed',
-                //       style: const TextStyle(
-                //         color: textColor,
-                //         fontSize: 12,
-                //         fontWeight: FontWeight.w400,
-                //       ),
-                //       textAlign: TextAlign.center,
-                //     ),
-                //   ),
-                //   Expanded(
-                //     child: GetBuilder<Controller>(
-                //       builder: (_) => Slider(
-                //         value: c.speakSpeed.value,
-                //         min: 0.1,
-                //         max: 1,
-                //         divisions: 9,
-                //         activeColor: backgroundColor,
-                //         inactiveColor: themeColor,
-                //         thumbColor: backgroundColor,
-                //         label: double.parse(
-                //                 (c.speakSpeed.value).toStringAsFixed(1))
-                //             .toString(),
-                //         onChanged: (double value) async {
-                //           c.speakSpeed = RxDouble(value);
-                //           await boxSetting.put('speakSpeed', value);
-                //           c.update();
-                //         },
-                //       ),
-                //     ),
-                //   ),
-                // ]),
-                SizedBox(height: MediaQuery.of(context).padding.bottom),
-              ],
-            ),
-            Container(
-              alignment: Alignment.centerRight,
-              child: Row(children: [
-                Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Expanded(child: SizedBox()),
-                      IconButton(
-                        padding: const EdgeInsets.all(0.0),
-                        icon: Icon(
-                          Icons.keyboard_arrow_up_rounded,
-                          size: 25,
-                          color: Colors.black.withOpacity(0.3),
-                        ),
-                        tooltip: 'next',
-                        onPressed: () {
-                          getNext();
-                        },
-                      ),
-                      IconButton(
-                        padding: const EdgeInsets.all(0.0),
-                        icon: Icon(
-                          Icons.refresh_rounded,
-                          size: 25,
-                          color: Colors.black.withOpacity(0.3),
-                        ),
-                        tooltip: 'random',
-                        onPressed: () {
-                          getRandom();
-                        },
-                      ),
-                      IconButton(
-                        padding: const EdgeInsets.all(0.0),
-                        icon: Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          size: 25,
-                          color: Colors.black.withOpacity(0.3),
-                        ),
-                        tooltip: 'previous',
-                        onPressed: () {
-                          getPrevious();
-                        },
-                      ),
-                      IconButton(
-                        padding: const EdgeInsets.all(0.0),
-                        icon: Icon(
-                          Icons.volume_up_outlined,
-                          size: 25,
-                          color: Colors.black.withOpacity(0.3),
-                        ),
-                        tooltip: 'speak',
-                        onPressed: () {
-                          _speak(c.word.string);
-                        },
-                      ),
-                      const Expanded(child: SizedBox()),
-                      const SizedBox(height: 30),
-                    ]),
                 const Expanded(child: SizedBox()),
-                Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Expanded(child: SizedBox()),
-                      RotatedBox(
-                        quarterTurns: -1,
-                        child: GetBuilder<Controller>(
-                          builder: (_) => LinearPercentIndicator(
-                            alignment: MainAxisAlignment.center,
-                            width: MediaQuery.of(context).size.height * 0.2,
-                            lineHeight: 5.0,
-                            percent: (c.wordScore.value +
-                                    c.pronunScore.value +
-                                    c.speakScore.value +
-                                    c.meanScore.value) /
-                                100,
-                            backgroundColor: Colors.black.withOpacity(0.1),
-                            progressColor: Colors.black.withOpacity(0.4),
-                            padding: const EdgeInsets.all(0),
-                            animation: true,
-                          ),
-                        ),
-                      ),
-                      const Expanded(child: SizedBox()),
-                      const SizedBox(height: 30),
-                    ]),
-                const SizedBox(width: 7),
+                const SizedBox(height: 30),
               ]),
-            ),
-          ]),
-        ),
+              const SizedBox(width: 7),
+            ]),
+          ),
+        ]),
       ),
     );
   }
@@ -9396,6 +9511,7 @@ class HistoryPage extends StatelessWidget {
 
     return WillPopScope(
       onWillPop: () async {
+        c.currentPage = 3.obs;
         Get.offAll(() => MainScreen());
         return false;
       },
@@ -9417,6 +9533,7 @@ class HistoryPage extends StatelessWidget {
             ),
             tooltip: 'Back to MainScreen',
             onPressed: () {
+              c.currentPage = 3.obs;
               Get.offAll(() => MainScreen());
             },
           ),
@@ -9892,6 +10009,7 @@ class HistoryPage extends StatelessWidget {
                         }),
                   ),
                 ),
+                SizedBox(height: MediaQuery.of(context).padding.bottom),
               ],
             ),
           ),
@@ -9935,6 +10053,7 @@ class SortPage extends StatelessWidget {
 
     return WillPopScope(
       onWillPop: () async {
+        c.currentPage = 3.obs;
         Get.offAll(() => MainScreen());
         return false;
       },
@@ -9960,6 +10079,7 @@ class SortPage extends StatelessWidget {
             ),
             tooltip: 'Back to MainScreen',
             onPressed: () {
+              c.currentPage = 3.obs;
               Get.offAll(() => MainScreen());
             },
           ),
@@ -10558,6 +10678,7 @@ class SortPage extends StatelessWidget {
                         }),
                   ),
                 ),
+                SizedBox(height: MediaQuery.of(context).padding.bottom),
               ],
             ),
           ),
@@ -11590,6 +11711,7 @@ class MyUpgradePage extends StatelessWidget {
 
     return WillPopScope(
       onWillPop: () async {
+        c.currentPage = 3.obs;
         Get.offAll(() => MainScreen());
         return false;
       },
@@ -11611,6 +11733,7 @@ class MyUpgradePage extends StatelessWidget {
             ),
             tooltip: 'Back to MainScreen',
             onPressed: () {
+              c.currentPage = 3.obs;
               Get.offAll(() => MainScreen());
             },
           ),
@@ -11970,6 +12093,7 @@ class MyUpgradePage extends StatelessWidget {
                 const SizedBox(width: 15),
               ]),
               const SizedBox(height: 10),
+              SizedBox(height: MediaQuery.of(context).padding.bottom),
             ],
           ),
         ),
@@ -11987,6 +12111,7 @@ class ContactPage extends StatelessWidget {
 
     return WillPopScope(
       onWillPop: () async {
+        c.currentPage = 3.obs;
         Get.offAll(() => MainScreen());
         return false;
       },
@@ -12008,6 +12133,7 @@ class ContactPage extends StatelessWidget {
             ),
             tooltip: 'Back to MainScreen',
             onPressed: () {
+              c.currentPage = 3.obs;
               Get.offAll(() => MainScreen());
             },
           ),
@@ -12463,6 +12589,7 @@ class PolicyPage extends StatelessWidget {
               ),
             ]),
             const SizedBox(height: 10),
+            SizedBox(height: MediaQuery.of(context).padding.bottom),
           ],
         ),
       ),
@@ -13021,6 +13148,7 @@ class TermPage extends StatelessWidget {
               ),
             ]),
             const SizedBox(height: 10),
+            SizedBox(height: MediaQuery.of(context).padding.bottom),
           ],
         ),
       ),
@@ -13219,6 +13347,7 @@ class WelcomePage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 100),
+              SizedBox(height: MediaQuery.of(context).padding.bottom),
             ],
           ),
         ),
