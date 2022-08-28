@@ -148,9 +148,9 @@ Future<void> main() async {
   runAppCount = await boxSetting.get('runAppCount') ?? runAppCount;
   await boxSetting.put('runAppCount', runAppCount + 1);
   if (runAppCount < 100) {
-    showAdFrequency = 20 - runAppCount ~/ 10;
+    showAdFrequency = 40 - runAppCount ~/ 10;
   } else {
-    showAdFrequency = 10;
+    showAdFrequency = 20;
   }
 
   c.notifyDaily = RxBool(await boxSetting.get('notifyDaily') ?? false);
@@ -8532,34 +8532,37 @@ class SpeakWidget extends StatelessWidget {
               MaterialStateProperty.all<Color>(Colors.white.withOpacity(0.1)),
           foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
           padding:
-              MaterialStateProperty.all<EdgeInsets>(const EdgeInsets.all(0)),
+              MaterialStateProperty.all<EdgeInsets>(const EdgeInsets.all(5)),
           shape:
               MaterialStateProperty.all<OutlinedBorder?>(RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30.0),
           )),
-          fixedSize: MaterialStateProperty.all<Size>(const Size.fromHeight(40)),
+          // fixedSize: MaterialStateProperty.all<Size>(const Size.fromHeight(40)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            const SizedBox(width: 3),
+            // const SizedBox(width: 5),
             Icon(
               Icons.volume_up_outlined,
               size: 30,
               color: Colors.black.withOpacity(0.5),
             ),
-            GetBuilder<Controller>(
-              builder: (_) => Text(
-                c.pronun.string,
-                style: const TextStyle(
-                  fontSize: 20,
-                  color: textColor,
-                  overflow: TextOverflow.ellipsis,
-                  fontWeight: FontWeight.w400,
+            const SizedBox(width: 5),
+            Expanded(
+              child: GetBuilder<Controller>(
+                builder: (_) => Text(
+                  c.pronun.string,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    color: textColor,
+                    overflow: TextOverflow.visible,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
               ),
             ),
-            const SizedBox(width: 3),
+            // const SizedBox(width: 5),
           ],
         ),
         onPressed: () {
