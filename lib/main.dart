@@ -13166,10 +13166,10 @@ class LoadingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
     Future.delayed(Duration.zero, () async {
-      final response = await http.get(
-          Uri.parse(
-              'https://drive.google.com/uc?export=download&id=1vUu4qZjTS5tpndNEHTBHaE51rr6y0sP_'),
-          headers: {'Content-Type': 'application/json'});
+      final response =
+          await http.post(Uri.parse('https://bedict.com/readDataFile.php'),
+              // headers: {'Content-Type': 'application/json'},
+              body: {'token': 'xoaithoikham@mehatoac'});
       if (response.statusCode == 200) {
         List data = json.decode(utf8.decode(response.bodyBytes));
         for (var i = 0; i < data.length; i++) {
