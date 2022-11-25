@@ -1742,13 +1742,12 @@ class _SearchPageState extends State<SearchPage> {
                                           child: Opacity(
                                             opacity: 0.8,
                                             child: Image(
-                                              image: NetworkImage(dataRaw
-                                                          .toString() ==
-                                                      'null'
-                                                  ? image
-                                                  : 'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
-                                                      image.replaceAll(
-                                                          '\\', '')),
+                                              image: NetworkImage(
+                                                  dataRaw.toString() == 'null'
+                                                      ? image
+                                                      : 'https://bedict.com/' +
+                                                          image.replaceAll(
+                                                              '\\', '')),
                                               fit: BoxFit.cover,
                                               width: 70,
                                               height: 50,
@@ -1765,12 +1764,12 @@ class _SearchPageState extends State<SearchPage> {
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(8),
                                         child: Image(
-                                          image: NetworkImage(dataRaw
-                                                      .toString() ==
-                                                  'null'
-                                              ? image
-                                              : 'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
-                                                  image.replaceAll('\\', '')),
+                                          image: NetworkImage(
+                                              dataRaw.toString() == 'null'
+                                                  ? image
+                                                  : 'https://bedict.com/' +
+                                                      image.replaceAll(
+                                                          '\\', '')),
                                           fit: BoxFit.contain,
                                           width: 70,
                                           height: 50,
@@ -2642,7 +2641,7 @@ class _SearchPageState extends State<SearchPage> {
                                                           opacity: 0.8,
                                                           child: Image(
                                                             image: NetworkImage(
-                                                                'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
+                                                                'https://bedict.com/' +
                                                                     image.replaceAll(
                                                                         '\\',
                                                                         '')),
@@ -2692,7 +2691,7 @@ class _SearchPageState extends State<SearchPage> {
                                                               8),
                                                       child: Image(
                                                         image: NetworkImage(
-                                                            'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
+                                                            'https://bedict.com/' +
                                                                 image
                                                                     .replaceAll(
                                                                         '\\',
@@ -3098,7 +3097,7 @@ class _SearchPageState extends State<SearchPage> {
                                                           opacity: 0.8,
                                                           child: Image(
                                                             image: NetworkImage(
-                                                                'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
+                                                                'https://bedict.com/' +
                                                                     image.replaceAll(
                                                                         '\\',
                                                                         '')),
@@ -3148,7 +3147,7 @@ class _SearchPageState extends State<SearchPage> {
                                                               8),
                                                       child: Image(
                                                         image: NetworkImage(
-                                                            'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
+                                                            'https://bedict.com/' +
                                                                 image
                                                                     .replaceAll(
                                                                         '\\',
@@ -3550,7 +3549,7 @@ class _SearchPageState extends State<SearchPage> {
                                                           opacity: 0.8,
                                                           child: Image(
                                                             image: NetworkImage(
-                                                                'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
+                                                                'https://bedict.com/' +
                                                                     image.replaceAll(
                                                                         '\\',
                                                                         '')),
@@ -3600,7 +3599,7 @@ class _SearchPageState extends State<SearchPage> {
                                                               8),
                                                       child: Image(
                                                         image: NetworkImage(
-                                                            'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
+                                                            'https://bedict.com/' +
                                                                 image
                                                                     .replaceAll(
                                                                         '\\',
@@ -4002,7 +4001,7 @@ class _SearchPageState extends State<SearchPage> {
                                                           opacity: 0.8,
                                                           child: Image(
                                                             image: NetworkImage(
-                                                                'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
+                                                                'https://bedict.com/' +
                                                                     image.replaceAll(
                                                                         '\\',
                                                                         '')),
@@ -4052,7 +4051,7 @@ class _SearchPageState extends State<SearchPage> {
                                                               8),
                                                       child: Image(
                                                         image: NetworkImage(
-                                                            'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
+                                                            'https://bedict.com/' +
                                                                 image
                                                                     .replaceAll(
                                                                         '\\',
@@ -5810,10 +5809,8 @@ class Home extends StatelessWidget {
                       child: Opacity(
                         opacity: 0.8,
                         child: Image(
-                          image: NetworkImage(
-                              'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
-                                  c.imageURL[c.nowMean.value]
-                                      .replaceAll('\\', '')),
+                          image: NetworkImage('https://bedict.com/' +
+                              c.imageURL[c.nowMean.value].replaceAll('\\', '')),
                           fit: BoxFit.cover,
                           width: MediaQuery.of(context).size.width,
                           height: MediaQuery.of(context).size.height,
@@ -5860,10 +5857,9 @@ class Home extends StatelessWidget {
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(20),
                                 child: Image(
-                                  image: NetworkImage(
-                                      'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
-                                          c.imageURL[c.nowMean.value]
-                                              .replaceAll('\\', '')),
+                                  image: NetworkImage('https://bedict.com/' +
+                                      c.imageURL[c.nowMean.value]
+                                          .replaceAll('\\', '')),
                                   fit: BoxFit.contain,
                                   width: MediaQuery.of(context).size.width < 500
                                       ? MediaQuery.of(context).size.width - 100
@@ -6783,12 +6779,12 @@ class Home extends StatelessWidget {
                                         child: Opacity(
                                           opacity: 0.8,
                                           child: Image(
-                                            image: NetworkImage(dataRaw
-                                                        .toString() ==
-                                                    'null'
-                                                ? image
-                                                : 'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
-                                                    image.replaceAll('\\', '')),
+                                            image: NetworkImage(
+                                                dataRaw.toString() == 'null'
+                                                    ? image
+                                                    : 'https://bedict.com/' +
+                                                        image.replaceAll(
+                                                            '\\', '')),
                                             fit: BoxFit.cover,
                                             width: 70,
                                             height: 50,
@@ -6804,12 +6800,11 @@ class Home extends StatelessWidget {
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(8),
                                       child: Image(
-                                        image: NetworkImage(dataRaw
-                                                    .toString() ==
-                                                'null'
-                                            ? image
-                                            : 'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
-                                                image.replaceAll('\\', '')),
+                                        image: NetworkImage(
+                                            dataRaw.toString() == 'null'
+                                                ? image
+                                                : 'https://bedict.com/' +
+                                                    image.replaceAll('\\', '')),
                                         fit: BoxFit.contain,
                                         width: 70,
                                         height: 50,
@@ -7639,9 +7634,8 @@ class _WriteWidgetState extends State<WriteWidget> {
                           child: Opacity(
                             opacity: 0.8,
                             child: Image(
-                              image: NetworkImage(
-                                  'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
-                                      c.imageURL[index].replaceAll('\\', '')),
+                              image: NetworkImage('https://bedict.com/' +
+                                  c.imageURL[index].replaceAll('\\', '')),
                               fit: BoxFit.cover,
                               width: MediaQuery.of(context).size.width > 500
                                   ? 220
@@ -7664,9 +7658,8 @@ class _WriteWidgetState extends State<WriteWidget> {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image(
-                          image: NetworkImage(
-                              'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
-                                  c.imageURL[index].replaceAll('\\', '')),
+                          image: NetworkImage('https://bedict.com/' +
+                              c.imageURL[index].replaceAll('\\', '')),
                           fit: BoxFit.contain,
                           width: MediaQuery.of(context).size.width > 500
                               ? 220
@@ -8037,9 +8030,8 @@ class _PronunWidgetState extends State<PronunWidget> {
                           child: Opacity(
                             opacity: 0.8,
                             child: Image(
-                              image: NetworkImage(
-                                  'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
-                                      c.imageURL[index].replaceAll('\\', '')),
+                              image: NetworkImage('https://bedict.com/' +
+                                  c.imageURL[index].replaceAll('\\', '')),
                               fit: BoxFit.cover,
                               width: MediaQuery.of(context).size.width > 500
                                   ? 220
@@ -8062,9 +8054,8 @@ class _PronunWidgetState extends State<PronunWidget> {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image(
-                          image: NetworkImage(
-                              'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
-                                  c.imageURL[index].replaceAll('\\', '')),
+                          image: NetworkImage('https://bedict.com/' +
+                              c.imageURL[index].replaceAll('\\', '')),
                           fit: BoxFit.contain,
                           width: MediaQuery.of(context).size.width > 500
                               ? 220
@@ -8632,10 +8623,8 @@ class SpeakWidget extends StatelessWidget {
                               child: Opacity(
                                 opacity: 0.8,
                                 child: Image(
-                                  image: NetworkImage(
-                                      'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
-                                          c.imageURL[index]
-                                              .replaceAll('\\', '')),
+                                  image: NetworkImage('https://bedict.com/' +
+                                      c.imageURL[index].replaceAll('\\', '')),
                                   fit: BoxFit.cover,
                                   width: MediaQuery.of(context).size.width > 420
                                       ? 180
@@ -8662,9 +8651,8 @@ class SpeakWidget extends StatelessWidget {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: Image(
-                              image: NetworkImage(
-                                  'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
-                                      c.imageURL[index].replaceAll('\\', '')),
+                              image: NetworkImage('https://bedict.com/' +
+                                  c.imageURL[index].replaceAll('\\', '')),
                               fit: BoxFit.contain,
                               width: MediaQuery.of(context).size.width > 420
                                   ? 180
@@ -9179,7 +9167,7 @@ class _MeanWidgetState extends State<MeanWidget> {
                                                 opacity: 0.8,
                                                 child: Image(
                                                   image: NetworkImage(
-                                                      'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
+                                                      'https://bedict.com/' +
                                                           listImage[nowIndex]
                                                                   [index]
                                                               .replaceAll(
@@ -9222,7 +9210,7 @@ class _MeanWidgetState extends State<MeanWidget> {
                                                 BorderRadius.circular(8),
                                             child: Image(
                                               image: NetworkImage(
-                                                  'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
+                                                  'https://bedict.com/' +
                                                       listImage[nowIndex][index]
                                                           .replaceAll(
                                                               '\\', '')),
@@ -9375,10 +9363,8 @@ class LearnWord extends StatelessWidget {
                       child: Opacity(
                         opacity: 0.8,
                         child: Image(
-                          image: NetworkImage(
-                              'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
-                                  c.imageURL[c.nowMean.value]
-                                      .replaceAll('\\', '')),
+                          image: NetworkImage('https://bedict.com/' +
+                              c.imageURL[c.nowMean.value].replaceAll('\\', '')),
                           fit: BoxFit.cover,
                           width: MediaQuery.of(context).size.width,
                           height: MediaQuery.of(context).size.height,
@@ -11124,7 +11110,7 @@ class _ScorePageState extends State<ScorePage> {
                                                 opacity: 0.8,
                                                 child: Image(
                                                   image: NetworkImage(
-                                                      'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
+                                                      'https://bedict.com/' +
                                                           image.replaceAll(
                                                               '\\', '')),
                                                   fit: BoxFit.cover,
@@ -11156,7 +11142,7 @@ class _ScorePageState extends State<ScorePage> {
                                                 BorderRadius.circular(8),
                                             child: Image(
                                               image: NetworkImage(
-                                                  'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
+                                                  'https://bedict.com/' +
                                                       image.replaceAll(
                                                           '\\', '')),
                                               fit: BoxFit.contain,
@@ -11477,7 +11463,7 @@ class _ScorePageState extends State<ScorePage> {
                                                             opacity: 0.8,
                                                             child: Image(
                                                               image: NetworkImage(
-                                                                  'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
+                                                                  'https://bedict.com/' +
                                                                       image.replaceAll(
                                                                           '\\',
                                                                           '')),
@@ -11502,7 +11488,7 @@ class _ScorePageState extends State<ScorePage> {
                                                                 .circular(8),
                                                         child: Image(
                                                           image: NetworkImage(
-                                                              'https://bedict.com/readImage.php?token=xoaithoikham@mehatoac&image=' +
+                                                              'https://bedict.com/' +
                                                                   image
                                                                       .replaceAll(
                                                                           '\\',
