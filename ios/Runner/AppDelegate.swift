@@ -6,7 +6,7 @@ import FacebookCore
 // COMPLETE: Import google_mobile_ads
 // import google_mobile_ads
 
-@UIApplicationMain
+@main
 @objc class AppDelegate: FlutterAppDelegate {
   override func application(
     _ application: UIApplication,
