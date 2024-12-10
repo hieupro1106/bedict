@@ -15,7 +15,6 @@
 		</array>
 		</dict>
 	</array>
-	<string>com.bedict.bedict</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 	<string>fbapi</string>
