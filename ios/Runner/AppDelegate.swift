@@ -1,10 +1,5 @@
 import UIKit
 import Flutter
-import Firebase
-import FacebookCore
-
-// COMPLETE: Import google_mobile_ads
-// import google_mobile_ads
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -12,7 +7,6 @@ import FacebookCore
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    FirebaseApp.configure()
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }

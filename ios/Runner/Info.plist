@@ -15,11 +15,6 @@
 		</array>
 		</dict>
 	</array>
-	<key>FacebookAppID</key>
-	<string>572500014003753</string>
-	<key>FacebookClientToken</key>
-	<string>0d3fe25604e6dba9df27392f02d74bb2</string>
-	<key>FacebookDisplayName</key>
 	<string>com.bedict.bedict</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
