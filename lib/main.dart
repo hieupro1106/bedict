@@ -4045,269 +4045,267 @@ class _CategoryScreenState extends State<CategoryScreen> {
         Get.offAll(() => MainScreen());
       },
       child: Scaffold(
-        body: Builder(
-          builder: (context) {
-            return GestureDetector(
-              onTap: () {
-                if (searchFocusNode.hasFocus) {
-                  searchFocusNode.unfocus();
-                }
-                if (c.isSearch.value) {
-                  c.isSearch = false.obs;
-                  c.update();
-                }
-              },
-              child: Container(
-                color: Colors.white,
-                // padding: EdgeInsets.all(10),
-                child: Column(children: [
-                  SizedBox(height: MediaQuery.of(context).padding.top + 10),
-                  GetBuilder<Controller>(
-                    builder: (_) => Visibility(
-                      visible: c.isSearch.value,
-                      child: Column(children: [
-                        Row(children: [
-                          // const SizedBox(width:15),
-                          IconButton(
-                            padding: const EdgeInsets.all(0.0),
-                            icon: Icon(
-                              Icons.arrow_back_ios_rounded,
-                              size: 20,
-                              color: textColor.withOpacity(0.7),
-                            ),
-                            tooltip: 'Back',
-                            onPressed: () {
-                              if (searchFocusNode.hasFocus) {
-                                searchFocusNode.unfocus();
-                              }
-                              if (c.isSearch.value) {
-                                c.isSearch = false.obs;
-                                c.update();
-                              }
-                            },
+        body: Builder(builder: (context) {
+          return GestureDetector(
+            onTap: () {
+              if (searchFocusNode.hasFocus) {
+                searchFocusNode.unfocus();
+              }
+              if (c.isSearch.value) {
+                c.isSearch = false.obs;
+                c.update();
+              }
+            },
+            child: Container(
+              color: Colors.white,
+              // padding: EdgeInsets.all(10),
+              child: Column(children: [
+                SizedBox(height: MediaQuery.of(context).padding.top + 10),
+                GetBuilder<Controller>(
+                  builder: (_) => Visibility(
+                    visible: c.isSearch.value,
+                    child: Column(children: [
+                      Row(children: [
+                        // const SizedBox(width:15),
+                        IconButton(
+                          padding: const EdgeInsets.all(0.0),
+                          icon: Icon(
+                            Icons.arrow_back_ios_rounded,
+                            size: 20,
+                            color: textColor.withOpacity(0.7),
                           ),
-                          Expanded(
-                            child: TextFormField(
-                              // controller: searchField,
-                              controller: textFieldController,
-                              autofocus: true,
-                              autocorrect: false,
-                              textInputAction: TextInputAction.done,
-                              // focusNode: searchFocusNode,
-                              style: const TextStyle(
-                                fontSize: 15.0,
-                                color: textColor,
-                              ),
-                              decoration: InputDecoration(
-                                fillColor: Colors.transparent,
-                                filled: true,
-                                border: const OutlineInputBorder(
-                                  borderSide: BorderSide(width: 1, color: Colors.black),
-                                  borderRadius: BorderRadius.all(Radius.circular(30)),
-                                ),
-                                focusedBorder: const OutlineInputBorder(
-                                  borderSide: BorderSide(width: 1, color: Colors.black),
-                                  borderRadius: BorderRadius.all(Radius.circular(30)),
-                                ),
-                                enabledBorder: const OutlineInputBorder(
-                                  borderSide: BorderSide(width: 1, color: Colors.black),
-                                  borderRadius: BorderRadius.all(Radius.circular(30)),
-                                ),
-                                // prefixIcon: Icon(Icons.search_outlined,size:15),
-                                hintText: c.hint.string,
-                                isDense: true,
-                                contentPadding: const EdgeInsets.all(5),
-                                prefixIcon: const Icon(Icons.search),
-                                suffixIcon: IconButton(
-                                    icon: const Icon(Icons.close_rounded),
-                                    onPressed: () {
-                                      textFieldController.text = '';
-                                      setState(() {
-                                        listCategoryShow = listCategory;
-                                      });
-                                    }),
-                                // icon: Icon(Icons.search),
-                                // isCollapsed: true,
-                              ),
-                              onChanged: (value) {
-                                // textFieldController.text = value;
-                                List list = [];
-                                for (int i = 0; i < listCategory.length; i++) {
-                                  if (TiengViet.parse(listCategory[i][c.typeState.value]).startsWith(TiengViet.parse(value))) {
-                                    list.add(listCategory[i]);
-                                  }
-                                }
-                                setState(() {
-                                  listCategoryShow = list;
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 15),
-                        ]),
-                        const SizedBox(height: 10),
-                      ]),
-                    ),
-                  ),
-                  GetBuilder<Controller>(
-                    builder: (_) => Visibility(
-                      visible: !c.isSearch.value,
-                      child: Row(
-                        children: [
-                          const SizedBox(width: 10),
-                          IconButton(
-                            padding: const EdgeInsets.all(0.0),
-                            icon: Icon(
-                              Icons.arrow_back_ios_rounded,
-                              size: 20,
-                              color: textColor.withOpacity(0.7),
-                            ),
-                            tooltip: 'Back to MainScreen',
-                            onPressed: () {
-                              getToMainScreen();
-                            },
-                          ),
-                          Expanded(
-                            child: Text(
-                              c.language.string == 'VN' ? 'Chủ đề' : 'Category',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                color: textColor,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(
-                              Icons.search,
-                              size: 25,
-                            ),
-                            onPressed: () {
-                              c.isSearch = true.obs;
+                          tooltip: 'Back',
+                          onPressed: () {
+                            if (searchFocusNode.hasFocus) {
+                              searchFocusNode.unfocus();
+                            }
+                            if (c.isSearch.value) {
+                              c.isSearch = false.obs;
                               c.update();
-                            },
-                          ),
-                          const SizedBox(width: 10),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: GridView.count(
-                      crossAxisCount: MediaQuery.of(context).size.width ~/ 120,
-                      addAutomaticKeepAlives: false,
-                      padding: const EdgeInsets.all(5),
-                      childAspectRatio: 4 / 3,
-                      // mainAxisSpacing: 10,
-                      // crossAxisSpacing: 10,
-                      children: List.generate(listCategoryShow.length, (i) {
-                        String url = '';
-                        switch (listCategoryShow[i][0]) {
-                          case 'heraldry':
-                            url = 'assets/temp/armory2.png';
-                            break;
-                          case 'no category':
-                            url = 'assets/temp/no.png';
-                            break;
-                          case 'past participle':
-                            url = 'assets/temp/no.png';
-                            break;
-                          case 'internet':
-                            url = 'assets/temp/Internet1.png';
-                            break;
-                          case 'bell-ringing':
-                            url = 'assets/temp/bob7.png';
-                            break;
-                          default:
-                            url = 'assets/temp/' + listCategoryShow[i][0] + '1.png';
-                        }
-                        final isLock = listCategoryShow[i].length > 2 && listCategoryShow[i][2] == true;
-                        return GestureDetector(
-                          onTap: () {
-                            if (isLock) {
-                              askVip(context, 'Nội dung dành cho tài khoản VIP, đăng ký để xem', 'Content for VIP accounts, subscribe to view');
-                            } else {
-                              getToScore(i);
                             }
                           },
-                          child: Stack(children: [
-                            Container(
-                              height: double.infinity,
-                              width: double.infinity,
-                              margin: const EdgeInsets.all(7),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: const BorderRadius.all(Radius.circular(10)),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.6),
-                                    spreadRadius: 0,
-                                    blurRadius: 3,
-                                    offset: const Offset(0, 0), // changes position of shadow
-                                  ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Image.asset(
-                                  url,
-                                  fit: BoxFit.cover,
-                                  // width: MediaQuery.of(context).size.width<500? MediaQuery.of(context).size.width-100:400,
-                                  errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
-                                    return const SizedBox();
-                                  },
-                                ),
-                              ),
+                        ),
+                        Expanded(
+                          child: TextFormField(
+                            // controller: searchField,
+                            controller: textFieldController,
+                            autofocus: true,
+                            autocorrect: false,
+                            textInputAction: TextInputAction.done,
+                            // focusNode: searchFocusNode,
+                            style: const TextStyle(
+                              fontSize: 15.0,
+                              color: textColor,
                             ),
-                            Column(children: [
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  const SizedBox(width: 8),
-                                  Visibility(visible: isLock, child: const Icon(Icons.stars_rounded, size: 30, color: Colors.amber)),
-                                ],
+                            decoration: InputDecoration(
+                              fillColor: Colors.transparent,
+                              filled: true,
+                              border: const OutlineInputBorder(
+                                borderSide: BorderSide(width: 1, color: Colors.black),
+                                borderRadius: BorderRadius.all(Radius.circular(30)),
                               ),
-                              const Expanded(child: SizedBox()),
-                              Container(
-                                height: 25,
-                                // alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.5),
-                                  borderRadius: const BorderRadius.only(
-                                    bottomLeft: Radius.circular(10),
-                                    bottomRight: Radius.circular(10),
-                                  ),
-                                ),
-                                margin: const EdgeInsets.all(7),
-                                child: Row(children: [
-                                  const SizedBox(width: 5),
-                                  Expanded(
-                                    child: Text(
-                                      listCategoryShow[i][c.typeState.value],
-                                      // textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        overflow: TextOverflow.ellipsis,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 5),
-                                ]),
+                              focusedBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(width: 1, color: Colors.black),
+                                borderRadius: BorderRadius.all(Radius.circular(30)),
                               ),
-                            ]),
-                          ]),
-                        );
-                      }),
+                              enabledBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(width: 1, color: Colors.black),
+                                borderRadius: BorderRadius.all(Radius.circular(30)),
+                              ),
+                              // prefixIcon: Icon(Icons.search_outlined,size:15),
+                              hintText: c.hint.string,
+                              isDense: true,
+                              contentPadding: const EdgeInsets.all(5),
+                              prefixIcon: const Icon(Icons.search),
+                              suffixIcon: IconButton(
+                                  icon: const Icon(Icons.close_rounded),
+                                  onPressed: () {
+                                    textFieldController.text = '';
+                                    setState(() {
+                                      listCategoryShow = listCategory;
+                                    });
+                                  }),
+                              // icon: Icon(Icons.search),
+                              // isCollapsed: true,
+                            ),
+                            onChanged: (value) {
+                              // textFieldController.text = value;
+                              List list = [];
+                              for (int i = 0; i < listCategory.length; i++) {
+                                if (TiengViet.parse(listCategory[i][c.typeState.value]).startsWith(TiengViet.parse(value))) {
+                                  list.add(listCategory[i]);
+                                }
+                              }
+                              setState(() {
+                                listCategoryShow = list;
+                              });
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 15),
+                      ]),
+                      const SizedBox(height: 10),
+                    ]),
+                  ),
+                ),
+                GetBuilder<Controller>(
+                  builder: (_) => Visibility(
+                    visible: !c.isSearch.value,
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 10),
+                        IconButton(
+                          padding: const EdgeInsets.all(0.0),
+                          icon: Icon(
+                            Icons.arrow_back_ios_rounded,
+                            size: 20,
+                            color: textColor.withOpacity(0.7),
+                          ),
+                          tooltip: 'Back to MainScreen',
+                          onPressed: () {
+                            getToMainScreen();
+                          },
+                        ),
+                        Expanded(
+                          child: Text(
+                            c.language.string == 'VN' ? 'Chủ đề' : 'Category',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              color: textColor,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.search,
+                            size: 25,
+                          ),
+                          onPressed: () {
+                            c.isSearch = true.obs;
+                            c.update();
+                          },
+                        ),
+                        const SizedBox(width: 10),
+                      ],
                     ),
                   ),
-                  SizedBox(height: MediaQuery.of(context).padding.bottom),
-                ]),
-              ),
-            );
-          }
-        ),
+                ),
+                Expanded(
+                  child: GridView.count(
+                    crossAxisCount: MediaQuery.of(context).size.width ~/ 120,
+                    addAutomaticKeepAlives: false,
+                    padding: const EdgeInsets.all(5),
+                    childAspectRatio: 4 / 3,
+                    // mainAxisSpacing: 10,
+                    // crossAxisSpacing: 10,
+                    children: List.generate(listCategoryShow.length, (i) {
+                      String url = '';
+                      switch (listCategoryShow[i][0]) {
+                        case 'heraldry':
+                          url = 'assets/temp/armory2.png';
+                          break;
+                        case 'no category':
+                          url = 'assets/temp/no.png';
+                          break;
+                        case 'past participle':
+                          url = 'assets/temp/no.png';
+                          break;
+                        case 'internet':
+                          url = 'assets/temp/Internet1.png';
+                          break;
+                        case 'bell-ringing':
+                          url = 'assets/temp/bob7.png';
+                          break;
+                        default:
+                          url = 'assets/temp/' + listCategoryShow[i][0] + '1.png';
+                      }
+                      final isLock = listCategoryShow[i].length > 2 && listCategoryShow[i][2] == true;
+                      return GestureDetector(
+                        onTap: () {
+                          if (isLock) {
+                            askVip(context, 'Nội dung dành cho tài khoản VIP, đăng ký để xem', 'Content for VIP accounts, subscribe to view');
+                          } else {
+                            getToScore(i);
+                          }
+                        },
+                        child: Stack(children: [
+                          Container(
+                            height: double.infinity,
+                            width: double.infinity,
+                            margin: const EdgeInsets.all(7),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: const BorderRadius.all(Radius.circular(10)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.6),
+                                  spreadRadius: 0,
+                                  blurRadius: 3,
+                                  offset: const Offset(0, 0), // changes position of shadow
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.asset(
+                                url,
+                                fit: BoxFit.cover,
+                                // width: MediaQuery.of(context).size.width<500? MediaQuery.of(context).size.width-100:400,
+                                errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                  return const SizedBox();
+                                },
+                              ),
+                            ),
+                          ),
+                          Column(children: [
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const SizedBox(width: 8),
+                                Visibility(visible: isLock, child: const Icon(Icons.stars_rounded, size: 30, color: Colors.amber)),
+                              ],
+                            ),
+                            const Expanded(child: SizedBox()),
+                            Container(
+                              height: 25,
+                              // alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.5),
+                                borderRadius: const BorderRadius.only(
+                                  bottomLeft: Radius.circular(10),
+                                  bottomRight: Radius.circular(10),
+                                ),
+                              ),
+                              margin: const EdgeInsets.all(7),
+                              child: Row(children: [
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  child: Text(
+                                    listCategoryShow[i][c.typeState.value],
+                                    // textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      overflow: TextOverflow.ellipsis,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                              ]),
+                            ),
+                          ]),
+                        ]),
+                      );
+                    }),
+                  ),
+                ),
+                SizedBox(height: MediaQuery.of(context).padding.bottom),
+              ]),
+            ),
+          );
+        }),
       ),
     );
   }
@@ -9800,9 +9798,8 @@ class MyUpgradePage extends StatelessWidget {
                                     'trước cuối kỳ hạn. Bạn có thể huỷ bất cứ lúc nào trong cài đặt '
                                     'tài khoản ' +
                                 (Platform.isIOS ? 'iTunes' : 'google') +
-                                '. Quảng cáo sẽ biến mất khi bạn đăng kí. Chi tiết hơn xem Chính sách và quyền riêng tư của chúng tôi'
-                                    ' tại https://bedict.com/privacyPolicy.html và Điều khoản'
-                                    ' dịch vụ tại https://bedict.com/termOfService.html'
+                                '. Bạn sẽ học từ và xem các chủ đề không giới hạn (không đăng ký học 4 từ/ ngày và không được học chủ đề VIP). Chi tiết hơn xem Chính sách và quyền riêng tư của chúng tôi'
+                                    ' tại https://bedict.com/privacy-policy'
                             : 'register 1 year using this app without advertisement,'
                                     ' helping us distribute this app to people\n'
                                     'A 4.9\$ for one year purchase will '
@@ -9814,10 +9811,9 @@ class MyUpgradePage extends StatelessWidget {
                                     'You can cancel anytime with your ' +
                                 (Platform.isIOS ? 'iTunes' : 'google') +
                                 ' account settings.'
-                                    ' Advertisements will disappear if you purchase a subscription. '
+                                    ' You will learn words and watch unlimited topics (no subscription only learn 4 words/day and no access VIP topics) '
                                     'For more information, '
-                                    'see our Privacy Policy at https://bedict.com/privacyPolicy.html'
-                                    ' and Terms of Use at https://bedict.com/termOfService.html',
+                                    'see our Privacy Policy at https://bedict.com/privacy-policy',
                         textStyle: const TextStyle(
                             fontSize: 16.0, color: textColor, fontFamily: 'Tahoma', fontWeight: FontWeight.w400, decoration: TextDecoration.none),
                         linkStyle: const TextStyle(
