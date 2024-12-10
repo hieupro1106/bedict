@@ -1,50 +1,912 @@
-[["ability","khả năng"],["abstract","trừu tượng"],["achievement","thành tích"],
-  ["action","hành động"],["age","tuổi tác"],["agriculture","nông nghiệp"],["aid","trợ giúp"],
-  ["amount","số lượng"],["anatomy","giải phẫu"],["animal","động vật"],["appearance","vẻ ngoài"],
-  ["archaeology","khảo cổ học"],["architecture","kiến trúc"],["area","khu vực"],["art","nghệ thuật"],
-  ["aspect","khía cạnh"],["asset","tài sản"],["astrology","chiêm tinh học"],["astronomy","thiên văn học"],
-  ["attitude","thái độ"],["being","thực thể"],["bell-ringing","rung chuông"],["bet","cá cược"],
-  ["biochemistry","hoá sinh học"],["biology","sinh học"],["bird","chim"],["body","cơ thể"],
-  ["building","nhà cửa"],["business","việc làm ăn"],["character","tính cách"],["chemistry","hoá học"],
-  ["color","màu sắc"],["commerce","thương mại"],["communication","liên lạc"],["compound","hỗn hợp"],
-  ["computing","máy tính"],["condition","điều kiện"],["continent","châu lục"],["culture","văn hoá"],
-  ["curse","chửi thề"],["dance","nhảy"],["degree","mức độ"],["demand","nhu cầu"],["device","thiết bị"],
-  ["direction","hướng"],["disaster","thảm hoạ"],["disease","bệnh tật"],["doctrine","học thuyết"],
-  ["drink","uống"],["ecology","sinh thái học"],["economy","kinh tế"],["education","giáo dục"],
-  ["electric","điện"],["electronics","điện tử"],["element","nguyên tố"],["emotion","cảm xúc"],
-  ["energy","năng lượng"],["entertainment","giải trí"],["environment","môi trường"],["event","sự kiện"],
-  ["family","gia đình"],["festival","lễ hội"],["figure","hình khối"],["finance","tài chính"],["fish","cá"],
-  ["food","đồ ăn"],["frequency","tần suất"],["fruit","hoa quả"],["fuel","nhiên liệu"],["function","chức năng"],
-  ["future","tương lai"],["game","trò chơi"],["gap","khoảng trống"],["geography","địa lý"],
-  ["geology","địa chất"],["government","nhà nước"],["grammar","ngữ pháp"],["group","nhóm"],
-  ["guilt","vi phạm"],["heraldry","huy hiệu"],["history","lịch sử"],["holiday","kỳ nghỉ"],
-  ["industry","công nghiệp"],["info","thông tin"],["inhuman","thực thể khác người"],["insect","côn trùng"],
-  ["insurance","bảo hiểm"],["internet","mạng internet"],["item","vật thể"],["job","nghề nghiệp"],
-  ["language","ngôn ngữ"],["law","luật pháp"],["linguistics","ngôn ngữ học"],["list","danh sách"],
-  ["literature","văn học"],["logic","logic"],["machine","máy móc"],["mark","dấu, dấu vết"],["mass","đống"],
-  ["material","vật liệu"],["math","toán học"],["media","truyền thông"],["medicine","y tế"],
-  ["microorganism","vi sinh vật"],["military","quân đội"],["mind","tâm trí"],["mineral","khoáng chất"],
-  ["moral","đạo đức"],["music","âm nhạc"],["mythology","thần thoại"],["nation","quốc gia"],
-  ["nature","tự nhiên"],["nautical","hàng hải"],["negative","phủ định"],["nothing","không gì"],
-  ["now","hiện tại"],["number","con số"],["ocean","đại dương"],["organ","trong cơ thể"],["organism","sinh vật"],
-  ["organization","tổ chức"],["outcome","kết quả"],["part","thành phần"],["past","quá khứ"],
-  ["past participle","quá khứ hoàn thành"],["period","quãng, giai đoạn"],["person","người"],
-  ["phenomena","hiện tượng"],["philosophy","triết học"],["phonetics","ngữ âm"],["physics","vật lý"],
-  ["physiology","sinh lý học"],["place","địa điểm"],["plan","kế hoạch"],["plant","cây cối"],["point","điểm"],
-  ["police","cảnh sát"],["politics","chính trị"],["position","vị trí"],["possibility","khả năng xảy ra"],
-  ["process","quá trình"],["property","đặc điểm"],["quality","tính chất"],["race","chủng tộc"],
-  ["range","ngưỡng"],["religion","tôn giáo"],["right","quyền"],["ritual","nghi lễ"],["royal","hoàng gia"],
-  ["sailing","thuyền buồm"],["science","khoa học"],["seed","hạt"],["sensation","cảm giác"],
-  ["service","dịch vụ"],["sex","tình dục, giới tính"],["signal","tín hiệu"],["situation","tình thế"],
-  ["society","xã hội"],["soul","linh hồn"],["sound","âm thanh"],["space","vũ trụ, không gian"],
-  ["sport","thể thao"],["stage","sân khấu"],["state","trạng thái"],["statement","câu nói"],
-  ["stationery","văn phòng phẩm"],["statistics","thống kê"],["story","câu chuyện"],
-  ["structure","cấu trúc"],["style","phong cách"],["substance","vật chất"],["suffering","chịu đựng"],
-  ["supernatural","siêu nhiên"],["system","hệ thống"],["technical","kỹ thuật"],["technology","công nghệ"],
-  ["tendency","xu hướng"],["theology","thần học"],["theory","giả thuyết, lý thuyết"],["thing","sự vật"],
-  ["time","thời gian"],["title","tiêu đề"],["tradition","truyền thống"],["traffic","giao thông"],
-  ["type","loại, kiểu"],["unit","đơn vị"],["utensil","đồ dùng"],["utility","tiện ích"],
-  ["value","giá trị"],["vegetable","rau củ"],["vehicle","phương tiện"],["virus","vi rút"],
-  ["war","chiến tranh"],["way","cách thức"],["weapon","vũ khí"],["wear","trang phục"],
-  ["weather","thời tiết"],["word","từ"],["work","công việc"],["world","thế giới"],
-  ["writing","viết lách"],["no category","không chủ đề"]]
+[
+  [
+    "ability",
+    "khả năng",
+    true
+  ],
+  [
+    "abstract",
+    "trừu tượng"
+  ],
+  [
+    "achievement",
+    "thành tích",
+    true
+  ],
+  [
+    "action",
+    "hành động"
+  ],
+  [
+    "age",
+    "tuổi tác",
+    true
+  ],
+  [
+    "agriculture",
+    "nông nghiệp",
+    true
+  ],
+  [
+    "aid",
+    "trợ giúp"
+  ],
+  [
+    "amount",
+    "số lượng"
+  ],
+  [
+    "anatomy",
+    "giải phẫu",
+    true
+  ],
+  [
+    "animal",
+    "động vật",
+    true
+  ],
+  [
+    "appearance",
+    "vẻ ngoài",
+    true
+  ],
+  [
+    "archaeology",
+    "khảo cổ học"
+  ],
+  [
+    "architecture",
+    "kiến trúc",
+    true
+  ],
+  [
+    "area",
+    "khu vực"
+  ],
+  [
+    "art",
+    "nghệ thuật",
+    true
+  ],
+  [
+    "aspect",
+    "khía cạnh"
+  ],
+  [
+    "asset",
+    "tài sản",
+    true
+  ],
+  [
+    "astrology",
+    "chiêm tinh học"
+  ],
+  [
+    "astronomy",
+    "thiên văn học",
+    true
+  ],
+  [
+    "attitude",
+    "thái độ",
+    true
+  ],
+  [
+    "being",
+    "thực thể"
+  ],
+  [
+    "bell-ringing",
+    "rung chuông"
+  ],
+  [
+    "bet",
+    "cá cược",
+    true
+  ],
+  [
+    "biochemistry",
+    "hoá sinh học"
+  ],
+  [
+    "biology",
+    "sinh học",
+    true
+  ],
+  [
+    "bird",
+    "chim"
+  ],
+  [
+    "body",
+    "cơ thể",
+    true
+  ],
+  [
+    "building",
+    "nhà cửa",
+    true
+  ],
+  [
+    "business",
+    "việc làm ăn",
+    true
+  ],
+  [
+    "character",
+    "tính cách"
+  ],
+  [
+    "chemistry",
+    "hoá học"
+  ],
+  [
+    "color",
+    "màu sắc"
+  ],
+  [
+    "commerce",
+    "thương mại",
+    true
+  ],
+  [
+    "communication",
+    "liên lạc"
+  ],
+  [
+    "compound",
+    "hỗn hợp"
+  ],
+  [
+    "computing",
+    "máy tính",
+    true
+  ],
+  [
+    "condition",
+    "điều kiện"
+  ],
+  [
+    "continent",
+    "châu lục"
+  ],
+  [
+    "culture",
+    "văn hoá",
+    true
+  ],
+  [
+    "curse",
+    "chửi thề",
+    true
+  ],
+  [
+    "dance",
+    "nhảy"
+  ],
+  [
+    "degree",
+    "mức độ",
+    true
+  ],
+  [
+    "demand",
+    "nhu cầu"
+  ],
+  [
+    "device",
+    "thiết bị",
+    true
+  ],
+  [
+    "direction",
+    "hướng"
+  ],
+  [
+    "disaster",
+    "thảm hoạ",
+    true
+  ],
+  [
+    "disease",
+    "bệnh tật",
+    true
+  ],
+  [
+    "doctrine",
+    "học thuyết"
+  ],
+  [
+    "drink",
+    "uống",
+    true
+  ],
+  [
+    "ecology",
+    "sinh thái học"
+  ],
+  [
+    "economy",
+    "kinh tế",
+    true
+  ],
+  [
+    "education",
+    "giáo dục",
+    true
+  ],
+  [
+    "electric",
+    "điện",
+    true
+  ],
+  [
+    "electronics",
+    "điện tử"
+  ],
+  [
+    "element",
+    "nguyên tố"
+  ],
+  [
+    "emotion",
+    "cảm xúc",
+    true
+  ],
+  [
+    "energy",
+    "năng lượng",
+    true
+  ],
+  [
+    "entertainment",
+    "giải trí"
+  ],
+  [
+    "environment",
+    "môi trường",
+    true
+  ],
+  [
+    "event",
+    "sự kiện"
+  ],
+  [
+    "family",
+    "gia đình",
+    true
+  ],
+  [
+    "festival",
+    "lễ hội"
+  ],
+  [
+    "figure",
+    "hình khối",
+    true
+  ],
+  [
+    "finance",
+    "tài chính",
+    true
+  ],
+  [
+    "fish",
+    "cá"
+  ],
+  [
+    "food",
+    "đồ ăn",
+    true
+  ],
+  [
+    "frequency",
+    "tần suất"
+  ],
+  [
+    "fruit",
+    "hoa quả",
+    true
+  ],
+  [
+    "fuel",
+    "nhiên liệu",
+    true
+  ],
+  [
+    "function",
+    "chức năng",
+    true
+  ],
+  [
+    "future",
+    "tương lai"
+  ],
+  [
+    "game",
+    "trò chơi",
+    true
+  ],
+  [
+    "gap",
+    "khoảng trống"
+  ],
+  [
+    "geography",
+    "địa lý",
+    true
+  ],
+  [
+    "geology",
+    "địa chất"
+  ],
+  [
+    "government",
+    "nhà nước",
+    true
+  ],
+  [
+    "grammar",
+    "ngữ pháp",
+    true
+  ],
+  [
+    "group",
+    "nhóm"
+  ],
+  [
+    "guilt",
+    "vi phạm"
+  ],
+  [
+    "heraldry",
+    "huy hiệu"
+  ],
+  [
+    "history",
+    "lịch sử",
+    true
+  ],
+  [
+    "holiday",
+    "kỳ nghỉ"
+  ],
+  [
+    "industry",
+    "công nghiệp"
+  ],
+  [
+    "info",
+    "thông tin",
+    true
+  ],
+  [
+    "inhuman",
+    "thực thể khác người"
+  ],
+  [
+    "insect",
+    "côn trùng"
+  ],
+  [
+    "insurance",
+    "bảo hiểm",
+    true
+  ],
+  [
+    "internet",
+    "mạng internet"
+  ],
+  [
+    "item",
+    "vật thể"
+  ],
+  [
+    "job",
+    "nghề nghiệp",
+    true
+  ],
+  [
+    "language",
+    "ngôn ngữ"
+  ],
+  [
+    "law",
+    "luật pháp",
+    true
+  ],
+  [
+    "linguistics",
+    "ngôn ngữ học"
+  ],
+  [
+    "list",
+    "danh sách"
+  ],
+  [
+    "literature",
+    "văn học"
+  ],
+  [
+    "logic",
+    "logic",
+    true
+  ],
+  [
+    "machine",
+    "máy móc"
+  ],
+  [
+    "mark",
+    "dấu, dấu vết",
+    true
+  ],
+  [
+    "mass",
+    "đống"
+  ],
+  [
+    "material",
+    "vật liệu",
+    true
+  ],
+  [
+    "math",
+    "toán học"
+  ],
+  [
+    "media",
+    "truyền thông",
+    true
+  ],
+  [
+    "medicine",
+    "y tế",
+    true
+  ],
+  [
+    "microorganism",
+    "vi sinh vật",
+    true
+  ],
+  [
+    "military",
+    "quân đội",
+    true
+  ],
+  [
+    "mind",
+    "tâm trí",
+    true
+  ],
+  [
+    "mineral",
+    "khoáng chất"
+  ],
+  [
+    "moral",
+    "đạo đức"
+  ],
+  [
+    "music",
+    "âm nhạc",
+    true
+  ],
+  [
+    "mythology",
+    "thần thoại"
+  ],
+  [
+    "nation",
+    "quốc gia",
+    true
+  ],
+  [
+    "nature",
+    "tự nhiên",
+    true
+  ],
+  [
+    "nautical",
+    "hàng hải"
+  ],
+  [
+    "negative",
+    "phủ định",
+    true
+  ],
+  [
+    "nothing",
+    "không gì"
+  ],
+  [
+    "now",
+    "hiện tại"
+  ],
+  [
+    "number",
+    "con số",
+    true
+  ],
+  [
+    "ocean",
+    "đại dương"
+  ],
+  [
+    "organ",
+    "trong cơ thể",
+    true
+  ],
+  [
+    "organism",
+    "sinh vật"
+  ],
+  [
+    "organization",
+    "tổ chức",
+    true
+  ],
+  [
+    "outcome",
+    "kết quả"
+  ],
+  [
+    "part",
+    "thành phần",
+    true
+  ],
+  [
+    "past",
+    "quá khứ"
+  ],
+  [
+    "past participle",
+    "quá khứ hoàn thành"
+  ],
+  [
+    "period",
+    "quãng, giai đoạn",
+    true
+  ],
+  [
+    "person",
+    "người"
+  ],
+  [
+    "phenomena",
+    "hiện tượng",
+    true
+  ],
+  [
+    "philosophy",
+    "triết học"
+  ],
+  [
+    "phonetics",
+    "ngữ âm"
+  ],
+  [
+    "physics",
+    "vật lý"
+  ],
+  [
+    "physiology",
+    "sinh lý học"
+  ],
+  [
+    "place",
+    "địa điểm",
+    true
+  ],
+  [
+    "plan",
+    "kế hoạch"
+  ],
+  [
+    "plant",
+    "cây cối",
+    true
+  ],
+  [
+    "point",
+    "điểm"
+  ],
+  [
+    "police",
+    "cảnh sát",
+    true
+  ],
+  [
+    "politics",
+    "chính trị",
+    true
+  ],
+  [
+    "position",
+    "vị trí"
+  ],
+  [
+    "possibility",
+    "khả năng xảy ra",
+    true
+  ],
+  [
+    "process",
+    "quá trình",
+    true
+  ],
+  [
+    "property",
+    "đặc điểm"
+  ],
+  [
+    "quality",
+    "tính chất",
+    true
+  ],
+  [
+    "race",
+    "chủng tộc"
+  ],
+  [
+    "range",
+    "ngưỡng"
+  ],
+  [
+    "religion",
+    "tôn giáo",
+    true
+  ],
+  [
+    "right",
+    "quyền"
+  ],
+  [
+    "ritual",
+    "nghi lễ",
+    true
+  ],
+  [
+    "royal",
+    "hoàng gia"
+  ],
+  [
+    "sailing",
+    "thuyền buồm"
+  ],
+  [
+    "science",
+    "khoa học",
+    true
+  ],
+  [
+    "seed",
+    "hạt"
+  ],
+  [
+    "sensation",
+    "cảm giác",
+    true
+  ],
+  [
+    "service",
+    "dịch vụ",
+    true
+  ],
+  [
+    "sex",
+    "tình dục, giới tính",
+    true
+  ],
+  [
+    "signal",
+    "tín hiệu"
+  ],
+  [
+    "situation",
+    "tình thế"
+  ],
+  [
+    "society",
+    "xã hội",
+    true
+  ],
+  [
+    "soul",
+    "linh hồn",
+    true
+  ],
+  [
+    "sound",
+    "âm thanh"
+  ],
+  [
+    "space",
+    "vũ trụ, không gian",
+    true
+  ],
+  [
+    "sport",
+    "thể thao"
+  ],
+  [
+    "stage",
+    "sân khấu"
+  ],
+  [
+    "state",
+    "trạng thái",
+    true
+  ],
+  [
+    "statement",
+    "câu nói",
+    true
+  ],
+  [
+    "stationery",
+    "văn phòng phẩm",
+    true
+  ],
+  [
+    "statistics",
+    "thống kê",
+    true
+  ],
+  [
+    "story",
+    "câu chuyện"
+  ],
+  [
+    "structure",
+    "cấu trúc",
+    true
+  ],
+  [
+    "style",
+    "phong cách"
+  ],
+  [
+    "substance",
+    "vật chất",
+    true
+  ],
+  [
+    "suffering",
+    "chịu đựng"
+  ],
+  [
+    "supernatural",
+    "siêu nhiên",
+    true
+  ],
+  [
+    "system",
+    "hệ thống",
+    true
+  ],
+  [
+    "technical",
+    "kỹ thuật"
+  ],
+  [
+    "technology",
+    "công nghệ",
+    true
+  ],
+  [
+    "tendency",
+    "xu hướng",
+    true
+  ],
+  [
+    "theology",
+    "thần học",
+    true
+  ],
+  [
+    "theory",
+    "giả thuyết, lý thuyết"
+  ],
+  [
+    "thing",
+    "sự vật"
+  ],
+  [
+    "time",
+    "thời gian"
+  ],
+  [
+    "title",
+    "tiêu đề"
+  ],
+  [
+    "tradition",
+    "truyền thống"
+  ],
+  [
+    "traffic",
+    "giao thông",
+    true
+  ],
+  [
+    "type",
+    "loại, kiểu"
+  ],
+  [
+    "unit",
+    "đơn vị"
+  ],
+  [
+    "utensil",
+    "đồ dùng",
+    true
+  ],
+  [
+    "utility",
+    "tiện ích"
+  ],
+  [
+    "value",
+    "giá trị"
+  ],
+  [
+    "vegetable",
+    "rau củ",
+    true
+  ],
+  [
+    "vehicle",
+    "phương tiện",
+    true
+  ],
+  [
+    "virus",
+    "vi rút"
+  ],
+  [
+    "war",
+    "chiến tranh",
+    true
+  ],
+  [
+    "way",
+    "cách thức"
+  ],
+  [
+    "weapon",
+    "vũ khí"
+  ],
+  [
+    "wear",
+    "trang phục",
+    true
+  ],
+  [
+    "weather",
+    "thời tiết",
+    true
+  ],
+  [
+    "word",
+    "từ"
+  ],
+  [
+    "work",
+    "công việc",
+    true
+  ],
+  [
+    "world",
+    "thế giới",
+    true
+  ],
+  [
+    "writing",
+    "viết lách"
+  ],
+  [
+    "no category",
+    "không chủ đề"
+  ]
+]

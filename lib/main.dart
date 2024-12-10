@@ -1,4 +1,7 @@
+import 'package:bedict/notification.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_neumorphic_plus/flutter_neumorphic.dart';
 import 'dart:async';
 import 'dart:math';
 import 'package:get/get.dart';
@@ -8,7 +11,6 @@ import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'dart:ui';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_to_text.dart';
-import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:flutter/foundation.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:percent_indicator/percent_indicator.dart';
@@ -22,7 +24,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:introduction_screen/introduction_screen.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+// import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:soundpool/soundpool.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
@@ -31,6 +33,7 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:tiengviet/tiengviet.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:link_text/link_text.dart';
+import 'package:cross_file/cross_file.dart';
 
 List listCategory = [];
 
@@ -42,7 +45,7 @@ List languagesCode = [];
 
 const String androidAd = 'ca-app-pub-9467993129762242/1735030175';
 const String iosAd = 'ca-app-pub-9467993129762242/5200342904';
-int showAdFrequency = 10;
+// int showAdFrequency = 10;
 int runAppCount = 1;
 
 // const textColor = Color.fromRGBO(3, 64, 24, 1);
@@ -52,10 +55,7 @@ const backgroundColor = Color.fromRGBO(147, 219, 172, 1);
 // const themeColor = Color.fromRGBO(230, 255, 240, 1);
 const themeColor = Color.fromRGBO(240, 240, 240, 1);
 final Shader linearGradient = const LinearGradient(
-  colors: <Color>[
-    Color.fromRGBO(150, 173, 10, 1),
-    Color.fromRGBO(53, 61, 1, 1)
-  ],
+  colors: <Color>[Color.fromRGBO(150, 173, 10, 1), Color.fromRGBO(53, 61, 1, 1)],
 ).createShader(const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0));
 const colorizeColors = [
   Colors.black,
@@ -73,12 +73,11 @@ int initLanguageIndex = 0;
 late SpeechToText stt;
 late FlutterTts flutterTts;
 final FocusNode searchFocusNode = FocusNode();
-final inController = TextEditingController();
 
-late var box;
-late var boxSetting;
-late var boxScore;
-late var boxHistory;
+dynamic box;
+dynamic boxSetting;
+dynamic boxScore;
+dynamic boxHistory;
 List<String> ieltsList = <String>[];
 List<String> toeflList = <String>[];
 List<String> toeicList = <String>[];
@@ -89,7 +88,7 @@ int nowRandom = -1;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  MobileAds.instance.initialize();
+  // MobileAds.instance.initialize();
 
   AwesomeNotifications().initialize('resource://drawable/notifi', [
     NotificationChannel(
@@ -110,9 +109,11 @@ Future<void> main() async {
       playSound: false,
     )
   ]);
-  AwesomeNotifications().actionStream.listen((receivedNotification) {
-    showWord(receivedNotification.title ?? '');
-  });
+  AwesomeNotifications().setListeners(
+      onActionReceivedMethod: NotificationController.onActionReceivedMethod,
+      onNotificationCreatedMethod: NotificationController.onNotificationCreatedMethod,
+      onNotificationDisplayedMethod: NotificationController.onNotificationDisplayedMethod,
+      onDismissActionReceivedMethod: NotificationController.onDismissActionReceivedMethod);
 
   final Controller c = Get.put(Controller());
   await Hive.initFlutter();
@@ -147,11 +148,11 @@ Future<void> main() async {
 
   runAppCount = await boxSetting.get('runAppCount') ?? runAppCount;
   await boxSetting.put('runAppCount', runAppCount + 1);
-  if (runAppCount < 100) {
-    showAdFrequency = 40 - runAppCount ~/ 10;
-  } else {
-    showAdFrequency = 20;
-  }
+  // if (runAppCount < 100) {
+  //   showAdFrequency = 40 - runAppCount ~/ 10;
+  // } else {
+  //   showAdFrequency = 20;
+  // }
 
   c.notifyDaily = RxBool(await boxSetting.get('notifyDaily') ?? false);
   c.selectedTime = RxString(await boxSetting.get('timeDaily') ?? '20:00');
@@ -160,13 +161,10 @@ Future<void> main() async {
   c.initSpeak = RxBool(await boxSetting.get('initSpeak') ?? true);
   c.speakSpeed = RxDouble(await boxSetting.get('speakSpeed') ?? 0.4);
   c.target = RxInt(await boxSetting.get('target') ?? 10);
-  c.notificationInterval =
-      RxInt(await boxSetting.get('notificationInterval') ?? 60);
-  c.language = RxString(await boxSetting.get('language') ??
-      (Get.deviceLocale.toString() != 'vi_VN' ? 'EN' : 'VN'));
+  c.notificationInterval = RxInt(await boxSetting.get('notificationInterval') ?? 60);
+  c.language = RxString(await boxSetting.get('language') ?? (Get.deviceLocale.toString() != 'vi_VN' ? 'EN' : 'VN'));
   c.changeLanguage(c.language.string);
-  c.languageLocal =
-      RxString(await boxSetting.get('languageLocal') ?? 'Vietnamese');
+  c.languageLocal = RxString(await boxSetting.get('languageLocal') ?? 'Vietnamese');
   if (c.language.string == 'VN') {
     initLanguageIndex = 0;
   } else {
@@ -183,12 +181,10 @@ Future<void> main() async {
   soundId = await rootBundle.load("assets/tap.mp3").then((ByteData soundData) {
     return pool.load(soundData);
   });
-  soundIdRight =
-      await rootBundle.load("assets/right.mp3").then((ByteData soundData) {
+  soundIdRight = await rootBundle.load("assets/right.mp3").then((ByteData soundData) {
     return pool.load(soundData);
   });
-  soundIdWrong =
-      await rootBundle.load("assets/wrong.mp3").then((ByteData soundData) {
+  soundIdWrong = await rootBundle.load("assets/wrong.mp3").then((ByteData soundData) {
     return pool.load(soundData);
   });
 
@@ -225,8 +221,7 @@ class Controller extends GetxController {
     ));
     flutterTts = FlutterTts();
     if (Platform.isIOS) {
-      await flutterTts
-          .setIosAudioCategory(IosTextToSpeechAudioCategory.playback, [
+      await flutterTts.setIosAudioCategory(IosTextToSpeechAudioCategory.playback, [
         IosTextToSpeechAudioCategoryOptions.allowBluetooth,
         IosTextToSpeechAudioCategoryOptions.allowBluetoothA2DP,
         IosTextToSpeechAudioCategoryOptions.mixWithOthers,
@@ -251,11 +246,15 @@ class Controller extends GetxController {
   }
 
   Future<void> initPlatformState() async {
-    await Purchases.setDebugLogsEnabled(true);
+    await Purchases.setLogLevel(LogLevel.info);
     if (Platform.isAndroid) {
-      await Purchases.setup("goog_NiexvvPotedNffCUwntyLAIJWQf");
+      PurchasesConfiguration configuration = PurchasesConfiguration("goog_NiexvvPotedNffCUwntyLAIJWQf");
+      configuration.shouldShowInAppMessagesAutomatically = false;
+      Purchases.configure(configuration);
     } else if (Platform.isIOS) {
-      await Purchases.setup("appl_pUnNPLWiWILWJyLBXuVTcpdwHhf");
+      PurchasesConfiguration configuration = PurchasesConfiguration("appl_pUnNPLWiWILWJyLBXuVTcpdwHhf");
+      configuration.shouldShowInAppMessagesAutomatically = false;
+      Purchases.configure(configuration);
     }
     final bool _available = await Purchases.isConfigured;
     available = RxBool(_available);
@@ -272,14 +271,11 @@ class Controller extends GetxController {
       // optional error handling
     }
     try {
-      PurchaserInfo purchaserInfo = await Purchases.getPurchaserInfo();
+      CustomerInfo purchaserInfo = await Purchases.getCustomerInfo();
       bool isPro = purchaserInfo.entitlements.all["yearly"]?.isActive ?? false;
       isVip = RxBool(isPro);
       if (isPro) {
-        expire = RxInt(DateTime.parse(
-                purchaserInfo.entitlements.all["yearly"]?.expirationDate ??
-                    DateTime.now().toString())
-            .millisecondsSinceEpoch);
+        expire = RxInt(DateTime.parse(purchaserInfo.entitlements.all["yearly"]?.expirationDate ?? DateTime.now().toString()).millisecondsSinceEpoch);
       }
       update;
     } on PlatformException catch (_) {
@@ -290,6 +286,7 @@ class Controller extends GetxController {
   var bundle = ''.obs;
   var part = 0.obs;
   var isReverse = false.obs;
+  var messages = <Message>[].obs;
 
   List<String> listWord = <String>[].obs;
   var nowDuration = 0.obs;
@@ -311,24 +308,10 @@ class Controller extends GetxController {
   var indexScorePage = 0.obs;
   var indexHistoryPage = 0.obs;
   List<String> listWordScore = <String>[].obs;
-  var startDay =
-      (DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)
-              .millisecondsSinceEpoch)
-          .obs;
-  var endDay =
-      (DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)
-                  .millisecondsSinceEpoch +
-              86400000)
-          .obs;
-  var startDayHistory =
-      (DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)
-              .millisecondsSinceEpoch)
-          .obs;
-  var endDayHistory =
-      (DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)
-                  .millisecondsSinceEpoch +
-              86400000)
-          .obs;
+  var startDay = (DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day).millisecondsSinceEpoch).obs;
+  var endDay = (DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day).millisecondsSinceEpoch + 86400000).obs;
+  var startDayHistory = (DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day).millisecondsSinceEpoch).obs;
+  var endDayHistory = (DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day).millisecondsSinceEpoch + 86400000).obs;
   var isStartDayOpen = false.obs;
   var isEndDayOpen = false.obs;
   var isStartDayHistory = false.obs;
@@ -406,15 +389,13 @@ class Controller extends GetxController {
   var loadingBody = 'Đang tải từ điển, vui lòng đợi trong giây lát'.obs;
   var loadingFailTitle = 'Tải lỗi'.obs;
   var loadingFailBody = 'Đảm bảo có kết nối Internet, vui lòng tải lại sau'.obs;
-  var welcomeBody =
-      'Chào mừng bạn đến với BeDict - từ điển thú vị chờ bạn khám phá'.obs;
+  var welcomeBody = 'Chào mừng bạn đến với BeDict - từ điển thú vị chờ bạn khám phá'.obs;
 
   changeLanguage(String newLanguage) async {
     language = RxString(newLanguage);
     if (language.string == 'VN') {
       initLanguageIndex = 0;
-      listCategory.sort(
-          (a, b) => TiengViet.parse(a[1]).compareTo(TiengViet.parse(b[1])));
+      listCategory.sort((a, b) => TiengViet.parse(a[1]).compareTo(TiengViet.parse(b[1])));
       if (category.string != 'all category') {
         for (int i = 0; i < listCategory.length; i++) {
           if (listCategory[i][0] == bundle.string) {
@@ -449,7 +430,7 @@ class Controller extends GetxController {
       drawerLanguage = 'Ngôn ngữ'.obs;
       drawerPolicy = 'Chính sách và quyền riêng tư'.obs;
       drawerContact = 'Liên hệ'.obs;
-      drawerUpgrade = 'Nâng cấp bỏ quảng cáo'.obs;
+      drawerUpgrade = 'Đăng ký VIP'.obs;
       learnTitle = 'Học'.obs;
       learnWordGuide = 'sắp xếp ký tự để được từ đúng'.obs;
       learnPronunGuide = 'sắp xếp ký tự để được phát âm đúng'.obs;
@@ -469,8 +450,7 @@ class Controller extends GetxController {
       loadingBody = 'Đang tải từ điển, vui lòng đợi trong giây lát'.obs;
       loadingFailTitle = 'Tải lỗi'.obs;
       loadingFailBody = 'Đảm bảo có kết nối Internet, vui lòng tải lại sau'.obs;
-      welcomeBody =
-          'Chào mừng bạn đến với BeDict - từ điển thú vị chờ bạn khám phá'.obs;
+      welcomeBody = 'Chào mừng bạn đến với BeDict - từ điển thú vị chờ bạn khám phá'.obs;
     } else {
       initLanguageIndex = 1;
       listCategory.sort((a, b) => a[0].compareTo(b[0]));
@@ -508,7 +488,7 @@ class Controller extends GetxController {
       drawerLanguage = 'Language'.obs;
       drawerPolicy = 'Terms, conditions and privacy policy'.obs;
       drawerContact = 'Contact'.obs;
-      drawerUpgrade = 'Upgrade to remove ads'.obs;
+      drawerUpgrade = 'Subscribe VIP'.obs;
       learnTitle = 'Learn'.obs;
       learnWordGuide = 'arrange characters to make right word'.obs;
       learnPronunGuide = 'arrange characters to make right pronun'.obs;
@@ -527,11 +507,8 @@ class Controller extends GetxController {
       notFound = 'not found'.obs;
       loadingBody = 'Loading dictionary data, please wait a moment'.obs;
       loadingFailTitle = 'Fail'.obs;
-      loadingFailBody =
-          'Make sure you have Internet connect, please try again later'.obs;
-      welcomeBody =
-          'Welcome you to BeDict - interesting dictionary is waiting for you to discover'
-              .obs;
+      loadingFailBody = 'Make sure you have Internet connect, please try again later'.obs;
+      welcomeBody = 'Welcome you to BeDict - interesting dictionary is waiting for you to discover'.obs;
     }
     update();
   }
@@ -569,8 +546,7 @@ class Controller extends GetxController {
           meanENAdd.add(meanENElement);
           String meanVNElement = jsonDecode(dataRaw['meanVN'])[i][j];
           meanVNElement = meanVNElement.substring(0, meanVNElement.length - 2);
-          meanVNElement = meanVNElement +
-              listMean[i][j].substring(listMean[i][j].length - 1);
+          meanVNElement = meanVNElement + listMean[i][j].substring(listMean[i][j].length - 1);
           meanVNAdd.add(meanVNElement);
         }
         meanEN.add(meanENAdd);
@@ -602,9 +578,7 @@ class Introduce extends StatelessWidget {
   }
 
   Widget _buildImage(String assetName, [double width = 250]) {
-    return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Image.asset('assets/$assetName', width: width));
+    return ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.asset('assets/$assetName', width: width));
   }
 
   @override
@@ -613,33 +587,25 @@ class Introduce extends StatelessWidget {
     const bodyStyle = TextStyle(fontSize: 19.0, color: textColor);
 
     PageDecoration pageDecoration = const PageDecoration(
-        titleTextStyle: TextStyle(
-            fontSize: 28.0, fontWeight: FontWeight.w700, color: textColor),
+        titleTextStyle: TextStyle(fontSize: 28.0, fontWeight: FontWeight.w700, color: textColor),
         bodyTextStyle: bodyStyle,
-        descriptionPadding: EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
+        bodyPadding: EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
         pageColor: Colors.white,
         imagePadding: EdgeInsets.zero,
         imageFlex: 2);
 
     Future.delayed(Duration.zero, () async {});
 
-    return WillPopScope(
-      onWillPop: () async {
-        return false;
-      },
+    return PopScope(
+      canPop: false,
       child: IntroductionScreen(
         key: introKey,
         globalBackgroundColor: Colors.white,
         pages: [
           PageViewModel(
-            title: c.language.string == 'VN'
-                ? 'Thế giới muôn màu'
-                : 'This world is colorful',
-            body: c.language.string == 'VN'
-                ? 'BeDict mô tả cuộc sống muôn màu này.'
-                : 'BeDict depicts this colorful world.',
-            image: _buildImage(
-                c.language.string == 'VN' ? 'img0.jpg' : 'img0EN.jpg'),
+            title: c.language.string == 'VN' ? 'Thế giới muôn màu' : 'This world is colorful',
+            body: c.language.string == 'VN' ? 'BeDict mô tả cuộc sống muôn màu này.' : 'BeDict depicts this colorful world.',
+            image: _buildImage(c.language.string == 'VN' ? 'img0.jpg' : 'img0EN.jpg'),
             decoration: pageDecoration,
           ),
           PageViewModel(
@@ -647,8 +613,7 @@ class Introduce extends StatelessWidget {
             body: c.language.string == 'VN'
                 ? 'Những gói từ quan trọng nhất, tất cả đều có hình ảnh, miễn phí.'
                 : 'Most important word bundles, all with images, free.',
-            image: _buildImage(
-                c.language.string == 'VN' ? 'img1.jpg' : 'img1EN.jpg'),
+            image: _buildImage(c.language.string == 'VN' ? 'img1.jpg' : 'img1EN.jpg'),
             decoration: pageDecoration,
           ),
           PageViewModel(
@@ -658,8 +623,7 @@ class Introduce extends StatelessWidget {
                     'Chia thành các phần nhỏ, tất cả đều có hình ảnh, miễn phí.'
                 : 'Hundred categories, cover a lot of aspects, fields. '
                     'Divided to some small parts, all with images, free.',
-            image: _buildImage(
-                c.language.string == 'VN' ? 'img2.jpg' : 'img2EN.jpg'),
+            image: _buildImage(c.language.string == 'VN' ? 'img2.jpg' : 'img2EN.jpg'),
             decoration: pageDecoration,
           ),
           PageViewModel(
@@ -667,8 +631,7 @@ class Introduce extends StatelessWidget {
             body: c.language.string == 'VN'
                 ? 'Tìm kiếm tất cả từ trong từ điển đều kèm hình ảnh minh hoạ, miễn phí.'
                 : 'Search all the words in this dictionary with images, free.',
-            image: _buildImage(
-                c.language.string == 'VN' ? 'img3.jpg' : 'img3EN.jpg'),
+            image: _buildImage(c.language.string == 'VN' ? 'img3.jpg' : 'img3EN.jpg'),
             decoration: pageDecoration,
           ),
           PageViewModel(
@@ -686,8 +649,7 @@ class Introduce extends StatelessWidget {
             body: c.language.string == 'VN'
                 ? 'Xem từ qua thông báo mọi lúc, kể cả khi thiết bị của bạn không mở khoá.'
                 : 'See words everytime, even when your device do not open.',
-            image: _buildImage(
-                c.language.string == 'VN' ? 'img5.jpg' : 'img5EN.jpg'),
+            image: _buildImage(c.language.string == 'VN' ? 'img5.jpg' : 'img5EN.jpg'),
             decoration: pageDecoration,
           ),
           PageViewModel(
@@ -702,24 +664,20 @@ class Introduce extends StatelessWidget {
         onDone: () => _onIntroEnd(context),
         //onSkip: () => _onIntroEnd(context), // You can override onSkip callback
         showSkipButton: true,
-        skipFlex: 0,
+        skipOrBackFlex: 0,
         nextFlex: 0,
         //rtl: true, // Display as right-to-left
         skip: GetBuilder<Controller>(
-          builder: (_) => Text(c.language.string == 'VN' ? 'Bỏ qua' : 'Skip',
-              style: const TextStyle(color: backgroundColor)),
+          builder: (_) => Text(c.language.string == 'VN' ? 'Bỏ qua' : 'Skip', style: const TextStyle(color: backgroundColor)),
         ),
         next: const Icon(Icons.arrow_forward, color: backgroundColor),
         done: GetBuilder<Controller>(
-          builder: (_) => Text(c.language.string == 'VN' ? 'Xong' : 'Done',
-              style: const TextStyle(
-                  fontWeight: FontWeight.w600, color: backgroundColor)),
+          builder: (_) =>
+              Text(c.language.string == 'VN' ? 'Xong' : 'Done', style: const TextStyle(fontWeight: FontWeight.w600, color: backgroundColor)),
         ),
         curve: Curves.fastLinearToSlowEaseIn,
         controlsMargin: const EdgeInsets.all(16),
-        controlsPadding: kIsWeb
-            ? const EdgeInsets.all(12.0)
-            : const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 4.0),
+        controlsPadding: kIsWeb ? const EdgeInsets.all(12.0) : const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 4.0),
         dotsDecorator: const DotsDecorator(
           size: Size(10.0, 10.0),
           activeColor: backgroundColor,
@@ -749,9 +707,9 @@ class MainScreen extends StatelessWidget {
     final Controller c = Get.put(Controller());
 
     final List<Widget> pages = [
-      Home(),
+      const Home(),
       const SearchPage(),
-      TranslatePage(),
+      const TranslatePage(),
       const SettingPage(),
     ];
 
@@ -759,7 +717,7 @@ class MainScreen extends StatelessWidget {
       c.currentPage = 0.obs;
       if (c.word.value == '') {
         c.nowWord = RxInt(Random().nextInt(c.wordArray.length));
-        await loadAd();
+        // await loadAd();
         c.isSearch = false.obs;
         c.category = 'all category'.obs;
         c.type = 'all type'.obs;
@@ -775,8 +733,7 @@ class MainScreen extends StatelessWidget {
         statusBarColor: Colors.transparent, //i like transaparent :-)
         systemNavigationBarColor: Colors.white, // navigation bar color
         statusBarIconBrightness: Brightness.light, // status bar icons' color
-        systemNavigationBarIconBrightness:
-            Brightness.light, //navigation bar icons' color
+        systemNavigationBarIconBrightness: Brightness.light, //navigation bar icons' color
       ),
       child: Scaffold(
         key: _key,
@@ -785,6 +742,17 @@ class MainScreen extends StatelessWidget {
         body: GetBuilder<Controller>(
           builder: (_) => pages.elementAt(c.currentPage.value),
         ),
+        // floatingActionButton: FloatingActionButton(
+        //   onPressed: () async {
+        //     await loadAd();
+        //     Get.offAll(() => const ChatScreen());
+        //   },
+        //   backgroundColor: Colors.black.withOpacity(0.8),
+        //   child: Icon(
+        //     Icons.send,
+        //     color: Colors.white.withOpacity(0.9),
+        //   ),
+        // ),
         bottomNavigationBar: GetBuilder<Controller>(
           builder: (_) => BottomNavigationBar(
             type: BottomNavigationBarType.fixed,
@@ -793,21 +761,14 @@ class MainScreen extends StatelessWidget {
               c.currentPage = RxInt(index);
               if (index == 2) {
                 c.translateOut = ''.obs;
-                inController.text = '';
               }
               c.update();
             },
-            backgroundColor: c.currentPage.value == 0
-                ? Colors.black.withOpacity(0.3)
-                : Colors.white,
+            backgroundColor: c.currentPage.value == 0 ? Colors.black.withOpacity(0.3) : Colors.white,
             elevation: c.currentPage.value == 0 ? 0 : 5,
             showUnselectedLabels: true,
-            unselectedItemColor: c.currentPage.value == 0
-                ? Colors.black.withOpacity(0.35)
-                : const Color.fromRGBO(230, 230, 230, 1),
-            selectedItemColor: c.currentPage.value == 0
-                ? const Color.fromRGBO(255, 255, 255, 1)
-                : Colors.black.withOpacity(1),
+            unselectedItemColor: c.currentPage.value == 0 ? Colors.black.withOpacity(0.35) : const Color.fromRGBO(230, 230, 230, 1),
+            selectedItemColor: c.currentPage.value == 0 ? const Color.fromRGBO(255, 255, 255, 1) : Colors.black.withOpacity(1),
             selectedFontSize: 14,
             unselectedFontSize: 14,
             iconSize: 24,
@@ -858,9 +819,15 @@ class _SearchPageState extends State<SearchPage> {
   int toeflCount = 0;
   int essentialCount = 0;
   bool initial = true;
+  final textFieldController = TextEditingController(text: '');
+
+  @override
+  void dispose() {
+    textFieldController.dispose();
+    super.dispose();
+  }
 
   Future getList(int count) async {
-    final Controller c = Get.put(Controller());
     List _listShowIelts = [];
     List _listShowToeic = [];
     List _listShowToefl = [];
@@ -960,12 +927,9 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
-    final textFieldController = TextEditingController(text: '');
 
     if (initial) {
-      getList(MediaQuery.of(context).size.width < 500
-          ? 5
-          : (MediaQuery.of(context).size.width ~/ 220 + 3));
+      getList(MediaQuery.of(context).size.width < 500 ? 5 : (MediaQuery.of(context).size.width ~/ 220 + 3));
     }
     initial = false;
 
@@ -974,14 +938,14 @@ class _SearchPageState extends State<SearchPage> {
       c.part = 0.obs;
       c.category = 'all category'.obs;
       c.type = 'all type'.obs;
-      await loadAd();
+      // await loadAd();
       Get.offAll(() => const ScorePage());
     }
 
     Future getToHome(String bundle, String word) async {
       c.fromScreen = 1.obs;
       c.isSearch = false.obs;
-      await loadAd();
+      // await loadAd();
       c.bundle = RxString(bundle);
       switch (c.bundle.string) {
         case 'IELTS':
@@ -1013,7 +977,7 @@ class _SearchPageState extends State<SearchPage> {
 
     Future searchToHome(String word) async {
       c.nowWord = RxInt(c.wordArray.indexOf(word));
-      await loadAd();
+      // await loadAd();
       c.isSearch = false.obs;
       c.category = 'all category'.obs;
       c.type = 'all type'.obs;
@@ -1024,21 +988,17 @@ class _SearchPageState extends State<SearchPage> {
     }
 
     Future getToCategory() async {
-      await loadAd();
+      // await loadAd();
       Get.offAll(() => const CategoryScreen());
     }
 
     Future getToType() async {
-      await loadAd();
+      // await loadAd();
       Get.offAll(() => const TypeScreen());
     }
 
-    return WillPopScope(
-        onWillPop: () async {
-          c.currentPage = 0.obs;
-          c.update();
-          return false;
-        },
+    return PopScope(
+        canPop: false,
         child: GestureDetector(
             onTap: () {
               if (searchFocusNode.hasFocus) {
@@ -1077,13 +1037,12 @@ class _SearchPageState extends State<SearchPage> {
                       ),
                       Expanded(
                         child: TypeAheadField(
-                          textFieldConfiguration: TextFieldConfiguration(
-                            // controller: searchField,
-                            controller: textFieldController,
-                            autofocus: false,
+                          builder: (context, controller, focusNode) => TextField(
+                            controller: controller,
+                            focusNode: focusNode,
+                            autofocus: true,
                             autocorrect: false,
                             textInputAction: TextInputAction.done,
-                            focusNode: searchFocusNode,
                             style: const TextStyle(
                               fontSize: 15.0,
                               color: textColor,
@@ -1093,18 +1052,15 @@ class _SearchPageState extends State<SearchPage> {
                               filled: true,
                               border: const OutlineInputBorder(
                                 borderSide: BorderSide.none,
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(30)),
+                                borderRadius: BorderRadius.all(Radius.circular(30)),
                               ),
                               focusedBorder: const OutlineInputBorder(
                                 borderSide: BorderSide.none,
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(30)),
+                                borderRadius: BorderRadius.all(Radius.circular(30)),
                               ),
                               enabledBorder: const OutlineInputBorder(
                                 borderSide: BorderSide.none,
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(30)),
+                                borderRadius: BorderRadius.all(Radius.circular(30)),
                               ),
                               // prefixIcon: Icon(Icons.search_outlined,size:15),
                               hintText: c.hint.string,
@@ -1122,11 +1078,9 @@ class _SearchPageState extends State<SearchPage> {
                                     onPressed: () async {
                                       if (stt.isNotListening) {
                                         await stt.listen(
-                                          onResult:
-                                              (SpeechRecognitionResult result) {
+                                          onResult: (SpeechRecognitionResult result) {
                                             if (result.finalResult) {
-                                              textFieldController.text =
-                                                  result.recognizedWords;
+                                              textFieldController.text = result.recognizedWords;
                                             }
                                           },
                                         );
@@ -1138,7 +1092,7 @@ class _SearchPageState extends State<SearchPage> {
                               suffixIcon: IconButton(
                                   icon: const Icon(Icons.close_rounded),
                                   onPressed: () {
-                                    textFieldController.text = '';
+                                    controller.text = '';
                                   }),
                               // icon: Icon(Icons.search),
                               // isCollapsed: true,
@@ -1147,40 +1101,22 @@ class _SearchPageState extends State<SearchPage> {
                               if (suggestArray.isEmpty) {
                                 try {
                                   String suggestion = '';
-                                  String languageCode = languagesCode[languages
-                                      .indexOf(c.languageLocal.string)];
-                                  var checkLanguage =
-                                      await value.translate(to: 'en');
+                                  String languageCode = languagesCode[languages.indexOf(c.languageLocal.string)];
+                                  var checkLanguage = await value.translate(to: 'en');
                                   if (checkLanguage.text == value) {
-                                    var google = await value.translate(
-                                        from: 'en', to: languageCode);
-                                    String imageUrl =
-                                        await getImage(value, 'small');
-                                    suggestion = value +
-                                        '@' +
-                                        google.text.toLowerCase() +
-                                        '@' +
-                                        imageUrl;
+                                    var google = await value.translate(from: 'en', to: languageCode);
+                                    String imageUrl = await getImage(value, 'small');
+                                    suggestion = value + '@' + google.text.toLowerCase() + '@' + imageUrl;
                                   } else {
-                                    var google =
-                                        await value.translate(to: 'en');
-                                    String imageUrl =
-                                        await getImage(google.text, 'small');
-                                    suggestion = google.text.toLowerCase() +
-                                        '@' +
-                                        value +
-                                        '@' +
-                                        imageUrl;
+                                    var google = await value.translate(to: 'en');
+                                    String imageUrl = await getImage(google.text, 'small');
+                                    suggestion = google.text.toLowerCase() + '@' + value + '@' + imageUrl;
                                   }
-                                  var dataRaw =
-                                      box.get(suggestion.split('@')[0]);
+                                  var dataRaw = box.get(suggestion.split('@')[0]);
                                   if (dataRaw.toString() != 'null') {
-                                    await searchToHome(
-                                        suggestion.split('@')[0]);
+                                    await searchToHome(suggestion.split('@')[0]);
                                   } else {
-                                    String imageUrl = await getImage(
-                                        suggestion.toString().split('@')[0],
-                                        'medium');
+                                    String imageUrl = await getImage(suggestion.toString().split('@')[0], 'medium');
                                     if (imageUrl.split('@')[0] != 'null') {
                                       Get.dialog(Column(children: [
                                         const Expanded(child: SizedBox()),
@@ -1188,17 +1124,13 @@ class _SearchPageState extends State<SearchPage> {
                                             margin: const EdgeInsets.all(10),
                                             decoration: BoxDecoration(
                                               color: Colors.white,
-                                              borderRadius:
-                                                  const BorderRadius.all(
-                                                      Radius.circular(20)),
+                                              borderRadius: const BorderRadius.all(Radius.circular(20)),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: Colors.black
-                                                      .withOpacity(0.6),
+                                                  color: Colors.black.withOpacity(0.6),
                                                   spreadRadius: 0,
                                                   blurRadius: 3,
-                                                  offset: const Offset(3,
-                                                      3), // changes position of shadow
+                                                  offset: const Offset(3, 3), // changes position of shadow
                                                 ),
                                               ],
                                             ),
@@ -1206,49 +1138,37 @@ class _SearchPageState extends State<SearchPage> {
                                             child: Column(children: [
                                               const SizedBox(height: 10),
                                               Text(
-                                                suggestion
-                                                    .toString()
-                                                    .split('@')[0],
+                                                suggestion.toString().split('@')[0],
                                                 style: const TextStyle(
                                                     fontSize: 18.0,
                                                     color: textColor,
                                                     fontWeight: FontWeight.w600,
                                                     fontFamily: 'Tahoma',
-                                                    decoration:
-                                                        TextDecoration.none),
+                                                    decoration: TextDecoration.none),
                                                 overflow: TextOverflow.ellipsis,
                                               ),
                                               const SizedBox(height: 5),
                                               Text(
-                                                suggestion
-                                                    .toString()
-                                                    .split('@')[1],
+                                                suggestion.toString().split('@')[1],
                                                 style: const TextStyle(
                                                     fontSize: 16.0,
                                                     color: textColor,
                                                     fontFamily: 'Tahoma',
                                                     fontWeight: FontWeight.w400,
-                                                    decoration:
-                                                        TextDecoration.none),
+                                                    decoration: TextDecoration.none),
                                                 overflow: TextOverflow.ellipsis,
                                               ),
                                               Container(
-                                                  margin:
-                                                      const EdgeInsets.all(10),
+                                                  margin: const EdgeInsets.all(10),
                                                   decoration: BoxDecoration(
                                                     color: Colors.white,
-                                                    borderRadius:
-                                                        const BorderRadius.all(
-                                                            Radius.circular(
-                                                                15)),
+                                                    borderRadius: const BorderRadius.all(Radius.circular(15)),
                                                     boxShadow: [
                                                       BoxShadow(
-                                                        color: Colors.black
-                                                            .withOpacity(0.6),
+                                                        color: Colors.black.withOpacity(0.6),
                                                         spreadRadius: 0,
                                                         blurRadius: 3,
-                                                        offset: const Offset(3,
-                                                            3), // changes position of shadow
+                                                        offset: const Offset(3, 3), // changes position of shadow
                                                       ),
                                                     ],
                                                   ),
@@ -1256,29 +1176,17 @@ class _SearchPageState extends State<SearchPage> {
                                                   height: 200,
                                                   child: Stack(children: [
                                                     ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              15),
+                                                      borderRadius: BorderRadius.circular(15),
                                                       child: ImageFiltered(
-                                                        imageFilter:
-                                                            ImageFilter.blur(
-                                                                sigmaX: 6,
-                                                                sigmaY: 6),
+                                                        imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                                                         child: Opacity(
                                                           opacity: 0.8,
                                                           child: Image(
-                                                            image: NetworkImage(
-                                                                imageUrl),
+                                                            image: NetworkImage(imageUrl),
                                                             fit: BoxFit.cover,
                                                             width: 280,
                                                             height: 200,
-                                                            errorBuilder:
-                                                                (BuildContext
-                                                                        context,
-                                                                    Object
-                                                                        exception,
-                                                                    StackTrace?
-                                                                        stackTrace) {
+                                                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                               return const SizedBox();
                                                             },
                                                           ),
@@ -1286,67 +1194,39 @@ class _SearchPageState extends State<SearchPage> {
                                                       ),
                                                     ),
                                                     ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              15),
+                                                      borderRadius: BorderRadius.circular(15),
                                                       child: Image(
-                                                        image: NetworkImage(
-                                                            imageUrl),
+                                                        image: NetworkImage(imageUrl),
                                                         fit: BoxFit.contain,
                                                         width: 280,
                                                         height: 200,
-                                                        errorBuilder:
-                                                            (BuildContext
-                                                                    context,
-                                                                Object
-                                                                    exception,
-                                                                StackTrace?
-                                                                    stackTrace) {
+                                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                           return const SizedBox();
                                                         },
                                                       ),
                                                     ),
                                                   ])),
-                                              (suggestion.toString().split('@')[2] !=
-                                                      'null')
+                                              (suggestion.toString().split('@')[2] != 'null')
                                                   ? Opacity(
                                                       opacity: 0.5,
                                                       child: LinkText(
                                                           'Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
-                                                          textAlign:
-                                                              TextAlign.center,
+                                                          textAlign: TextAlign.center,
                                                           textStyle: const TextStyle(
                                                               fontSize: 12.0,
                                                               color: textColor,
-                                                              fontFamily:
-                                                                  'Tahoma',
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w400,
-                                                              decoration:
-                                                                  TextDecoration
-                                                                      .none),
+                                                              fontFamily: 'Tahoma',
+                                                              fontWeight: FontWeight.w400,
+                                                              decoration: TextDecoration.none),
                                                           linkStyle: const TextStyle(
                                                               fontSize: 12.0,
-                                                              color:
-                                                                  Colors.blue,
-                                                              fontFamily:
-                                                                  'Tahoma',
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w400,
-                                                              decoration:
-                                                                  TextDecoration
-                                                                      .underline,
-                                                              decorationColor:
-                                                                  Colors.blue,
-                                                              decorationStyle:
-                                                                  TextDecorationStyle
-                                                                      .solid),
-                                                          onLinkTap: (url) async {
-                                                        if (!await launchUrl(
-                                                            Uri.parse(url)))
-                                                          throw 'Could not launch $url';
+                                                              color: Colors.blue,
+                                                              fontFamily: 'Tahoma',
+                                                              fontWeight: FontWeight.w400,
+                                                              decoration: TextDecoration.underline,
+                                                              decorationColor: Colors.blue,
+                                                              decorationStyle: TextDecorationStyle.solid), onLinkTap: (url) async {
+                                                        if (!await launchUrl(Uri.parse(url))) throw 'Could not launch $url';
                                                       }))
                                                   : const SizedBox(),
                                               const SizedBox(height: 10),
@@ -1360,17 +1240,12 @@ class _SearchPageState extends State<SearchPage> {
                                 if (!suggestArray[0].contains('@')) {
                                   await searchToHome(suggestArray[0]);
                                 } else {
-                                  String suggestion =
-                                      suggestArray[0].toString();
-                                  var dataRaw =
-                                      await box.get(suggestion.split('@')[0]);
+                                  String suggestion = suggestArray[0].toString();
+                                  var dataRaw = await box.get(suggestion.split('@')[0]);
                                   if (dataRaw.toString() != 'null') {
-                                    await searchToHome(
-                                        suggestion.split('@')[0]);
+                                    await searchToHome(suggestion.split('@')[0]);
                                   } else {
-                                    String imageUrl = await getImage(
-                                        suggestion.toString().split('@')[0],
-                                        'medium');
+                                    String imageUrl = await getImage(suggestion.toString().split('@')[0], 'medium');
                                     if (imageUrl.split('@')[0] != 'null') {
                                       Get.dialog(Column(children: [
                                         const Expanded(child: SizedBox()),
@@ -1378,17 +1253,13 @@ class _SearchPageState extends State<SearchPage> {
                                             margin: const EdgeInsets.all(10),
                                             decoration: BoxDecoration(
                                               color: Colors.white,
-                                              borderRadius:
-                                                  const BorderRadius.all(
-                                                      Radius.circular(20)),
+                                              borderRadius: const BorderRadius.all(Radius.circular(20)),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: Colors.black
-                                                      .withOpacity(0.6),
+                                                  color: Colors.black.withOpacity(0.6),
                                                   spreadRadius: 0,
                                                   blurRadius: 3,
-                                                  offset: const Offset(3,
-                                                      3), // changes position of shadow
+                                                  offset: const Offset(3, 3), // changes position of shadow
                                                 ),
                                               ],
                                             ),
@@ -1396,49 +1267,37 @@ class _SearchPageState extends State<SearchPage> {
                                             child: Column(children: [
                                               const SizedBox(height: 10),
                                               Text(
-                                                suggestion
-                                                    .toString()
-                                                    .split('@')[0],
+                                                suggestion.toString().split('@')[0],
                                                 style: const TextStyle(
                                                     fontSize: 18.0,
                                                     color: textColor,
                                                     fontWeight: FontWeight.w600,
                                                     fontFamily: 'Tahoma',
-                                                    decoration:
-                                                        TextDecoration.none),
+                                                    decoration: TextDecoration.none),
                                                 overflow: TextOverflow.ellipsis,
                                               ),
                                               const SizedBox(height: 5),
                                               Text(
-                                                suggestion
-                                                    .toString()
-                                                    .split('@')[1],
+                                                suggestion.toString().split('@')[1],
                                                 style: const TextStyle(
                                                     fontSize: 16.0,
                                                     color: textColor,
                                                     fontFamily: 'Tahoma',
                                                     fontWeight: FontWeight.w400,
-                                                    decoration:
-                                                        TextDecoration.none),
+                                                    decoration: TextDecoration.none),
                                                 overflow: TextOverflow.ellipsis,
                                               ),
                                               Container(
-                                                  margin:
-                                                      const EdgeInsets.all(10),
+                                                  margin: const EdgeInsets.all(10),
                                                   decoration: BoxDecoration(
                                                     color: Colors.white,
-                                                    borderRadius:
-                                                        const BorderRadius.all(
-                                                            Radius.circular(
-                                                                15)),
+                                                    borderRadius: const BorderRadius.all(Radius.circular(15)),
                                                     boxShadow: [
                                                       BoxShadow(
-                                                        color: Colors.black
-                                                            .withOpacity(0.6),
+                                                        color: Colors.black.withOpacity(0.6),
                                                         spreadRadius: 0,
                                                         blurRadius: 3,
-                                                        offset: const Offset(3,
-                                                            3), // changes position of shadow
+                                                        offset: const Offset(3, 3), // changes position of shadow
                                                       ),
                                                     ],
                                                   ),
@@ -1446,29 +1305,17 @@ class _SearchPageState extends State<SearchPage> {
                                                   height: 200,
                                                   child: Stack(children: [
                                                     ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              15),
+                                                      borderRadius: BorderRadius.circular(15),
                                                       child: ImageFiltered(
-                                                        imageFilter:
-                                                            ImageFilter.blur(
-                                                                sigmaX: 6,
-                                                                sigmaY: 6),
+                                                        imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                                                         child: Opacity(
                                                           opacity: 0.8,
                                                           child: Image(
-                                                            image: NetworkImage(
-                                                                imageUrl),
+                                                            image: NetworkImage(imageUrl),
                                                             fit: BoxFit.cover,
                                                             width: 280,
                                                             height: 200,
-                                                            errorBuilder:
-                                                                (BuildContext
-                                                                        context,
-                                                                    Object
-                                                                        exception,
-                                                                    StackTrace?
-                                                                        stackTrace) {
+                                                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                               return const SizedBox();
                                                             },
                                                           ),
@@ -1476,67 +1323,39 @@ class _SearchPageState extends State<SearchPage> {
                                                       ),
                                                     ),
                                                     ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              15),
+                                                      borderRadius: BorderRadius.circular(15),
                                                       child: Image(
-                                                        image: NetworkImage(
-                                                            imageUrl),
+                                                        image: NetworkImage(imageUrl),
                                                         fit: BoxFit.contain,
                                                         width: 280,
                                                         height: 200,
-                                                        errorBuilder:
-                                                            (BuildContext
-                                                                    context,
-                                                                Object
-                                                                    exception,
-                                                                StackTrace?
-                                                                    stackTrace) {
+                                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                           return const SizedBox();
                                                         },
                                                       ),
                                                     ),
                                                   ])),
-                                              (suggestion.toString().split('@')[2] !=
-                                                      'null')
+                                              (suggestion.toString().split('@')[2] != 'null')
                                                   ? Opacity(
                                                       opacity: 0.5,
                                                       child: LinkText(
                                                           'Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
-                                                          textAlign:
-                                                              TextAlign.center,
+                                                          textAlign: TextAlign.center,
                                                           textStyle: const TextStyle(
                                                               fontSize: 12.0,
                                                               color: textColor,
-                                                              fontFamily:
-                                                                  'Tahoma',
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w400,
-                                                              decoration:
-                                                                  TextDecoration
-                                                                      .none),
+                                                              fontFamily: 'Tahoma',
+                                                              fontWeight: FontWeight.w400,
+                                                              decoration: TextDecoration.none),
                                                           linkStyle: const TextStyle(
                                                               fontSize: 12.0,
-                                                              color:
-                                                                  Colors.blue,
-                                                              fontFamily:
-                                                                  'Tahoma',
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w400,
-                                                              decoration:
-                                                                  TextDecoration
-                                                                      .underline,
-                                                              decorationColor:
-                                                                  Colors.blue,
-                                                              decorationStyle:
-                                                                  TextDecorationStyle
-                                                                      .solid),
-                                                          onLinkTap: (url) async {
-                                                        if (!await launchUrl(
-                                                            Uri.parse(url)))
-                                                          throw 'Could not launch $url';
+                                                              color: Colors.blue,
+                                                              fontFamily: 'Tahoma',
+                                                              fontWeight: FontWeight.w400,
+                                                              decoration: TextDecoration.underline,
+                                                              decorationColor: Colors.blue,
+                                                              decorationStyle: TextDecorationStyle.solid), onLinkTap: (url) async {
+                                                        if (!await launchUrl(Uri.parse(url))) throw 'Could not launch $url';
                                                       }))
                                                   : const SizedBox(),
                                               const SizedBox(height: 10),
@@ -1549,9 +1368,8 @@ class _SearchPageState extends State<SearchPage> {
                               }
                             },
                           ),
-                          suggestionsBoxVerticalOffset: 10,
-                          noItemsFoundBuilder: (BuildContext context) =>
-                              ListTile(
+                          offset: const Offset(10, 10),
+                          emptyBuilder: (BuildContext context) => ListTile(
                             title: Text(
                               c.notFound.string,
                               style: const TextStyle(
@@ -1562,6 +1380,7 @@ class _SearchPageState extends State<SearchPage> {
                           ),
                           suggestionsCallback: (pattern) async {
                             suggestArray = [];
+
                             if (pattern == '') {
                               suggestArray = await getLastSearch(9);
                             }
@@ -1569,10 +1388,7 @@ class _SearchPageState extends State<SearchPage> {
                               if (suggestArray.length > 9) {
                                 break;
                               }
-                              if (c.wordArray[i]
-                                  .toString()
-                                  .toLowerCase()
-                                  .startsWith(pattern.toLowerCase())) {
+                              if (c.wordArray[i].toString().toLowerCase().startsWith(pattern.toLowerCase())) {
                                 if (!suggestArray.contains(c.wordArray[i])) {
                                   suggestArray.add(c.wordArray[i]);
                                 }
@@ -1580,57 +1396,35 @@ class _SearchPageState extends State<SearchPage> {
                             }
                             if (suggestArray.isEmpty) {
                               try {
-                                String languageCode = languagesCode[
-                                    languages.indexOf(c.languageLocal.string)];
-                                var checkLanguage =
-                                    await pattern.translate(to: 'en');
+                                String languageCode = languagesCode[languages.indexOf(c.languageLocal.string)];
+                                var checkLanguage = await pattern.translate(to: 'en');
                                 if (checkLanguage.text == pattern) {
-                                  var google = await pattern.translate(
-                                      from: 'en', to: languageCode);
-                                  String imageUrl =
-                                      await getImage(pattern, 'small');
-                                  suggestArray.add(pattern +
-                                      '@' +
-                                      google.text.toLowerCase() +
-                                      '@' +
-                                      imageUrl);
+                                  var google = await pattern.translate(from: 'en', to: languageCode);
+                                  String imageUrl = await getImage(pattern, 'small');
+                                  suggestArray.add(pattern + '@' + google.text.toLowerCase() + '@' + imageUrl);
                                 } else {
-                                  var google =
-                                      await pattern.translate(to: 'en');
-                                  String imageUrl =
-                                      await getImage(google.text, 'small');
-                                  suggestArray.add(google.text.toLowerCase() +
-                                      '@' +
-                                      pattern +
-                                      '@' +
-                                      imageUrl);
+                                  var google = await pattern.translate(to: 'en');
+                                  String imageUrl = await getImage(google.text, 'small');
+                                  suggestArray.add(google.text.toLowerCase() + '@' + pattern + '@' + imageUrl);
                                 }
                               } catch (_) {}
                             }
                             return suggestArray;
                           },
-                          suggestionsBoxDecoration: SuggestionsBoxDecoration(
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(15)),
-                            color: Colors.white.withOpacity(1.0),
-                          ),
                           itemBuilder: (context, suggestion) {
                             String mean = '';
                             String image = 'bedict.png';
                             List listMeans = [];
-                            var dataRaw = suggestion.toString().contains('@')
-                                ? box.get(suggestion.toString().split('@')[0])
-                                : box.get(suggestion.toString());
+                            var dataRaw =
+                                suggestion.toString().contains('@') ? box.get(suggestion.toString().split('@')[0]) : box.get(suggestion.toString());
                             if (dataRaw.toString() == 'null') {
                               mean = suggestion.toString().split('@')[1];
-                              if (suggestion.toString().split('@')[2] !=
-                                  'null') {
+                              if (suggestion.toString().split('@')[2] != 'null') {
                                 image = suggestion.toString().split('@')[2];
                               } else {
                                 image = 'https://bedict.com/bedict.png';
                               }
-                              listMeans
-                                  .add(suggestion.toString().split('@')[0]);
+                              listMeans.add(suggestion.toString().split('@')[0]);
                             } else {
                               listMeans = jsonDecode(dataRaw['mean']);
                               List listMean = listMeans[0];
@@ -1644,34 +1438,20 @@ class _SearchPageState extends State<SearchPage> {
                                   meanENElement = listMean[j];
                                 }
                                 meanENAdd.add(meanENElement);
-                                String meanVNElement =
-                                    jsonDecode(dataRaw['meanVN'])[0][j];
-                                meanVNElement = meanVNElement.substring(
-                                    0, meanVNElement.length - 2);
-                                meanVNElement = meanVNElement +
-                                    listMean[j]
-                                        .substring(listMean[j].length - 1);
+                                String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
+                                meanVNElement = meanVNElement.substring(0, meanVNElement.length - 2);
+                                meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length - 1);
                                 meanVNAdd.add(meanVNElement);
                               }
                               String meanEN = '';
                               String meanVN = '';
                               for (var j = 0; j < meanENAdd.length; j++) {
                                 if (j == 0) {
-                                  meanVN = meanVN +
-                                      meanVNAdd[j].substring(
-                                          0, meanVNAdd[j].length - 1);
-                                  meanEN = meanEN +
-                                      meanENAdd[j].substring(
-                                          0, meanENAdd[j].length - 1);
+                                  meanVN = meanVN + meanVNAdd[j].substring(0, meanVNAdd[j].length - 1);
+                                  meanEN = meanEN + meanENAdd[j].substring(0, meanENAdd[j].length - 1);
                                 } else {
-                                  meanVN = meanVN +
-                                      ' | ' +
-                                      meanVNAdd[j].substring(
-                                          0, meanVNAdd[j].length - 1);
-                                  meanEN = meanEN +
-                                      ' | ' +
-                                      meanENAdd[j].substring(
-                                          0, meanENAdd[j].length - 1);
+                                  meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0, meanVNAdd[j].length - 1);
+                                  meanEN = meanEN + ' | ' + meanENAdd[j].substring(0, meanENAdd[j].length - 1);
                                 }
                               }
                               if (c.language.string == 'VN') {
@@ -1687,47 +1467,38 @@ class _SearchPageState extends State<SearchPage> {
                               Row(children: [
                                 const SizedBox(width: 10),
                                 Expanded(
-                                  child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          suggestion.toString().contains('@')
-                                              ? suggestion
-                                                  .toString()
-                                                  .split('@')[0]
-                                              : suggestion.toString(),
-                                          style: const TextStyle(
-                                            fontSize: 18.0,
-                                            color: textColor,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        const SizedBox(height: 5),
-                                        Text(
-                                          mean,
-                                          style: const TextStyle(
-                                            fontSize: 14.0,
-                                            color: textColor,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ]),
+                                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                    Text(
+                                      suggestion.toString().contains('@') ? suggestion.toString().split('@')[0] : suggestion.toString(),
+                                      style: const TextStyle(
+                                        fontSize: 18.0,
+                                        color: textColor,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Text(
+                                      mean,
+                                      style: const TextStyle(
+                                        fontSize: 14.0,
+                                        color: textColor,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ]),
                                 ),
                                 Container(
                                     margin: const EdgeInsets.all(10),
                                     decoration: BoxDecoration(
                                       color: Colors.white,
-                                      borderRadius: const BorderRadius.all(
-                                          Radius.circular(8)),
+                                      borderRadius: const BorderRadius.all(Radius.circular(8)),
                                       boxShadow: [
                                         BoxShadow(
                                           color: Colors.black.withOpacity(0.6),
                                           spreadRadius: 0,
                                           blurRadius: 3,
-                                          offset: const Offset(3,
-                                              3), // changes position of shadow
+                                          offset: const Offset(3, 3), // changes position of shadow
                                         ),
                                       ],
                                     ),
@@ -1737,24 +1508,16 @@ class _SearchPageState extends State<SearchPage> {
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(8),
                                         child: ImageFiltered(
-                                          imageFilter: ImageFilter.blur(
-                                              sigmaX: 6, sigmaY: 6),
+                                          imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                                           child: Opacity(
                                             opacity: 0.8,
                                             child: Image(
                                               image: NetworkImage(
-                                                  dataRaw.toString() == 'null'
-                                                      ? image
-                                                      : 'https://bedict.com/' +
-                                                          image.replaceAll(
-                                                              '\\', '')),
+                                                  dataRaw.toString() == 'null' ? image : 'https://bedict.com/' + image.replaceAll('\\', '')),
                                               fit: BoxFit.cover,
                                               width: 70,
                                               height: 50,
-                                              errorBuilder:
-                                                  (BuildContext context,
-                                                      Object exception,
-                                                      StackTrace? stackTrace) {
+                                              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                 return const SizedBox();
                                               },
                                             ),
@@ -1764,18 +1527,12 @@ class _SearchPageState extends State<SearchPage> {
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(8),
                                         child: Image(
-                                          image: NetworkImage(
-                                              dataRaw.toString() == 'null'
-                                                  ? image
-                                                  : 'https://bedict.com/' +
-                                                      image.replaceAll(
-                                                          '\\', '')),
+                                          image:
+                                              NetworkImage(dataRaw.toString() == 'null' ? image : 'https://bedict.com/' + image.replaceAll('\\', '')),
                                           fit: BoxFit.contain,
                                           width: 70,
                                           height: 50,
-                                          errorBuilder: (BuildContext context,
-                                              Object exception,
-                                              StackTrace? stackTrace) {
+                                          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                             return const SizedBox();
                                           },
                                         ),
@@ -1787,19 +1544,13 @@ class _SearchPageState extends State<SearchPage> {
                                               child: Container(
                                                   alignment: Alignment.center,
                                                   decoration: BoxDecoration(
-                                                    color: Colors.white
-                                                        .withOpacity(0.7),
-                                                    borderRadius:
-                                                        const BorderRadius.all(
-                                                            Radius.circular(
-                                                                20)),
+                                                    color: Colors.white.withOpacity(0.7),
+                                                    borderRadius: const BorderRadius.all(Radius.circular(20)),
                                                   ),
                                                   height: 20,
                                                   width: 20,
                                                   child: Text(
-                                                    '+ ' +
-                                                        (listMeans.length - 1)
-                                                            .toString(),
+                                                    '+ ' + (listMeans.length - 1).toString(),
                                                     style: const TextStyle(
                                                       fontSize: 9,
                                                     ),
@@ -1807,13 +1558,10 @@ class _SearchPageState extends State<SearchPage> {
                                           : const SizedBox(),
                                     ])),
                               ]),
-                              (dataRaw.toString() == 'null' &&
-                                      suggestion.toString().split('@')[2] !=
-                                          'null')
+                              (dataRaw.toString() == 'null' && suggestion.toString().split('@')[2] != 'null')
                                   ? Opacity(
                                       opacity: 0.3,
-                                      child: LinkText(
-                                          'Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
+                                      child: LinkText('Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
                                           textAlign: TextAlign.center,
                                           textStyle: const TextStyle(
                                               fontSize: 10.0,
@@ -1826,37 +1574,27 @@ class _SearchPageState extends State<SearchPage> {
                                               color: Colors.blue,
                                               fontFamily: 'Tahoma',
                                               fontWeight: FontWeight.w400,
-                                              decoration:
-                                                  TextDecoration.underline,
+                                              decoration: TextDecoration.underline,
                                               decorationColor: Colors.blue,
-                                              decorationStyle:
-                                                  TextDecorationStyle.solid),
-                                          onLinkTap: (url) async {
-                                        if (!await launchUrl(Uri.parse(url)))
-                                          throw 'Could not launch $url';
+                                              decorationStyle: TextDecorationStyle.solid), onLinkTap: (url) async {
+                                        if (!await launchUrl(Uri.parse(url))) throw 'Could not launch $url';
                                       }))
                                   : const SizedBox(),
-                              (dataRaw.toString() == 'null' &&
-                                      suggestion.toString().split('@')[2] !=
-                                          'null')
+                              (dataRaw.toString() == 'null' && suggestion.toString().split('@')[2] != 'null')
                                   ? const SizedBox(height: 5)
                                   : const SizedBox(),
                             ]);
                           },
-                          onSuggestionSelected: (suggestion) async {
+                          onSelected: (suggestion) async {
                             // searchField.text = suggestion.toString();
                             if (!suggestion.toString().contains('@')) {
                               await searchToHome(suggestion.toString());
                             } else {
-                              var dataRaw =
-                                  box.get(suggestion.toString().split('@')[0]);
+                              var dataRaw = box.get(suggestion.toString().split('@')[0]);
                               if (dataRaw.toString() != 'null') {
-                                await searchToHome(
-                                    suggestion.toString().split('@')[0]);
+                                await searchToHome(suggestion.toString().split('@')[0]);
                               } else {
-                                String imageUrl = await getImage(
-                                    suggestion.toString().split('@')[0],
-                                    'medium');
+                                String imageUrl = await getImage(suggestion.toString().split('@')[0], 'medium');
                                 if (imageUrl.split('@')[0] != 'null') {
                                   Get.dialog(Column(children: [
                                     const Expanded(child: SizedBox()),
@@ -1864,16 +1602,13 @@ class _SearchPageState extends State<SearchPage> {
                                         margin: const EdgeInsets.all(10),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
-                                          borderRadius: const BorderRadius.all(
-                                              Radius.circular(20)),
+                                          borderRadius: const BorderRadius.all(Radius.circular(20)),
                                           boxShadow: [
                                             BoxShadow(
-                                              color:
-                                                  Colors.black.withOpacity(0.6),
+                                              color: Colors.black.withOpacity(0.6),
                                               spreadRadius: 0,
                                               blurRadius: 3,
-                                              offset: const Offset(3,
-                                                  3), // changes position of shadow
+                                              offset: const Offset(3, 3), // changes position of shadow
                                             ),
                                           ],
                                         ),
@@ -1887,8 +1622,7 @@ class _SearchPageState extends State<SearchPage> {
                                                 color: textColor,
                                                 fontWeight: FontWeight.w600,
                                                 fontFamily: 'Tahoma',
-                                                decoration:
-                                                    TextDecoration.none),
+                                                decoration: TextDecoration.none),
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                           const SizedBox(height: 5),
@@ -1899,25 +1633,20 @@ class _SearchPageState extends State<SearchPage> {
                                                 color: textColor,
                                                 fontFamily: 'Tahoma',
                                                 fontWeight: FontWeight.w400,
-                                                decoration:
-                                                    TextDecoration.none),
+                                                decoration: TextDecoration.none),
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                           Container(
                                               margin: const EdgeInsets.all(10),
                                               decoration: BoxDecoration(
                                                 color: Colors.white,
-                                                borderRadius:
-                                                    const BorderRadius.all(
-                                                        Radius.circular(15)),
+                                                borderRadius: const BorderRadius.all(Radius.circular(15)),
                                                 boxShadow: [
                                                   BoxShadow(
-                                                    color: Colors.black
-                                                        .withOpacity(0.6),
+                                                    color: Colors.black.withOpacity(0.6),
                                                     spreadRadius: 0,
                                                     blurRadius: 3,
-                                                    offset: const Offset(3,
-                                                        3), // changes position of shadow
+                                                    offset: const Offset(3, 3), // changes position of shadow
                                                   ),
                                                 ],
                                               ),
@@ -1925,28 +1654,17 @@ class _SearchPageState extends State<SearchPage> {
                                               height: 200,
                                               child: Stack(children: [
                                                 ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(15),
+                                                  borderRadius: BorderRadius.circular(15),
                                                   child: ImageFiltered(
-                                                    imageFilter:
-                                                        ImageFilter.blur(
-                                                            sigmaX: 6,
-                                                            sigmaY: 6),
+                                                    imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                                                     child: Opacity(
                                                       opacity: 0.8,
                                                       child: Image(
-                                                        image: NetworkImage(
-                                                            imageUrl),
+                                                        image: NetworkImage(imageUrl),
                                                         fit: BoxFit.cover,
                                                         width: 280,
                                                         height: 200,
-                                                        errorBuilder:
-                                                            (BuildContext
-                                                                    context,
-                                                                Object
-                                                                    exception,
-                                                                StackTrace?
-                                                                    stackTrace) {
+                                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                           return const SizedBox();
                                                         },
                                                       ),
@@ -1954,61 +1672,39 @@ class _SearchPageState extends State<SearchPage> {
                                                   ),
                                                 ),
                                                 ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(15),
+                                                  borderRadius: BorderRadius.circular(15),
                                                   child: Image(
-                                                    image:
-                                                        NetworkImage(imageUrl),
+                                                    image: NetworkImage(imageUrl),
                                                     fit: BoxFit.contain,
                                                     width: 280,
                                                     height: 200,
-                                                    errorBuilder:
-                                                        (BuildContext context,
-                                                            Object exception,
-                                                            StackTrace?
-                                                                stackTrace) {
+                                                    errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                       return const SizedBox();
                                                     },
                                                   ),
                                                 ),
                                               ])),
-                                          (suggestion
-                                                      .toString()
-                                                      .split('@')[2] !=
-                                                  'null')
+                                          (suggestion.toString().split('@')[2] != 'null')
                                               ? Opacity(
                                                   opacity: 0.5,
                                                   child: LinkText(
                                                       'Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
-                                                      textAlign:
-                                                          TextAlign.center,
+                                                      textAlign: TextAlign.center,
                                                       textStyle: const TextStyle(
                                                           fontSize: 12.0,
                                                           color: textColor,
                                                           fontFamily: 'Tahoma',
-                                                          fontWeight:
-                                                              FontWeight.w400,
-                                                          decoration:
-                                                              TextDecoration
-                                                                  .none),
+                                                          fontWeight: FontWeight.w400,
+                                                          decoration: TextDecoration.none),
                                                       linkStyle: const TextStyle(
                                                           fontSize: 12.0,
                                                           color: Colors.blue,
                                                           fontFamily: 'Tahoma',
-                                                          fontWeight:
-                                                              FontWeight.w400,
-                                                          decoration:
-                                                              TextDecoration
-                                                                  .underline,
-                                                          decorationColor:
-                                                              Colors.blue,
-                                                          decorationStyle:
-                                                              TextDecorationStyle
-                                                                  .solid),
-                                                      onLinkTap: (url) async {
-                                                    if (!await launchUrl(
-                                                        Uri.parse(url)))
-                                                      throw 'Could not launch $url';
+                                                          fontWeight: FontWeight.w400,
+                                                          decoration: TextDecoration.underline,
+                                                          decorationColor: Colors.blue,
+                                                          decorationStyle: TextDecorationStyle.solid), onLinkTap: (url) async {
+                                                    if (!await launchUrl(Uri.parse(url))) throw 'Could not launch $url';
                                                   }))
                                               : const SizedBox(),
                                           const SizedBox(height: 10),
@@ -2019,8 +1715,6 @@ class _SearchPageState extends State<SearchPage> {
                               }
                             }
                           },
-                          animationDuration: Duration.zero,
-                          debounceDuration: Duration.zero,
                         ),
                       ),
                       const SizedBox(width: 15),
@@ -2035,20 +1729,17 @@ class _SearchPageState extends State<SearchPage> {
                         const SizedBox(width: 20),
                         OutlinedButton(
                           style: ButtonStyle(
-                            // backgroundColor: MaterialStateProperty.all<Color>(backgroundColor.withOpacity(0.2)),
-                            // foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                            padding: MaterialStateProperty.all<EdgeInsets>(
-                                const EdgeInsets.all(12)),
-                            shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                RoundedRectangleBorder(
+                            // backgroundColor: WidgetStateProperty.all<Color>(backgroundColor.withOpacity(0.2)),
+                            // foregroundColor: WidgetStateProperty.all<Color>(Colors.grey),
+                            padding: WidgetStateProperty.all<EdgeInsets>(const EdgeInsets.all(12)),
+                            shape: WidgetStateProperty.all<OutlinedBorder?>(RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30.0),
                             )),
                           ),
                           onPressed: () {
                             getToCategory();
                           },
-                          child: Text(
-                              c.language.string == 'VN' ? 'Chủ đề' : 'Category',
+                          child: Text(c.language.string == 'VN' ? 'Chủ đề' : 'Category',
                               style: const TextStyle(
                                 color: textColor,
                               )),
@@ -2056,20 +1747,17 @@ class _SearchPageState extends State<SearchPage> {
                         const SizedBox(width: 10),
                         OutlinedButton(
                           style: ButtonStyle(
-                            // backgroundColor: MaterialStateProperty.all<Color>(backgroundColor.withOpacity(0.2)),
-                            // foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                            padding: MaterialStateProperty.all<EdgeInsets>(
-                                const EdgeInsets.all(12)),
-                            shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                RoundedRectangleBorder(
+                            // backgroundColor: WidgetStateProperty.all<Color>(backgroundColor.withOpacity(0.2)),
+                            // foregroundColor: WidgetStateProperty.all<Color>(Colors.grey),
+                            padding: WidgetStateProperty.all<EdgeInsets>(const EdgeInsets.all(12)),
+                            shape: WidgetStateProperty.all<OutlinedBorder?>(RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30.0),
                             )),
                           ),
                           onPressed: () {
                             getToType();
                           },
-                          child: Text(
-                              c.language.string == 'VN' ? 'Từ loại' : 'Type',
+                          child: Text(c.language.string == 'VN' ? 'Từ loại' : 'Type',
                               style: const TextStyle(
                                 color: textColor,
                               )),
@@ -2077,14 +1765,10 @@ class _SearchPageState extends State<SearchPage> {
                         const Expanded(child: SizedBox()),
                         TextButton(
                           style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all<Color>(
-                                backgroundColor.withOpacity(0.5)),
-                            foregroundColor:
-                                MaterialStateProperty.all<Color>(Colors.grey),
-                            padding: MaterialStateProperty.all<EdgeInsets>(
-                                const EdgeInsets.fromLTRB(0, 10, 0, 10)),
-                            shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                RoundedRectangleBorder(
+                            backgroundColor: WidgetStateProperty.all<Color>(backgroundColor.withOpacity(0.5)),
+                            foregroundColor: WidgetStateProperty.all<Color>(Colors.grey),
+                            padding: WidgetStateProperty.all<EdgeInsets>(const EdgeInsets.fromLTRB(0, 10, 0, 10)),
+                            shape: WidgetStateProperty.all<OutlinedBorder?>(RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15.0),
                             )),
                           ),
@@ -2109,8 +1793,7 @@ class _SearchPageState extends State<SearchPage> {
                   child: GetBuilder<Controller>(
                     builder: (_) => Visibility(
                       visible: !c.isSearch.value,
-                      child:
-                          ListView(padding: const EdgeInsets.all(0), children: [
+                      child: ListView(padding: const EdgeInsets.all(0), children: [
                         // const SizedBox(height: 10),
                         // Row(
                         //     // crossAxisAlignment: CrossAxisAlignment.end,
@@ -2418,8 +2101,7 @@ class _SearchPageState extends State<SearchPage> {
                                 lineWidth: 3.0,
                                 animation: true,
                                 percent: essentialCount / essentialList.length,
-                                backgroundColor:
-                                    const Color.fromRGBO(240, 240, 240, 1),
+                                backgroundColor: const Color.fromRGBO(240, 240, 240, 1),
                                 progressColor: backgroundColor,
                                 // center: Text(
                                 //   c.learnedIelts.length.toString(),
@@ -2440,9 +2122,7 @@ class _SearchPageState extends State<SearchPage> {
                                   }
                                 },
                                 child: Text(
-                                  c.language.string == 'VN'
-                                      ? 'CƠ BẢN'
-                                      : 'ESSENTIAL',
+                                  c.language.string == 'VN' ? 'CƠ BẢN' : 'ESSENTIAL',
                                   style: const TextStyle(
                                     fontSize: 20,
                                     color: textColor,
@@ -2468,12 +2148,8 @@ class _SearchPageState extends State<SearchPage> {
                             ]),
                         SizedBox(
                           height: MediaQuery.of(context).size.width > 500
-                              ? 220 * 250 / 300 + 80
-                              : (MediaQuery.of(context).size.width - 60) *
-                                      250 /
-                                      300 /
-                                      2 +
-                                  80,
+                              ? 220 * 250 / 300 + 90
+                              : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2 + 90,
                           child: Row(
                             children: [
                               // const SizedBox(width: 10),
@@ -2482,58 +2158,37 @@ class _SearchPageState extends State<SearchPage> {
                                   scrollDirection: Axis.horizontal,
                                   itemCount: listShowEssential.length + 1,
                                   addAutomaticKeepAlives: false,
-                                  itemBuilder:
-                                      (BuildContext context, int index) {
-                                    late var dataRaw;
+                                  itemBuilder: (BuildContext context, int index) {
+                                    dynamic dataRaw;
                                     String mean = '';
                                     String image = 'bedict.png';
                                     if (index < listShowEssential.length) {
                                       dataRaw = listShowEssential[index];
-                                      List listMean =
-                                          jsonDecode(dataRaw['mean'])[0];
+                                      List listMean = jsonDecode(dataRaw['mean'])[0];
                                       List meanENAdd = [];
                                       List meanVNAdd = [];
-                                      for (var j = 0;
-                                          j < listMean.length;
-                                          j++) {
+                                      for (var j = 0; j < listMean.length; j++) {
                                         String meanENElement = '';
                                         if (listMean[j].contains('#')) {
-                                          meanENElement =
-                                              listMean[j].split('#')[1];
+                                          meanENElement = listMean[j].split('#')[1];
                                         } else {
                                           meanENElement = listMean[j];
                                         }
                                         meanENAdd.add(meanENElement);
-                                        String meanVNElement =
-                                            jsonDecode(dataRaw['meanVN'])[0][j];
-                                        meanVNElement = meanVNElement.substring(
-                                            0, meanVNElement.length - 2);
-                                        meanVNElement = meanVNElement +
-                                            listMean[j].substring(
-                                                listMean[j].length - 1);
+                                        String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
+                                        meanVNElement = meanVNElement.substring(0, meanVNElement.length - 2);
+                                        meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length - 1);
                                         meanVNAdd.add(meanVNElement);
                                       }
                                       String meanEN = '';
                                       String meanVN = '';
-                                      for (var j = 0;
-                                          j < meanENAdd.length;
-                                          j++) {
+                                      for (var j = 0; j < meanENAdd.length; j++) {
                                         if (j == 0) {
-                                          meanVN = meanVN +
-                                              meanVNAdd[j].substring(
-                                                  0, meanVNAdd[j].length - 1);
-                                          meanEN = meanEN +
-                                              meanENAdd[j].substring(
-                                                  0, meanENAdd[j].length - 1);
+                                          meanVN = meanVN + meanVNAdd[j].substring(0, meanVNAdd[j].length - 1);
+                                          meanEN = meanEN + meanENAdd[j].substring(0, meanENAdd[j].length - 1);
                                         } else {
-                                          meanVN = meanVN +
-                                              ' | ' +
-                                              meanVNAdd[j].substring(
-                                                  0, meanVNAdd[j].length - 1);
-                                          meanEN = meanEN +
-                                              ' | ' +
-                                              meanENAdd[j].substring(
-                                                  0, meanENAdd[j].length - 1);
+                                          meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0, meanVNAdd[j].length - 1);
+                                          meanEN = meanEN + ' | ' + meanENAdd[j].substring(0, meanENAdd[j].length - 1);
                                         }
                                       }
                                       if (c.language.string == 'VN') {
@@ -2541,144 +2196,66 @@ class _SearchPageState extends State<SearchPage> {
                                       } else {
                                         mean = meanEN;
                                       }
-                                      if (jsonDecode(dataRaw['imageURL'])
-                                              .length >
-                                          0) {
-                                        image =
-                                            jsonDecode(dataRaw['imageURL'])[0];
+                                      if (jsonDecode(dataRaw['imageURL']).length > 0) {
+                                        image = jsonDecode(dataRaw['imageURL'])[0];
                                       }
                                     }
                                     return index < listShowEssential.length
                                         ? GestureDetector(
                                             onTap: () async {
-                                              c.part = RxInt(
-                                                  essentialList.indexOf(
-                                                          dataRaw['word']) ~/
-                                                      50);
+                                              c.part = RxInt(essentialList.indexOf(dataRaw['word']) ~/ 50);
                                               c.listWordScorePage.clear();
                                               for (var j = 0;
                                                   j <
-                                                      (c.part.value <
-                                                              (essentialList.length /
-                                                                          50)
-                                                                      .ceil() -
-                                                                  1
+                                                      (c.part.value < (essentialList.length / 50).ceil() - 1
                                                           ? 50
-                                                          : (essentialList
-                                                                  .length -
-                                                              50 *
-                                                                  c.part
-                                                                      .value));
+                                                          : (essentialList.length - 50 * c.part.value));
                                                   j++) {
-                                                c.listWordScorePage.add(
-                                                    essentialList[
-                                                        c.part.value * 50 + j]);
+                                                c.listWordScorePage.add(essentialList[c.part.value * 50 + j]);
                                               }
-                                              c.nowWord = RxInt(c
-                                                  .listWordScorePage
-                                                  .indexOf(dataRaw['word']));
+                                              c.nowWord = RxInt(c.listWordScorePage.indexOf(dataRaw['word']));
                                               if (c.language.string == 'VN') {
-                                                getToHome(
-                                                    'CƠ BẢN', dataRaw['word']);
+                                                getToHome('CƠ BẢN', dataRaw['word']);
                                               } else {
-                                                getToHome('ESSENTIAL',
-                                                    dataRaw['word']);
+                                                getToHome('ESSENTIAL', dataRaw['word']);
                                               }
                                             },
                                             child: Column(children: [
                                               Container(
-                                                  margin:
-                                                      const EdgeInsets.all(10),
+                                                  margin: const EdgeInsets.all(10),
                                                   decoration: BoxDecoration(
                                                     color: Colors.white,
-                                                    borderRadius:
-                                                        const BorderRadius.all(
-                                                            Radius.circular(8)),
+                                                    borderRadius: const BorderRadius.all(Radius.circular(8)),
                                                     boxShadow: [
                                                       BoxShadow(
-                                                        color: Colors.black
-                                                            .withOpacity(0.6),
+                                                        color: Colors.black.withOpacity(0.6),
                                                         spreadRadius: 0,
                                                         blurRadius: 5,
-                                                        offset: const Offset(5,
-                                                            5), // changes position of shadow
+                                                        offset: const Offset(5, 5), // changes position of shadow
                                                       ),
                                                     ],
                                                   ),
-                                                  width: MediaQuery.of(context)
-                                                              .size
-                                                              .width >
-                                                          500
-                                                      ? 220
-                                                      : (MediaQuery.of(context)
-                                                                  .size
-                                                                  .width -
-                                                              60) /
-                                                          2,
-                                                  height: MediaQuery.of(context)
-                                                              .size
-                                                              .width >
-                                                          500
+                                                  width: MediaQuery.of(context).size.width > 500 ? 220 : (MediaQuery.of(context).size.width - 60) / 2,
+                                                  height: MediaQuery.of(context).size.width > 500
                                                       ? 220 * 250 / 300
-                                                      : (MediaQuery.of(context)
-                                                                  .size
-                                                                  .width -
-                                                              60) *
-                                                          250 /
-                                                          300 /
-                                                          2,
+                                                      : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
                                                   child: Stack(children: [
                                                     ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
+                                                      borderRadius: BorderRadius.circular(8),
                                                       child: ImageFiltered(
-                                                        imageFilter:
-                                                            ImageFilter.blur(
-                                                                sigmaX: 6,
-                                                                sigmaY: 6),
+                                                        imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                                                         child: Opacity(
                                                           opacity: 0.8,
                                                           child: Image(
-                                                            image: NetworkImage(
-                                                                'https://bedict.com/' +
-                                                                    image.replaceAll(
-                                                                        '\\',
-                                                                        '')),
+                                                            image: NetworkImage('https://bedict.com/' + image.replaceAll('\\', '')),
                                                             fit: BoxFit.cover,
-                                                            width: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width >
-                                                                    500
+                                                            width: MediaQuery.of(context).size.width > 500
                                                                 ? 220
-                                                                : (MediaQuery.of(context)
-                                                                            .size
-                                                                            .width -
-                                                                        60) /
-                                                                    2,
-                                                            height: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width >
-                                                                    500
-                                                                ? 220 *
-                                                                    250 /
-                                                                    300
-                                                                : (MediaQuery.of(context)
-                                                                            .size
-                                                                            .width -
-                                                                        60) *
-                                                                    250 /
-                                                                    300 /
-                                                                    2,
-                                                            errorBuilder:
-                                                                (BuildContext
-                                                                        context,
-                                                                    Object
-                                                                        exception,
-                                                                    StackTrace?
-                                                                        stackTrace) {
+                                                                : (MediaQuery.of(context).size.width - 60) / 2,
+                                                            height: MediaQuery.of(context).size.width > 500
+                                                                ? 220 * 250 / 300
+                                                                : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
+                                                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                               return const SizedBox();
                                                             },
                                                           ),
@@ -2686,129 +2263,61 @@ class _SearchPageState extends State<SearchPage> {
                                                       ),
                                                     ),
                                                     ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
+                                                      borderRadius: BorderRadius.circular(8),
                                                       child: Image(
-                                                        image: NetworkImage(
-                                                            'https://bedict.com/' +
-                                                                image
-                                                                    .replaceAll(
-                                                                        '\\',
-                                                                        '')),
+                                                        image: NetworkImage('https://bedict.com/' + image.replaceAll('\\', '')),
                                                         fit: BoxFit.contain,
-                                                        width: MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width >
-                                                                500
+                                                        width: MediaQuery.of(context).size.width > 500
                                                             ? 220
-                                                            : (MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width -
-                                                                    60) /
-                                                                2,
-                                                        height: MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width >
-                                                                500
+                                                            : (MediaQuery.of(context).size.width - 60) / 2,
+                                                        height: MediaQuery.of(context).size.width > 500
                                                             ? 220 * 250 / 300
-                                                            : (MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width -
-                                                                    60) *
-                                                                250 /
-                                                                300 /
-                                                                2,
-                                                        errorBuilder:
-                                                            (BuildContext
-                                                                    context,
-                                                                Object
-                                                                    exception,
-                                                                StackTrace?
-                                                                    stackTrace) {
+                                                            : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
+                                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                           return const SizedBox();
                                                         },
                                                       ),
                                                     ),
-                                                    jsonDecode(dataRaw[
-                                                                    'meanVN'])
-                                                                .length >
-                                                            1
+                                                    jsonDecode(dataRaw['meanVN']).length > 1
                                                         ? Positioned(
                                                             right: 7,
                                                             bottom: 7,
                                                             child: Container(
-                                                                alignment:
-                                                                    Alignment
-                                                                        .center,
-                                                                decoration:
-                                                                    BoxDecoration(
-                                                                  color: Colors
-                                                                      .white
-                                                                      .withOpacity(
-                                                                          0.7),
-                                                                  borderRadius: const BorderRadius
-                                                                          .all(
-                                                                      Radius.circular(
-                                                                          20)),
+                                                                alignment: Alignment.center,
+                                                                decoration: BoxDecoration(
+                                                                  color: Colors.white.withOpacity(0.7),
+                                                                  borderRadius: const BorderRadius.all(Radius.circular(20)),
                                                                 ),
                                                                 height: 40,
                                                                 width: 40,
                                                                 child: Text(
-                                                                  '+ ' +
-                                                                      (jsonDecode(dataRaw['meanVN']).length -
-                                                                              1)
-                                                                          .toString(),
+                                                                  '+ ' + (jsonDecode(dataRaw['meanVN']).length - 1).toString(),
                                                                 )))
                                                         : const SizedBox(),
                                                   ])),
                                               const SizedBox(height: 7),
                                               Container(
                                                 alignment: Alignment.centerLeft,
-                                                width: MediaQuery.of(context)
-                                                            .size
-                                                            .width >
-                                                        500
-                                                    ? 220
-                                                    : (MediaQuery.of(context)
-                                                                .size
-                                                                .width -
-                                                            60) /
-                                                        2,
+                                                width: MediaQuery.of(context).size.width > 500 ? 220 : (MediaQuery.of(context).size.width - 60) / 2,
                                                 child: Text(
                                                   dataRaw['word'],
                                                   style: const TextStyle(
                                                     fontSize: 18,
                                                     fontWeight: FontWeight.w600,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
+                                                    overflow: TextOverflow.ellipsis,
                                                   ),
                                                 ),
                                               ),
                                               const SizedBox(height: 5),
                                               Container(
                                                 alignment: Alignment.centerLeft,
-                                                width: MediaQuery.of(context)
-                                                            .size
-                                                            .width >
-                                                        500
-                                                    ? 220
-                                                    : (MediaQuery.of(context)
-                                                                .size
-                                                                .width -
-                                                            60) /
-                                                        2,
+                                                width: MediaQuery.of(context).size.width > 500 ? 220 : (MediaQuery.of(context).size.width - 60) / 2,
                                                 child: Text(
                                                   mean,
                                                   style: const TextStyle(
                                                     fontSize: 14,
                                                     fontWeight: FontWeight.w400,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
+                                                    overflow: TextOverflow.ellipsis,
                                                   ),
                                                 ),
                                               ),
@@ -2827,8 +2336,7 @@ class _SearchPageState extends State<SearchPage> {
                                               children: [
                                                 Container(
                                                   alignment: Alignment.center,
-                                                  margin:
-                                                      const EdgeInsets.all(10),
+                                                  margin: const EdgeInsets.all(10),
                                                   // decoration: BoxDecoration(
                                                   //   color: Colors.white,
                                                   //   borderRadius: const BorderRadius.all(
@@ -2843,29 +2351,10 @@ class _SearchPageState extends State<SearchPage> {
                                                   //     ),
                                                   //   ],
                                                   // ),
-                                                  width: MediaQuery.of(context)
-                                                              .size
-                                                              .width >
-                                                          500
-                                                      ? 220
-                                                      : (MediaQuery.of(context)
-                                                                  .size
-                                                                  .width -
-                                                              60) /
-                                                          2,
-                                                  height: MediaQuery.of(context)
-                                                              .size
-                                                              .width >
-                                                          500
+                                                  width: MediaQuery.of(context).size.width > 500 ? 220 : (MediaQuery.of(context).size.width - 60) / 2,
+                                                  height: MediaQuery.of(context).size.width > 500
                                                       ? 220 * 250 / 300
-                                                      : (MediaQuery.of(context)
-                                                                      .size
-                                                                      .width -
-                                                                  60) *
-                                                              250 /
-                                                              300 /
-                                                              2 +
-                                                          60,
+                                                      : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2 + 60,
                                                   child: const Text('+ 2948',
                                                       style: TextStyle(
                                                         fontSize: 30,
@@ -2891,8 +2380,7 @@ class _SearchPageState extends State<SearchPage> {
                                 lineWidth: 3.0,
                                 animation: true,
                                 percent: ieltsCount / ieltsList.length,
-                                backgroundColor:
-                                    const Color.fromRGBO(240, 240, 240, 1),
+                                backgroundColor: const Color.fromRGBO(240, 240, 240, 1),
                                 progressColor: backgroundColor,
                                 // center: Text(
                                 //   c.learnedIelts.length.toString(),
@@ -2931,12 +2419,8 @@ class _SearchPageState extends State<SearchPage> {
                             ]),
                         SizedBox(
                           height: MediaQuery.of(context).size.width > 500
-                              ? 220 * 250 / 300 + 80
-                              : (MediaQuery.of(context).size.width - 60) *
-                                      250 /
-                                      300 /
-                                      2 +
-                                  80,
+                              ? 220 * 250 / 300 + 90
+                              : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2 + 90,
                           child: Row(
                             children: [
                               // const SizedBox(width: 10),
@@ -2945,58 +2429,37 @@ class _SearchPageState extends State<SearchPage> {
                                   scrollDirection: Axis.horizontal,
                                   itemCount: listShowIelts.length + 1,
                                   addAutomaticKeepAlives: false,
-                                  itemBuilder:
-                                      (BuildContext context, int index) {
-                                    late var dataRaw;
+                                  itemBuilder: (BuildContext context, int index) {
+                                    dynamic dataRaw;
                                     String mean = '';
                                     String image = 'bedict.png';
                                     if (index < listShowIelts.length) {
                                       dataRaw = listShowIelts[index];
-                                      List listMean =
-                                          jsonDecode(dataRaw['mean'])[0];
+                                      List listMean = jsonDecode(dataRaw['mean'])[0];
                                       List meanENAdd = [];
                                       List meanVNAdd = [];
-                                      for (var j = 0;
-                                          j < listMean.length;
-                                          j++) {
+                                      for (var j = 0; j < listMean.length; j++) {
                                         String meanENElement = '';
                                         if (listMean[j].contains('#')) {
-                                          meanENElement =
-                                              listMean[j].split('#')[1];
+                                          meanENElement = listMean[j].split('#')[1];
                                         } else {
                                           meanENElement = listMean[j];
                                         }
                                         meanENAdd.add(meanENElement);
-                                        String meanVNElement =
-                                            jsonDecode(dataRaw['meanVN'])[0][j];
-                                        meanVNElement = meanVNElement.substring(
-                                            0, meanVNElement.length - 2);
-                                        meanVNElement = meanVNElement +
-                                            listMean[j].substring(
-                                                listMean[j].length - 1);
+                                        String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
+                                        meanVNElement = meanVNElement.substring(0, meanVNElement.length - 2);
+                                        meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length - 1);
                                         meanVNAdd.add(meanVNElement);
                                       }
                                       String meanEN = '';
                                       String meanVN = '';
-                                      for (var j = 0;
-                                          j < meanENAdd.length;
-                                          j++) {
+                                      for (var j = 0; j < meanENAdd.length; j++) {
                                         if (j == 0) {
-                                          meanVN = meanVN +
-                                              meanVNAdd[j].substring(
-                                                  0, meanVNAdd[j].length - 1);
-                                          meanEN = meanEN +
-                                              meanENAdd[j].substring(
-                                                  0, meanENAdd[j].length - 1);
+                                          meanVN = meanVN + meanVNAdd[j].substring(0, meanVNAdd[j].length - 1);
+                                          meanEN = meanEN + meanENAdd[j].substring(0, meanENAdd[j].length - 1);
                                         } else {
-                                          meanVN = meanVN +
-                                              ' | ' +
-                                              meanVNAdd[j].substring(
-                                                  0, meanVNAdd[j].length - 1);
-                                          meanEN = meanEN +
-                                              ' | ' +
-                                              meanENAdd[j].substring(
-                                                  0, meanENAdd[j].length - 1);
+                                          meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0, meanVNAdd[j].length - 1);
+                                          meanEN = meanEN + ' | ' + meanENAdd[j].substring(0, meanENAdd[j].length - 1);
                                         }
                                       }
                                       if (c.language.string == 'VN') {
@@ -3004,137 +2467,62 @@ class _SearchPageState extends State<SearchPage> {
                                       } else {
                                         mean = meanEN;
                                       }
-                                      if (jsonDecode(dataRaw['imageURL'])
-                                              .length >
-                                          0) {
-                                        image =
-                                            jsonDecode(dataRaw['imageURL'])[0];
+                                      if (jsonDecode(dataRaw['imageURL']).length > 0) {
+                                        image = jsonDecode(dataRaw['imageURL'])[0];
                                       }
                                     }
                                     return index < listShowIelts.length
                                         ? GestureDetector(
                                             onTap: () async {
-                                              c.part = RxInt(ieltsList.indexOf(
-                                                      dataRaw['word']) ~/
-                                                  50);
+                                              c.part = RxInt(ieltsList.indexOf(dataRaw['word']) ~/ 50);
                                               c.listWordScorePage.clear();
                                               for (var j = 0;
                                                   j <
-                                                      (c.part.value <
-                                                              (ieltsList.length /
-                                                                          50)
-                                                                      .ceil() -
-                                                                  1
+                                                      (c.part.value < (ieltsList.length / 50).ceil() - 1
                                                           ? 50
-                                                          : (ieltsList.length -
-                                                              50 *
-                                                                  c.part
-                                                                      .value));
+                                                          : (ieltsList.length - 50 * c.part.value));
                                                   j++) {
-                                                c.listWordScorePage.add(
-                                                    ieltsList[
-                                                        c.part.value * 50 + j]);
+                                                c.listWordScorePage.add(ieltsList[c.part.value * 50 + j]);
                                               }
-                                              c.nowWord = RxInt(c
-                                                  .listWordScorePage
-                                                  .indexOf(dataRaw['word']));
-                                              getToHome(
-                                                  'IELTS', dataRaw['word']);
+                                              c.nowWord = RxInt(c.listWordScorePage.indexOf(dataRaw['word']));
+                                              getToHome('IELTS', dataRaw['word']);
                                             },
                                             child: Column(children: [
                                               Container(
-                                                  margin:
-                                                      const EdgeInsets.all(10),
+                                                  margin: const EdgeInsets.all(10),
                                                   decoration: BoxDecoration(
                                                     color: Colors.white,
-                                                    borderRadius:
-                                                        const BorderRadius.all(
-                                                            Radius.circular(8)),
+                                                    borderRadius: const BorderRadius.all(Radius.circular(8)),
                                                     boxShadow: [
                                                       BoxShadow(
-                                                        color: Colors.black
-                                                            .withOpacity(0.6),
+                                                        color: Colors.black.withOpacity(0.6),
                                                         spreadRadius: 0,
                                                         blurRadius: 5,
-                                                        offset: const Offset(5,
-                                                            5), // changes position of shadow
+                                                        offset: const Offset(5, 5), // changes position of shadow
                                                       ),
                                                     ],
                                                   ),
-                                                  width: MediaQuery.of(context)
-                                                              .size
-                                                              .width >
-                                                          500
-                                                      ? 220
-                                                      : (MediaQuery.of(context)
-                                                                  .size
-                                                                  .width -
-                                                              60) /
-                                                          2,
-                                                  height: MediaQuery.of(context)
-                                                              .size
-                                                              .width >
-                                                          500
+                                                  width: MediaQuery.of(context).size.width > 500 ? 220 : (MediaQuery.of(context).size.width - 60) / 2,
+                                                  height: MediaQuery.of(context).size.width > 500
                                                       ? 220 * 250 / 300
-                                                      : (MediaQuery.of(context)
-                                                                  .size
-                                                                  .width -
-                                                              60) *
-                                                          250 /
-                                                          300 /
-                                                          2,
+                                                      : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
                                                   child: Stack(children: [
                                                     ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
+                                                      borderRadius: BorderRadius.circular(8),
                                                       child: ImageFiltered(
-                                                        imageFilter:
-                                                            ImageFilter.blur(
-                                                                sigmaX: 6,
-                                                                sigmaY: 6),
+                                                        imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                                                         child: Opacity(
                                                           opacity: 0.8,
                                                           child: Image(
-                                                            image: NetworkImage(
-                                                                'https://bedict.com/' +
-                                                                    image.replaceAll(
-                                                                        '\\',
-                                                                        '')),
+                                                            image: NetworkImage('https://bedict.com/' + image.replaceAll('\\', '')),
                                                             fit: BoxFit.cover,
-                                                            width: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width >
-                                                                    500
+                                                            width: MediaQuery.of(context).size.width > 500
                                                                 ? 220
-                                                                : (MediaQuery.of(context)
-                                                                            .size
-                                                                            .width -
-                                                                        60) /
-                                                                    2,
-                                                            height: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width >
-                                                                    500
-                                                                ? 220 *
-                                                                    250 /
-                                                                    300
-                                                                : (MediaQuery.of(context)
-                                                                            .size
-                                                                            .width -
-                                                                        60) *
-                                                                    250 /
-                                                                    300 /
-                                                                    2,
-                                                            errorBuilder:
-                                                                (BuildContext
-                                                                        context,
-                                                                    Object
-                                                                        exception,
-                                                                    StackTrace?
-                                                                        stackTrace) {
+                                                                : (MediaQuery.of(context).size.width - 60) / 2,
+                                                            height: MediaQuery.of(context).size.width > 500
+                                                                ? 220 * 250 / 300
+                                                                : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
+                                                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                               return const SizedBox();
                                                             },
                                                           ),
@@ -3142,129 +2530,61 @@ class _SearchPageState extends State<SearchPage> {
                                                       ),
                                                     ),
                                                     ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
+                                                      borderRadius: BorderRadius.circular(8),
                                                       child: Image(
-                                                        image: NetworkImage(
-                                                            'https://bedict.com/' +
-                                                                image
-                                                                    .replaceAll(
-                                                                        '\\',
-                                                                        '')),
+                                                        image: NetworkImage('https://bedict.com/' + image.replaceAll('\\', '')),
                                                         fit: BoxFit.contain,
-                                                        width: MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width >
-                                                                500
+                                                        width: MediaQuery.of(context).size.width > 500
                                                             ? 220
-                                                            : (MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width -
-                                                                    60) /
-                                                                2,
-                                                        height: MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width >
-                                                                500
+                                                            : (MediaQuery.of(context).size.width - 60) / 2,
+                                                        height: MediaQuery.of(context).size.width > 500
                                                             ? 220 * 250 / 300
-                                                            : (MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width -
-                                                                    60) *
-                                                                250 /
-                                                                300 /
-                                                                2,
-                                                        errorBuilder:
-                                                            (BuildContext
-                                                                    context,
-                                                                Object
-                                                                    exception,
-                                                                StackTrace?
-                                                                    stackTrace) {
+                                                            : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
+                                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                           return const SizedBox();
                                                         },
                                                       ),
                                                     ),
-                                                    jsonDecode(dataRaw[
-                                                                    'meanVN'])
-                                                                .length >
-                                                            1
+                                                    jsonDecode(dataRaw['meanVN']).length > 1
                                                         ? Positioned(
                                                             right: 7,
                                                             bottom: 7,
                                                             child: Container(
-                                                                alignment:
-                                                                    Alignment
-                                                                        .center,
-                                                                decoration:
-                                                                    BoxDecoration(
-                                                                  color: Colors
-                                                                      .white
-                                                                      .withOpacity(
-                                                                          0.7),
-                                                                  borderRadius: const BorderRadius
-                                                                          .all(
-                                                                      Radius.circular(
-                                                                          20)),
+                                                                alignment: Alignment.center,
+                                                                decoration: BoxDecoration(
+                                                                  color: Colors.white.withOpacity(0.7),
+                                                                  borderRadius: const BorderRadius.all(Radius.circular(20)),
                                                                 ),
                                                                 height: 40,
                                                                 width: 40,
                                                                 child: Text(
-                                                                  '+ ' +
-                                                                      (jsonDecode(dataRaw['meanVN']).length -
-                                                                              1)
-                                                                          .toString(),
+                                                                  '+ ' + (jsonDecode(dataRaw['meanVN']).length - 1).toString(),
                                                                 )))
                                                         : const SizedBox(),
                                                   ])),
                                               const SizedBox(height: 7),
                                               Container(
                                                 alignment: Alignment.centerLeft,
-                                                width: MediaQuery.of(context)
-                                                            .size
-                                                            .width >
-                                                        500
-                                                    ? 220
-                                                    : (MediaQuery.of(context)
-                                                                .size
-                                                                .width -
-                                                            60) /
-                                                        2,
+                                                width: MediaQuery.of(context).size.width > 500 ? 220 : (MediaQuery.of(context).size.width - 60) / 2,
                                                 child: Text(
                                                   dataRaw['word'],
                                                   style: const TextStyle(
                                                     fontSize: 18,
                                                     fontWeight: FontWeight.w600,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
+                                                    overflow: TextOverflow.ellipsis,
                                                   ),
                                                 ),
                                               ),
                                               const SizedBox(height: 5),
                                               Container(
                                                 alignment: Alignment.centerLeft,
-                                                width: MediaQuery.of(context)
-                                                            .size
-                                                            .width >
-                                                        500
-                                                    ? 220
-                                                    : (MediaQuery.of(context)
-                                                                .size
-                                                                .width -
-                                                            60) /
-                                                        2,
+                                                width: MediaQuery.of(context).size.width > 500 ? 220 : (MediaQuery.of(context).size.width - 60) / 2,
                                                 child: Text(
                                                   mean,
                                                   style: const TextStyle(
                                                     fontSize: 14,
                                                     fontWeight: FontWeight.w400,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
+                                                    overflow: TextOverflow.ellipsis,
                                                   ),
                                                 ),
                                               ),
@@ -3279,8 +2599,7 @@ class _SearchPageState extends State<SearchPage> {
                                               children: [
                                                 Container(
                                                   alignment: Alignment.center,
-                                                  margin:
-                                                      const EdgeInsets.all(10),
+                                                  margin: const EdgeInsets.all(10),
                                                   // decoration: BoxDecoration(
                                                   //   color: Colors.white,
                                                   //   borderRadius: const BorderRadius.all(
@@ -3295,29 +2614,10 @@ class _SearchPageState extends State<SearchPage> {
                                                   //     ),
                                                   //   ],
                                                   // ),
-                                                  width: MediaQuery.of(context)
-                                                              .size
-                                                              .width >
-                                                          500
-                                                      ? 220
-                                                      : (MediaQuery.of(context)
-                                                                  .size
-                                                                  .width -
-                                                              60) /
-                                                          2,
-                                                  height: MediaQuery.of(context)
-                                                              .size
-                                                              .width >
-                                                          500
+                                                  width: MediaQuery.of(context).size.width > 500 ? 220 : (MediaQuery.of(context).size.width - 60) / 2,
+                                                  height: MediaQuery.of(context).size.width > 500
                                                       ? 220 * 250 / 300
-                                                      : (MediaQuery.of(context)
-                                                                      .size
-                                                                      .width -
-                                                                  60) *
-                                                              250 /
-                                                              300 /
-                                                              2 +
-                                                          60,
+                                                      : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2 + 60,
                                                   child: const Text('+ 545',
                                                       style: TextStyle(
                                                         fontSize: 30,
@@ -3343,8 +2643,7 @@ class _SearchPageState extends State<SearchPage> {
                                 lineWidth: 3.0,
                                 animation: true,
                                 percent: toeicCount / toeicList.length,
-                                backgroundColor:
-                                    const Color.fromRGBO(240, 240, 240, 1),
+                                backgroundColor: const Color.fromRGBO(240, 240, 240, 1),
                                 progressColor: backgroundColor,
                                 // center: Text(
                                 //   c.learnedIelts.length.toString(),
@@ -3383,12 +2682,8 @@ class _SearchPageState extends State<SearchPage> {
                             ]),
                         SizedBox(
                           height: MediaQuery.of(context).size.width > 500
-                              ? 220 * 250 / 300 + 80
-                              : (MediaQuery.of(context).size.width - 60) *
-                                      250 /
-                                      300 /
-                                      2 +
-                                  80,
+                              ? 220 * 250 / 300 + 90
+                              : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2 + 90,
                           child: Row(
                             children: [
                               // const SizedBox(width: 10),
@@ -3397,58 +2692,37 @@ class _SearchPageState extends State<SearchPage> {
                                   scrollDirection: Axis.horizontal,
                                   itemCount: listShowToeic.length + 1,
                                   addAutomaticKeepAlives: false,
-                                  itemBuilder:
-                                      (BuildContext context, int index) {
-                                    late var dataRaw;
+                                  itemBuilder: (BuildContext context, int index) {
+                                    dynamic dataRaw;
                                     String mean = '';
                                     String image = 'bedict.png';
                                     if (index < listShowToeic.length) {
                                       dataRaw = listShowToeic[index];
-                                      List listMean =
-                                          jsonDecode(dataRaw['mean'])[0];
+                                      List listMean = jsonDecode(dataRaw['mean'])[0];
                                       List meanENAdd = [];
                                       List meanVNAdd = [];
-                                      for (var j = 0;
-                                          j < listMean.length;
-                                          j++) {
+                                      for (var j = 0; j < listMean.length; j++) {
                                         String meanENElement = '';
                                         if (listMean[j].contains('#')) {
-                                          meanENElement =
-                                              listMean[j].split('#')[1];
+                                          meanENElement = listMean[j].split('#')[1];
                                         } else {
                                           meanENElement = listMean[j];
                                         }
                                         meanENAdd.add(meanENElement);
-                                        String meanVNElement =
-                                            jsonDecode(dataRaw['meanVN'])[0][j];
-                                        meanVNElement = meanVNElement.substring(
-                                            0, meanVNElement.length - 2);
-                                        meanVNElement = meanVNElement +
-                                            listMean[j].substring(
-                                                listMean[j].length - 1);
+                                        String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
+                                        meanVNElement = meanVNElement.substring(0, meanVNElement.length - 2);
+                                        meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length - 1);
                                         meanVNAdd.add(meanVNElement);
                                       }
                                       String meanEN = '';
                                       String meanVN = '';
-                                      for (var j = 0;
-                                          j < meanENAdd.length;
-                                          j++) {
+                                      for (var j = 0; j < meanENAdd.length; j++) {
                                         if (j == 0) {
-                                          meanVN = meanVN +
-                                              meanVNAdd[j].substring(
-                                                  0, meanVNAdd[j].length - 1);
-                                          meanEN = meanEN +
-                                              meanENAdd[j].substring(
-                                                  0, meanENAdd[j].length - 1);
+                                          meanVN = meanVN + meanVNAdd[j].substring(0, meanVNAdd[j].length - 1);
+                                          meanEN = meanEN + meanENAdd[j].substring(0, meanENAdd[j].length - 1);
                                         } else {
-                                          meanVN = meanVN +
-                                              ' | ' +
-                                              meanVNAdd[j].substring(
-                                                  0, meanVNAdd[j].length - 1);
-                                          meanEN = meanEN +
-                                              ' | ' +
-                                              meanENAdd[j].substring(
-                                                  0, meanENAdd[j].length - 1);
+                                          meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0, meanVNAdd[j].length - 1);
+                                          meanEN = meanEN + ' | ' + meanENAdd[j].substring(0, meanENAdd[j].length - 1);
                                         }
                                       }
                                       if (c.language.string == 'VN') {
@@ -3456,137 +2730,62 @@ class _SearchPageState extends State<SearchPage> {
                                       } else {
                                         mean = meanEN;
                                       }
-                                      if (jsonDecode(dataRaw['imageURL'])
-                                              .length >
-                                          0) {
-                                        image =
-                                            jsonDecode(dataRaw['imageURL'])[0];
+                                      if (jsonDecode(dataRaw['imageURL']).length > 0) {
+                                        image = jsonDecode(dataRaw['imageURL'])[0];
                                       }
                                     }
                                     return index < listShowToeic.length
                                         ? GestureDetector(
                                             onTap: () async {
-                                              c.part = RxInt(toeicList.indexOf(
-                                                      dataRaw['word']) ~/
-                                                  50);
+                                              c.part = RxInt(toeicList.indexOf(dataRaw['word']) ~/ 50);
                                               c.listWordScorePage.clear();
                                               for (var j = 0;
                                                   j <
-                                                      (c.part.value <
-                                                              (toeicList.length /
-                                                                          50)
-                                                                      .ceil() -
-                                                                  1
+                                                      (c.part.value < (toeicList.length / 50).ceil() - 1
                                                           ? 50
-                                                          : (toeicList.length -
-                                                              50 *
-                                                                  c.part
-                                                                      .value));
+                                                          : (toeicList.length - 50 * c.part.value));
                                                   j++) {
-                                                c.listWordScorePage.add(
-                                                    toeicList[
-                                                        c.part.value * 50 + j]);
+                                                c.listWordScorePage.add(toeicList[c.part.value * 50 + j]);
                                               }
-                                              c.nowWord = RxInt(c
-                                                  .listWordScorePage
-                                                  .indexOf(dataRaw['word']));
-                                              getToHome(
-                                                  'TOEIC', dataRaw['word']);
+                                              c.nowWord = RxInt(c.listWordScorePage.indexOf(dataRaw['word']));
+                                              getToHome('TOEIC', dataRaw['word']);
                                             },
                                             child: Column(children: [
                                               Container(
-                                                  margin:
-                                                      const EdgeInsets.all(10),
+                                                  margin: const EdgeInsets.all(10),
                                                   decoration: BoxDecoration(
                                                     color: Colors.white,
-                                                    borderRadius:
-                                                        const BorderRadius.all(
-                                                            Radius.circular(8)),
+                                                    borderRadius: const BorderRadius.all(Radius.circular(8)),
                                                     boxShadow: [
                                                       BoxShadow(
-                                                        color: Colors.black
-                                                            .withOpacity(0.6),
+                                                        color: Colors.black.withOpacity(0.6),
                                                         spreadRadius: 0,
                                                         blurRadius: 5,
-                                                        offset: const Offset(5,
-                                                            5), // changes position of shadow
+                                                        offset: const Offset(5, 5), // changes position of shadow
                                                       ),
                                                     ],
                                                   ),
-                                                  width: MediaQuery.of(context)
-                                                              .size
-                                                              .width >
-                                                          500
-                                                      ? 220
-                                                      : (MediaQuery.of(context)
-                                                                  .size
-                                                                  .width -
-                                                              60) /
-                                                          2,
-                                                  height: MediaQuery.of(context)
-                                                              .size
-                                                              .width >
-                                                          500
+                                                  width: MediaQuery.of(context).size.width > 500 ? 220 : (MediaQuery.of(context).size.width - 60) / 2,
+                                                  height: MediaQuery.of(context).size.width > 500
                                                       ? 220 * 250 / 300
-                                                      : (MediaQuery.of(context)
-                                                                  .size
-                                                                  .width -
-                                                              60) *
-                                                          250 /
-                                                          300 /
-                                                          2,
+                                                      : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
                                                   child: Stack(children: [
                                                     ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
+                                                      borderRadius: BorderRadius.circular(8),
                                                       child: ImageFiltered(
-                                                        imageFilter:
-                                                            ImageFilter.blur(
-                                                                sigmaX: 6,
-                                                                sigmaY: 6),
+                                                        imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                                                         child: Opacity(
                                                           opacity: 0.8,
                                                           child: Image(
-                                                            image: NetworkImage(
-                                                                'https://bedict.com/' +
-                                                                    image.replaceAll(
-                                                                        '\\',
-                                                                        '')),
+                                                            image: NetworkImage('https://bedict.com/' + image.replaceAll('\\', '')),
                                                             fit: BoxFit.cover,
-                                                            width: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width >
-                                                                    500
+                                                            width: MediaQuery.of(context).size.width > 500
                                                                 ? 220
-                                                                : (MediaQuery.of(context)
-                                                                            .size
-                                                                            .width -
-                                                                        60) /
-                                                                    2,
-                                                            height: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width >
-                                                                    500
-                                                                ? 220 *
-                                                                    250 /
-                                                                    300
-                                                                : (MediaQuery.of(context)
-                                                                            .size
-                                                                            .width -
-                                                                        60) *
-                                                                    250 /
-                                                                    300 /
-                                                                    2,
-                                                            errorBuilder:
-                                                                (BuildContext
-                                                                        context,
-                                                                    Object
-                                                                        exception,
-                                                                    StackTrace?
-                                                                        stackTrace) {
+                                                                : (MediaQuery.of(context).size.width - 60) / 2,
+                                                            height: MediaQuery.of(context).size.width > 500
+                                                                ? 220 * 250 / 300
+                                                                : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
+                                                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                               return const SizedBox();
                                                             },
                                                           ),
@@ -3594,129 +2793,61 @@ class _SearchPageState extends State<SearchPage> {
                                                       ),
                                                     ),
                                                     ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
+                                                      borderRadius: BorderRadius.circular(8),
                                                       child: Image(
-                                                        image: NetworkImage(
-                                                            'https://bedict.com/' +
-                                                                image
-                                                                    .replaceAll(
-                                                                        '\\',
-                                                                        '')),
+                                                        image: NetworkImage('https://bedict.com/' + image.replaceAll('\\', '')),
                                                         fit: BoxFit.contain,
-                                                        width: MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width >
-                                                                500
+                                                        width: MediaQuery.of(context).size.width > 500
                                                             ? 220
-                                                            : (MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width -
-                                                                    60) /
-                                                                2,
-                                                        height: MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width >
-                                                                500
+                                                            : (MediaQuery.of(context).size.width - 60) / 2,
+                                                        height: MediaQuery.of(context).size.width > 500
                                                             ? 220 * 250 / 300
-                                                            : (MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width -
-                                                                    60) *
-                                                                250 /
-                                                                300 /
-                                                                2,
-                                                        errorBuilder:
-                                                            (BuildContext
-                                                                    context,
-                                                                Object
-                                                                    exception,
-                                                                StackTrace?
-                                                                    stackTrace) {
+                                                            : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
+                                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                           return const SizedBox();
                                                         },
                                                       ),
                                                     ),
-                                                    jsonDecode(dataRaw[
-                                                                    'meanVN'])
-                                                                .length >
-                                                            1
+                                                    jsonDecode(dataRaw['meanVN']).length > 1
                                                         ? Positioned(
                                                             right: 7,
                                                             bottom: 7,
                                                             child: Container(
-                                                                alignment:
-                                                                    Alignment
-                                                                        .center,
-                                                                decoration:
-                                                                    BoxDecoration(
-                                                                  color: Colors
-                                                                      .white
-                                                                      .withOpacity(
-                                                                          0.7),
-                                                                  borderRadius: const BorderRadius
-                                                                          .all(
-                                                                      Radius.circular(
-                                                                          20)),
+                                                                alignment: Alignment.center,
+                                                                decoration: BoxDecoration(
+                                                                  color: Colors.white.withOpacity(0.7),
+                                                                  borderRadius: const BorderRadius.all(Radius.circular(20)),
                                                                 ),
                                                                 height: 40,
                                                                 width: 40,
                                                                 child: Text(
-                                                                  '+ ' +
-                                                                      (jsonDecode(dataRaw['meanVN']).length -
-                                                                              1)
-                                                                          .toString(),
+                                                                  '+ ' + (jsonDecode(dataRaw['meanVN']).length - 1).toString(),
                                                                 )))
                                                         : const SizedBox(),
                                                   ])),
                                               const SizedBox(height: 7),
                                               Container(
                                                 alignment: Alignment.centerLeft,
-                                                width: MediaQuery.of(context)
-                                                            .size
-                                                            .width >
-                                                        500
-                                                    ? 220
-                                                    : (MediaQuery.of(context)
-                                                                .size
-                                                                .width -
-                                                            60) /
-                                                        2,
+                                                width: MediaQuery.of(context).size.width > 500 ? 220 : (MediaQuery.of(context).size.width - 60) / 2,
                                                 child: Text(
                                                   dataRaw['word'],
                                                   style: const TextStyle(
                                                     fontSize: 18,
                                                     fontWeight: FontWeight.w600,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
+                                                    overflow: TextOverflow.ellipsis,
                                                   ),
                                                 ),
                                               ),
                                               const SizedBox(height: 5),
                                               Container(
                                                 alignment: Alignment.centerLeft,
-                                                width: MediaQuery.of(context)
-                                                            .size
-                                                            .width >
-                                                        500
-                                                    ? 220
-                                                    : (MediaQuery.of(context)
-                                                                .size
-                                                                .width -
-                                                            60) /
-                                                        2,
+                                                width: MediaQuery.of(context).size.width > 500 ? 220 : (MediaQuery.of(context).size.width - 60) / 2,
                                                 child: Text(
                                                   mean,
                                                   style: const TextStyle(
                                                     fontSize: 14,
                                                     fontWeight: FontWeight.w400,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
+                                                    overflow: TextOverflow.ellipsis,
                                                   ),
                                                 ),
                                               ),
@@ -3731,8 +2862,7 @@ class _SearchPageState extends State<SearchPage> {
                                               children: [
                                                 Container(
                                                   alignment: Alignment.center,
-                                                  margin:
-                                                      const EdgeInsets.all(10),
+                                                  margin: const EdgeInsets.all(10),
                                                   // decoration: BoxDecoration(
                                                   //   color: Colors.white,
                                                   //   borderRadius: const BorderRadius.all(
@@ -3747,29 +2877,10 @@ class _SearchPageState extends State<SearchPage> {
                                                   //     ),
                                                   //   ],
                                                   // ),
-                                                  width: MediaQuery.of(context)
-                                                              .size
-                                                              .width >
-                                                          500
-                                                      ? 220
-                                                      : (MediaQuery.of(context)
-                                                                  .size
-                                                                  .width -
-                                                              60) /
-                                                          2,
-                                                  height: MediaQuery.of(context)
-                                                              .size
-                                                              .width >
-                                                          500
+                                                  width: MediaQuery.of(context).size.width > 500 ? 220 : (MediaQuery.of(context).size.width - 60) / 2,
+                                                  height: MediaQuery.of(context).size.width > 500
                                                       ? 220 * 250 / 300
-                                                      : (MediaQuery.of(context)
-                                                                      .size
-                                                                      .width -
-                                                                  60) *
-                                                              250 /
-                                                              300 /
-                                                              2 +
-                                                          60,
+                                                      : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2 + 60,
                                                   child: const Text('+ 1014',
                                                       style: TextStyle(
                                                         fontSize: 30,
@@ -3795,8 +2906,7 @@ class _SearchPageState extends State<SearchPage> {
                                 lineWidth: 3.0,
                                 animation: true,
                                 percent: toeflCount / toeflList.length,
-                                backgroundColor:
-                                    const Color.fromRGBO(240, 240, 240, 1),
+                                backgroundColor: const Color.fromRGBO(240, 240, 240, 1),
                                 progressColor: backgroundColor,
                                 // center: Text(
                                 //   c.learnedIelts.length.toString(),
@@ -3835,12 +2945,8 @@ class _SearchPageState extends State<SearchPage> {
                             ]),
                         SizedBox(
                           height: MediaQuery.of(context).size.width > 500
-                              ? 220 * 250 / 300 + 80
-                              : (MediaQuery.of(context).size.width - 60) *
-                                      250 /
-                                      300 /
-                                      2 +
-                                  80,
+                              ? 220 * 250 / 300 + 90
+                              : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2 + 90,
                           child: Row(
                             children: [
                               // const SizedBox(width: 10),
@@ -3849,58 +2955,37 @@ class _SearchPageState extends State<SearchPage> {
                                   scrollDirection: Axis.horizontal,
                                   itemCount: listShowToefl.length + 1,
                                   addAutomaticKeepAlives: false,
-                                  itemBuilder:
-                                      (BuildContext context, int index) {
-                                    late var dataRaw;
+                                  itemBuilder: (BuildContext context, int index) {
+                                    dynamic dataRaw;
                                     String mean = '';
                                     String image = 'bedict.png';
                                     if (index < listShowToefl.length) {
                                       dataRaw = listShowToefl[index];
-                                      List listMean =
-                                          jsonDecode(dataRaw['mean'])[0];
+                                      List listMean = jsonDecode(dataRaw['mean'])[0];
                                       List meanENAdd = [];
                                       List meanVNAdd = [];
-                                      for (var j = 0;
-                                          j < listMean.length;
-                                          j++) {
+                                      for (var j = 0; j < listMean.length; j++) {
                                         String meanENElement = '';
                                         if (listMean[j].contains('#')) {
-                                          meanENElement =
-                                              listMean[j].split('#')[1];
+                                          meanENElement = listMean[j].split('#')[1];
                                         } else {
                                           meanENElement = listMean[j];
                                         }
                                         meanENAdd.add(meanENElement);
-                                        String meanVNElement =
-                                            jsonDecode(dataRaw['meanVN'])[0][j];
-                                        meanVNElement = meanVNElement.substring(
-                                            0, meanVNElement.length - 2);
-                                        meanVNElement = meanVNElement +
-                                            listMean[j].substring(
-                                                listMean[j].length - 1);
+                                        String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
+                                        meanVNElement = meanVNElement.substring(0, meanVNElement.length - 2);
+                                        meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length - 1);
                                         meanVNAdd.add(meanVNElement);
                                       }
                                       String meanEN = '';
                                       String meanVN = '';
-                                      for (var j = 0;
-                                          j < meanENAdd.length;
-                                          j++) {
+                                      for (var j = 0; j < meanENAdd.length; j++) {
                                         if (j == 0) {
-                                          meanVN = meanVN +
-                                              meanVNAdd[j].substring(
-                                                  0, meanVNAdd[j].length - 1);
-                                          meanEN = meanEN +
-                                              meanENAdd[j].substring(
-                                                  0, meanENAdd[j].length - 1);
+                                          meanVN = meanVN + meanVNAdd[j].substring(0, meanVNAdd[j].length - 1);
+                                          meanEN = meanEN + meanENAdd[j].substring(0, meanENAdd[j].length - 1);
                                         } else {
-                                          meanVN = meanVN +
-                                              ' | ' +
-                                              meanVNAdd[j].substring(
-                                                  0, meanVNAdd[j].length - 1);
-                                          meanEN = meanEN +
-                                              ' | ' +
-                                              meanENAdd[j].substring(
-                                                  0, meanENAdd[j].length - 1);
+                                          meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0, meanVNAdd[j].length - 1);
+                                          meanEN = meanEN + ' | ' + meanENAdd[j].substring(0, meanENAdd[j].length - 1);
                                         }
                                       }
                                       if (c.language.string == 'VN') {
@@ -3908,137 +2993,62 @@ class _SearchPageState extends State<SearchPage> {
                                       } else {
                                         mean = meanEN;
                                       }
-                                      if (jsonDecode(dataRaw['imageURL'])
-                                              .length >
-                                          0) {
-                                        image =
-                                            jsonDecode(dataRaw['imageURL'])[0];
+                                      if (jsonDecode(dataRaw['imageURL']).length > 0) {
+                                        image = jsonDecode(dataRaw['imageURL'])[0];
                                       }
                                     }
                                     return index < listShowToefl.length
                                         ? GestureDetector(
                                             onTap: () async {
-                                              c.part = RxInt(toeflList.indexOf(
-                                                      dataRaw['word']) ~/
-                                                  50);
+                                              c.part = RxInt(toeflList.indexOf(dataRaw['word']) ~/ 50);
                                               c.listWordScorePage.clear();
                                               for (var j = 0;
                                                   j <
-                                                      (c.part.value <
-                                                              (toeflList.length /
-                                                                          50)
-                                                                      .ceil() -
-                                                                  1
+                                                      (c.part.value < (toeflList.length / 50).ceil() - 1
                                                           ? 50
-                                                          : (toeflList.length -
-                                                              50 *
-                                                                  c.part
-                                                                      .value));
+                                                          : (toeflList.length - 50 * c.part.value));
                                                   j++) {
-                                                c.listWordScorePage.add(
-                                                    toeflList[
-                                                        c.part.value * 50 + j]);
+                                                c.listWordScorePage.add(toeflList[c.part.value * 50 + j]);
                                               }
-                                              c.nowWord = RxInt(c
-                                                  .listWordScorePage
-                                                  .indexOf(dataRaw['word']));
-                                              getToHome(
-                                                  'TOEFL', dataRaw['word']);
+                                              c.nowWord = RxInt(c.listWordScorePage.indexOf(dataRaw['word']));
+                                              getToHome('TOEFL', dataRaw['word']);
                                             },
                                             child: Column(children: [
                                               Container(
-                                                  margin:
-                                                      const EdgeInsets.all(10),
+                                                  margin: const EdgeInsets.all(10),
                                                   decoration: BoxDecoration(
                                                     color: Colors.white,
-                                                    borderRadius:
-                                                        const BorderRadius.all(
-                                                            Radius.circular(8)),
+                                                    borderRadius: const BorderRadius.all(Radius.circular(8)),
                                                     boxShadow: [
                                                       BoxShadow(
-                                                        color: Colors.black
-                                                            .withOpacity(0.6),
+                                                        color: Colors.black.withOpacity(0.6),
                                                         spreadRadius: 0,
                                                         blurRadius: 5,
-                                                        offset: const Offset(5,
-                                                            5), // changes position of shadow
+                                                        offset: const Offset(5, 5), // changes position of shadow
                                                       ),
                                                     ],
                                                   ),
-                                                  width: MediaQuery.of(context)
-                                                              .size
-                                                              .width >
-                                                          500
-                                                      ? 220
-                                                      : (MediaQuery.of(context)
-                                                                  .size
-                                                                  .width -
-                                                              60) /
-                                                          2,
-                                                  height: MediaQuery.of(context)
-                                                              .size
-                                                              .width >
-                                                          500
+                                                  width: MediaQuery.of(context).size.width > 500 ? 220 : (MediaQuery.of(context).size.width - 60) / 2,
+                                                  height: MediaQuery.of(context).size.width > 500
                                                       ? 220 * 250 / 300
-                                                      : (MediaQuery.of(context)
-                                                                  .size
-                                                                  .width -
-                                                              60) *
-                                                          250 /
-                                                          300 /
-                                                          2,
+                                                      : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
                                                   child: Stack(children: [
                                                     ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
+                                                      borderRadius: BorderRadius.circular(8),
                                                       child: ImageFiltered(
-                                                        imageFilter:
-                                                            ImageFilter.blur(
-                                                                sigmaX: 6,
-                                                                sigmaY: 6),
+                                                        imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                                                         child: Opacity(
                                                           opacity: 0.8,
                                                           child: Image(
-                                                            image: NetworkImage(
-                                                                'https://bedict.com/' +
-                                                                    image.replaceAll(
-                                                                        '\\',
-                                                                        '')),
+                                                            image: NetworkImage('https://bedict.com/' + image.replaceAll('\\', '')),
                                                             fit: BoxFit.cover,
-                                                            width: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width >
-                                                                    500
+                                                            width: MediaQuery.of(context).size.width > 500
                                                                 ? 220
-                                                                : (MediaQuery.of(context)
-                                                                            .size
-                                                                            .width -
-                                                                        60) /
-                                                                    2,
-                                                            height: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width >
-                                                                    500
-                                                                ? 220 *
-                                                                    250 /
-                                                                    300
-                                                                : (MediaQuery.of(context)
-                                                                            .size
-                                                                            .width -
-                                                                        60) *
-                                                                    250 /
-                                                                    300 /
-                                                                    2,
-                                                            errorBuilder:
-                                                                (BuildContext
-                                                                        context,
-                                                                    Object
-                                                                        exception,
-                                                                    StackTrace?
-                                                                        stackTrace) {
+                                                                : (MediaQuery.of(context).size.width - 60) / 2,
+                                                            height: MediaQuery.of(context).size.width > 500
+                                                                ? 220 * 250 / 300
+                                                                : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
+                                                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                               return const SizedBox();
                                                             },
                                                           ),
@@ -4046,129 +3056,61 @@ class _SearchPageState extends State<SearchPage> {
                                                       ),
                                                     ),
                                                     ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
+                                                      borderRadius: BorderRadius.circular(8),
                                                       child: Image(
-                                                        image: NetworkImage(
-                                                            'https://bedict.com/' +
-                                                                image
-                                                                    .replaceAll(
-                                                                        '\\',
-                                                                        '')),
+                                                        image: NetworkImage('https://bedict.com/' + image.replaceAll('\\', '')),
                                                         fit: BoxFit.contain,
-                                                        width: MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width >
-                                                                500
+                                                        width: MediaQuery.of(context).size.width > 500
                                                             ? 220
-                                                            : (MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width -
-                                                                    60) /
-                                                                2,
-                                                        height: MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .width >
-                                                                500
+                                                            : (MediaQuery.of(context).size.width - 60) / 2,
+                                                        height: MediaQuery.of(context).size.width > 500
                                                             ? 220 * 250 / 300
-                                                            : (MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width -
-                                                                    60) *
-                                                                250 /
-                                                                300 /
-                                                                2,
-                                                        errorBuilder:
-                                                            (BuildContext
-                                                                    context,
-                                                                Object
-                                                                    exception,
-                                                                StackTrace?
-                                                                    stackTrace) {
+                                                            : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
+                                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                           return const SizedBox();
                                                         },
                                                       ),
                                                     ),
-                                                    jsonDecode(dataRaw[
-                                                                    'meanVN'])
-                                                                .length >
-                                                            1
+                                                    jsonDecode(dataRaw['meanVN']).length > 1
                                                         ? Positioned(
                                                             right: 7,
                                                             bottom: 7,
                                                             child: Container(
-                                                                alignment:
-                                                                    Alignment
-                                                                        .center,
-                                                                decoration:
-                                                                    BoxDecoration(
-                                                                  color: Colors
-                                                                      .white
-                                                                      .withOpacity(
-                                                                          0.7),
-                                                                  borderRadius: const BorderRadius
-                                                                          .all(
-                                                                      Radius.circular(
-                                                                          20)),
+                                                                alignment: Alignment.center,
+                                                                decoration: BoxDecoration(
+                                                                  color: Colors.white.withOpacity(0.7),
+                                                                  borderRadius: const BorderRadius.all(Radius.circular(20)),
                                                                 ),
                                                                 height: 40,
                                                                 width: 40,
                                                                 child: Text(
-                                                                  '+ ' +
-                                                                      (jsonDecode(dataRaw['meanVN']).length -
-                                                                              1)
-                                                                          .toString(),
+                                                                  '+ ' + (jsonDecode(dataRaw['meanVN']).length - 1).toString(),
                                                                 )))
                                                         : const SizedBox(),
                                                   ])),
                                               const SizedBox(height: 7),
                                               Container(
                                                 alignment: Alignment.centerLeft,
-                                                width: MediaQuery.of(context)
-                                                            .size
-                                                            .width >
-                                                        500
-                                                    ? 220
-                                                    : (MediaQuery.of(context)
-                                                                .size
-                                                                .width -
-                                                            60) /
-                                                        2,
+                                                width: MediaQuery.of(context).size.width > 500 ? 220 : (MediaQuery.of(context).size.width - 60) / 2,
                                                 child: Text(
                                                   dataRaw['word'],
                                                   style: const TextStyle(
                                                     fontSize: 18,
                                                     fontWeight: FontWeight.w600,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
+                                                    overflow: TextOverflow.ellipsis,
                                                   ),
                                                 ),
                                               ),
                                               const SizedBox(height: 5),
                                               Container(
                                                 alignment: Alignment.centerLeft,
-                                                width: MediaQuery.of(context)
-                                                            .size
-                                                            .width >
-                                                        500
-                                                    ? 220
-                                                    : (MediaQuery.of(context)
-                                                                .size
-                                                                .width -
-                                                            60) /
-                                                        2,
+                                                width: MediaQuery.of(context).size.width > 500 ? 220 : (MediaQuery.of(context).size.width - 60) / 2,
                                                 child: Text(
                                                   mean,
                                                   style: const TextStyle(
                                                     fontSize: 14,
                                                     fontWeight: FontWeight.w400,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
+                                                    overflow: TextOverflow.ellipsis,
                                                   ),
                                                 ),
                                               ),
@@ -4183,8 +3125,7 @@ class _SearchPageState extends State<SearchPage> {
                                               children: [
                                                 Container(
                                                   alignment: Alignment.center,
-                                                  margin:
-                                                      const EdgeInsets.all(10),
+                                                  margin: const EdgeInsets.all(10),
                                                   // decoration: BoxDecoration(
                                                   //   color: Colors.white,
                                                   //   borderRadius: const BorderRadius.all(
@@ -4199,29 +3140,10 @@ class _SearchPageState extends State<SearchPage> {
                                                   //     ),
                                                   //   ],
                                                   // ),
-                                                  width: MediaQuery.of(context)
-                                                              .size
-                                                              .width >
-                                                          500
-                                                      ? 220
-                                                      : (MediaQuery.of(context)
-                                                                  .size
-                                                                  .width -
-                                                              60) /
-                                                          2,
-                                                  height: MediaQuery.of(context)
-                                                              .size
-                                                              .width >
-                                                          500
+                                                  width: MediaQuery.of(context).size.width > 500 ? 220 : (MediaQuery.of(context).size.width - 60) / 2,
+                                                  height: MediaQuery.of(context).size.width > 500
                                                       ? 220 * 250 / 300
-                                                      : (MediaQuery.of(context)
-                                                                      .size
-                                                                      .width -
-                                                                  60) *
-                                                              250 /
-                                                              300 /
-                                                              2 +
-                                                          60,
+                                                      : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2 + 60,
                                                   child: const Text('+ 365',
                                                       style: TextStyle(
                                                         fontSize: 30,
@@ -4248,10 +3170,23 @@ class _SearchPageState extends State<SearchPage> {
   }
 }
 
-class TranslatePage extends StatelessWidget {
-  TranslatePage({Key? key}) : super(key: key);
+class TranslatePage extends StatefulWidget {
+  const TranslatePage({Key? key}) : super(key: key);
 
+  @override
+  State<TranslatePage> createState() => _TranslatePageState();
+}
+
+class _TranslatePageState extends State<TranslatePage> {
   final FocusNode inFocusNode = FocusNode();
+
+  final inController = TextEditingController();
+
+  @override
+  void dispose() {
+    inController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -4262,15 +3197,12 @@ class TranslatePage extends StatelessWidget {
         inFocusNode.unfocus();
       }
       if (inController.value.text != '') {
-        String languageCode =
-            languagesCode[languages.indexOf(c.languageLocal.string)];
+        String languageCode = languagesCode[languages.indexOf(c.languageLocal.string)];
         if (!c.isReverse.value) {
-          var translation = await inController.value.text
-              .translate(from: 'en', to: languageCode);
+          var translation = await inController.value.text.translate(from: 'en', to: languageCode);
           c.translateOut = RxString(translation.text);
         } else {
-          var translation = await inController.value.text
-              .translate(from: languageCode, to: 'en');
+          var translation = await inController.value.text.translate(from: languageCode, to: 'en');
           c.translateOut = RxString(translation.text);
         }
       } else {
@@ -4304,12 +3236,8 @@ class TranslatePage extends StatelessWidget {
       await stt.stop();
     }
 
-    return WillPopScope(
-        onWillPop: () async {
-          c.currentPage = 0.obs;
-          c.update();
-          return false;
-        },
+    return PopScope(
+        canPop: false,
         child: GestureDetector(
           onTap: () {
             if (inFocusNode.hasFocus) {
@@ -4331,26 +3259,21 @@ class TranslatePage extends StatelessWidget {
                               c.update();
                             },
                             padding: const EdgeInsets.all(0),
-                            itemBuilder: (BuildContext context) =>
-                                <PopupMenuEntry<String>>[
+                            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                               for (int i = 0; i < languages.length; i++)
                                 PopupMenuItem<String>(
                                     value: languages[i],
-                                    padding:
-                                        const EdgeInsets.fromLTRB(5, 0, 5, 0),
-                                    child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            languages[i],
-                                            style: const TextStyle(
-                                              fontSize: 18,
-                                              color: textColor,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ])),
+                                    padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
+                                    child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                      Text(
+                                        languages[i],
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          color: textColor,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ])),
                             ],
                             // color: themeColor,
                             child: Text(
@@ -4362,9 +3285,7 @@ class TranslatePage extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                               textAlign: TextAlign.center,
                             ),
-                            shape: const RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(20.0))),
+                            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
                           ),
                         ),
                         IconButton(
@@ -4409,26 +3330,21 @@ class TranslatePage extends StatelessWidget {
                               c.update();
                             },
                             padding: const EdgeInsets.all(0),
-                            itemBuilder: (BuildContext context) =>
-                                <PopupMenuEntry<String>>[
+                            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                               for (int i = 0; i < languages.length; i++)
                                 PopupMenuItem<String>(
                                     value: languages[i],
-                                    padding:
-                                        const EdgeInsets.fromLTRB(5, 0, 5, 0),
-                                    child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            languages[i],
-                                            style: const TextStyle(
-                                              fontSize: 18,
-                                              color: textColor,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ])),
+                                    padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
+                                    child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                      Text(
+                                        languages[i],
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          color: textColor,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ])),
                             ],
                             // color: themeColor,
                             child: Text(
@@ -4440,9 +3356,7 @@ class TranslatePage extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                               textAlign: TextAlign.center,
                             ),
-                            shape: const RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(20.0))),
+                            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
                           ),
                         ),
                       ]),
@@ -4464,9 +3378,7 @@ class TranslatePage extends StatelessWidget {
                       border: InputBorder.none,
                       focusedBorder: InputBorder.none,
                       enabledBorder: InputBorder.none,
-                      hintText: c.language.string == 'VN'
-                          ? 'Nhập văn bản ...'
-                          : 'Type here ...',
+                      hintText: c.language.string == 'VN' ? 'Nhập văn bản ...' : 'Type here ...',
                       isDense: true,
                       contentPadding: const EdgeInsets.all(5),
                     ),
@@ -4491,19 +3403,14 @@ class TranslatePage extends StatelessWidget {
                 ),
                 TextButton(
                   style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(
-                        backgroundColor.withOpacity(0.5)),
-                    foregroundColor:
-                        MaterialStateProperty.all<Color>(Colors.grey),
-                    padding: MaterialStateProperty.all<EdgeInsets>(
-                        const EdgeInsets.all(0)),
-                    shape: MaterialStateProperty.all<OutlinedBorder?>(
-                        RoundedRectangleBorder(
+                    backgroundColor: WidgetStateProperty.all<Color>(backgroundColor.withOpacity(0.5)),
+                    foregroundColor: WidgetStateProperty.all<Color>(Colors.grey),
+                    padding: WidgetStateProperty.all<EdgeInsets>(const EdgeInsets.all(0)),
+                    shape: WidgetStateProperty.all<OutlinedBorder?>(RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30.0),
                     )),
                   ),
-                  child:
-                      const Icon(Icons.arrow_forward_rounded, color: textColor),
+                  child: const Icon(Icons.arrow_forward_rounded, color: textColor),
                   onPressed: () async {
                     await translation();
                   },
@@ -4567,28 +3474,23 @@ class TranslatePage extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
               ]),
-              Expanded(
-                child: Container(
-                  alignment: Alignment.center,
-                  child: c.isVip.value
-                      ? const SizedBox()
-                      : SingleChildScrollView(
-                          child: SizedBox(
-                            height: (MediaQuery.of(context).size.width - 20) *
-                                250 /
-                                300,
-                            width: MediaQuery.of(context).size.width - 20,
-                            child: BannerAdWidget(
-                              adWidth: MediaQuery.of(context).size.width - 20,
-                              adHeight:
-                                  (MediaQuery.of(context).size.width - 20) *
-                                      250 /
-                                      300,
-                            ),
-                          ),
-                        ),
-                ),
-              ),
+              // Expanded(
+              //   child: Container(
+              //     alignment: Alignment.center,
+              //     child: c.isVip.value
+              //         ? const SizedBox()
+              //         : SingleChildScrollView(
+              //             child: SizedBox(
+              //               height: (MediaQuery.of(context).size.width - 20) * 250 / 300,
+              //               width: MediaQuery.of(context).size.width - 20,
+              //               child: BannerAdWidget(
+              //                 adWidth: MediaQuery.of(context).size.width - 20,
+              //                 adHeight: (MediaQuery.of(context).size.width - 20) * 250 / 300,
+              //               ),
+              //             ),
+              //           ),
+              //   ),
+              // ),
               SizedBox(height: MediaQuery.of(context).padding.bottom),
             ]),
           ),
@@ -4604,8 +3506,7 @@ class SettingPage extends StatelessWidget {
     final Controller c = Get.put(Controller());
 
     Future<void> showTime() async {
-      final TimeOfDay? result =
-          await showTimePicker(context: context, initialTime: TimeOfDay.now());
+      final TimeOfDay? result = await showTimePicker(context: context, initialTime: TimeOfDay.now());
       if (result != null) {
         c.selectedTime = RxString(result.format(context));
         c.update();
@@ -4618,11 +3519,11 @@ class SettingPage extends StatelessWidget {
     //
     // });
 
-    return WillPopScope(
-        onWillPop: () async {
+    return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
           c.currentPage = 0.obs;
           c.update();
-          return false;
         },
         child: Container(
           color: Colors.white,
@@ -4740,15 +3641,9 @@ class SettingPage extends StatelessWidget {
                               ),
                               TextButton(
                                 style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all<Color>(
-                                          themeColor),
-                                  foregroundColor:
-                                      MaterialStateProperty.all<Color>(
-                                          Colors.grey),
-                                  padding:
-                                      MaterialStateProperty.all<EdgeInsets>(
-                                          const EdgeInsets.all(0)),
+                                  backgroundColor: WidgetStateProperty.all<Color>(themeColor),
+                                  foregroundColor: WidgetStateProperty.all<Color>(Colors.grey),
+                                  padding: WidgetStateProperty.all<EdgeInsets>(const EdgeInsets.all(0)),
                                 ),
                                 child: Row(children: [
                                   const SizedBox(
@@ -4829,10 +3724,8 @@ class SettingPage extends StatelessWidget {
                             if (value) {
                               await showNotificationWord();
                             } else {
-                              await AwesomeNotifications()
-                                  .dismissNotificationsByChannelKey('word');
-                              await AwesomeNotifications()
-                                  .cancelSchedulesByChannelKey('word');
+                              await AwesomeNotifications().dismissNotificationsByChannelKey('word');
+                              await AwesomeNotifications().cancelSchedulesByChannelKey('word');
                             }
                           },
                           activeTrackColor: themeColor,
@@ -4848,9 +3741,7 @@ class SettingPage extends StatelessWidget {
                         child: Column(children: [
                           GetBuilder<Controller>(
                             builder: (_) => Text(
-                              c.language.string == 'VN'
-                                  ? 'Thông báo sau mỗi (phút):'
-                                  : 'Notify interval (minutes)',
+                              c.language.string == 'VN' ? 'Thông báo sau mỗi (phút):' : 'Notify interval (minutes)',
                               style: const TextStyle(
                                 color: textColor,
                                 fontSize: 14,
@@ -4868,19 +3759,13 @@ class SettingPage extends StatelessWidget {
                               activeColor: backgroundColor,
                               inactiveColor: themeColor,
                               thumbColor: backgroundColor,
-                              label: c.notificationInterval.value.toString() +
-                                  (c.language.string == 'VN'
-                                      ? ' phút'
-                                      : ' minutes'),
+                              label: c.notificationInterval.value.toString() + (c.language.string == 'VN' ? ' phút' : ' minutes'),
                               onChanged: (double value) async {
                                 c.notificationInterval = RxInt(value.toInt());
-                                await boxSetting.put(
-                                    'notificationInterval', value.toInt());
+                                await boxSetting.put('notificationInterval', value.toInt());
                                 c.update();
-                                await AwesomeNotifications()
-                                    .dismissNotificationsByChannelKey('word');
-                                await AwesomeNotifications()
-                                    .cancelSchedulesByChannelKey('word');
+                                await AwesomeNotifications().dismissNotificationsByChannelKey('word');
+                                await AwesomeNotifications().cancelSchedulesByChannelKey('word');
                                 await showNotificationWord();
                               },
                             ),
@@ -4916,9 +3801,7 @@ class SettingPage extends StatelessWidget {
                           activeColor: backgroundColor,
                           inactiveColor: themeColor,
                           thumbColor: backgroundColor,
-                          label: double.parse(
-                                  (c.speakSpeed.value).toStringAsFixed(1))
-                              .toString(),
+                          label: double.parse((c.speakSpeed.value).toStringAsFixed(1)).toString(),
                           onChanged: (double value) async {
                             c.speakSpeed = RxDouble(value);
                             await boxSetting.put('speakSpeed', value);
@@ -5042,9 +3925,7 @@ class SettingPage extends StatelessWidget {
                   ListTile(
                     title: GetBuilder<Controller>(
                       builder: (_) => Text(
-                        c.language.string == 'VN'
-                            ? 'Tải lại dữ liệu'
-                            : 'Reload data',
+                        c.language.string == 'VN' ? 'Tải lại dữ liệu' : 'Reload data',
                         style: const TextStyle(
                           color: textColor,
                         ),
@@ -5074,9 +3955,7 @@ class SettingPage extends StatelessWidget {
                   ListTile(
                     title: GetBuilder<Controller>(
                       builder: (_) => Text(
-                        c.language.string == 'VN'
-                            ? 'Điều khoản sử dụng'
-                            : 'Terms of Use',
+                        c.language.string == 'VN' ? 'Điều khoản sử dụng' : 'Terms of Use',
                         style: const TextStyle(
                           color: textColor,
                         ),
@@ -5122,6 +4001,13 @@ class CategoryScreen extends StatefulWidget {
 class _CategoryScreenState extends State<CategoryScreen> {
   List listCategoryShow = [];
   final textFieldController = TextEditingController();
+  final Controller c = Get.put(Controller());
+
+  @override
+  void dispose() {
+    textFieldController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -5133,10 +4019,8 @@ class _CategoryScreenState extends State<CategoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final Controller c = Get.put(Controller());
-
     Future getToScore(int i) async {
-      await loadAd();
+      // await loadAd();
       c.bundle = RxString(listCategoryShow[i][c.typeState.value]);
       c.listWordScore = RxList(await getListCategory(listCategoryShow[i][0]));
       c.category = RxString(listCategoryShow[i][0]);
@@ -5147,277 +4031,282 @@ class _CategoryScreenState extends State<CategoryScreen> {
     }
 
     Future getToMainScreen() async {
-      await loadAd();
+      // await loadAd();
       c.isSearch = false.obs;
       c.currentPage = 1.obs;
       Get.offAll(() => MainScreen());
     }
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
         c.isSearch = false.obs;
         c.currentPage = 1.obs;
         Get.offAll(() => MainScreen());
-        return false;
       },
       child: Scaffold(
-        body: GestureDetector(
-          onTap: () {
-            if (searchFocusNode.hasFocus) {
-              searchFocusNode.unfocus();
-            }
-            if (c.isSearch.value) {
-              c.isSearch = false.obs;
-              c.update();
-            }
-          },
-          child: Container(
-            color: Colors.white,
-            // padding: EdgeInsets.all(10),
-            child: Column(children: [
-              SizedBox(height: MediaQuery.of(context).padding.top + 10),
-              GetBuilder<Controller>(
-                builder: (_) => Visibility(
-                  visible: c.isSearch.value,
-                  child: Column(children: [
-                    Row(children: [
-                      // const SizedBox(width:15),
-                      IconButton(
-                        padding: const EdgeInsets.all(0.0),
-                        icon: Icon(
-                          Icons.arrow_back_ios_rounded,
-                          size: 20,
-                          color: textColor.withOpacity(0.7),
-                        ),
-                        tooltip: 'Back',
-                        onPressed: () {
-                          if (searchFocusNode.hasFocus) {
-                            searchFocusNode.unfocus();
-                          }
-                          if (c.isSearch.value) {
-                            c.isSearch = false.obs;
-                            c.update();
-                          }
-                        },
-                      ),
-                      Expanded(
-                        child: TextFormField(
-                          // controller: searchField,
-                          controller: textFieldController,
-                          autofocus: true,
-                          autocorrect: false,
-                          textInputAction: TextInputAction.done,
-                          // focusNode: searchFocusNode,
-                          style: const TextStyle(
-                            fontSize: 15.0,
-                            color: textColor,
-                          ),
-                          decoration: InputDecoration(
-                            fillColor: Colors.transparent,
-                            filled: true,
-                            border: const OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(width: 1, color: Colors.black),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(30)),
+        body: Builder(
+          builder: (context) {
+            return GestureDetector(
+              onTap: () {
+                if (searchFocusNode.hasFocus) {
+                  searchFocusNode.unfocus();
+                }
+                if (c.isSearch.value) {
+                  c.isSearch = false.obs;
+                  c.update();
+                }
+              },
+              child: Container(
+                color: Colors.white,
+                // padding: EdgeInsets.all(10),
+                child: Column(children: [
+                  SizedBox(height: MediaQuery.of(context).padding.top + 10),
+                  GetBuilder<Controller>(
+                    builder: (_) => Visibility(
+                      visible: c.isSearch.value,
+                      child: Column(children: [
+                        Row(children: [
+                          // const SizedBox(width:15),
+                          IconButton(
+                            padding: const EdgeInsets.all(0.0),
+                            icon: Icon(
+                              Icons.arrow_back_ios_rounded,
+                              size: 20,
+                              color: textColor.withOpacity(0.7),
                             ),
-                            focusedBorder: const OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(width: 1, color: Colors.black),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(30)),
-                            ),
-                            enabledBorder: const OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(width: 1, color: Colors.black),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(30)),
-                            ),
-                            // prefixIcon: Icon(Icons.search_outlined,size:15),
-                            hintText: c.hint.string,
-                            isDense: true,
-                            contentPadding: const EdgeInsets.all(5),
-                            prefixIcon: const Icon(Icons.search),
-                            suffixIcon: IconButton(
-                                icon: const Icon(Icons.close_rounded),
-                                onPressed: () {
-                                  textFieldController.text = '';
-                                  setState(() {
-                                    listCategoryShow = listCategory;
-                                  });
-                                }),
-                            // icon: Icon(Icons.search),
-                            // isCollapsed: true,
-                          ),
-                          onChanged: (value) {
-                            // textFieldController.text = value;
-                            List list = [];
-                            for (int i = 0; i < listCategory.length; i++) {
-                              if (TiengViet.parse(
-                                      listCategory[i][c.typeState.value])
-                                  .startsWith(TiengViet.parse(value))) {
-                                list.add(listCategory[i]);
+                            tooltip: 'Back',
+                            onPressed: () {
+                              if (searchFocusNode.hasFocus) {
+                                searchFocusNode.unfocus();
                               }
-                            }
-                            setState(() {
-                              listCategoryShow = list;
-                            });
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 15),
-                    ]),
-                    const SizedBox(height: 10),
-                  ]),
-                ),
-              ),
-              GetBuilder<Controller>(
-                builder: (_) => Visibility(
-                  visible: !c.isSearch.value,
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 10),
-                      IconButton(
-                        padding: const EdgeInsets.all(0.0),
-                        icon: Icon(
-                          Icons.arrow_back_ios_rounded,
-                          size: 20,
-                          color: textColor.withOpacity(0.7),
-                        ),
-                        tooltip: 'Back to MainScreen',
-                        onPressed: () {
-                          getToMainScreen();
-                        },
-                      ),
-                      Expanded(
-                        child: Text(
-                          c.language.string == 'VN' ? 'Chủ đề' : 'Category',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            color: textColor,
+                              if (c.isSearch.value) {
+                                c.isSearch = false.obs;
+                                c.update();
+                              }
+                            },
                           ),
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.search,
-                          size: 25,
-                        ),
-                        onPressed: () {
-                          c.isSearch = true.obs;
-                          c.update();
-                        },
-                      ),
-                      const SizedBox(width: 10),
-                    ],
-                  ),
-                ),
-              ),
-              Expanded(
-                child: GridView.count(
-                  crossAxisCount: MediaQuery.of(context).size.width ~/ 120,
-                  addAutomaticKeepAlives: false,
-                  padding: const EdgeInsets.all(5),
-                  childAspectRatio: 4 / 3,
-                  // mainAxisSpacing: 10,
-                  // crossAxisSpacing: 10,
-                  children: List.generate(listCategoryShow.length, (i) {
-                    String url = '';
-                    switch (listCategoryShow[i][0]) {
-                      case 'heraldry':
-                        url = 'assets/temp/armory2.png';
-                        break;
-                      case 'no category':
-                        url = 'assets/temp/no.png';
-                        break;
-                      case 'past participle':
-                        url = 'assets/temp/no.png';
-                        break;
-                      case 'internet':
-                        url = 'assets/temp/Internet1.png';
-                        break;
-                      case 'bell-ringing':
-                        url = 'assets/temp/bob7.png';
-                        break;
-                      default:
-                        url = 'assets/temp/' + listCategoryShow[i][0] + '1.png';
-                    }
-                    return GestureDetector(
-                      onTap: () {
-                        getToScore(i);
-                      },
-                      child: Stack(children: [
-                        Container(
-                          height: double.infinity,
-                          width: double.infinity,
-                          margin: const EdgeInsets.all(7),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(10)),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.6),
-                                spreadRadius: 0,
-                                blurRadius: 3,
-                                offset: const Offset(
-                                    0, 0), // changes position of shadow
+                          Expanded(
+                            child: TextFormField(
+                              // controller: searchField,
+                              controller: textFieldController,
+                              autofocus: true,
+                              autocorrect: false,
+                              textInputAction: TextInputAction.done,
+                              // focusNode: searchFocusNode,
+                              style: const TextStyle(
+                                fontSize: 15.0,
+                                color: textColor,
                               ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.asset(
-                              url,
-                              fit: BoxFit.cover,
-                              // width: MediaQuery.of(context).size.width<500? MediaQuery.of(context).size.width-100:400,
-                              errorBuilder: (BuildContext context,
-                                  Object exception, StackTrace? stackTrace) {
-                                return const SizedBox();
+                              decoration: InputDecoration(
+                                fillColor: Colors.transparent,
+                                filled: true,
+                                border: const OutlineInputBorder(
+                                  borderSide: BorderSide(width: 1, color: Colors.black),
+                                  borderRadius: BorderRadius.all(Radius.circular(30)),
+                                ),
+                                focusedBorder: const OutlineInputBorder(
+                                  borderSide: BorderSide(width: 1, color: Colors.black),
+                                  borderRadius: BorderRadius.all(Radius.circular(30)),
+                                ),
+                                enabledBorder: const OutlineInputBorder(
+                                  borderSide: BorderSide(width: 1, color: Colors.black),
+                                  borderRadius: BorderRadius.all(Radius.circular(30)),
+                                ),
+                                // prefixIcon: Icon(Icons.search_outlined,size:15),
+                                hintText: c.hint.string,
+                                isDense: true,
+                                contentPadding: const EdgeInsets.all(5),
+                                prefixIcon: const Icon(Icons.search),
+                                suffixIcon: IconButton(
+                                    icon: const Icon(Icons.close_rounded),
+                                    onPressed: () {
+                                      textFieldController.text = '';
+                                      setState(() {
+                                        listCategoryShow = listCategory;
+                                      });
+                                    }),
+                                // icon: Icon(Icons.search),
+                                // isCollapsed: true,
+                              ),
+                              onChanged: (value) {
+                                // textFieldController.text = value;
+                                List list = [];
+                                for (int i = 0; i < listCategory.length; i++) {
+                                  if (TiengViet.parse(listCategory[i][c.typeState.value]).startsWith(TiengViet.parse(value))) {
+                                    list.add(listCategory[i]);
+                                  }
+                                }
+                                setState(() {
+                                  listCategoryShow = list;
+                                });
                               },
                             ),
                           ),
-                        ),
-                        Column(children: [
-                          const Expanded(child: SizedBox()),
-                          Container(
-                            height: 25,
-                            // alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.5),
-                              borderRadius: const BorderRadius.only(
-                                bottomLeft: Radius.circular(10),
-                                bottomRight: Radius.circular(10),
-                              ),
+                          const SizedBox(width: 15),
+                        ]),
+                        const SizedBox(height: 10),
+                      ]),
+                    ),
+                  ),
+                  GetBuilder<Controller>(
+                    builder: (_) => Visibility(
+                      visible: !c.isSearch.value,
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 10),
+                          IconButton(
+                            padding: const EdgeInsets.all(0.0),
+                            icon: Icon(
+                              Icons.arrow_back_ios_rounded,
+                              size: 20,
+                              color: textColor.withOpacity(0.7),
                             ),
-                            margin: const EdgeInsets.all(7),
-                            child: Row(children: [
-                              const SizedBox(width: 5),
-                              Expanded(
-                                child: Text(
-                                  listCategoryShow[i][c.typeState.value],
-                                  // textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    overflow: TextOverflow.ellipsis,
-                                    color: Colors.white,
+                            tooltip: 'Back to MainScreen',
+                            onPressed: () {
+                              getToMainScreen();
+                            },
+                          ),
+                          Expanded(
+                            child: Text(
+                              c.language.string == 'VN' ? 'Chủ đề' : 'Category',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                color: textColor,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.search,
+                              size: 25,
+                            ),
+                            onPressed: () {
+                              c.isSearch = true.obs;
+                              c.update();
+                            },
+                          ),
+                          const SizedBox(width: 10),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: GridView.count(
+                      crossAxisCount: MediaQuery.of(context).size.width ~/ 120,
+                      addAutomaticKeepAlives: false,
+                      padding: const EdgeInsets.all(5),
+                      childAspectRatio: 4 / 3,
+                      // mainAxisSpacing: 10,
+                      // crossAxisSpacing: 10,
+                      children: List.generate(listCategoryShow.length, (i) {
+                        String url = '';
+                        switch (listCategoryShow[i][0]) {
+                          case 'heraldry':
+                            url = 'assets/temp/armory2.png';
+                            break;
+                          case 'no category':
+                            url = 'assets/temp/no.png';
+                            break;
+                          case 'past participle':
+                            url = 'assets/temp/no.png';
+                            break;
+                          case 'internet':
+                            url = 'assets/temp/Internet1.png';
+                            break;
+                          case 'bell-ringing':
+                            url = 'assets/temp/bob7.png';
+                            break;
+                          default:
+                            url = 'assets/temp/' + listCategoryShow[i][0] + '1.png';
+                        }
+                        final isLock = listCategoryShow[i].length > 2 && listCategoryShow[i][2] == true;
+                        return GestureDetector(
+                          onTap: () {
+                            if (isLock) {
+                              askVip(context, 'Nội dung dành cho tài khoản VIP, đăng ký để xem', 'Content for VIP accounts, subscribe to view');
+                            } else {
+                              getToScore(i);
+                            }
+                          },
+                          child: Stack(children: [
+                            Container(
+                              height: double.infinity,
+                              width: double.infinity,
+                              margin: const EdgeInsets.all(7),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: const BorderRadius.all(Radius.circular(10)),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.6),
+                                    spreadRadius: 0,
+                                    blurRadius: 3,
+                                    offset: const Offset(0, 0), // changes position of shadow
                                   ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.asset(
+                                  url,
+                                  fit: BoxFit.cover,
+                                  // width: MediaQuery.of(context).size.width<500? MediaQuery.of(context).size.width-100:400,
+                                  errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                    return const SizedBox();
+                                  },
                                 ),
                               ),
-                              const SizedBox(width: 5),
+                            ),
+                            Column(children: [
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  const SizedBox(width: 8),
+                                  Visibility(visible: isLock, child: const Icon(Icons.stars_rounded, size: 30, color: Colors.amber)),
+                                ],
+                              ),
+                              const Expanded(child: SizedBox()),
+                              Container(
+                                height: 25,
+                                // alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.5),
+                                  borderRadius: const BorderRadius.only(
+                                    bottomLeft: Radius.circular(10),
+                                    bottomRight: Radius.circular(10),
+                                  ),
+                                ),
+                                margin: const EdgeInsets.all(7),
+                                child: Row(children: [
+                                  const SizedBox(width: 5),
+                                  Expanded(
+                                    child: Text(
+                                      listCategoryShow[i][c.typeState.value],
+                                      // textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        overflow: TextOverflow.ellipsis,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 5),
+                                ]),
+                              ),
                             ]),
-                          ),
-                        ]),
-                      ]),
-                    );
-                  }),
-                ),
+                          ]),
+                        );
+                      }),
+                    ),
+                  ),
+                  SizedBox(height: MediaQuery.of(context).padding.bottom),
+                ]),
               ),
-              SizedBox(height: MediaQuery.of(context).padding.bottom),
-            ]),
-          ),
+            );
+          }
         ),
       ),
     );
@@ -5432,7 +4321,7 @@ class TypeScreen extends StatelessWidget {
     final Controller c = Get.put(Controller());
 
     Future getToScore(int i) async {
-      await loadAd();
+      // await loadAd();
       c.bundle = RxString(listType[i][c.typeState.value]);
       c.listWordScore = RxList(await getListType(listType[i][0]));
       c.category = 'all category'.obs;
@@ -5442,16 +4331,16 @@ class TypeScreen extends StatelessWidget {
     }
 
     Future getToMainScreen() async {
-      await loadAd();
+      // await loadAd();
       c.currentPage = 1.obs;
       Get.offAll(() => MainScreen());
     }
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
         c.currentPage = 1.obs;
         Get.offAll(() => MainScreen());
-        return false;
       },
       child: Scaffold(
         appBar: AppBar(
@@ -5504,20 +4393,14 @@ class TypeScreen extends StatelessWidget {
                         // width: (MediaQuery.of(context).size.width-50)/3,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: Color.fromRGBO(
-                              150 + Random().nextInt(55),
-                              201 + Random().nextInt(55),
-                              150 + Random().nextInt(55),
-                              1),
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(50)),
+                          color: Color.fromRGBO(150 + Random().nextInt(55), 201 + Random().nextInt(55), 150 + Random().nextInt(55), 1),
+                          borderRadius: const BorderRadius.all(Radius.circular(50)),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.6),
                               spreadRadius: 0,
                               blurRadius: 3,
-                              offset: const Offset(
-                                  0, 0), // changes position of shadow
+                              offset: const Offset(0, 0), // changes position of shadow
                             ),
                           ],
                         ),
@@ -5552,20 +4435,35 @@ class TypeScreen extends StatelessWidget {
   }
 }
 
-class Home extends StatelessWidget {
-  Home({Key? key}) : super(key: key);
-  final GlobalKey<ProcessWidgetState> processKey =
-      GlobalKey<ProcessWidgetState>();
+class Home extends StatefulWidget {
+  const Home({Key? key}) : super(key: key);
+
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  final GlobalKey<ProcessWidgetState> processKey = GlobalKey<ProcessWidgetState>();
+
   final int pageCount = 50;
+
+  final textFieldController = TextEditingController(text: '');
+  final suggestController = SuggestionsController<String>();
+
+  @override
+  void dispose() {
+    textFieldController.dispose();
+    suggestController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
-    final textFieldController = TextEditingController(text: '');
 
     Future searchToHome(String word) async {
       c.nowWord = RxInt(c.wordArray.indexOf(word));
-      await loadAd();
+      // await loadAd();
       c.isSearch = false.obs;
       c.category = 'all category'.obs;
       c.type = 'all type'.obs;
@@ -5576,7 +4474,7 @@ class Home extends StatelessWidget {
     }
 
     Future getToLearn() async {
-      await loadAd();
+      // await loadAd();
       c.currentTab = 0.obs;
       if (searchFocusNode.hasFocus) {
         searchFocusNode.unfocus();
@@ -5588,7 +4486,7 @@ class Home extends StatelessWidget {
     }
 
     Future getNext() async {
-      await loadAd();
+      // await loadAd();
       if (searchFocusNode.hasFocus) {
         searchFocusNode.unfocus();
       }
@@ -5617,7 +4515,7 @@ class Home extends StatelessWidget {
     }
 
     Future getPrevious() async {
-      await loadAd();
+      // await loadAd();
       if (searchFocusNode.hasFocus) {
         searchFocusNode.unfocus();
       }
@@ -5646,7 +4544,7 @@ class Home extends StatelessWidget {
     }
 
     Future getRandom() async {
-      await loadAd();
+      // await loadAd();
       if (searchFocusNode.hasFocus) {
         searchFocusNode.unfocus();
       }
@@ -5667,7 +4565,7 @@ class Home extends StatelessWidget {
     }
 
     Future getNextRandom() async {
-      await loadAd();
+      // await loadAd();
       if (searchFocusNode.hasFocus) {
         searchFocusNode.unfocus();
       }
@@ -5695,15 +4593,14 @@ class Home extends StatelessWidget {
           await c.layWord(c.listWordScorePage[random]);
         } else {
           nowRandom = nowRandom + 1;
-          c.nowWord =
-              RxInt(c.listWordScorePage.indexOf(listWordRandom[nowRandom]));
+          c.nowWord = RxInt(c.listWordScorePage.indexOf(listWordRandom[nowRandom]));
           await c.layWord(listWordRandom[nowRandom]);
         }
       }
     }
 
     Future getPreviousRandom() async {
-      await loadAd();
+      // await loadAd();
       if (searchFocusNode.hasFocus) {
         searchFocusNode.unfocus();
       }
@@ -5723,15 +4620,14 @@ class Home extends StatelessWidget {
           await getRandom();
         } else {
           nowRandom = nowRandom - 1;
-          c.nowWord =
-              RxInt(c.listWordScorePage.indexOf(listWordRandom[nowRandom]));
+          c.nowWord = RxInt(c.listWordScorePage.indexOf(listWordRandom[nowRandom]));
           await c.layWord(listWordRandom[nowRandom]);
         }
       }
     }
 
     Future getNextMean() async {
-      await loadAd();
+      // await loadAd();
       if (searchFocusNode.hasFocus) {
         searchFocusNode.unfocus();
       }
@@ -5748,7 +4644,7 @@ class Home extends StatelessWidget {
     }
 
     Future getPreviousMean() async {
-      await loadAd();
+      // await loadAd();
       if (searchFocusNode.hasFocus) {
         searchFocusNode.unfocus();
       }
@@ -5776,12 +4672,7 @@ class Home extends StatelessWidget {
 
     Future getList(int i) async {
       c.listWordScorePage.clear();
-      for (var j = 0;
-          j <
-              (i < (c.listWord.length / pageCount).ceil() - 1
-                  ? pageCount
-                  : (c.listWord.length - pageCount * i));
-          j++) {
+      for (var j = 0; j < (i < (c.listWord.length / pageCount).ceil() - 1 ? pageCount : (c.listWord.length - pageCount * i)); j++) {
         c.listWordScorePage.add(c.listWord[i * pageCount + j]);
       }
       c.part = RxInt(i);
@@ -5796,8 +4687,7 @@ class Home extends StatelessWidget {
           statusBarColor: Colors.transparent, //i like transaparent :-)
           systemNavigationBarColor: Colors.transparent, // navigation bar color
           statusBarIconBrightness: Brightness.light, // status bar icons' color
-          systemNavigationBarIconBrightness:
-              Brightness.light, //navigation bar icons' color
+          systemNavigationBarIconBrightness: Brightness.light, //navigation bar icons' color
         ),
         child: Stack(children: [
           GetBuilder<Controller>(
@@ -5809,13 +4699,11 @@ class Home extends StatelessWidget {
                       child: Opacity(
                         opacity: 0.8,
                         child: Image(
-                          image: NetworkImage('https://bedict.com/' +
-                              c.imageURL[c.nowMean.value].replaceAll('\\', '')),
+                          image: NetworkImage('https://bedict.com/' + c.imageURL[c.nowMean.value].replaceAll('\\', '')),
                           fit: BoxFit.cover,
                           width: MediaQuery.of(context).size.width,
                           height: MediaQuery.of(context).size.height,
-                          errorBuilder: (BuildContext context, Object exception,
-                              StackTrace? stackTrace) {
+                          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                             return const SizedBox();
                           },
                         ),
@@ -5829,8 +4717,7 @@ class Home extends StatelessWidget {
               child: GetBuilder<Controller>(
                 builder: (_) => AnimatedSwitcher(
                   duration: const Duration(milliseconds: 500),
-                  transitionBuilder:
-                      (Widget child, Animation<double> animation) {
+                  transitionBuilder: (Widget child, Animation<double> animation) {
                     return ScaleTransition(child: child, scale: animation);
                   },
                   child: Container(
@@ -5842,31 +4729,23 @@ class Home extends StatelessWidget {
                             child: Container(
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius:
-                                    const BorderRadius.all(Radius.circular(20)),
+                                borderRadius: const BorderRadius.all(Radius.circular(20)),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.6),
                                     spreadRadius: 0,
                                     blurRadius: 5,
-                                    offset: const Offset(
-                                        5, 5), // changes position of shadow
+                                    offset: const Offset(5, 5), // changes position of shadow
                                   ),
                                 ],
                               ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(20),
                                 child: Image(
-                                  image: NetworkImage('https://bedict.com/' +
-                                      c.imageURL[c.nowMean.value]
-                                          .replaceAll('\\', '')),
+                                  image: NetworkImage('https://bedict.com/' + c.imageURL[c.nowMean.value].replaceAll('\\', '')),
                                   fit: BoxFit.contain,
-                                  width: MediaQuery.of(context).size.width < 500
-                                      ? MediaQuery.of(context).size.width - 100
-                                      : 400,
-                                  errorBuilder: (BuildContext context,
-                                      Object exception,
-                                      StackTrace? stackTrace) {
+                                  width: MediaQuery.of(context).size.width < 500 ? MediaQuery.of(context).size.width - 100 : 400,
+                                  errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                     return const SizedBox();
                                   },
                                 ),
@@ -5898,8 +4777,7 @@ class Home extends StatelessWidget {
                             ),
                             tooltip: 'clear',
                             onPressed: () async {
-                              await searchToHome(c.wordArray[
-                                  Random().nextInt(c.wordArray.length)]);
+                              await searchToHome(c.wordArray[Random().nextInt(c.wordArray.length)]);
                             },
                           ),
                     Expanded(
@@ -5919,67 +4797,40 @@ class Home extends StatelessWidget {
                                   GetBuilder<Controller>(
                                     builder: (_) => PopupMenuButton<String>(
                                       onSelected: (String word) async {
-                                        c.part = RxInt(int.parse(word.substring(
-                                                5, word.indexOf('/'))) -
-                                            1);
+                                        c.part = RxInt(int.parse(word.substring(5, word.indexOf('/'))) - 1);
                                         c.update();
                                         getList(c.part.value);
                                       },
                                       padding: const EdgeInsets.all(0),
-                                      itemBuilder: (BuildContext context) =>
-                                          <PopupMenuEntry<String>>[
-                                        for (int i = 0;
-                                            i <
-                                                (c.listWord.length / pageCount)
-                                                    .ceil();
-                                            i++)
+                                      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                                        for (int i = 0; i < (c.listWord.length / pageCount).ceil(); i++)
                                           PopupMenuItem<String>(
-                                              value: (c.language.string == 'VN'
-                                                      ? 'Phần '
-                                                      : 'Part ') +
+                                              value: (c.language.string == 'VN' ? 'Phần ' : 'Part ') +
                                                   (i + 1).toString() +
                                                   '/' +
-                                                  (c.listWord.length /
-                                                          pageCount)
-                                                      .ceil()
-                                                      .toString(),
-                                              padding:
-                                                  const EdgeInsets.fromLTRB(
-                                                      5, 0, 5, 0),
-                                              child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    Text(
-                                                      (c.language.string == 'VN'
-                                                              ? 'Phần '
-                                                              : 'Part ') +
-                                                          (i + 1).toString() +
-                                                          '/' +
-                                                          (c.listWord.length /
-                                                                  pageCount)
-                                                              .ceil()
-                                                              .toString(),
-                                                      style: const TextStyle(
-                                                        fontSize: 18,
-                                                        color: textColor,
-                                                      ),
-                                                      textAlign:
-                                                          TextAlign.center,
-                                                    ),
-                                                  ])),
+                                                  (c.listWord.length / pageCount).ceil().toString(),
+                                              padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
+                                              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                                Text(
+                                                  (c.language.string == 'VN' ? 'Phần ' : 'Part ') +
+                                                      (i + 1).toString() +
+                                                      '/' +
+                                                      (c.listWord.length / pageCount).ceil().toString(),
+                                                  style: const TextStyle(
+                                                    fontSize: 18,
+                                                    color: textColor,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ])),
                                       ],
                                       // color: themeColor,
                                       child: Row(children: [
                                         Text(
-                                          (c.language.string == 'VN'
-                                                  ? 'phần '
-                                                  : 'part ') +
+                                          (c.language.string == 'VN' ? 'phần ' : 'part ') +
                                               (c.part.value + 1).toString() +
                                               '/' +
-                                              (c.listWord.length / pageCount)
-                                                  .ceil()
-                                                  .toString(),
+                                              (c.listWord.length / pageCount).ceil().toString(),
                                           style: const TextStyle(
                                             fontSize: 12,
                                             color: textColor,
@@ -5988,9 +4839,7 @@ class Home extends StatelessWidget {
                                           textAlign: TextAlign.left,
                                         ),
                                       ]),
-                                      shape: const RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(20.0))),
+                                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
                                     ),
                                   ),
                                 ],
@@ -6024,30 +4873,21 @@ class Home extends StatelessWidget {
                         //   }
                         // });
                         String mean = '';
-                        for (int i = 0;
-                            i < c.mean[c.nowMean.value].length;
-                            i++) {
+                        for (int i = 0; i < c.mean[c.nowMean.value].length; i++) {
                           String subMean = c.mean[c.nowMean.value][i];
-                          mean += '(' +
-                              laytuloai(subMean.substring(subMean.length - 1))[
-                                      c.typeState.value]
-                                  .toLowerCase();
+                          mean += '(' + laytuloai(subMean.substring(subMean.length - 1))[c.typeState.value].toLowerCase();
                           mean += ') ';
                           mean += subMean.substring(0, subMean.length - 1);
                           mean += '\n';
                         }
-                        final response = await http.get(Uri.parse(
-                            'https://bedict.com/' +
-                                c.imageURL[c.nowMean.value]
-                                    .replaceAll('\\', '')));
+                        final response = await http.get(Uri.parse('https://bedict.com/' + c.imageURL[c.nowMean.value].replaceAll('\\', '')));
                         final bytes = response.bodyBytes;
                         final temp = await getApplicationDocumentsDirectory();
                         final path = '${temp.path}/image.jpg';
                         File(path).writeAsBytes(bytes);
                         String string = '';
                         if (c.language.string == 'VN') {
-                          string = 'BeDict - Ứng dụng từ điển hình ảnh Tiếng Anh' +
-                              '\n\n' +
+                          string = 'BeDict - Ứng dụng từ điển hình ảnh Tiếng Anh' '\n\n' +
                               c.word.string +
                               '\n/' +
                               c.pronun.string +
@@ -6057,39 +4897,45 @@ class Home extends StatelessWidget {
                               'Android: https://play.google.com/store/apps/details?id=com.bedict.bedict\n' +
                               'Web: https://bedict.com/\n';
                         } else {
-                          string =
-                              'BeDict - English Picture Dictionary Application' +
-                                  '\n\n' +
-                                  c.word.string +
-                                  '\n/' +
-                                  c.pronun.string +
-                                  '/\n' +
-                                  mean +
-                                  '\nIos: https://apple.co/3M6FDxy\n' +
-                                  'Android: https://play.google.com/store/apps/details?id=com.bedict.bedict\n' +
-                                  'Web: https://bedict.com/\n';
+                          string = 'BeDict - English Picture Dictionary Application' '\n\n' +
+                              c.word.string +
+                              '\n/' +
+                              c.pronun.string +
+                              '/\n' +
+                              mean +
+                              '\nIos: https://apple.co/3M6FDxy\n' +
+                              'Android: https://play.google.com/store/apps/details?id=com.bedict.bedict\n' +
+                              'Web: https://bedict.com/\n';
                         }
-                        await Share.shareFiles([path], text: string);
+                        await Share.shareXFiles([XFile(path)], text: string);
                       },
                     ),
                     const SizedBox(width: 20),
                     OutlinedButton(
                       style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                            Colors.transparent),
-                        foregroundColor:
-                            MaterialStateProperty.all<Color>(Colors.grey),
-                        padding: MaterialStateProperty.all<EdgeInsets>(
-                            const EdgeInsets.all(0)),
-                        shape: MaterialStateProperty.all<OutlinedBorder?>(
-                            RoundedRectangleBorder(
+                        backgroundColor: WidgetStateProperty.all<Color>(Colors.transparent),
+                        foregroundColor: WidgetStateProperty.all<Color>(Colors.grey),
+                        padding: WidgetStateProperty.all<EdgeInsets>(const EdgeInsets.all(0)),
+                        shape: WidgetStateProperty.all<OutlinedBorder?>(RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30.0),
                         )),
-                        fixedSize: MaterialStateProperty.all<Size>(
-                            const Size.fromHeight(40)),
+                        fixedSize: WidgetStateProperty.all<Size>(const Size.fromHeight(40)),
                       ),
-                      onPressed: () {
-                        getToLearn();
+                      onPressed: () async {
+                        if (c.isVip.value) {
+                          getToLearn();
+                        } else {
+                          final now = DateTime.now();
+                          final today = DateTime(now.year, now.month, now.day);
+                          final tomorrow = today.add(const Duration(days: 1));
+                          final scoreToday = await getListScoreTime(today.millisecondsSinceEpoch, tomorrow.millisecondsSinceEpoch);
+                          if (scoreToday.length < 4) {
+                            getToLearn();
+                          } else {
+                            askVip(context, 'Bạn đã đến giới hạn học trong ngày, đăng ký VIP để học không giới hạn',
+                                'You have reached your daily learning limit, subscribe VIP for unlimited learning');
+                          }
+                        }
                       },
                       child: GetBuilder<Controller>(
                         builder: (_) => Text(
@@ -6129,9 +4975,10 @@ class Home extends StatelessWidget {
                       },
                     ),
                     Expanded(
-                      child: TypeAheadField(
-                        textFieldConfiguration: TextFieldConfiguration(
-                          controller: textFieldController,
+                      child: TypeAheadField<String>(
+                        builder: (context, controller, focusNode) => TextField(
+                          controller: controller,
+                          focusNode: focusNode,
                           autofocus: true,
                           autocorrect: false,
                           textInputAction: TextInputAction.done,
@@ -6144,22 +4991,16 @@ class Home extends StatelessWidget {
                             fillColor: Colors.transparent,
                             filled: true,
                             border: const OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(width: 1, color: Colors.black),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(30)),
+                              borderSide: BorderSide(width: 1, color: Colors.black),
+                              borderRadius: BorderRadius.all(Radius.circular(30)),
                             ),
                             focusedBorder: const OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(width: 1, color: Colors.black),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(30)),
+                              borderSide: BorderSide(width: 1, color: Colors.black),
+                              borderRadius: BorderRadius.all(Radius.circular(30)),
                             ),
                             enabledBorder: const OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(width: 1, color: Colors.black),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(30)),
+                              borderSide: BorderSide(width: 1, color: Colors.black),
+                              borderRadius: BorderRadius.all(Radius.circular(30)),
                             ),
                             // prefixIcon: Icon(Icons.search_outlined,size:15),
                             hintText: c.hint.string,
@@ -6177,11 +5018,9 @@ class Home extends StatelessWidget {
                                   onPressed: () async {
                                     if (stt.isNotListening) {
                                       await stt.listen(
-                                        onResult:
-                                            (SpeechRecognitionResult result) {
+                                        onResult: (SpeechRecognitionResult result) {
                                           if (result.finalResult) {
-                                            textFieldController.text =
-                                                result.recognizedWords;
+                                            textFieldController.text = result.recognizedWords;
                                           }
                                         },
                                       );
@@ -6193,7 +5032,7 @@ class Home extends StatelessWidget {
                             suffixIcon: IconButton(
                                 icon: const Icon(Icons.close_rounded),
                                 onPressed: () {
-                                  textFieldController.text = '';
+                                  controller.text = '';
                                 }),
                             // icon: Icon(Icons.search),
                             // isCollapsed: true,
@@ -6202,37 +5041,22 @@ class Home extends StatelessWidget {
                             if (suggestArray.isEmpty) {
                               try {
                                 String suggestion = '';
-                                String languageCode = languagesCode[
-                                    languages.indexOf(c.languageLocal.string)];
-                                var checkLanguage =
-                                    await value.translate(to: 'en');
+                                String languageCode = languagesCode[languages.indexOf(c.languageLocal.string)];
+                                var checkLanguage = await value.translate(to: 'en');
                                 if (checkLanguage.text == value) {
-                                  var google = await value.translate(
-                                      from: 'en', to: languageCode);
-                                  String imageUrl =
-                                      await getImage(value, 'small');
-                                  suggestion = value +
-                                      '@' +
-                                      google.text.toLowerCase() +
-                                      '@' +
-                                      imageUrl;
+                                  var google = await value.translate(from: 'en', to: languageCode);
+                                  String imageUrl = await getImage(value, 'small');
+                                  suggestion = value + '@' + google.text.toLowerCase() + '@' + imageUrl;
                                 } else {
                                   var google = await value.translate(to: 'en');
-                                  String imageUrl =
-                                      await getImage(google.text, 'small');
-                                  suggestion = google.text.toLowerCase() +
-                                      '@' +
-                                      value +
-                                      '@' +
-                                      imageUrl;
+                                  String imageUrl = await getImage(google.text, 'small');
+                                  suggestion = google.text.toLowerCase() + '@' + value + '@' + imageUrl;
                                 }
                                 var dataRaw = box.get(suggestion.split('@')[0]);
                                 if (dataRaw.toString() != 'null') {
                                   await searchToHome(suggestion.split('@')[0]);
                                 } else {
-                                  String imageUrl = await getImage(
-                                      suggestion.toString().split('@')[0],
-                                      'medium');
+                                  String imageUrl = await getImage(suggestion.toString().split('@')[0], 'medium');
                                   if (imageUrl.split('@')[0] != 'null') {
                                     Get.dialog(Column(children: [
                                       const Expanded(child: SizedBox()),
@@ -6240,17 +5064,13 @@ class Home extends StatelessWidget {
                                           margin: const EdgeInsets.all(10),
                                           decoration: BoxDecoration(
                                             color: Colors.white,
-                                            borderRadius:
-                                                const BorderRadius.all(
-                                                    Radius.circular(20)),
+                                            borderRadius: const BorderRadius.all(Radius.circular(20)),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: Colors.black
-                                                    .withOpacity(0.6),
+                                                color: Colors.black.withOpacity(0.6),
                                                 spreadRadius: 0,
                                                 blurRadius: 3,
-                                                offset: const Offset(3,
-                                                    3), // changes position of shadow
+                                                offset: const Offset(3, 3), // changes position of shadow
                                               ),
                                             ],
                                           ),
@@ -6258,48 +5078,37 @@ class Home extends StatelessWidget {
                                           child: Column(children: [
                                             const SizedBox(height: 10),
                                             Text(
-                                              suggestion
-                                                  .toString()
-                                                  .split('@')[0],
+                                              suggestion.toString().split('@')[0],
                                               style: const TextStyle(
                                                   fontSize: 18.0,
                                                   color: textColor,
                                                   fontWeight: FontWeight.w600,
                                                   fontFamily: 'Tahoma',
-                                                  decoration:
-                                                      TextDecoration.none),
+                                                  decoration: TextDecoration.none),
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                             const SizedBox(height: 5),
                                             Text(
-                                              suggestion
-                                                  .toString()
-                                                  .split('@')[1],
+                                              suggestion.toString().split('@')[1],
                                               style: const TextStyle(
                                                   fontSize: 16.0,
                                                   color: textColor,
                                                   fontFamily: 'Tahoma',
                                                   fontWeight: FontWeight.w400,
-                                                  decoration:
-                                                      TextDecoration.none),
+                                                  decoration: TextDecoration.none),
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                             Container(
-                                                margin:
-                                                    const EdgeInsets.all(10),
+                                                margin: const EdgeInsets.all(10),
                                                 decoration: BoxDecoration(
                                                   color: Colors.white,
-                                                  borderRadius:
-                                                      const BorderRadius.all(
-                                                          Radius.circular(15)),
+                                                  borderRadius: const BorderRadius.all(Radius.circular(15)),
                                                   boxShadow: [
                                                     BoxShadow(
-                                                      color: Colors.black
-                                                          .withOpacity(0.6),
+                                                      color: Colors.black.withOpacity(0.6),
                                                       spreadRadius: 0,
                                                       blurRadius: 3,
-                                                      offset: const Offset(3,
-                                                          3), // changes position of shadow
+                                                      offset: const Offset(3, 3), // changes position of shadow
                                                     ),
                                                   ],
                                                 ),
@@ -6307,29 +5116,17 @@ class Home extends StatelessWidget {
                                                 height: 200,
                                                 child: Stack(children: [
                                                   ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            15),
+                                                    borderRadius: BorderRadius.circular(15),
                                                     child: ImageFiltered(
-                                                      imageFilter:
-                                                          ImageFilter.blur(
-                                                              sigmaX: 6,
-                                                              sigmaY: 6),
+                                                      imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                                                       child: Opacity(
                                                         opacity: 0.8,
                                                         child: Image(
-                                                          image: NetworkImage(
-                                                              imageUrl),
+                                                          image: NetworkImage(imageUrl),
                                                           fit: BoxFit.cover,
                                                           width: 280,
                                                           height: 200,
-                                                          errorBuilder:
-                                                              (BuildContext
-                                                                      context,
-                                                                  Object
-                                                                      exception,
-                                                                  StackTrace?
-                                                                      stackTrace) {
+                                                          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                             return const SizedBox();
                                                           },
                                                         ),
@@ -6337,64 +5134,39 @@ class Home extends StatelessWidget {
                                                     ),
                                                   ),
                                                   ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            15),
+                                                    borderRadius: BorderRadius.circular(15),
                                                     child: Image(
-                                                      image: NetworkImage(
-                                                          imageUrl),
+                                                      image: NetworkImage(imageUrl),
                                                       fit: BoxFit.contain,
                                                       width: 280,
                                                       height: 200,
-                                                      errorBuilder:
-                                                          (BuildContext context,
-                                                              Object exception,
-                                                              StackTrace?
-                                                                  stackTrace) {
+                                                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                         return const SizedBox();
                                                       },
                                                     ),
                                                   ),
                                                 ])),
-                                            (suggestion
-                                                        .toString()
-                                                        .split('@')[2] !=
-                                                    'null')
+                                            (suggestion.toString().split('@')[2] != 'null')
                                                 ? Opacity(
                                                     opacity: 0.5,
                                                     child: LinkText(
                                                         'Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
-                                                        textAlign:
-                                                            TextAlign.center,
+                                                        textAlign: TextAlign.center,
                                                         textStyle: const TextStyle(
                                                             fontSize: 12.0,
                                                             color: textColor,
-                                                            fontFamily:
-                                                                'Tahoma',
-                                                            fontWeight:
-                                                                FontWeight.w400,
-                                                            decoration:
-                                                                TextDecoration
-                                                                    .none),
+                                                            fontFamily: 'Tahoma',
+                                                            fontWeight: FontWeight.w400,
+                                                            decoration: TextDecoration.none),
                                                         linkStyle: const TextStyle(
                                                             fontSize: 12.0,
                                                             color: Colors.blue,
-                                                            fontFamily:
-                                                                'Tahoma',
-                                                            fontWeight:
-                                                                FontWeight.w400,
-                                                            decoration:
-                                                                TextDecoration
-                                                                    .underline,
-                                                            decorationColor:
-                                                                Colors.blue,
-                                                            decorationStyle:
-                                                                TextDecorationStyle
-                                                                    .solid),
-                                                        onLinkTap: (url) async {
-                                                      if (!await launchUrl(
-                                                          Uri.parse(url)))
-                                                        throw 'Could not launch $url';
+                                                            fontFamily: 'Tahoma',
+                                                            fontWeight: FontWeight.w400,
+                                                            decoration: TextDecoration.underline,
+                                                            decorationColor: Colors.blue,
+                                                            decorationStyle: TextDecorationStyle.solid), onLinkTap: (url) async {
+                                                      if (!await launchUrl(Uri.parse(url))) throw 'Could not launch $url';
                                                     }))
                                                 : const SizedBox(),
                                             const SizedBox(height: 10),
@@ -6409,14 +5181,11 @@ class Home extends StatelessWidget {
                                 await searchToHome(suggestArray[0]);
                               } else {
                                 String suggestion = suggestArray[0].toString();
-                                var dataRaw =
-                                    await box.get(suggestion.split('@')[0]);
+                                var dataRaw = await box.get(suggestion.split('@')[0]);
                                 if (dataRaw.toString() != 'null') {
                                   await searchToHome(suggestion.split('@')[0]);
                                 } else {
-                                  String imageUrl = await getImage(
-                                      suggestion.toString().split('@')[0],
-                                      'medium');
+                                  String imageUrl = await getImage(suggestion.toString().split('@')[0], 'medium');
                                   if (imageUrl.split('@')[0] != 'null') {
                                     Get.dialog(Column(children: [
                                       const Expanded(child: SizedBox()),
@@ -6424,17 +5193,13 @@ class Home extends StatelessWidget {
                                           margin: const EdgeInsets.all(10),
                                           decoration: BoxDecoration(
                                             color: Colors.white,
-                                            borderRadius:
-                                                const BorderRadius.all(
-                                                    Radius.circular(20)),
+                                            borderRadius: const BorderRadius.all(Radius.circular(20)),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: Colors.black
-                                                    .withOpacity(0.6),
+                                                color: Colors.black.withOpacity(0.6),
                                                 spreadRadius: 0,
                                                 blurRadius: 3,
-                                                offset: const Offset(3,
-                                                    3), // changes position of shadow
+                                                offset: const Offset(3, 3), // changes position of shadow
                                               ),
                                             ],
                                           ),
@@ -6442,48 +5207,37 @@ class Home extends StatelessWidget {
                                           child: Column(children: [
                                             const SizedBox(height: 10),
                                             Text(
-                                              suggestion
-                                                  .toString()
-                                                  .split('@')[0],
+                                              suggestion.toString().split('@')[0],
                                               style: const TextStyle(
                                                   fontSize: 18.0,
                                                   color: textColor,
                                                   fontWeight: FontWeight.w600,
                                                   fontFamily: 'Tahoma',
-                                                  decoration:
-                                                      TextDecoration.none),
+                                                  decoration: TextDecoration.none),
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                             const SizedBox(height: 5),
                                             Text(
-                                              suggestion
-                                                  .toString()
-                                                  .split('@')[1],
+                                              suggestion.toString().split('@')[1],
                                               style: const TextStyle(
                                                   fontSize: 16.0,
                                                   color: textColor,
                                                   fontFamily: 'Tahoma',
                                                   fontWeight: FontWeight.w400,
-                                                  decoration:
-                                                      TextDecoration.none),
+                                                  decoration: TextDecoration.none),
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                             Container(
-                                                margin:
-                                                    const EdgeInsets.all(10),
+                                                margin: const EdgeInsets.all(10),
                                                 decoration: BoxDecoration(
                                                   color: Colors.white,
-                                                  borderRadius:
-                                                      const BorderRadius.all(
-                                                          Radius.circular(15)),
+                                                  borderRadius: const BorderRadius.all(Radius.circular(15)),
                                                   boxShadow: [
                                                     BoxShadow(
-                                                      color: Colors.black
-                                                          .withOpacity(0.6),
+                                                      color: Colors.black.withOpacity(0.6),
                                                       spreadRadius: 0,
                                                       blurRadius: 3,
-                                                      offset: const Offset(3,
-                                                          3), // changes position of shadow
+                                                      offset: const Offset(3, 3), // changes position of shadow
                                                     ),
                                                   ],
                                                 ),
@@ -6491,29 +5245,17 @@ class Home extends StatelessWidget {
                                                 height: 200,
                                                 child: Stack(children: [
                                                   ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            15),
+                                                    borderRadius: BorderRadius.circular(15),
                                                     child: ImageFiltered(
-                                                      imageFilter:
-                                                          ImageFilter.blur(
-                                                              sigmaX: 6,
-                                                              sigmaY: 6),
+                                                      imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                                                       child: Opacity(
                                                         opacity: 0.8,
                                                         child: Image(
-                                                          image: NetworkImage(
-                                                              imageUrl),
+                                                          image: NetworkImage(imageUrl),
                                                           fit: BoxFit.cover,
                                                           width: 280,
                                                           height: 200,
-                                                          errorBuilder:
-                                                              (BuildContext
-                                                                      context,
-                                                                  Object
-                                                                      exception,
-                                                                  StackTrace?
-                                                                      stackTrace) {
+                                                          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                             return const SizedBox();
                                                           },
                                                         ),
@@ -6521,64 +5263,39 @@ class Home extends StatelessWidget {
                                                     ),
                                                   ),
                                                   ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            15),
+                                                    borderRadius: BorderRadius.circular(15),
                                                     child: Image(
-                                                      image: NetworkImage(
-                                                          imageUrl),
+                                                      image: NetworkImage(imageUrl),
                                                       fit: BoxFit.contain,
                                                       width: 280,
                                                       height: 200,
-                                                      errorBuilder:
-                                                          (BuildContext context,
-                                                              Object exception,
-                                                              StackTrace?
-                                                                  stackTrace) {
+                                                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                         return const SizedBox();
                                                       },
                                                     ),
                                                   ),
                                                 ])),
-                                            (suggestion
-                                                        .toString()
-                                                        .split('@')[2] !=
-                                                    'null')
+                                            (suggestion.toString().split('@')[2] != 'null')
                                                 ? Opacity(
                                                     opacity: 0.5,
                                                     child: LinkText(
                                                         'Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
-                                                        textAlign:
-                                                            TextAlign.center,
+                                                        textAlign: TextAlign.center,
                                                         textStyle: const TextStyle(
                                                             fontSize: 12.0,
                                                             color: textColor,
-                                                            fontFamily:
-                                                                'Tahoma',
-                                                            fontWeight:
-                                                                FontWeight.w400,
-                                                            decoration:
-                                                                TextDecoration
-                                                                    .none),
+                                                            fontFamily: 'Tahoma',
+                                                            fontWeight: FontWeight.w400,
+                                                            decoration: TextDecoration.none),
                                                         linkStyle: const TextStyle(
                                                             fontSize: 12.0,
                                                             color: Colors.blue,
-                                                            fontFamily:
-                                                                'Tahoma',
-                                                            fontWeight:
-                                                                FontWeight.w400,
-                                                            decoration:
-                                                                TextDecoration
-                                                                    .underline,
-                                                            decorationColor:
-                                                                Colors.blue,
-                                                            decorationStyle:
-                                                                TextDecorationStyle
-                                                                    .solid),
-                                                        onLinkTap: (url) async {
-                                                      if (!await launchUrl(
-                                                          Uri.parse(url)))
-                                                        throw 'Could not launch $url';
+                                                            fontFamily: 'Tahoma',
+                                                            fontWeight: FontWeight.w400,
+                                                            decoration: TextDecoration.underline,
+                                                            decorationColor: Colors.blue,
+                                                            decorationStyle: TextDecorationStyle.solid), onLinkTap: (url) async {
+                                                      if (!await launchUrl(Uri.parse(url))) throw 'Could not launch $url';
                                                     }))
                                                 : const SizedBox(),
                                             const SizedBox(height: 10),
@@ -6591,8 +5308,7 @@ class Home extends StatelessWidget {
                             }
                           },
                         ),
-                        suggestionsBoxVerticalOffset: 10,
-                        noItemsFoundBuilder: (BuildContext context) => ListTile(
+                        emptyBuilder: (BuildContext context) => ListTile(
                           title: Text(
                             c.notFound.string,
                             style: const TextStyle(
@@ -6610,10 +5326,7 @@ class Home extends StatelessWidget {
                             if (suggestArray.length > 9) {
                               break;
                             }
-                            if (c.wordArray[i]
-                                .toString()
-                                .toLowerCase()
-                                .startsWith(pattern.toLowerCase())) {
+                            if (c.wordArray[i].toString().toLowerCase().startsWith(pattern.toLowerCase())) {
                               if (!suggestArray.contains(c.wordArray[i])) {
                                 suggestArray.add(c.wordArray[i]);
                               }
@@ -6621,46 +5334,29 @@ class Home extends StatelessWidget {
                           }
                           if (suggestArray.isEmpty) {
                             try {
-                              String languageCode = languagesCode[
-                                  languages.indexOf(c.languageLocal.string)];
-                              var checkLanguage =
-                                  await pattern.translate(to: 'en');
+                              String languageCode = languagesCode[languages.indexOf(c.languageLocal.string)];
+                              var checkLanguage = await pattern.translate(to: 'en');
                               if (checkLanguage.text == pattern) {
-                                var google = await pattern.translate(
-                                    from: 'en', to: languageCode);
-                                String imageUrl =
-                                    await getImage(pattern, 'small');
-                                suggestArray.add(pattern +
-                                    '@' +
-                                    google.text.toLowerCase() +
-                                    '@' +
-                                    imageUrl);
+                                var google = await pattern.translate(from: 'en', to: languageCode);
+                                String imageUrl = await getImage(pattern, 'small');
+                                suggestArray.add(pattern + '@' + google.text.toLowerCase() + '@' + imageUrl);
                               } else {
-                                var google = await pattern.translate(to: 'en');
-                                String imageUrl =
-                                    await getImage(google.text, 'small');
-                                suggestArray.add(google.text.toLowerCase() +
-                                    '@' +
-                                    pattern +
-                                    '@' +
-                                    imageUrl);
+                                var google = checkLanguage;
+                                String imageUrl = await getImage(google.text, 'small');
+                                suggestArray.add(google.text.toLowerCase() + '@' + pattern + '@' + imageUrl);
                               }
                             } catch (_) {}
                           }
+                          // suggestController.suggestions = suggestArray;
                           return suggestArray;
                         },
-                        suggestionsBoxDecoration: SuggestionsBoxDecoration(
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(15)),
-                          color: Colors.white.withOpacity(1.0),
-                        ),
+                        // suggestionsController: suggestController,
                         itemBuilder: (context, suggestion) {
                           String mean = '';
                           String image = 'bedict.png';
                           List listMeans = [];
-                          var dataRaw = suggestion.toString().contains('@')
-                              ? box.get(suggestion.toString().split('@')[0])
-                              : box.get(suggestion.toString());
+                          var dataRaw =
+                              suggestion.toString().contains('@') ? box.get(suggestion.toString().split('@')[0]) : box.get(suggestion.toString());
                           if (dataRaw.toString() == 'null') {
                             mean = suggestion.toString().split('@')[1];
                             if (suggestion.toString().split('@')[2] != 'null') {
@@ -6682,33 +5378,20 @@ class Home extends StatelessWidget {
                                 meanENElement = listMean[j];
                               }
                               meanENAdd.add(meanENElement);
-                              String meanVNElement =
-                                  jsonDecode(dataRaw['meanVN'])[0][j];
-                              meanVNElement = meanVNElement.substring(
-                                  0, meanVNElement.length - 2);
-                              meanVNElement = meanVNElement +
-                                  listMean[j].substring(listMean[j].length - 1);
+                              String meanVNElement = jsonDecode(dataRaw['meanVN'])[0][j];
+                              meanVNElement = meanVNElement.substring(0, meanVNElement.length - 2);
+                              meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length - 1);
                               meanVNAdd.add(meanVNElement);
                             }
                             String meanEN = '';
                             String meanVN = '';
                             for (var j = 0; j < meanENAdd.length; j++) {
                               if (j == 0) {
-                                meanVN = meanVN +
-                                    meanVNAdd[j]
-                                        .substring(0, meanVNAdd[j].length - 1);
-                                meanEN = meanEN +
-                                    meanENAdd[j]
-                                        .substring(0, meanENAdd[j].length - 1);
+                                meanVN = meanVN + meanVNAdd[j].substring(0, meanVNAdd[j].length - 1);
+                                meanEN = meanEN + meanENAdd[j].substring(0, meanENAdd[j].length - 1);
                               } else {
-                                meanVN = meanVN +
-                                    ' | ' +
-                                    meanVNAdd[j]
-                                        .substring(0, meanVNAdd[j].length - 1);
-                                meanEN = meanEN +
-                                    ' | ' +
-                                    meanENAdd[j]
-                                        .substring(0, meanENAdd[j].length - 1);
+                                meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0, meanVNAdd[j].length - 1);
+                                meanEN = meanEN + ' | ' + meanENAdd[j].substring(0, meanENAdd[j].length - 1);
                               }
                             }
                             if (c.language.string == 'VN') {
@@ -6724,47 +5407,38 @@ class Home extends StatelessWidget {
                             Row(children: [
                               const SizedBox(width: 10),
                               Expanded(
-                                child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        suggestion.toString().contains('@')
-                                            ? suggestion
-                                                .toString()
-                                                .split('@')[0]
-                                            : suggestion.toString(),
-                                        style: const TextStyle(
-                                          fontSize: 18.0,
-                                          color: textColor,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 5),
-                                      Text(
-                                        mean,
-                                        style: const TextStyle(
-                                          fontSize: 14.0,
-                                          color: textColor,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ]),
+                                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                  Text(
+                                    suggestion.toString().contains('@') ? suggestion.toString().split('@')[0] : suggestion.toString(),
+                                    style: const TextStyle(
+                                      fontSize: 18.0,
+                                      color: textColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 5),
+                                  Text(
+                                    mean,
+                                    style: const TextStyle(
+                                      fontSize: 14.0,
+                                      color: textColor,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ]),
                               ),
                               Container(
                                   margin: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    borderRadius: const BorderRadius.all(
-                                        Radius.circular(8)),
+                                    borderRadius: const BorderRadius.all(Radius.circular(8)),
                                     boxShadow: [
                                       BoxShadow(
                                         color: Colors.black.withOpacity(0.6),
                                         spreadRadius: 0,
                                         blurRadius: 3,
-                                        offset: const Offset(
-                                            3, 3), // changes position of shadow
+                                        offset: const Offset(3, 3), // changes position of shadow
                                       ),
                                     ],
                                   ),
@@ -6774,23 +5448,16 @@ class Home extends StatelessWidget {
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(8),
                                       child: ImageFiltered(
-                                        imageFilter: ImageFilter.blur(
-                                            sigmaX: 6, sigmaY: 6),
+                                        imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                                         child: Opacity(
                                           opacity: 0.8,
                                           child: Image(
                                             image: NetworkImage(
-                                                dataRaw.toString() == 'null'
-                                                    ? image
-                                                    : 'https://bedict.com/' +
-                                                        image.replaceAll(
-                                                            '\\', '')),
+                                                dataRaw.toString() == 'null' ? image : 'https://bedict.com/' + image.replaceAll('\\', '')),
                                             fit: BoxFit.cover,
                                             width: 70,
                                             height: 50,
-                                            errorBuilder: (BuildContext context,
-                                                Object exception,
-                                                StackTrace? stackTrace) {
+                                            errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                               return const SizedBox();
                                             },
                                           ),
@@ -6800,17 +5467,12 @@ class Home extends StatelessWidget {
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(8),
                                       child: Image(
-                                        image: NetworkImage(
-                                            dataRaw.toString() == 'null'
-                                                ? image
-                                                : 'https://bedict.com/' +
-                                                    image.replaceAll('\\', '')),
+                                        image:
+                                            NetworkImage(dataRaw.toString() == 'null' ? image : 'https://bedict.com/' + image.replaceAll('\\', '')),
                                         fit: BoxFit.contain,
                                         width: 70,
                                         height: 50,
-                                        errorBuilder: (BuildContext context,
-                                            Object exception,
-                                            StackTrace? stackTrace) {
+                                        errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                           return const SizedBox();
                                         },
                                       ),
@@ -6822,18 +5484,13 @@ class Home extends StatelessWidget {
                                             child: Container(
                                                 alignment: Alignment.center,
                                                 decoration: BoxDecoration(
-                                                  color: Colors.white
-                                                      .withOpacity(0.7),
-                                                  borderRadius:
-                                                      const BorderRadius.all(
-                                                          Radius.circular(20)),
+                                                  color: Colors.white.withOpacity(0.7),
+                                                  borderRadius: const BorderRadius.all(Radius.circular(20)),
                                                 ),
                                                 height: 20,
                                                 width: 20,
                                                 child: Text(
-                                                  '+ ' +
-                                                      (listMeans.length - 1)
-                                                          .toString(),
+                                                  '+ ' + (listMeans.length - 1).toString(),
                                                   style: const TextStyle(
                                                     fontSize: 9,
                                                   ),
@@ -6841,13 +5498,10 @@ class Home extends StatelessWidget {
                                         : const SizedBox(),
                                   ])),
                             ]),
-                            (dataRaw.toString() == 'null' &&
-                                    suggestion.toString().split('@')[2] !=
-                                        'null')
+                            (dataRaw.toString() == 'null' && suggestion.toString().split('@')[2] != 'null')
                                 ? Opacity(
                                     opacity: 0.3,
-                                    child: LinkText(
-                                        'Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
+                                    child: LinkText('Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
                                         textAlign: TextAlign.center,
                                         textStyle: const TextStyle(
                                             fontSize: 10.0,
@@ -6860,37 +5514,27 @@ class Home extends StatelessWidget {
                                             color: Colors.blue,
                                             fontFamily: 'Tahoma',
                                             fontWeight: FontWeight.w400,
-                                            decoration:
-                                                TextDecoration.underline,
+                                            decoration: TextDecoration.underline,
                                             decorationColor: Colors.blue,
-                                            decorationStyle:
-                                                TextDecorationStyle.solid),
-                                        onLinkTap: (url) async {
-                                      if (!await launchUrl(Uri.parse(url)))
-                                        throw 'Could not launch $url';
+                                            decorationStyle: TextDecorationStyle.solid), onLinkTap: (url) async {
+                                      if (!await launchUrl(Uri.parse(url))) throw 'Could not launch $url';
                                     }))
                                 : const SizedBox(),
-                            (dataRaw.toString() == 'null' &&
-                                    suggestion.toString().split('@')[2] !=
-                                        'null')
+                            (dataRaw.toString() == 'null' && suggestion.toString().split('@')[2] != 'null')
                                 ? const SizedBox(height: 5)
                                 : const SizedBox(),
                           ]);
                         },
-                        onSuggestionSelected: (suggestion) async {
+                        onSelected: (suggestion) async {
                           // searchField.text = suggestion.toString();
                           if (!suggestion.toString().contains('@')) {
                             await searchToHome(suggestion.toString());
                           } else {
-                            var dataRaw =
-                                box.get(suggestion.toString().split('@')[0]);
+                            var dataRaw = box.get(suggestion.toString().split('@')[0]);
                             if (dataRaw.toString() != 'null') {
-                              await searchToHome(
-                                  suggestion.toString().split('@')[0]);
+                              await searchToHome(suggestion.toString().split('@')[0]);
                             } else {
-                              String imageUrl = await getImage(
-                                  suggestion.toString().split('@')[0],
-                                  'medium');
+                              String imageUrl = await getImage(suggestion.toString().split('@')[0], 'medium');
                               if (imageUrl.split('@')[0] != 'null') {
                                 Get.dialog(Column(children: [
                                   const Expanded(child: SizedBox()),
@@ -6898,16 +5542,13 @@ class Home extends StatelessWidget {
                                       margin: const EdgeInsets.all(10),
                                       decoration: BoxDecoration(
                                         color: Colors.white,
-                                        borderRadius: const BorderRadius.all(
-                                            Radius.circular(20)),
+                                        borderRadius: const BorderRadius.all(Radius.circular(20)),
                                         boxShadow: [
                                           BoxShadow(
-                                            color:
-                                                Colors.black.withOpacity(0.6),
+                                            color: Colors.black.withOpacity(0.6),
                                             spreadRadius: 0,
                                             blurRadius: 3,
-                                            offset: const Offset(3,
-                                                3), // changes position of shadow
+                                            offset: const Offset(3, 3), // changes position of shadow
                                           ),
                                         ],
                                       ),
@@ -6939,17 +5580,13 @@ class Home extends StatelessWidget {
                                             margin: const EdgeInsets.all(10),
                                             decoration: BoxDecoration(
                                               color: Colors.white,
-                                              borderRadius:
-                                                  const BorderRadius.all(
-                                                      Radius.circular(15)),
+                                              borderRadius: const BorderRadius.all(Radius.circular(15)),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: Colors.black
-                                                      .withOpacity(0.6),
+                                                  color: Colors.black.withOpacity(0.6),
                                                   spreadRadius: 0,
                                                   blurRadius: 3,
-                                                  offset: const Offset(3,
-                                                      3), // changes position of shadow
+                                                  offset: const Offset(3, 3), // changes position of shadow
                                                 ),
                                               ],
                                             ),
@@ -6957,24 +5594,17 @@ class Home extends StatelessWidget {
                                             height: 200,
                                             child: Stack(children: [
                                               ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
+                                                borderRadius: BorderRadius.circular(15),
                                                 child: ImageFiltered(
-                                                  imageFilter: ImageFilter.blur(
-                                                      sigmaX: 6, sigmaY: 6),
+                                                  imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                                                   child: Opacity(
                                                     opacity: 0.8,
                                                     child: Image(
-                                                      image: NetworkImage(
-                                                          imageUrl),
+                                                      image: NetworkImage(imageUrl),
                                                       fit: BoxFit.cover,
                                                       width: 280,
                                                       height: 200,
-                                                      errorBuilder:
-                                                          (BuildContext context,
-                                                              Object exception,
-                                                              StackTrace?
-                                                                  stackTrace) {
+                                                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                         return const SizedBox();
                                                       },
                                                     ),
@@ -6982,56 +5612,38 @@ class Home extends StatelessWidget {
                                                 ),
                                               ),
                                               ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
+                                                borderRadius: BorderRadius.circular(15),
                                                 child: Image(
                                                   image: NetworkImage(imageUrl),
                                                   fit: BoxFit.contain,
                                                   width: 280,
                                                   height: 200,
-                                                  errorBuilder: (BuildContext
-                                                          context,
-                                                      Object exception,
-                                                      StackTrace? stackTrace) {
+                                                  errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                     return const SizedBox();
                                                   },
                                                 ),
                                               ),
                                             ])),
-                                        (suggestion.toString().split('@')[2] !=
-                                                'null')
+                                        (suggestion.toString().split('@')[2] != 'null')
                                             ? Opacity(
                                                 opacity: 0.5,
-                                                child: LinkText(
-                                                    'Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
+                                                child: LinkText('Photo of ${suggestion.toString().split('@')[3]} provided by https://www.pexels.com',
                                                     textAlign: TextAlign.center,
                                                     textStyle: const TextStyle(
                                                         fontSize: 12.0,
                                                         color: textColor,
                                                         fontFamily: 'Tahoma',
-                                                        fontWeight:
-                                                            FontWeight.w400,
-                                                        decoration:
-                                                            TextDecoration
-                                                                .none),
+                                                        fontWeight: FontWeight.w400,
+                                                        decoration: TextDecoration.none),
                                                     linkStyle: const TextStyle(
                                                         fontSize: 12.0,
                                                         color: Colors.blue,
                                                         fontFamily: 'Tahoma',
-                                                        fontWeight:
-                                                            FontWeight.w400,
-                                                        decoration:
-                                                            TextDecoration
-                                                                .underline,
-                                                        decorationColor:
-                                                            Colors.blue,
-                                                        decorationStyle:
-                                                            TextDecorationStyle
-                                                                .solid),
-                                                    onLinkTap: (url) async {
-                                                  if (!await launchUrl(
-                                                      Uri.parse(url)))
-                                                    throw 'Could not launch $url';
+                                                        fontWeight: FontWeight.w400,
+                                                        decoration: TextDecoration.underline,
+                                                        decorationColor: Colors.blue,
+                                                        decorationStyle: TextDecorationStyle.solid), onLinkTap: (url) async {
+                                                  if (!await launchUrl(Uri.parse(url))) throw 'Could not launch $url';
                                                 }))
                                             : const SizedBox(),
                                         const SizedBox(height: 10),
@@ -7042,8 +5654,6 @@ class Home extends StatelessWidget {
                             }
                           }
                         },
-                        animationDuration: Duration.zero,
-                        debounceDuration: Duration.zero,
                       ),
                     ),
                     const SizedBox(width: 15),
@@ -7177,24 +5787,18 @@ class Home extends StatelessWidget {
                                         builder: (context, snapshot) {
                                           Widget child;
 
-                                          if (snapshot.connectionState ==
-                                              ConnectionState.waiting) {
+                                          if (snapshot.connectionState == ConnectionState.waiting) {
                                             child = const SizedBox();
                                           } else {
                                             child = Container(
-                                              margin: const EdgeInsets.fromLTRB(
-                                                  0, 0, 0, 5),
+                                              margin: const EdgeInsets.fromLTRB(0, 0, 0, 5),
                                               padding: const EdgeInsets.all(5),
                                               decoration: BoxDecoration(
-                                                color: Colors.white
-                                                    .withOpacity(0.3),
-                                                borderRadius:
-                                                    const BorderRadius.all(
-                                                        Radius.circular(10)),
+                                                color: Colors.white.withOpacity(0.3),
+                                                borderRadius: const BorderRadius.all(Radius.circular(10)),
                                               ),
                                               child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
+                                                crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
                                                   const SizedBox(
                                                     height: 3,
@@ -7202,12 +5806,7 @@ class Home extends StatelessWidget {
                                                   Opacity(
                                                     opacity: 0.3,
                                                     child: Text(
-                                                      laytuloai(subMean.value
-                                                              .substring(subMean
-                                                                      .value
-                                                                      .length -
-                                                                  1))[
-                                                          c.typeState.value],
+                                                      laytuloai(subMean.value.substring(subMean.value.length - 1))[c.typeState.value],
                                                       style: const TextStyle(
                                                         fontSize: 11,
                                                         color: textColor,
@@ -7217,10 +5816,7 @@ class Home extends StatelessWidget {
                                                   ),
                                                   const SizedBox(height: 2),
                                                   Text(
-                                                    subMean.value.substring(
-                                                        0,
-                                                        subMean.value.length -
-                                                            1),
+                                                    subMean.value.substring(0, subMean.value.length - 1),
                                                     style: const TextStyle(
                                                       fontSize: 18,
                                                       color: textColor,
@@ -7233,8 +5829,7 @@ class Home extends StatelessWidget {
                                             );
                                           }
                                           return AnimatedSwitcher(
-                                            duration: const Duration(
-                                                milliseconds: 500),
+                                            duration: const Duration(milliseconds: 500),
                                             child: child,
                                           );
                                         },
@@ -7261,21 +5856,10 @@ class Home extends StatelessWidget {
                           activeSize: const Size(14.0, 9.0),
                           activeColor: Colors.black.withOpacity(0.4),
                           color: Colors.black.withOpacity(0.1),
-                          activeShape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(4.0)),
-                          spacing: 19 * c.mean.length >
-                                  MediaQuery.of(context).size.width - 20
-                              ? EdgeInsets.fromLTRB(
-                                  ((MediaQuery.of(context).size.width - 20) /
-                                              c.mean.length -
-                                          9) /
-                                      2,
-                                  10,
-                                  ((MediaQuery.of(context).size.width - 20) /
-                                              c.mean.length -
-                                          9) /
-                                      2,
-                                  10)
+                          activeShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
+                          spacing: 19 * c.mean.length > MediaQuery.of(context).size.width - 20
+                              ? EdgeInsets.fromLTRB(((MediaQuery.of(context).size.width - 20) / c.mean.length - 9) / 2, 10,
+                                  ((MediaQuery.of(context).size.width - 20) / c.mean.length - 9) / 2, 10)
                               : const EdgeInsets.fromLTRB(5, 5, 5, 5),
                         ),
                         onTap: (index) {
@@ -7442,11 +6026,7 @@ class Home extends StatelessWidget {
                       alignment: MainAxisAlignment.center,
                       width: MediaQuery.of(context).size.height * 0.2,
                       lineHeight: 5.0,
-                      percent: (c.wordScore.value +
-                              c.pronunScore.value +
-                              c.speakScore.value +
-                              c.meanScore.value) /
-                          100,
+                      percent: (c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value) / 100,
                       backgroundColor: Colors.black.withOpacity(0.1),
                       progressColor: Colors.black.withOpacity(0.4),
                       padding: const EdgeInsets.all(0),
@@ -7466,6 +6046,49 @@ class Home extends StatelessWidget {
   }
 }
 
+askVip(BuildContext context, String vi, String en) {
+  final c = Get.put(Controller());
+  showDialog<void>(
+    context: context,
+    builder: (context) {
+      return Center(
+        child: Container(
+            margin: const EdgeInsets.all(50),
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: Colors.white,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(c.language.string == 'VN' ? vi : en, textAlign: TextAlign.center, style: const TextStyle(fontSize: 18)),
+                const SizedBox(height: 15),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Get.back();
+                        payVip();
+                      },
+                      child: Text(c.language.string == 'VN' ? 'Đăng ký' : 'Subscribe', style: const TextStyle(fontSize: 18)),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Get.back();
+                      },
+                      child: Text(c.language.string == 'VN' ? 'Hủy' : 'Cancel', style: const TextStyle(fontSize: 18)),
+                    ),
+                  ],
+                ),
+              ],
+            )),
+      );
+    },
+  );
+}
+
 class ProcessWidget extends StatefulWidget {
   // const ProcessWidget({Key? key}) : super(key: key);
 
@@ -7477,8 +6100,7 @@ class ProcessWidget extends StatefulWidget {
   State<ProcessWidget> createState() => ProcessWidgetState();
 }
 
-class ProcessWidgetState extends State<ProcessWidget>
-    with TickerProviderStateMixin {
+class ProcessWidgetState extends State<ProcessWidget> with TickerProviderStateMixin {
   final Controller c = Get.put(Controller());
   late AnimationController controller;
 
@@ -7504,9 +6126,7 @@ class ProcessWidgetState extends State<ProcessWidget>
       wordCount += c.mean[c.nowMean.value][j].split(' ').length as int;
     }
     int duration = 0;
-    duration += 3000 +
-        (c.mean[c.nowMean.value].length as int) * 1000 +
-        wordCount * 50 ~/ c.speakSpeed.value;
+    duration += 3000 + (c.mean[c.nowMean.value].length as int) * 1000 + wordCount * 50 ~/ c.speakSpeed.value;
     controller.duration = Duration(milliseconds: duration);
     controller.forward();
     super.initState();
@@ -7543,9 +6163,7 @@ class ProcessWidgetState extends State<ProcessWidget>
       wordCount += c.mean[c.nowMean.value][j].split(' ').length as int;
     }
     int duration = 0;
-    duration += 3000 +
-        (c.mean[c.nowMean.value].length as int) * 1000 +
-        wordCount * 50 ~/ c.speakSpeed.value;
+    duration += 3000 + (c.mean[c.nowMean.value].length as int) * 1000 + wordCount * 50 ~/ c.speakSpeed.value;
     controller.duration = Duration(milliseconds: duration);
     controller.reset();
     controller.forward();
@@ -7584,9 +6202,7 @@ class _WriteWidgetState extends State<WriteWidget> {
     List<String> newRandom = c.word.string.split('').obs;
     newRandom.shuffle();
     setState(() {
-      listArrange = [
-        for (int i = 0; i < c.word.string.split('').length; i++) ''
-      ];
+      listArrange = [for (int i = 0; i < c.word.string.split('').length; i++) ''];
       listRandom = newRandom;
     });
   }
@@ -7612,20 +6228,12 @@ class _WriteWidgetState extends State<WriteWidget> {
                           color: Colors.black.withOpacity(0.6),
                           spreadRadius: 0,
                           blurRadius: 5,
-                          offset:
-                              const Offset(5, 5), // changes position of shadow
+                          offset: const Offset(5, 5), // changes position of shadow
                         ),
                       ],
                     ),
-                    width: MediaQuery.of(context).size.width > 500
-                        ? 220
-                        : (MediaQuery.of(context).size.width - 60) / 2,
-                    height: MediaQuery.of(context).size.width > 500
-                        ? 220 * 250 / 300
-                        : (MediaQuery.of(context).size.width - 60) *
-                            250 /
-                            300 /
-                            2,
+                    width: MediaQuery.of(context).size.width > 500 ? 220 : (MediaQuery.of(context).size.width - 60) / 2,
+                    height: MediaQuery.of(context).size.width > 500 ? 220 * 250 / 300 : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
                     child: Stack(children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
@@ -7634,21 +6242,13 @@ class _WriteWidgetState extends State<WriteWidget> {
                           child: Opacity(
                             opacity: 0.8,
                             child: Image(
-                              image: NetworkImage('https://bedict.com/' +
-                                  c.imageURL[index].replaceAll('\\', '')),
+                              image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\', '')),
                               fit: BoxFit.cover,
-                              width: MediaQuery.of(context).size.width > 500
-                                  ? 220
-                                  : (MediaQuery.of(context).size.width - 60) /
-                                      2,
+                              width: MediaQuery.of(context).size.width > 500 ? 220 : (MediaQuery.of(context).size.width - 60) / 2,
                               height: MediaQuery.of(context).size.width > 500
                                   ? 220 * 250 / 300
-                                  : (MediaQuery.of(context).size.width - 60) *
-                                      250 /
-                                      300 /
-                                      2,
-                              errorBuilder: (BuildContext context,
-                                  Object exception, StackTrace? stackTrace) {
+                                  : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
+                              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                 return const SizedBox();
                               },
                             ),
@@ -7658,20 +6258,12 @@ class _WriteWidgetState extends State<WriteWidget> {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image(
-                          image: NetworkImage('https://bedict.com/' +
-                              c.imageURL[index].replaceAll('\\', '')),
+                          image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\', '')),
                           fit: BoxFit.contain,
-                          width: MediaQuery.of(context).size.width > 500
-                              ? 220
-                              : (MediaQuery.of(context).size.width - 60) / 2,
-                          height: MediaQuery.of(context).size.width > 500
-                              ? 220 * 250 / 300
-                              : (MediaQuery.of(context).size.width - 60) *
-                                  250 /
-                                  300 /
-                                  2,
-                          errorBuilder: (BuildContext context, Object exception,
-                              StackTrace? stackTrace) {
+                          width: MediaQuery.of(context).size.width > 500 ? 220 : (MediaQuery.of(context).size.width - 60) / 2,
+                          height:
+                              MediaQuery.of(context).size.width > 500 ? 220 * 250 / 300 : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
+                          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                             return const SizedBox();
                           },
                         ),
@@ -7718,8 +6310,7 @@ class _WriteWidgetState extends State<WriteWidget> {
                                           pool.play(soundId);
                                         }
                                         setState(() {
-                                          listRandom[listRandom.indexOf('')] =
-                                              listArrange[i];
+                                          listRandom[listRandom.indexOf('')] = listArrange[i];
                                           listArrange[i] = '';
                                         });
                                       }
@@ -7728,9 +6319,7 @@ class _WriteWidgetState extends State<WriteWidget> {
                                       style: listArrange[i] == ''
                                           ? NeumorphicStyle(
                                               shape: NeumorphicShape.flat,
-                                              boxShape:
-                                                  NeumorphicBoxShape.roundRect(
-                                                      BorderRadius.circular(5)),
+                                              boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(5)),
                                               depth: -5,
                                               lightSource: LightSource.topLeft,
                                               color: Colors.transparent,
@@ -7738,14 +6327,10 @@ class _WriteWidgetState extends State<WriteWidget> {
                                             )
                                           : NeumorphicStyle(
                                               shape: NeumorphicShape.concave,
-                                              boxShape:
-                                                  NeumorphicBoxShape.roundRect(
-                                                      BorderRadius.circular(5)),
+                                              boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(5)),
                                               depth: 2,
-                                              lightSource:
-                                                  LightSource.bottomRight,
-                                              color:
-                                                  Colors.white.withOpacity(0.3),
+                                              lightSource: LightSource.bottomRight,
+                                              color: Colors.white.withOpacity(0.3),
                                               intensity: 0.4,
                                             ),
                                       child: Container(
@@ -7756,8 +6341,7 @@ class _WriteWidgetState extends State<WriteWidget> {
                                           listArrange[i],
                                           style: const TextStyle(
                                             fontSize: 27,
-                                            color:
-                                                textColor, //customize color here
+                                            color: textColor, //customize color here
                                           ),
                                         ),
                                       ),
@@ -7789,16 +6373,13 @@ class _WriteWidgetState extends State<WriteWidget> {
                                           pool.play(soundId);
                                         }
                                         setState(() {
-                                          listArrange[listArrange.indexOf('')] =
-                                              listRandom[i];
+                                          listArrange[listArrange.indexOf('')] = listRandom[i];
                                           listRandom[i] = '';
                                         });
                                         if (!listArrange.contains('')) {
-                                          if (listEquals(listArrange,
-                                              c.word.string.split(''))) {
+                                          if (listEquals(listArrange, c.word.string.split(''))) {
                                             if (c.wordScore.value < 25) {
-                                              c.wordScore =
-                                                  RxInt(c.wordScore.value + 1);
+                                              c.wordScore = RxInt(c.wordScore.value + 1);
                                               c.update();
                                               var newScore = Score(
                                                 wordId: c.word.value,
@@ -7806,12 +6387,8 @@ class _WriteWidgetState extends State<WriteWidget> {
                                                 pronun: c.pronunScore.value,
                                                 speak: c.speakScore.value,
                                                 mean: c.meanScore.value,
-                                                total: c.wordScore.value +
-                                                    c.pronunScore.value +
-                                                    c.speakScore.value +
-                                                    c.meanScore.value,
-                                                time: DateTime.now()
-                                                    .millisecondsSinceEpoch,
+                                                total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
+                                                time: DateTime.now().millisecondsSinceEpoch,
                                               );
                                               await updateScore(newScore);
                                             }
@@ -7819,8 +6396,7 @@ class _WriteWidgetState extends State<WriteWidget> {
                                             await getNextLearn();
                                           } else {
                                             if (c.wordScore.value > 0) {
-                                              c.wordScore =
-                                                  RxInt(c.wordScore.value - 1);
+                                              c.wordScore = RxInt(c.wordScore.value - 1);
                                               c.update();
                                               var newScore = Score(
                                                 wordId: c.word.value,
@@ -7828,12 +6404,8 @@ class _WriteWidgetState extends State<WriteWidget> {
                                                 pronun: c.pronunScore.value,
                                                 speak: c.speakScore.value,
                                                 mean: c.meanScore.value,
-                                                total: c.wordScore.value +
-                                                    c.pronunScore.value +
-                                                    c.speakScore.value +
-                                                    c.meanScore.value,
-                                                time: DateTime.now()
-                                                    .millisecondsSinceEpoch,
+                                                total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
+                                                time: DateTime.now().millisecondsSinceEpoch,
                                               );
                                               await updateScore(newScore);
                                             }
@@ -7846,9 +6418,7 @@ class _WriteWidgetState extends State<WriteWidget> {
                                       style: listRandom[i] == ''
                                           ? NeumorphicStyle(
                                               shape: NeumorphicShape.flat,
-                                              boxShape:
-                                                  NeumorphicBoxShape.roundRect(
-                                                      BorderRadius.circular(5)),
+                                              boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(5)),
                                               depth: -5,
                                               lightSource: LightSource.topLeft,
                                               color: Colors.transparent,
@@ -7856,14 +6426,10 @@ class _WriteWidgetState extends State<WriteWidget> {
                                             )
                                           : NeumorphicStyle(
                                               shape: NeumorphicShape.concave,
-                                              boxShape:
-                                                  NeumorphicBoxShape.roundRect(
-                                                      BorderRadius.circular(5)),
+                                              boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(5)),
                                               depth: 2,
-                                              lightSource:
-                                                  LightSource.bottomRight,
-                                              color:
-                                                  Colors.white.withOpacity(0.3),
+                                              lightSource: LightSource.bottomRight,
+                                              color: Colors.white.withOpacity(0.3),
                                               intensity: 0.4,
                                             ),
                                       child: Container(
@@ -7874,8 +6440,7 @@ class _WriteWidgetState extends State<WriteWidget> {
                                           listRandom[i],
                                           style: const TextStyle(
                                             fontSize: 27,
-                                            color:
-                                                textColor, //customize color here
+                                            color: textColor, //customize color here
                                           ),
                                         ),
                                       ),
@@ -7897,17 +6462,13 @@ class _WriteWidgetState extends State<WriteWidget> {
             const SizedBox(width: 10),
             OutlinedButton(
               style: ButtonStyle(
-                backgroundColor:
-                    MaterialStateProperty.all<Color>(Colors.transparent),
-                foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                padding: MaterialStateProperty.all<EdgeInsets>(
-                    const EdgeInsets.all(0)),
-                shape: MaterialStateProperty.all<OutlinedBorder?>(
-                    RoundedRectangleBorder(
+                backgroundColor: WidgetStateProperty.all<Color>(Colors.transparent),
+                foregroundColor: WidgetStateProperty.all<Color>(Colors.grey),
+                padding: WidgetStateProperty.all<EdgeInsets>(const EdgeInsets.all(0)),
+                shape: WidgetStateProperty.all<OutlinedBorder?>(RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30.0),
                 )),
-                fixedSize:
-                    MaterialStateProperty.all<Size>(const Size.fromHeight(40)),
+                fixedSize: WidgetStateProperty.all<Size>(const Size.fromHeight(40)),
               ),
               onPressed: () async {
                 reset();
@@ -7980,9 +6541,7 @@ class _PronunWidgetState extends State<PronunWidget> {
     List<String> newRandom = c.pronun.string.split('').obs;
     newRandom.shuffle();
     setState(() {
-      listArrange = [
-        for (int i = 0; i < c.pronun.string.split('').length; i++) ''
-      ];
+      listArrange = [for (int i = 0; i < c.pronun.string.split('').length; i++) ''];
       listRandom = newRandom;
     });
   }
@@ -8008,20 +6567,12 @@ class _PronunWidgetState extends State<PronunWidget> {
                           color: Colors.black.withOpacity(0.6),
                           spreadRadius: 0,
                           blurRadius: 5,
-                          offset:
-                              const Offset(5, 5), // changes position of shadow
+                          offset: const Offset(5, 5), // changes position of shadow
                         ),
                       ],
                     ),
-                    width: MediaQuery.of(context).size.width > 500
-                        ? 220
-                        : (MediaQuery.of(context).size.width - 60) / 2,
-                    height: MediaQuery.of(context).size.width > 500
-                        ? 220 * 250 / 300
-                        : (MediaQuery.of(context).size.width - 60) *
-                            250 /
-                            300 /
-                            2,
+                    width: MediaQuery.of(context).size.width > 500 ? 220 : (MediaQuery.of(context).size.width - 60) / 2,
+                    height: MediaQuery.of(context).size.width > 500 ? 220 * 250 / 300 : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
                     child: Stack(children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
@@ -8030,21 +6581,13 @@ class _PronunWidgetState extends State<PronunWidget> {
                           child: Opacity(
                             opacity: 0.8,
                             child: Image(
-                              image: NetworkImage('https://bedict.com/' +
-                                  c.imageURL[index].replaceAll('\\', '')),
+                              image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\', '')),
                               fit: BoxFit.cover,
-                              width: MediaQuery.of(context).size.width > 500
-                                  ? 220
-                                  : (MediaQuery.of(context).size.width - 60) /
-                                      2,
+                              width: MediaQuery.of(context).size.width > 500 ? 220 : (MediaQuery.of(context).size.width - 60) / 2,
                               height: MediaQuery.of(context).size.width > 500
                                   ? 220 * 250 / 300
-                                  : (MediaQuery.of(context).size.width - 60) *
-                                      250 /
-                                      300 /
-                                      2,
-                              errorBuilder: (BuildContext context,
-                                  Object exception, StackTrace? stackTrace) {
+                                  : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
+                              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                 return const SizedBox();
                               },
                             ),
@@ -8054,20 +6597,12 @@ class _PronunWidgetState extends State<PronunWidget> {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image(
-                          image: NetworkImage('https://bedict.com/' +
-                              c.imageURL[index].replaceAll('\\', '')),
+                          image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\', '')),
                           fit: BoxFit.contain,
-                          width: MediaQuery.of(context).size.width > 500
-                              ? 220
-                              : (MediaQuery.of(context).size.width - 60) / 2,
-                          height: MediaQuery.of(context).size.width > 500
-                              ? 220 * 250 / 300
-                              : (MediaQuery.of(context).size.width - 60) *
-                                  250 /
-                                  300 /
-                                  2,
-                          errorBuilder: (BuildContext context, Object exception,
-                              StackTrace? stackTrace) {
+                          width: MediaQuery.of(context).size.width > 500 ? 220 : (MediaQuery.of(context).size.width - 60) / 2,
+                          height:
+                              MediaQuery.of(context).size.width > 500 ? 220 * 250 / 300 : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
+                          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                             return const SizedBox();
                           },
                         ),
@@ -8114,8 +6649,7 @@ class _PronunWidgetState extends State<PronunWidget> {
                                           pool.play(soundId);
                                         }
                                         setState(() {
-                                          listRandom[listRandom.indexOf('')] =
-                                              listArrange[i];
+                                          listRandom[listRandom.indexOf('')] = listArrange[i];
                                           listArrange[i] = '';
                                         });
                                       }
@@ -8124,9 +6658,7 @@ class _PronunWidgetState extends State<PronunWidget> {
                                       style: listArrange[i] == ''
                                           ? NeumorphicStyle(
                                               shape: NeumorphicShape.flat,
-                                              boxShape:
-                                                  NeumorphicBoxShape.roundRect(
-                                                      BorderRadius.circular(5)),
+                                              boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(5)),
                                               depth: -5,
                                               lightSource: LightSource.topLeft,
                                               color: Colors.transparent,
@@ -8134,14 +6666,10 @@ class _PronunWidgetState extends State<PronunWidget> {
                                             )
                                           : NeumorphicStyle(
                                               shape: NeumorphicShape.concave,
-                                              boxShape:
-                                                  NeumorphicBoxShape.roundRect(
-                                                      BorderRadius.circular(5)),
+                                              boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(5)),
                                               depth: 2,
-                                              lightSource:
-                                                  LightSource.bottomRight,
-                                              color:
-                                                  Colors.white.withOpacity(0.3),
+                                              lightSource: LightSource.bottomRight,
+                                              color: Colors.white.withOpacity(0.3),
                                               intensity: 0.4,
                                             ),
                                       child: Container(
@@ -8152,8 +6680,7 @@ class _PronunWidgetState extends State<PronunWidget> {
                                           listArrange[i],
                                           style: const TextStyle(
                                             fontSize: 27,
-                                            color:
-                                                textColor, //customize color here
+                                            color: textColor, //customize color here
                                           ),
                                         ),
                                       ),
@@ -8185,16 +6712,13 @@ class _PronunWidgetState extends State<PronunWidget> {
                                           pool.play(soundId);
                                         }
                                         setState(() {
-                                          listArrange[listArrange.indexOf('')] =
-                                              listRandom[i];
+                                          listArrange[listArrange.indexOf('')] = listRandom[i];
                                           listRandom[i] = '';
                                         });
                                         if (!listArrange.contains('')) {
-                                          if (listEquals(listArrange,
-                                              c.pronun.string.split(''))) {
+                                          if (listEquals(listArrange, c.pronun.string.split(''))) {
                                             if (c.pronunScore.value < 25) {
-                                              c.pronunScore = RxInt(
-                                                  c.pronunScore.value + 1);
+                                              c.pronunScore = RxInt(c.pronunScore.value + 1);
                                               c.update();
                                               var newScore = Score(
                                                 wordId: c.word.value,
@@ -8202,12 +6726,8 @@ class _PronunWidgetState extends State<PronunWidget> {
                                                 pronun: c.pronunScore.value,
                                                 speak: c.speakScore.value,
                                                 mean: c.meanScore.value,
-                                                total: c.wordScore.value +
-                                                    c.pronunScore.value +
-                                                    c.speakScore.value +
-                                                    c.meanScore.value,
-                                                time: DateTime.now()
-                                                    .millisecondsSinceEpoch,
+                                                total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
+                                                time: DateTime.now().millisecondsSinceEpoch,
                                               );
                                               await updateScore(newScore);
                                             }
@@ -8215,8 +6735,7 @@ class _PronunWidgetState extends State<PronunWidget> {
                                             await getNextLearn();
                                           } else {
                                             if (c.pronunScore.value > 0) {
-                                              c.pronunScore = RxInt(
-                                                  c.pronunScore.value - 1);
+                                              c.pronunScore = RxInt(c.pronunScore.value - 1);
                                               c.update();
                                               var newScore = Score(
                                                 wordId: c.word.value,
@@ -8224,12 +6743,8 @@ class _PronunWidgetState extends State<PronunWidget> {
                                                 pronun: c.pronunScore.value,
                                                 speak: c.speakScore.value,
                                                 mean: c.meanScore.value,
-                                                total: c.wordScore.value +
-                                                    c.pronunScore.value +
-                                                    c.speakScore.value +
-                                                    c.meanScore.value,
-                                                time: DateTime.now()
-                                                    .millisecondsSinceEpoch,
+                                                total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
+                                                time: DateTime.now().millisecondsSinceEpoch,
                                               );
                                               await updateScore(newScore);
                                             }
@@ -8242,9 +6757,7 @@ class _PronunWidgetState extends State<PronunWidget> {
                                       style: listRandom[i] == ''
                                           ? NeumorphicStyle(
                                               shape: NeumorphicShape.flat,
-                                              boxShape:
-                                                  NeumorphicBoxShape.roundRect(
-                                                      BorderRadius.circular(5)),
+                                              boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(5)),
                                               depth: -5,
                                               lightSource: LightSource.topLeft,
                                               color: Colors.transparent,
@@ -8252,14 +6765,10 @@ class _PronunWidgetState extends State<PronunWidget> {
                                             )
                                           : NeumorphicStyle(
                                               shape: NeumorphicShape.concave,
-                                              boxShape:
-                                                  NeumorphicBoxShape.roundRect(
-                                                      BorderRadius.circular(5)),
+                                              boxShape: NeumorphicBoxShape.roundRect(BorderRadius.circular(5)),
                                               depth: 2,
-                                              lightSource:
-                                                  LightSource.bottomRight,
-                                              color:
-                                                  Colors.white.withOpacity(0.3),
+                                              lightSource: LightSource.bottomRight,
+                                              color: Colors.white.withOpacity(0.3),
                                               intensity: 0.4,
                                             ),
                                       child: Container(
@@ -8270,8 +6779,7 @@ class _PronunWidgetState extends State<PronunWidget> {
                                           listRandom[i],
                                           style: const TextStyle(
                                             fontSize: 27,
-                                            color:
-                                                textColor, //customize color here
+                                            color: textColor, //customize color here
                                           ),
                                         ),
                                       ),
@@ -8293,17 +6801,13 @@ class _PronunWidgetState extends State<PronunWidget> {
             const SizedBox(width: 10),
             OutlinedButton(
               style: ButtonStyle(
-                backgroundColor:
-                    MaterialStateProperty.all<Color>(Colors.transparent),
-                foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-                padding: MaterialStateProperty.all<EdgeInsets>(
-                    const EdgeInsets.all(0)),
-                shape: MaterialStateProperty.all<OutlinedBorder?>(
-                    RoundedRectangleBorder(
+                backgroundColor: WidgetStateProperty.all<Color>(Colors.transparent),
+                foregroundColor: WidgetStateProperty.all<Color>(Colors.grey),
+                padding: WidgetStateProperty.all<EdgeInsets>(const EdgeInsets.all(0)),
+                shape: WidgetStateProperty.all<OutlinedBorder?>(RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30.0),
                 )),
-                fixedSize:
-                    MaterialStateProperty.all<Size>(const Size.fromHeight(40)),
+                fixedSize: WidgetStateProperty.all<Size>(const Size.fromHeight(40)),
               ),
               onPressed: () async {
                 reset();
@@ -8386,10 +6890,7 @@ class SpeakWidget extends StatelessWidget {
               pronun: c.pronunScore.value,
               speak: c.speakScore.value,
               mean: c.meanScore.value,
-              total: c.wordScore.value +
-                  c.pronunScore.value +
-                  c.speakScore.value +
-                  c.meanScore.value,
+              total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
               time: DateTime.now().millisecondsSinceEpoch,
             );
             await updateScore(newScore);
@@ -8406,10 +6907,7 @@ class SpeakWidget extends StatelessWidget {
               pronun: c.pronunScore.value,
               speak: c.speakScore.value,
               mean: c.meanScore.value,
-              total: c.wordScore.value +
-                  c.pronunScore.value +
-                  c.speakScore.value +
-                  c.meanScore.value,
+              total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
               time: DateTime.now().millisecondsSinceEpoch,
             );
             await updateScore(newScore);
@@ -8467,8 +6965,7 @@ class SpeakWidget extends StatelessWidget {
                   c.locale = RxString(newValue!);
                   c.update();
                 },
-                items: <String>['en-US', 'en-GB']
-                    .map<DropdownMenuItem<String>>((String value) {
+                items: <String>['en-US', 'en-GB'].map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
                     child: Text(value),
@@ -8513,8 +7010,7 @@ class SpeakWidget extends StatelessWidget {
               activeColor: Colors.black.withOpacity(0.5),
               inactiveColor: Colors.black.withOpacity(0.1),
               thumbColor: Colors.black.withOpacity(0.1),
-              label: double.parse((c.speakSpeed.value).toStringAsFixed(1))
-                  .toString(),
+              label: double.parse((c.speakSpeed.value).toStringAsFixed(1)).toString(),
               onChanged: (double value) async {
                 c.speakSpeed = RxDouble(value);
                 c.update();
@@ -8528,16 +7024,13 @@ class SpeakWidget extends StatelessWidget {
     Widget pronunWidget() {
       return TextButton(
         style: ButtonStyle(
-          backgroundColor:
-              MaterialStateProperty.all<Color>(Colors.white.withOpacity(0.1)),
-          foregroundColor: MaterialStateProperty.all<Color>(Colors.grey),
-          padding:
-              MaterialStateProperty.all<EdgeInsets>(const EdgeInsets.all(5)),
-          shape:
-              MaterialStateProperty.all<OutlinedBorder?>(RoundedRectangleBorder(
+          backgroundColor: WidgetStateProperty.all<Color>(Colors.white.withOpacity(0.1)),
+          foregroundColor: WidgetStateProperty.all<Color>(Colors.grey),
+          padding: WidgetStateProperty.all<EdgeInsets>(const EdgeInsets.all(5)),
+          shape: WidgetStateProperty.all<OutlinedBorder?>(RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30.0),
           )),
-          // fixedSize: MaterialStateProperty.all<Size>(const Size.fromHeight(40)),
+          // fixedSize: WidgetStateProperty.all<Size>(const Size.fromHeight(40)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -8586,62 +7079,39 @@ class SpeakWidget extends StatelessWidget {
             GetBuilder<Controller>(
               builder: (_) => SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child:
-                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   for (int index = 0; index < c.mean.length; index++)
                     Container(
                         margin: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(8)),
+                          borderRadius: const BorderRadius.all(Radius.circular(8)),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.6),
                               spreadRadius: 0,
                               blurRadius: 5,
-                              offset: const Offset(
-                                  5, 5), // changes position of shadow
+                              offset: const Offset(5, 5), // changes position of shadow
                             ),
                           ],
                         ),
-                        width: MediaQuery.of(context).size.width > 420
-                            ? 180
-                            : (MediaQuery.of(context).size.width - 60) / 2,
-                        height: MediaQuery.of(context).size.width > 420
-                            ? 180 * 250 / 300
-                            : (MediaQuery.of(context).size.width - 60) *
-                                250 /
-                                300 /
-                                2,
+                        width: MediaQuery.of(context).size.width > 420 ? 180 : (MediaQuery.of(context).size.width - 60) / 2,
+                        height: MediaQuery.of(context).size.width > 420 ? 180 * 250 / 300 : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
                         child: Stack(children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: ImageFiltered(
-                              imageFilter:
-                                  ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                              imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                               child: Opacity(
                                 opacity: 0.8,
                                 child: Image(
-                                  image: NetworkImage('https://bedict.com/' +
-                                      c.imageURL[index].replaceAll('\\', '')),
+                                  image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\', '')),
                                   fit: BoxFit.cover,
-                                  width: MediaQuery.of(context).size.width > 420
-                                      ? 180
-                                      : (MediaQuery.of(context).size.width -
-                                              60) /
-                                          2,
-                                  height:
-                                      MediaQuery.of(context).size.width > 420
-                                          ? 180 * 250 / 300
-                                          : (MediaQuery.of(context).size.width -
-                                                  60) *
-                                              250 /
-                                              300 /
-                                              2,
-                                  errorBuilder: (BuildContext context,
-                                      Object exception,
-                                      StackTrace? stackTrace) {
+                                  width: MediaQuery.of(context).size.width > 420 ? 180 : (MediaQuery.of(context).size.width - 60) / 2,
+                                  height: MediaQuery.of(context).size.width > 420
+                                      ? 180 * 250 / 300
+                                      : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
+                                  errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                     return const SizedBox();
                                   },
                                 ),
@@ -8651,21 +7121,13 @@ class SpeakWidget extends StatelessWidget {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: Image(
-                              image: NetworkImage('https://bedict.com/' +
-                                  c.imageURL[index].replaceAll('\\', '')),
+                              image: NetworkImage('https://bedict.com/' + c.imageURL[index].replaceAll('\\', '')),
                               fit: BoxFit.contain,
-                              width: MediaQuery.of(context).size.width > 420
-                                  ? 180
-                                  : (MediaQuery.of(context).size.width - 60) /
-                                      2,
+                              width: MediaQuery.of(context).size.width > 420 ? 180 : (MediaQuery.of(context).size.width - 60) / 2,
                               height: MediaQuery.of(context).size.width > 420
                                   ? 180 * 250 / 300
-                                  : (MediaQuery.of(context).size.width - 60) *
-                                      250 /
-                                      300 /
-                                      2,
-                              errorBuilder: (BuildContext context,
-                                  Object exception, StackTrace? stackTrace) {
+                                  : (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
+                              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                 return const SizedBox();
                               },
                             ),
@@ -8810,8 +7272,7 @@ class _MeanWidgetState extends State<MeanWidget> {
         meanENAdd.add(meanENElement);
         String meanVNElement = jsonDecode(dataRaw['meanVN'])[i][j];
         meanVNElement = meanVNElement.substring(0, meanVNElement.length - 2);
-        meanVNElement =
-            meanVNElement + listMean[i][j].substring(listMean[i][j].length - 1);
+        meanVNElement = meanVNElement + listMean[i][j].substring(listMean[i][j].length - 1);
         meanVNAdd.add(meanVNElement);
       }
       meanEN.add(meanENAdd);
@@ -8833,12 +7294,10 @@ class _MeanWidgetState extends State<MeanWidget> {
       for (var j = 0; j < 3; j++) {
         String newRandomImage = _imageURL[_listIndex[i]];
         while (subListImage.contains(newRandomImage)) {
-          var newWordData =
-              await box.get(c.wordArray[Random().nextInt(c.wordArray.length)]);
+          var newWordData = await box.get(c.wordArray[Random().nextInt(c.wordArray.length)]);
           var newRandomImages = jsonDecode(newWordData['imageURL']);
           if (newRandomImages.length > 0) {
-            newRandomImage =
-                newRandomImages[Random().nextInt(newRandomImages.length)];
+            newRandomImage = newRandomImages[Random().nextInt(newRandomImages.length)];
           }
         }
         subListImage.add(newRandomImage);
@@ -8970,8 +7429,7 @@ class _MeanWidgetState extends State<MeanWidget> {
                                 padding: const EdgeInsets.all(3),
                                 decoration: const BoxDecoration(
                                   // color: Colors.white.withOpacity(0.1),
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(6)),
+                                  borderRadius: BorderRadius.all(Radius.circular(6)),
                                 ),
                                 width: MediaQuery.of(context).size.width * 0.95,
                                 child: Column(
@@ -8982,9 +7440,7 @@ class _MeanWidgetState extends State<MeanWidget> {
                                     Opacity(
                                       opacity: 0.3,
                                       child: Text(
-                                        laytuloai(subMean.substring(
-                                            subMean.length -
-                                                1))[c.typeState.value],
+                                        laytuloai(subMean.substring(subMean.length - 1))[c.typeState.value],
                                         style: const TextStyle(
                                           fontSize: 11,
                                           color: textColor,
@@ -9044,22 +7500,18 @@ class _MeanWidgetState extends State<MeanWidget> {
                                   direction: Axis.horizontal,
                                   alignment: WrapAlignment.center,
                                   children: [
-                                for (int index = 0;
-                                    index < listImage[nowIndex].length;
-                                    index++)
+                                for (int index = 0; index < listImage[nowIndex].length; index++)
                                   GestureDetector(
                                     onTap: () async {
                                       if (c.enableSound.value) {
                                         await pool.play(soundId);
                                       }
-                                      if (listImage[nowIndex][index] ==
-                                          imageURL[listIndex[nowIndex]]) {
+                                      if (listImage[nowIndex][index] == imageURL[listIndex[nowIndex]]) {
                                         ktMean[nowIndex] = true;
                                         await setRight();
                                         if (!ktMean.contains(false)) {
                                           if (c.meanScore.value < 25) {
-                                            c.meanScore =
-                                                RxInt(c.meanScore.value + 1);
+                                            c.meanScore = RxInt(c.meanScore.value + 1);
                                             c.update();
                                             var newScore = Score(
                                               wordId: c.word.value,
@@ -9067,19 +7519,13 @@ class _MeanWidgetState extends State<MeanWidget> {
                                               pronun: c.pronunScore.value,
                                               speak: c.speakScore.value,
                                               mean: c.meanScore.value,
-                                              total: c.wordScore.value +
-                                                  c.pronunScore.value +
-                                                  c.speakScore.value +
-                                                  c.meanScore.value,
-                                              time: DateTime.now()
-                                                  .millisecondsSinceEpoch,
+                                              total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
+                                              time: DateTime.now().millisecondsSinceEpoch,
                                             );
                                             await updateScore(newScore);
                                           }
                                           ktMean.clear();
-                                          for (var i = 0;
-                                              i < mean.length;
-                                              i++) {
+                                          for (var i = 0; i < mean.length; i++) {
                                             ktMean.add(false);
                                           }
                                           await getNextLearn();
@@ -9097,8 +7543,7 @@ class _MeanWidgetState extends State<MeanWidget> {
                                       } else {
                                         ktMean[nowIndex] = false;
                                         if (c.meanScore.value > 0) {
-                                          c.meanScore =
-                                              RxInt(c.meanScore.value - 1);
+                                          c.meanScore = RxInt(c.meanScore.value - 1);
                                           c.update();
                                           var newScore = Score(
                                             wordId: c.word.value,
@@ -9106,12 +7551,8 @@ class _MeanWidgetState extends State<MeanWidget> {
                                             pronun: c.pronunScore.value,
                                             speak: c.speakScore.value,
                                             mean: c.meanScore.value,
-                                            total: c.wordScore.value +
-                                                c.pronunScore.value +
-                                                c.speakScore.value +
-                                                c.meanScore.value,
-                                            time: DateTime.now()
-                                                .millisecondsSinceEpoch,
+                                            total: c.wordScore.value + c.pronunScore.value + c.speakScore.value + c.meanScore.value,
+                                            time: DateTime.now().millisecondsSinceEpoch,
                                           );
                                           await updateScore(newScore);
                                         }
@@ -9122,83 +7563,36 @@ class _MeanWidgetState extends State<MeanWidget> {
                                         margin: const EdgeInsets.all(10),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
-                                          borderRadius: const BorderRadius.all(
-                                              Radius.circular(8)),
+                                          borderRadius: const BorderRadius.all(Radius.circular(8)),
                                           boxShadow: [
                                             BoxShadow(
-                                              color:
-                                                  Colors.black.withOpacity(0.6),
+                                              color: Colors.black.withOpacity(0.6),
                                               spreadRadius: 0,
                                               blurRadius: 5,
-                                              offset: const Offset(5,
-                                                  5), // changes position of shadow
+                                              offset: const Offset(5, 5), // changes position of shadow
                                             ),
                                           ],
                                         ),
                                         // alignment: Alignment.center,
-                                        width:
-                                            MediaQuery.of(context).size.width >
-                                                    505
-                                                ? 220
-                                                : (MediaQuery.of(context)
-                                                            .size
-                                                            .width -
-                                                        65) /
-                                                    2,
-                                        height:
-                                            MediaQuery.of(context).size.width >
-                                                    505
-                                                ? 220 * 250 / 300
-                                                : (MediaQuery.of(context)
-                                                            .size
-                                                            .width -
-                                                        65) *
-                                                    250 /
-                                                    300 /
-                                                    2,
+                                        width: MediaQuery.of(context).size.width > 505 ? 220 : (MediaQuery.of(context).size.width - 65) / 2,
+                                        height: MediaQuery.of(context).size.width > 505
+                                            ? 220 * 250 / 300
+                                            : (MediaQuery.of(context).size.width - 65) * 250 / 300 / 2,
                                         child: Stack(children: [
                                           ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(8),
+                                            borderRadius: BorderRadius.circular(8),
                                             child: ImageFiltered(
-                                              imageFilter: ImageFilter.blur(
-                                                  sigmaX: 6, sigmaY: 6),
+                                              imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                                               child: Opacity(
                                                 opacity: 0.8,
                                                 child: Image(
-                                                  image: NetworkImage(
-                                                      'https://bedict.com/' +
-                                                          listImage[nowIndex]
-                                                                  [index]
-                                                              .replaceAll(
-                                                                  '\\', '')),
+                                                  image: NetworkImage('https://bedict.com/' + listImage[nowIndex][index].replaceAll('\\', '')),
                                                   fit: BoxFit.cover,
-                                                  width: MediaQuery.of(context)
-                                                              .size
-                                                              .width >
-                                                          505
-                                                      ? 220
-                                                      : (MediaQuery.of(context)
-                                                                  .size
-                                                                  .width -
-                                                              65) /
-                                                          2,
-                                                  height: MediaQuery.of(context)
-                                                              .size
-                                                              .width >
-                                                          505
+                                                  width: MediaQuery.of(context).size.width > 505 ? 220 : (MediaQuery.of(context).size.width - 65) / 2,
+                                                  height: MediaQuery.of(context).size.width > 505
                                                       ? 220 * 250 / 300
-                                                      : (MediaQuery.of(context)
-                                                                  .size
-                                                                  .width -
-                                                              65) *
-                                                          250 /
-                                                          300 /
-                                                          2,
-                                                  errorBuilder: (BuildContext
-                                                          context,
-                                                      Object exception,
-                                                      StackTrace? stackTrace) {
+                                                      : (MediaQuery.of(context).size.width - 65) * 250 / 300 / 2,
+                                                  errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                     return const SizedBox();
                                                   },
                                                 ),
@@ -9206,41 +7600,15 @@ class _MeanWidgetState extends State<MeanWidget> {
                                             ),
                                           ),
                                           ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(8),
+                                            borderRadius: BorderRadius.circular(8),
                                             child: Image(
-                                              image: NetworkImage(
-                                                  'https://bedict.com/' +
-                                                      listImage[nowIndex][index]
-                                                          .replaceAll(
-                                                              '\\', '')),
+                                              image: NetworkImage('https://bedict.com/' + listImage[nowIndex][index].replaceAll('\\', '')),
                                               fit: BoxFit.contain,
-                                              width: MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      505
-                                                  ? 220
-                                                  : (MediaQuery.of(context)
-                                                              .size
-                                                              .width -
-                                                          65) /
-                                                      2,
-                                              height: MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      505
+                                              width: MediaQuery.of(context).size.width > 505 ? 220 : (MediaQuery.of(context).size.width - 65) / 2,
+                                              height: MediaQuery.of(context).size.width > 505
                                                   ? 220 * 250 / 300
-                                                  : (MediaQuery.of(context)
-                                                              .size
-                                                              .width -
-                                                          65) *
-                                                      250 /
-                                                      300 /
-                                                      2,
-                                              errorBuilder:
-                                                  (BuildContext context,
-                                                      Object exception,
-                                                      StackTrace? stackTrace) {
+                                                  : (MediaQuery.of(context).size.width - 65) * 250 / 300 / 2,
+                                              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                 return const SizedBox();
                                               },
                                             ),
@@ -9261,21 +7629,10 @@ class _MeanWidgetState extends State<MeanWidget> {
                           activeSize: const Size(18.0, 9.0),
                           activeColor: Colors.black.withOpacity(0.5),
                           color: Colors.black.withOpacity(0.1),
-                          activeShape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(5.0)),
-                          spacing: 19 * mean.length >
-                                  MediaQuery.of(context).size.width - 20
-                              ? EdgeInsets.fromLTRB(
-                                  ((MediaQuery.of(context).size.width - 20) /
-                                              mean.length -
-                                          9) /
-                                      2,
-                                  10,
-                                  ((MediaQuery.of(context).size.width - 20) /
-                                              mean.length -
-                                          9) /
-                                      2,
-                                  10)
+                          activeShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
+                          spacing: 19 * mean.length > MediaQuery.of(context).size.width - 20
+                              ? EdgeInsets.fromLTRB(((MediaQuery.of(context).size.width - 20) / mean.length - 9) / 2, 10,
+                                  ((MediaQuery.of(context).size.width - 20) / mean.length - 9) / 2, 10)
                               : const EdgeInsets.fromLTRB(5, 10, 5, 10),
                         ),
                         onTap: (index) {
@@ -9337,20 +7694,20 @@ class LearnWord extends StatelessWidget {
     ];
 
     Future getBack() async {
-      await loadAd();
+      // await loadAd();
       Get.offAll(() => MainScreen());
     }
 
     Future getTab(int tab) async {
-      await loadAd();
+      // await loadAd();
       c.currentTab = RxInt(tab);
       c.update();
     }
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
         Get.offAll(() => MainScreen());
-        return false;
       },
       child: Scaffold(
         body: Stack(children: [
@@ -9363,13 +7720,11 @@ class LearnWord extends StatelessWidget {
                       child: Opacity(
                         opacity: 0.8,
                         child: Image(
-                          image: NetworkImage('https://bedict.com/' +
-                              c.imageURL[c.nowMean.value].replaceAll('\\', '')),
+                          image: NetworkImage('https://bedict.com/' + c.imageURL[c.nowMean.value].replaceAll('\\', '')),
                           fit: BoxFit.cover,
                           width: MediaQuery.of(context).size.width,
                           height: MediaQuery.of(context).size.height,
-                          errorBuilder: (BuildContext context, Object exception,
-                              StackTrace? stackTrace) {
+                          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                             return const SizedBox();
                           },
                         ),
@@ -9447,8 +7802,7 @@ class LearnWord extends StatelessWidget {
                       activeSize: const Size(9.0, 14.0),
                       activeColor: Colors.black.withOpacity(0.5),
                       color: Colors.black.withOpacity(0.1),
-                      activeShape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(5.0)),
+                      activeShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5.0)),
                     ),
                     onTap: (index) {
                       getTab(index.toInt());
@@ -9489,8 +7843,7 @@ class HistoryPage extends StatelessWidget {
     const int pageCount = 100;
 
     Future findHistory() async {
-      c.listHistory =
-          await getHistory(c.startDayHistory.value, c.endDayHistory.value);
+      c.listHistory = await getHistory(c.startDayHistory.value, c.endDayHistory.value);
       c.indexHistoryPage = 0.obs;
       c.update();
     }
@@ -9500,7 +7853,7 @@ class HistoryPage extends StatelessWidget {
     });
 
     Future getSearch(String word) async {
-      await loadAd();
+      // await loadAd();
       c.category = 'all category'.obs;
       c.type = 'all type'.obs;
       c.fromScreen = 0.obs;
@@ -9512,11 +7865,11 @@ class HistoryPage extends StatelessWidget {
       Get.offAll(() => MainScreen());
     }
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
         c.currentPage = 3.obs;
         Get.offAll(() => MainScreen());
-        return false;
       },
       child: Scaffold(
         appBar: AppBar(
@@ -9559,45 +7912,36 @@ class HistoryPage extends StatelessWidget {
                 PopupMenuItem<String>(
                     value: c.language.string == 'VN' ? 'xóa' : 'delete',
                     padding: const EdgeInsets.fromLTRB(6, 0, 6, 0),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            c.language.string == 'VN' ? 'xóa' : 'delete',
-                            style: const TextStyle(
-                              fontSize: 15,
-                              color: textColor,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ])),
+                    child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Text(
+                        c.language.string == 'VN' ? 'xóa' : 'delete',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: textColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ])),
                 PopupMenuItem<String>(
-                    value: c.language.string == 'VN'
-                        ? 'xóa hết lịch sử'
-                        : 'delete all history',
+                    value: c.language.string == 'VN' ? 'xóa hết lịch sử' : 'delete all history',
                     padding: const EdgeInsets.fromLTRB(6, 0, 6, 0),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            c.language.string == 'VN'
-                                ? 'xóa hết lịch sử'
-                                : 'delete all history',
-                            style: const TextStyle(
-                              fontSize: 15,
-                              color: textColor,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ])),
+                    child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Text(
+                        c.language.string == 'VN' ? 'xóa hết lịch sử' : 'delete all history',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: textColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ])),
               ],
               // color: themeColor,
               child: const Icon(
                 Icons.more_vert,
                 size: 25,
               ),
-              shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(20.0))),
+              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
             ),
           ],
           centerTitle: true,
@@ -9612,8 +7956,7 @@ class HistoryPage extends StatelessWidget {
               }
             }
             if (details.primaryVelocity! < -0) {
-              if (c.listHistory.length >
-                  pageCount * (c.indexHistoryPage.value + 1)) {
+              if (c.listHistory.length > pageCount * (c.indexHistoryPage.value + 1)) {
                 c.indexHistoryPage = RxInt(c.indexHistoryPage.value + 1);
                 c.update();
               }
@@ -9629,32 +7972,24 @@ class HistoryPage extends StatelessWidget {
                   Expanded(
                     child: OutlinedButton(
                       style: ButtonStyle(
-                        backgroundColor:
-                            MaterialStateProperty.all<Color>(Colors.white),
-                        foregroundColor:
-                            MaterialStateProperty.all<Color>(Colors.grey),
-                        padding: MaterialStateProperty.all<EdgeInsets>(
-                            const EdgeInsets.all(0)),
-                        shape: MaterialStateProperty.all<OutlinedBorder?>(
-                            RoundedRectangleBorder(
+                        backgroundColor: WidgetStateProperty.all<Color>(Colors.white),
+                        foregroundColor: WidgetStateProperty.all<Color>(Colors.grey),
+                        padding: WidgetStateProperty.all<EdgeInsets>(const EdgeInsets.all(0)),
+                        shape: WidgetStateProperty.all<OutlinedBorder?>(RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10.0),
                         )),
-                        fixedSize: MaterialStateProperty.all<Size>(
-                            const Size.fromHeight(45)),
+                        fixedSize: WidgetStateProperty.all<Size>(const Size.fromHeight(45)),
                       ),
                       onPressed: () async {
                         if (c.isEndDayHistory.value) {
                           c.isEndDayHistory = false.obs;
                         }
-                        c.isStartDayHistory =
-                            RxBool(!c.isStartDayHistory.value);
+                        c.isStartDayHistory = RxBool(!c.isStartDayHistory.value);
                         c.update();
                       },
                       child: GetBuilder<Controller>(
                         builder: (_) => Text(
-                          DateFormat('dd-MM-yyyy').format(
-                              DateTime.fromMillisecondsSinceEpoch(
-                                  c.startDayHistory.value)),
+                          DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(c.startDayHistory.value)),
                           style: const TextStyle(
                             fontSize: 14,
                             color: textColor,
@@ -9680,18 +8015,13 @@ class HistoryPage extends StatelessWidget {
                   Expanded(
                     child: OutlinedButton(
                       style: ButtonStyle(
-                        backgroundColor:
-                            MaterialStateProperty.all<Color>(Colors.white),
-                        foregroundColor:
-                            MaterialStateProperty.all<Color>(Colors.grey),
-                        padding: MaterialStateProperty.all<EdgeInsets>(
-                            const EdgeInsets.all(0)),
-                        shape: MaterialStateProperty.all<OutlinedBorder?>(
-                            RoundedRectangleBorder(
+                        backgroundColor: WidgetStateProperty.all<Color>(Colors.white),
+                        foregroundColor: WidgetStateProperty.all<Color>(Colors.grey),
+                        padding: WidgetStateProperty.all<EdgeInsets>(const EdgeInsets.all(0)),
+                        shape: WidgetStateProperty.all<OutlinedBorder?>(RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10.0),
                         )),
-                        fixedSize: MaterialStateProperty.all<Size>(
-                            const Size.fromHeight(45)),
+                        fixedSize: WidgetStateProperty.all<Size>(const Size.fromHeight(45)),
                       ),
                       onPressed: () async {
                         if (c.isStartDayHistory.value) {
@@ -9702,9 +8032,7 @@ class HistoryPage extends StatelessWidget {
                       },
                       child: GetBuilder<Controller>(
                         builder: (_) => Text(
-                          DateFormat('dd-MM-yyyy').format(
-                              DateTime.fromMillisecondsSinceEpoch(
-                                  c.endDayHistory.value)),
+                          DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(c.endDayHistory.value)),
                           style: const TextStyle(
                             fontSize: 14,
                             color: textColor,
@@ -9719,18 +8047,13 @@ class HistoryPage extends StatelessWidget {
                   const SizedBox(width: 10),
                   TextButton(
                     style: ButtonStyle(
-                      backgroundColor:
-                          MaterialStateProperty.all<Color>(backgroundColor),
-                      foregroundColor:
-                          MaterialStateProperty.all<Color>(Colors.grey),
-                      padding: MaterialStateProperty.all<EdgeInsets>(
-                          const EdgeInsets.all(0)),
-                      shape: MaterialStateProperty.all<OutlinedBorder?>(
-                          RoundedRectangleBorder(
+                      backgroundColor: WidgetStateProperty.all<Color>(backgroundColor),
+                      foregroundColor: WidgetStateProperty.all<Color>(Colors.grey),
+                      padding: WidgetStateProperty.all<EdgeInsets>(const EdgeInsets.all(0)),
+                      shape: WidgetStateProperty.all<OutlinedBorder?>(RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.0),
                       )),
-                      fixedSize: MaterialStateProperty.all<Size>(
-                          const Size.fromHeight(45)),
+                      fixedSize: WidgetStateProperty.all<Size>(const Size.fromHeight(45)),
                     ),
                     onPressed: () async {
                       c.isStartDayHistory = false.obs;
@@ -9759,14 +8082,11 @@ class HistoryPage extends StatelessWidget {
                         width: MediaQuery.of(context).size.width,
                         child: CupertinoDatePicker(
                           mode: CupertinoDatePickerMode.date,
-                          initialDateTime: DateTime.fromMillisecondsSinceEpoch(
-                              c.startDayHistory.value),
+                          initialDateTime: DateTime.fromMillisecondsSinceEpoch(c.startDayHistory.value),
                           minimumDate: DateTime(2021, 12, 25),
-                          maximumDate:
-                              DateTime.now().add(const Duration(days: 1)),
+                          maximumDate: DateTime.now().add(const Duration(days: 1)),
                           onDateTimeChanged: (DateTime newDateTime) {
-                            c.startDayHistory =
-                                RxInt(newDateTime.millisecondsSinceEpoch);
+                            c.startDayHistory = RxInt(newDateTime.millisecondsSinceEpoch);
                             c.update();
                           },
                         ),
@@ -9784,14 +8104,11 @@ class HistoryPage extends StatelessWidget {
                         width: MediaQuery.of(context).size.width,
                         child: CupertinoDatePicker(
                           mode: CupertinoDatePickerMode.date,
-                          initialDateTime: DateTime.fromMillisecondsSinceEpoch(
-                              c.endDayHistory.value),
+                          initialDateTime: DateTime.fromMillisecondsSinceEpoch(c.endDayHistory.value),
                           minimumDate: DateTime(2021, 12, 25),
-                          maximumDate:
-                              DateTime.now().add(const Duration(days: 1)),
+                          maximumDate: DateTime.now().add(const Duration(days: 1)),
                           onDateTimeChanged: (DateTime newDateTime) {
-                            c.endDayHistory =
-                                RxInt(newDateTime.millisecondsSinceEpoch);
+                            c.endDayHistory = RxInt(newDateTime.millisecondsSinceEpoch);
                             c.update();
                           },
                         ),
@@ -9812,8 +8129,7 @@ class HistoryPage extends StatelessWidget {
                         tooltip: 'previous',
                         onPressed: () {
                           if (c.indexHistoryPage.value > 0) {
-                            c.indexHistoryPage =
-                                RxInt(c.indexHistoryPage.value - 1);
+                            c.indexHistoryPage = RxInt(c.indexHistoryPage.value - 1);
                             c.update();
                           }
                         },
@@ -9824,65 +8140,46 @@ class HistoryPage extends StatelessWidget {
                   GetBuilder<Controller>(
                     builder: (_) => PopupMenuButton<String>(
                       onSelected: (String word) async {
-                        c.indexHistoryPage =
-                            RxInt(int.parse(word.split('-')[0]) ~/ pageCount);
+                        c.indexHistoryPage = RxInt(int.parse(word.split('-')[0]) ~/ pageCount);
                         c.update();
                       },
                       padding: const EdgeInsets.all(0),
-                      itemBuilder: (BuildContext context) =>
-                          <PopupMenuEntry<String>>[
-                        for (int i = 0;
-                            i < (c.listHistory.length / pageCount).abs();
-                            i++)
+                      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                        for (int i = 0; i < (c.listHistory.length / pageCount).abs(); i++)
                           PopupMenuItem<String>(
                               value: (pageCount * i + 1).toString() +
                                   '-' +
                                   (c.listHistory.length ~/ pageCount > i
                                       ? (pageCount * i + pageCount).toString()
-                                      : (pageCount * i +
-                                              c.listHistory.length % pageCount)
-                                          .toString()) +
+                                      : (pageCount * i + c.listHistory.length % pageCount).toString()) +
                                   '/' +
                                   c.listHistory.length.toString(),
                               padding: const EdgeInsets.fromLTRB(6, 0, 6, 0),
-                              child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      (pageCount * i + 1).toString() +
-                                          '-' +
-                                          (c.listHistory.length ~/ pageCount > i
-                                              ? (pageCount * i + pageCount)
-                                                  .toString()
-                                              : (pageCount * i +
-                                                      c.listHistory.length %
-                                                          pageCount)
-                                                  .toString()) +
-                                          '/' +
-                                          c.listHistory.length.toString(),
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        color: textColor,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ])),
+                              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                Text(
+                                  (pageCount * i + 1).toString() +
+                                      '-' +
+                                      (c.listHistory.length ~/ pageCount > i
+                                          ? (pageCount * i + pageCount).toString()
+                                          : (pageCount * i + c.listHistory.length % pageCount).toString()) +
+                                      '/' +
+                                      c.listHistory.length.toString(),
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    color: textColor,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ])),
                       ],
                       // color: themeColor,
                       child: Row(children: [
                         Text(
-                          (pageCount * c.indexHistoryPage.value +
-                                      (c.listHistory.isEmpty ? 0 : 1))
-                                  .toString() +
+                          (pageCount * c.indexHistoryPage.value + (c.listHistory.isEmpty ? 0 : 1)).toString() +
                               '-' +
-                              (c.listHistory.length ~/ pageCount >
-                                      c.indexHistoryPage.value
-                                  ? (pageCount * c.indexHistoryPage.value +
-                                          pageCount)
-                                      .toString()
-                                  : (pageCount * c.indexHistoryPage.value +
-                                          c.listHistory.length % pageCount)
-                                      .toString()) +
+                              (c.listHistory.length ~/ pageCount > c.indexHistoryPage.value
+                                  ? (pageCount * c.indexHistoryPage.value + pageCount).toString()
+                                  : (pageCount * c.indexHistoryPage.value + c.listHistory.length % pageCount).toString()) +
                               '/' +
                               c.listHistory.length.toString(),
                           style: const TextStyle(
@@ -9893,18 +8190,13 @@ class HistoryPage extends StatelessWidget {
                           textAlign: TextAlign.left,
                         ),
                       ]),
-                      shape: const RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.all(Radius.circular(20.0))),
+                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
                     ),
                   ),
                   const Expanded(child: SizedBox()),
                   GetBuilder<Controller>(
                     builder: (_) => Opacity(
-                      opacity: c.listHistory.length >
-                              pageCount * (c.indexHistoryPage.value + 1)
-                          ? 1
-                          : 0.3,
+                      opacity: c.listHistory.length > pageCount * (c.indexHistoryPage.value + 1) ? 1 : 0.3,
                       child: IconButton(
                         padding: const EdgeInsets.all(0.0),
                         icon: const Icon(
@@ -9913,10 +8205,8 @@ class HistoryPage extends StatelessWidget {
                         ),
                         tooltip: 'next',
                         onPressed: () {
-                          if (c.listHistory.length >
-                              pageCount * (c.indexHistoryPage.value + 1)) {
-                            c.indexHistoryPage =
-                                RxInt(c.indexHistoryPage.value + 1);
+                          if (c.listHistory.length > pageCount * (c.indexHistoryPage.value + 1)) {
+                            c.indexHistoryPage = RxInt(c.indexHistoryPage.value + 1);
                             c.update();
                           }
                         },
@@ -9929,11 +8219,9 @@ class HistoryPage extends StatelessWidget {
                     builder: (_) => ListView.builder(
                         padding: const EdgeInsets.all(4),
                         addAutomaticKeepAlives: false,
-                        itemCount: c.listHistory.length >
-                                (c.indexHistoryPage.value + 1) * pageCount
+                        itemCount: c.listHistory.length > (c.indexHistoryPage.value + 1) * pageCount
                             ? pageCount
-                            : c.listHistory.length -
-                                c.indexHistoryPage.value * pageCount,
+                            : c.listHistory.length - c.indexHistoryPage.value * pageCount,
                         itemBuilder: (BuildContext context, int index) {
                           return SizedBox(
                             height: 50,
@@ -9946,19 +8234,13 @@ class HistoryPage extends StatelessWidget {
                                     alignment: Alignment.center,
                                     decoration: const BoxDecoration(
                                       color: Color.fromRGBO(240, 240, 240, 1),
-                                      borderRadius:
-                                          BorderRadius.all(Radius.circular(8)),
+                                      borderRadius: BorderRadius.all(Radius.circular(8)),
                                     ),
                                     padding: const EdgeInsets.all(4),
                                     margin: const EdgeInsets.all(4),
                                     child: Text(
                                       DateFormat('dd-MM-yyyy HH:mm').format(
-                                          DateTime.fromMillisecondsSinceEpoch(c
-                                              .listHistory[
-                                                  c.indexHistoryPage.value *
-                                                          pageCount +
-                                                      index]
-                                              .time)),
+                                          DateTime.fromMillisecondsSinceEpoch(c.listHistory[c.indexHistoryPage.value * pageCount + index].time)),
                                       style: const TextStyle(
                                         fontSize: 16,
                                         color: textColor,
@@ -9972,30 +8254,19 @@ class HistoryPage extends StatelessWidget {
                                   flex: 3,
                                   child: GestureDetector(
                                     onTap: () {
-                                      getSearch(c
-                                          .listHistory[
-                                              c.indexHistoryPage.value *
-                                                      pageCount +
-                                                  index]
-                                          .word);
+                                      getSearch(c.listHistory[c.indexHistoryPage.value * pageCount + index].word);
                                     },
                                     child: Container(
                                       height: double.infinity,
                                       alignment: Alignment.center,
                                       decoration: const BoxDecoration(
                                         color: Color.fromRGBO(240, 240, 240, 1),
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(8)),
+                                        borderRadius: BorderRadius.all(Radius.circular(8)),
                                       ),
                                       padding: const EdgeInsets.all(4),
                                       margin: const EdgeInsets.all(4),
                                       child: Text(
-                                        c
-                                            .listHistory[
-                                                c.indexHistoryPage.value *
-                                                        pageCount +
-                                                    index]
-                                            .word,
+                                        c.listHistory[c.indexHistoryPage.value * pageCount + index].word,
                                         style: const TextStyle(
                                           fontSize: 16,
                                           color: textColor,
@@ -10038,7 +8309,7 @@ class SortPage extends StatelessWidget {
     }
 
     Future getSearch(String word) async {
-      await loadAd();
+      // await loadAd();
       c.category = 'all category'.obs;
       c.type = 'all type'.obs;
       c.fromScreen = 0.obs;
@@ -10054,11 +8325,11 @@ class SortPage extends StatelessWidget {
       await findScore();
     });
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
         c.currentPage = 3.obs;
         Get.offAll(() => MainScreen());
-        return false;
       },
       child: Scaffold(
         key: _key,
@@ -10091,15 +8362,7 @@ class SortPage extends StatelessWidget {
               onSelected: (String word) async {
                 if (word == 'xóa' || word == 'delete') {
                   for (int i = 0; i < c.listLearned.length; i++) {
-                    await boxScore.put(c.listLearned[i].wordId, [
-                      c.listLearned[i].wordId,
-                      0,
-                      0,
-                      0,
-                      0,
-                      0,
-                      DateTime.now().millisecondsSinceEpoch
-                    ]);
+                    await boxScore.put(c.listLearned[i].wordId, [c.listLearned[i].wordId, 0, 0, 0, 0, 0, DateTime.now().millisecondsSinceEpoch]);
                   }
                 } else {
                   List<String> listWord = [];
@@ -10110,15 +8373,7 @@ class SortPage extends StatelessWidget {
                     }
                   }
                   for (int i = 0; i < listWord.length; i++) {
-                    await boxScore.put(listWord[i], [
-                      listWord[i],
-                      0,
-                      0,
-                      0,
-                      0,
-                      0,
-                      DateTime.now().millisecondsSinceEpoch
-                    ]);
+                    await boxScore.put(listWord[i], [listWord[i], 0, 0, 0, 0, 0, DateTime.now().millisecondsSinceEpoch]);
                   }
                 }
                 await findScore();
@@ -10128,45 +8383,36 @@ class SortPage extends StatelessWidget {
                 PopupMenuItem<String>(
                     value: c.language.string == 'VN' ? 'xóa' : 'delete',
                     padding: const EdgeInsets.fromLTRB(6, 0, 6, 0),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            c.language.string == 'VN' ? 'xóa' : 'delete',
-                            style: const TextStyle(
-                              fontSize: 15,
-                              color: textColor,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ])),
+                    child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Text(
+                        c.language.string == 'VN' ? 'xóa' : 'delete',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: textColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ])),
                 PopupMenuItem<String>(
-                    value: c.language.string == 'VN'
-                        ? 'xóa hết lịch sử'
-                        : 'delete all history',
+                    value: c.language.string == 'VN' ? 'xóa hết lịch sử' : 'delete all history',
                     padding: const EdgeInsets.fromLTRB(6, 0, 6, 0),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            c.language.string == 'VN'
-                                ? 'xóa hết lịch sử'
-                                : 'delete all history',
-                            style: const TextStyle(
-                              fontSize: 15,
-                              color: textColor,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ])),
+                    child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Text(
+                        c.language.string == 'VN' ? 'xóa hết lịch sử' : 'delete all history',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: textColor,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ])),
               ],
               // color: themeColor,
               child: const Icon(
                 Icons.more_vert,
                 size: 25,
               ),
-              shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(20.0))),
+              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
             ),
           ],
           centerTitle: true,
@@ -10181,8 +8427,7 @@ class SortPage extends StatelessWidget {
               }
             }
             if (details.primaryVelocity! < -0) {
-              if (c.listLearned.length >
-                  pageCount * (c.indexScorePage.value + 1)) {
+              if (c.listLearned.length > pageCount * (c.indexScorePage.value + 1)) {
                 c.indexScorePage = RxInt(c.indexScorePage.value + 1);
                 c.update();
               }
@@ -10200,18 +8445,13 @@ class SortPage extends StatelessWidget {
                       Expanded(
                         child: OutlinedButton(
                           style: ButtonStyle(
-                            backgroundColor:
-                                MaterialStateProperty.all<Color>(Colors.white),
-                            foregroundColor:
-                                MaterialStateProperty.all<Color>(Colors.grey),
-                            padding: MaterialStateProperty.all<EdgeInsets>(
-                                const EdgeInsets.all(0)),
-                            shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                RoundedRectangleBorder(
+                            backgroundColor: WidgetStateProperty.all<Color>(Colors.white),
+                            foregroundColor: WidgetStateProperty.all<Color>(Colors.grey),
+                            padding: WidgetStateProperty.all<EdgeInsets>(const EdgeInsets.all(0)),
+                            shape: WidgetStateProperty.all<OutlinedBorder?>(RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10.0),
                             )),
-                            fixedSize: MaterialStateProperty.all<Size>(
-                                const Size.fromHeight(45)),
+                            fixedSize: WidgetStateProperty.all<Size>(const Size.fromHeight(45)),
                           ),
                           onPressed: () async {
                             if (c.isEndDayOpen.value) {
@@ -10221,9 +8461,7 @@ class SortPage extends StatelessWidget {
                             c.update();
                           },
                           child: Text(
-                            DateFormat('dd-MM-yyyy').format(
-                                DateTime.fromMillisecondsSinceEpoch(
-                                    c.startDay.value)),
+                            DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(c.startDay.value)),
                             style: const TextStyle(
                               fontSize: 14,
                               color: textColor,
@@ -10248,18 +8486,13 @@ class SortPage extends StatelessWidget {
                       Expanded(
                         child: OutlinedButton(
                           style: ButtonStyle(
-                            backgroundColor:
-                                MaterialStateProperty.all<Color>(Colors.white),
-                            foregroundColor:
-                                MaterialStateProperty.all<Color>(Colors.grey),
-                            padding: MaterialStateProperty.all<EdgeInsets>(
-                                const EdgeInsets.all(0)),
-                            shape: MaterialStateProperty.all<OutlinedBorder?>(
-                                RoundedRectangleBorder(
+                            backgroundColor: WidgetStateProperty.all<Color>(Colors.white),
+                            foregroundColor: WidgetStateProperty.all<Color>(Colors.grey),
+                            padding: WidgetStateProperty.all<EdgeInsets>(const EdgeInsets.all(0)),
+                            shape: WidgetStateProperty.all<OutlinedBorder?>(RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10.0),
                             )),
-                            fixedSize: MaterialStateProperty.all<Size>(
-                                const Size.fromHeight(45)),
+                            fixedSize: WidgetStateProperty.all<Size>(const Size.fromHeight(45)),
                           ),
                           onPressed: () async {
                             if (c.isStartDayOpen.value) {
@@ -10269,9 +8502,7 @@ class SortPage extends StatelessWidget {
                             c.update();
                           },
                           child: Text(
-                            DateFormat('dd-MM-yyyy').format(
-                                DateTime.fromMillisecondsSinceEpoch(
-                                    c.endDay.value)),
+                            DateFormat('dd-MM-yyyy').format(DateTime.fromMillisecondsSinceEpoch(c.endDay.value)),
                             style: const TextStyle(
                               fontSize: 14,
                               color: textColor,
@@ -10285,18 +8516,13 @@ class SortPage extends StatelessWidget {
                       const SizedBox(width: 10),
                       TextButton(
                         style: ButtonStyle(
-                          backgroundColor:
-                              MaterialStateProperty.all<Color>(backgroundColor),
-                          foregroundColor:
-                              MaterialStateProperty.all<Color>(Colors.grey),
-                          padding: MaterialStateProperty.all<EdgeInsets>(
-                              const EdgeInsets.all(0)),
-                          shape: MaterialStateProperty.all<OutlinedBorder?>(
-                              RoundedRectangleBorder(
+                          backgroundColor: WidgetStateProperty.all<Color>(backgroundColor),
+                          foregroundColor: WidgetStateProperty.all<Color>(Colors.grey),
+                          padding: WidgetStateProperty.all<EdgeInsets>(const EdgeInsets.all(0)),
+                          shape: WidgetStateProperty.all<OutlinedBorder?>(RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10.0),
                           )),
-                          fixedSize: MaterialStateProperty.all<Size>(
-                              const Size.fromHeight(45)),
+                          fixedSize: WidgetStateProperty.all<Size>(const Size.fromHeight(45)),
                         ),
                         onPressed: () async {
                           c.isStartDayOpen = false.obs;
@@ -10324,15 +8550,11 @@ class SortPage extends StatelessWidget {
                           width: MediaQuery.of(context).size.width,
                           child: CupertinoDatePicker(
                             mode: CupertinoDatePickerMode.date,
-                            initialDateTime:
-                                DateTime.fromMillisecondsSinceEpoch(
-                                    c.startDay.value),
+                            initialDateTime: DateTime.fromMillisecondsSinceEpoch(c.startDay.value),
                             minimumDate: DateTime(2021, 12, 25),
-                            maximumDate:
-                                DateTime.now().add(const Duration(days: 1)),
+                            maximumDate: DateTime.now().add(const Duration(days: 1)),
                             onDateTimeChanged: (DateTime newDateTime) {
-                              c.startDay =
-                                  RxInt(newDateTime.millisecondsSinceEpoch);
+                              c.startDay = RxInt(newDateTime.millisecondsSinceEpoch);
                               c.update();
                             },
                           ),
@@ -10348,15 +8570,11 @@ class SortPage extends StatelessWidget {
                           width: MediaQuery.of(context).size.width,
                           child: CupertinoDatePicker(
                             mode: CupertinoDatePickerMode.date,
-                            initialDateTime:
-                                DateTime.fromMillisecondsSinceEpoch(
-                                    c.endDay.value),
+                            initialDateTime: DateTime.fromMillisecondsSinceEpoch(c.endDay.value),
                             minimumDate: DateTime(2021, 12, 25),
-                            maximumDate:
-                                DateTime.now().add(const Duration(days: 1)),
+                            maximumDate: DateTime.now().add(const Duration(days: 1)),
                             onDateTimeChanged: (DateTime newDateTime) {
-                              c.endDay =
-                                  RxInt(newDateTime.millisecondsSinceEpoch);
+                              c.endDay = RxInt(newDateTime.millisecondsSinceEpoch);
                               c.update();
                             },
                           ),
@@ -10378,8 +8596,7 @@ class SortPage extends StatelessWidget {
                         tooltip: 'previous',
                         onPressed: () {
                           if (c.indexScorePage.value > 0) {
-                            c.indexScorePage =
-                                RxInt(c.indexScorePage.value - 1);
+                            c.indexScorePage = RxInt(c.indexScorePage.value - 1);
                             c.update();
                           }
                         },
@@ -10390,65 +8607,46 @@ class SortPage extends StatelessWidget {
                   GetBuilder<Controller>(
                     builder: (_) => PopupMenuButton<String>(
                       onSelected: (String word) async {
-                        c.indexScorePage =
-                            RxInt(int.parse(word.split('-')[0]) ~/ pageCount);
+                        c.indexScorePage = RxInt(int.parse(word.split('-')[0]) ~/ pageCount);
                         c.update();
                       },
                       padding: const EdgeInsets.all(0),
-                      itemBuilder: (BuildContext context) =>
-                          <PopupMenuEntry<String>>[
-                        for (int i = 0;
-                            i < (c.listLearned.length / pageCount).abs();
-                            i++)
+                      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                        for (int i = 0; i < (c.listLearned.length / pageCount).abs(); i++)
                           PopupMenuItem<String>(
                               value: (pageCount * i + 1).toString() +
                                   '-' +
                                   (c.listLearned.length ~/ pageCount > i
                                       ? (pageCount * i + pageCount).toString()
-                                      : (pageCount * i +
-                                              c.listLearned.length % pageCount)
-                                          .toString()) +
+                                      : (pageCount * i + c.listLearned.length % pageCount).toString()) +
                                   '/' +
                                   c.listLearned.length.toString(),
                               padding: const EdgeInsets.fromLTRB(6, 0, 6, 0),
-                              child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      (pageCount * i + 1).toString() +
-                                          '-' +
-                                          (c.listLearned.length ~/ pageCount > i
-                                              ? (pageCount * i + pageCount)
-                                                  .toString()
-                                              : (pageCount * i +
-                                                      c.listLearned.length %
-                                                          pageCount)
-                                                  .toString()) +
-                                          '/' +
-                                          c.listLearned.length.toString(),
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        color: textColor,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ])),
+                              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                Text(
+                                  (pageCount * i + 1).toString() +
+                                      '-' +
+                                      (c.listLearned.length ~/ pageCount > i
+                                          ? (pageCount * i + pageCount).toString()
+                                          : (pageCount * i + c.listLearned.length % pageCount).toString()) +
+                                      '/' +
+                                      c.listLearned.length.toString(),
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    color: textColor,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ])),
                       ],
                       // color: themeColor,
                       child: Row(children: [
                         Text(
-                          (pageCount * c.indexScorePage.value +
-                                      (c.listLearned.isEmpty ? 0 : 1))
-                                  .toString() +
+                          (pageCount * c.indexScorePage.value + (c.listLearned.isEmpty ? 0 : 1)).toString() +
                               '-' +
-                              (c.listLearned.length ~/ pageCount >
-                                      c.indexScorePage.value
-                                  ? (pageCount * c.indexScorePage.value +
-                                          pageCount)
-                                      .toString()
-                                  : (pageCount * c.indexScorePage.value +
-                                          c.listLearned.length % pageCount)
-                                      .toString()) +
+                              (c.listLearned.length ~/ pageCount > c.indexScorePage.value
+                                  ? (pageCount * c.indexScorePage.value + pageCount).toString()
+                                  : (pageCount * c.indexScorePage.value + c.listLearned.length % pageCount).toString()) +
                               '/' +
                               c.listLearned.length.toString(),
                           style: const TextStyle(
@@ -10459,18 +8657,13 @@ class SortPage extends StatelessWidget {
                           textAlign: TextAlign.left,
                         ),
                       ]),
-                      shape: const RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.all(Radius.circular(20.0))),
+                      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
                     ),
                   ),
                   const Expanded(child: SizedBox()),
                   GetBuilder<Controller>(
                     builder: (_) => Opacity(
-                      opacity: c.listLearned.length >
-                              pageCount * (c.indexScorePage.value + 1)
-                          ? 1
-                          : 0.3,
+                      opacity: c.listLearned.length > pageCount * (c.indexScorePage.value + 1) ? 1 : 0.3,
                       child: IconButton(
                         padding: const EdgeInsets.all(0.0),
                         icon: const Icon(
@@ -10479,10 +8672,8 @@ class SortPage extends StatelessWidget {
                         ),
                         tooltip: 'next',
                         onPressed: () {
-                          if (c.listLearned.length >
-                              pageCount * (c.indexScorePage.value + 1)) {
-                            c.indexScorePage =
-                                RxInt(c.indexScorePage.value + 1);
+                          if (c.listLearned.length > pageCount * (c.indexScorePage.value + 1)) {
+                            c.indexScorePage = RxInt(c.indexScorePage.value + 1);
                             c.update();
                           }
                         },
@@ -10495,27 +8686,20 @@ class SortPage extends StatelessWidget {
                     builder: (_) => ListView.builder(
                         padding: const EdgeInsets.all(4),
                         addAutomaticKeepAlives: false,
-                        itemCount: c.listLearned.length >
-                                (c.indexScorePage.value + 1) * pageCount
+                        itemCount: c.listLearned.length > (c.indexScorePage.value + 1) * pageCount
                             ? pageCount
-                            : c.listLearned.length -
-                                c.indexScorePage.value * pageCount,
+                            : c.listLearned.length - c.indexScorePage.value * pageCount,
                         itemBuilder: (BuildContext context, int index) {
                           return GestureDetector(
                             onTap: () {
-                              getSearch(c
-                                  .listLearned[
-                                      c.indexScorePage.value * pageCount +
-                                          index]
-                                  .wordId);
+                              getSearch(c.listLearned[c.indexScorePage.value * pageCount + index].wordId);
                             },
                             child: Container(
                               // height: 70,
                               alignment: Alignment.center,
                               decoration: const BoxDecoration(
                                 color: Color.fromRGBO(240, 240, 240, 1),
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(8)),
+                                borderRadius: BorderRadius.all(Radius.circular(8)),
                               ),
                               padding: const EdgeInsets.all(8),
                               margin: const EdgeInsets.all(5),
@@ -10524,11 +8708,7 @@ class SortPage extends StatelessWidget {
                                   // const SizedBox(width:10),
                                   Expanded(
                                     child: Text(
-                                      c
-                                          .listLearned[c.indexScorePage.value *
-                                                  pageCount +
-                                              index]
-                                          .wordId,
+                                      c.listLearned[c.indexScorePage.value * pageCount + index].wordId,
                                       style: const TextStyle(
                                         fontSize: 16,
                                         color: textColor,
@@ -10543,24 +8723,11 @@ class SortPage extends StatelessWidget {
                                         // const SizedBox(width:3),
                                         Expanded(
                                           child: CircularPercentIndicator(
-                                            radius: (MediaQuery.of(context)
-                                                            .size
-                                                            .width *
-                                                        0.5 -
-                                                    40) /
-                                                8,
+                                            radius: (MediaQuery.of(context).size.width * 0.5 - 40) / 8,
                                             lineWidth: 3.0,
                                             animation: true,
-                                            percent: c
-                                                    .listLearned[
-                                                        c.indexScorePage.value *
-                                                                pageCount +
-                                                            index]
-                                                    .word /
-                                                25,
-                                            backgroundColor:
-                                                const Color.fromRGBO(
-                                                    220, 220, 220, 1),
+                                            percent: c.listLearned[c.indexScorePage.value * pageCount + index].word / 25,
+                                            backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
                                             center: Text(
                                               c.scoreWord.string,
                                               style: const TextStyle(
@@ -10568,31 +8735,17 @@ class SortPage extends StatelessWidget {
                                                 color: textColor,
                                               ),
                                             ),
-                                            circularStrokeCap:
-                                                CircularStrokeCap.round,
+                                            circularStrokeCap: CircularStrokeCap.round,
                                             progressColor: Colors.purple,
                                           ),
                                         ),
                                         Expanded(
                                           child: CircularPercentIndicator(
-                                            radius: (MediaQuery.of(context)
-                                                            .size
-                                                            .width *
-                                                        0.5 -
-                                                    40) /
-                                                8,
+                                            radius: (MediaQuery.of(context).size.width * 0.5 - 40) / 8,
                                             lineWidth: 3.0,
                                             animation: true,
-                                            percent: c
-                                                    .listLearned[
-                                                        c.indexScorePage.value *
-                                                                pageCount +
-                                                            index]
-                                                    .pronun /
-                                                25,
-                                            backgroundColor:
-                                                const Color.fromRGBO(
-                                                    220, 220, 220, 1),
+                                            percent: c.listLearned[c.indexScorePage.value * pageCount + index].pronun / 25,
+                                            backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
                                             center: Text(
                                               c.scorePronun.string,
                                               style: const TextStyle(
@@ -10600,31 +8753,17 @@ class SortPage extends StatelessWidget {
                                                 color: textColor,
                                               ),
                                             ),
-                                            circularStrokeCap:
-                                                CircularStrokeCap.round,
+                                            circularStrokeCap: CircularStrokeCap.round,
                                             progressColor: Colors.purple,
                                           ),
                                         ),
                                         Expanded(
                                           child: CircularPercentIndicator(
-                                            radius: (MediaQuery.of(context)
-                                                            .size
-                                                            .width *
-                                                        0.5 -
-                                                    40) /
-                                                8,
+                                            radius: (MediaQuery.of(context).size.width * 0.5 - 40) / 8,
                                             lineWidth: 3.0,
                                             animation: true,
-                                            percent: c
-                                                    .listLearned[
-                                                        c.indexScorePage.value *
-                                                                pageCount +
-                                                            index]
-                                                    .speak /
-                                                25,
-                                            backgroundColor:
-                                                const Color.fromRGBO(
-                                                    220, 220, 220, 1),
+                                            percent: c.listLearned[c.indexScorePage.value * pageCount + index].speak / 25,
+                                            backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
                                             center: Text(
                                               c.scoreSpeak.string,
                                               style: const TextStyle(
@@ -10632,31 +8771,17 @@ class SortPage extends StatelessWidget {
                                                 color: textColor,
                                               ),
                                             ),
-                                            circularStrokeCap:
-                                                CircularStrokeCap.round,
+                                            circularStrokeCap: CircularStrokeCap.round,
                                             progressColor: Colors.purple,
                                           ),
                                         ),
                                         Expanded(
                                           child: CircularPercentIndicator(
-                                            radius: (MediaQuery.of(context)
-                                                            .size
-                                                            .width *
-                                                        0.5 -
-                                                    40) /
-                                                8,
+                                            radius: (MediaQuery.of(context).size.width * 0.5 - 40) / 8,
                                             lineWidth: 3.0,
                                             animation: true,
-                                            percent: c
-                                                    .listLearned[
-                                                        c.indexScorePage.value *
-                                                                pageCount +
-                                                            index]
-                                                    .mean /
-                                                25,
-                                            backgroundColor:
-                                                const Color.fromRGBO(
-                                                    220, 220, 220, 1),
+                                            percent: c.listLearned[c.indexScorePage.value * pageCount + index].mean / 25,
+                                            backgroundColor: const Color.fromRGBO(220, 220, 220, 1),
                                             center: Text(
                                               c.scoreMean.string,
                                               style: const TextStyle(
@@ -10664,8 +8789,7 @@ class SortPage extends StatelessWidget {
                                                 color: textColor,
                                               ),
                                             ),
-                                            circularStrokeCap:
-                                                CircularStrokeCap.round,
+                                            circularStrokeCap: CircularStrokeCap.round,
                                             progressColor: Colors.purple,
                                           ),
                                         ),
@@ -10733,12 +8857,7 @@ class _ScorePageState extends State<ScorePage> {
         c.listWord = RxList(c.listWordScore.toList());
     }
     c.listWordScorePage.clear();
-    for (var j = 0;
-        j <
-            (i < (c.listWord.length / pageCount).ceil() - 1
-                ? pageCount
-                : (c.listWord.length - pageCount * i));
-        j++) {
+    for (var j = 0; j < (i < (c.listWord.length / pageCount).ceil() - 1 ? pageCount : (c.listWord.length - pageCount * i)); j++) {
       c.listWordScorePage.add(c.listWord[i * pageCount + j]);
     }
     c.part = RxInt(i);
@@ -10750,14 +8869,8 @@ class _ScorePageState extends State<ScorePage> {
       var nowWord = await boxScore.get(c.listWordScorePage[i]);
       if (nowWord[5] > 0) _count++;
       _listShow.add(dataRaw);
-      _listScore.add(Score(
-          wordId: nowWord[0],
-          word: nowWord[1],
-          pronun: nowWord[2],
-          speak: nowWord[3],
-          mean: nowWord[4],
-          total: nowWord[5],
-          time: nowWord[6]));
+      _listScore.add(
+          Score(wordId: nowWord[0], word: nowWord[1], pronun: nowWord[2], speak: nowWord[3], mean: nowWord[4], total: nowWord[5], time: nowWord[6]));
     }
     setState(() {
       listShow = _listShow;
@@ -10769,7 +8882,7 @@ class _ScorePageState extends State<ScorePage> {
   @override
   Widget build(BuildContext context) {
     Future getToHome(String word) async {
-      await loadAd();
+      // await loadAd();
       listWordRandom = [word];
       nowRandom = 0;
       await c.layWord(word);
@@ -10779,7 +8892,7 @@ class _ScorePageState extends State<ScorePage> {
     }
 
     Future getBack() async {
-      await loadAd();
+      // await loadAd();
       if (c.category.string != 'all category') {
         Get.offAll(() => const CategoryScreen());
       } else {
@@ -10792,7 +8905,7 @@ class _ScorePageState extends State<ScorePage> {
     }
 
     Future getNext() async {
-      await loadAd();
+      // await loadAd();
       if (c.listWord.length > pageCount * (c.part.value + 1)) {
         c.part = RxInt(c.part.value + 1);
         getList(c.part.value);
@@ -10800,7 +8913,7 @@ class _ScorePageState extends State<ScorePage> {
     }
 
     Future getPrevious() async {
-      await loadAd();
+      // await loadAd();
       if (c.part.value > 0) {
         c.part = RxInt(c.part.value - 1);
         getList(c.part.value);
@@ -10812,13 +8925,12 @@ class _ScorePageState extends State<ScorePage> {
         statusBarColor: Colors.transparent, //i like transaparent :-)
         systemNavigationBarColor: Colors.white, // navigation bar color
         statusBarIconBrightness: Brightness.light, // status bar icons' color
-        systemNavigationBarIconBrightness:
-            Brightness.light, //navigation bar icons' color
+        systemNavigationBarIconBrightness: Brightness.light, //navigation bar icons' color
       ),
-      child: WillPopScope(
-        onWillPop: () async {
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
           getBack();
-          return false;
         },
         child: Scaffold(
           appBar: AppBar(
@@ -10888,47 +9000,32 @@ class _ScorePageState extends State<ScorePage> {
                     GetBuilder<Controller>(
                       builder: (_) => PopupMenuButton<String>(
                         onSelected: (String word) async {
-                          c.part = RxInt(
-                              int.parse(word.substring(5, word.indexOf('/'))) -
-                                  1);
+                          c.part = RxInt(int.parse(word.substring(5, word.indexOf('/'))) - 1);
                           c.update();
                           getList(c.part.value);
                         },
                         padding: const EdgeInsets.all(0),
-                        itemBuilder: (BuildContext context) =>
-                            <PopupMenuEntry<String>>[
-                          for (int i = 0;
-                              i < (c.listWord.length / pageCount).ceil();
-                              i++)
+                        itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                          for (int i = 0; i < (c.listWord.length / pageCount).ceil(); i++)
                             PopupMenuItem<String>(
-                                value: (c.language.string == 'VN'
-                                        ? 'Phần '
-                                        : 'Part ') +
+                                value: (c.language.string == 'VN' ? 'Phần ' : 'Part ') +
                                     (i + 1).toString() +
                                     '/' +
-                                    (c.listWord.length / pageCount)
-                                        .ceil()
-                                        .toString(),
+                                    (c.listWord.length / pageCount).ceil().toString(),
                                 padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
-                                child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        (c.language.string == 'VN'
-                                                ? 'Phần '
-                                                : 'Part ') +
-                                            (i + 1).toString() +
-                                            '/' +
-                                            (c.listWord.length / pageCount)
-                                                .ceil()
-                                                .toString(),
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          color: textColor,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ])),
+                                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                  Text(
+                                    (c.language.string == 'VN' ? 'Phần ' : 'Part ') +
+                                        (i + 1).toString() +
+                                        '/' +
+                                        (c.listWord.length / pageCount).ceil().toString(),
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      color: textColor,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ])),
                         ],
                         // color: themeColor,
                         child: Row(children: [
@@ -10936,9 +9033,7 @@ class _ScorePageState extends State<ScorePage> {
                             (c.language.string == 'VN' ? 'Phần ' : 'Part ') +
                                 (c.part.value + 1).toString() +
                                 '/' +
-                                (c.listWord.length / pageCount)
-                                    .ceil()
-                                    .toString(),
+                                (c.listWord.length / pageCount).ceil().toString(),
                             style: const TextStyle(
                               fontSize: 18,
                               color: textColor,
@@ -10947,9 +9042,7 @@ class _ScorePageState extends State<ScorePage> {
                             textAlign: TextAlign.left,
                           ),
                         ]),
-                        shape: const RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(20.0))),
+                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
                       ),
                     ),
                     const Expanded(child: SizedBox()),
@@ -10971,10 +9064,7 @@ class _ScorePageState extends State<ScorePage> {
                     ),
                     GetBuilder<Controller>(
                       builder: (_) => Opacity(
-                        opacity:
-                            c.listWord.length > pageCount * (c.part.value + 1)
-                                ? 1
-                                : 0.3,
+                        opacity: c.listWord.length > pageCount * (c.part.value + 1) ? 1 : 0.3,
                         child: IconButton(
                           padding: const EdgeInsets.all(0.0),
                           icon: const Icon(
@@ -11004,11 +9094,8 @@ class _ScorePageState extends State<ScorePage> {
                                 List listMeans = jsonDecode(dataRaw['mean']);
                                 int count = 0;
                                 int firstMean = 0;
-                                for (var j = listMeans.length - 1;
-                                    j >= 0;
-                                    j--) {
-                                  if (checkSubMean(
-                                      listMeans[j].cast<String>())) {
+                                for (var j = listMeans.length - 1; j >= 0; j--) {
+                                  if (checkSubMean(listMeans[j].cast<String>())) {
                                     count++;
                                     firstMean = j;
                                   }
@@ -11024,35 +9111,20 @@ class _ScorePageState extends State<ScorePage> {
                                     meanENElement = listMean[j];
                                   }
                                   meanENAdd.add(meanENElement);
-                                  String meanVNElement =
-                                      jsonDecode(dataRaw['meanVN'])[firstMean]
-                                          [j];
-                                  meanVNElement = meanVNElement.substring(
-                                      0, meanVNElement.length - 2);
-                                  meanVNElement = meanVNElement +
-                                      listMean[j]
-                                          .substring(listMean[j].length - 1);
+                                  String meanVNElement = jsonDecode(dataRaw['meanVN'])[firstMean][j];
+                                  meanVNElement = meanVNElement.substring(0, meanVNElement.length - 2);
+                                  meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length - 1);
                                   meanVNAdd.add(meanVNElement);
                                 }
                                 String meanEN = '';
                                 String meanVN = '';
                                 for (var j = 0; j < meanENAdd.length; j++) {
                                   if (j == 0) {
-                                    meanVN = meanVN +
-                                        meanVNAdd[j].substring(
-                                            0, meanVNAdd[j].length - 1);
-                                    meanEN = meanEN +
-                                        meanENAdd[j].substring(
-                                            0, meanENAdd[j].length - 1);
+                                    meanVN = meanVN + meanVNAdd[j].substring(0, meanVNAdd[j].length - 1);
+                                    meanEN = meanEN + meanENAdd[j].substring(0, meanENAdd[j].length - 1);
                                   } else {
-                                    meanVN = meanVN +
-                                        ' | ' +
-                                        meanVNAdd[j].substring(
-                                            0, meanVNAdd[j].length - 1);
-                                    meanEN = meanEN +
-                                        ' | ' +
-                                        meanENAdd[j].substring(
-                                            0, meanENAdd[j].length - 1);
+                                    meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0, meanVNAdd[j].length - 1);
+                                    meanEN = meanEN + ' | ' + meanENAdd[j].substring(0, meanENAdd[j].length - 1);
                                   }
                                 }
                                 if (c.language.string == 'VN') {
@@ -11060,10 +9132,8 @@ class _ScorePageState extends State<ScorePage> {
                                 } else {
                                   mean = meanEN;
                                 }
-                                if (jsonDecode(dataRaw['imageURL']).length >
-                                    firstMean) {
-                                  image = jsonDecode(
-                                      dataRaw['imageURL'])[firstMean];
+                                if (jsonDecode(dataRaw['imageURL']).length > firstMean) {
+                                  image = jsonDecode(dataRaw['imageURL'])[firstMean];
                                 }
                                 return GestureDetector(
                                   onTap: () async {
@@ -11076,61 +9146,31 @@ class _ScorePageState extends State<ScorePage> {
                                         margin: const EdgeInsets.all(10),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
-                                          borderRadius: const BorderRadius.all(
-                                              Radius.circular(8)),
+                                          borderRadius: const BorderRadius.all(Radius.circular(8)),
                                           boxShadow: [
                                             BoxShadow(
-                                              color:
-                                                  Colors.black.withOpacity(0.6),
+                                              color: Colors.black.withOpacity(0.6),
                                               spreadRadius: 0,
                                               blurRadius: 5,
-                                              offset: const Offset(5,
-                                                  5), // changes position of shadow
+                                              offset: const Offset(5, 5), // changes position of shadow
                                             ),
                                           ],
                                         ),
-                                        width:
-                                            (MediaQuery.of(context).size.width -
-                                                    60) /
-                                                2,
-                                        height:
-                                            (MediaQuery.of(context).size.width -
-                                                    60) *
-                                                250 /
-                                                300 /
-                                                2,
+                                        width: (MediaQuery.of(context).size.width - 60) / 2,
+                                        height: (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
                                         child: Stack(children: [
                                           ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(8),
+                                            borderRadius: BorderRadius.circular(8),
                                             child: ImageFiltered(
-                                              imageFilter: ImageFilter.blur(
-                                                  sigmaX: 6, sigmaY: 6),
+                                              imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
                                               child: Opacity(
                                                 opacity: 0.8,
                                                 child: Image(
-                                                  image: NetworkImage(
-                                                      'https://bedict.com/' +
-                                                          image.replaceAll(
-                                                              '\\', '')),
+                                                  image: NetworkImage('https://bedict.com/' + image.replaceAll('\\', '')),
                                                   fit: BoxFit.cover,
-                                                  width: (MediaQuery.of(context)
-                                                              .size
-                                                              .width -
-                                                          60) /
-                                                      2,
-                                                  height:
-                                                      (MediaQuery.of(context)
-                                                                  .size
-                                                                  .width -
-                                                              60) *
-                                                          250 /
-                                                          300 /
-                                                          2,
-                                                  errorBuilder: (BuildContext
-                                                          context,
-                                                      Object exception,
-                                                      StackTrace? stackTrace) {
+                                                  width: (MediaQuery.of(context).size.width - 60) / 2,
+                                                  height: (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
+                                                  errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                     return const SizedBox();
                                                   },
                                                 ),
@@ -11138,30 +9178,13 @@ class _ScorePageState extends State<ScorePage> {
                                             ),
                                           ),
                                           ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(8),
+                                            borderRadius: BorderRadius.circular(8),
                                             child: Image(
-                                              image: NetworkImage(
-                                                  'https://bedict.com/' +
-                                                      image.replaceAll(
-                                                          '\\', '')),
+                                              image: NetworkImage('https://bedict.com/' + image.replaceAll('\\', '')),
                                               fit: BoxFit.contain,
-                                              width: (MediaQuery.of(context)
-                                                          .size
-                                                          .width -
-                                                      60) /
-                                                  2,
-                                              height: (MediaQuery.of(context)
-                                                          .size
-                                                          .width -
-                                                      60) *
-                                                  250 /
-                                                  300 /
-                                                  2,
-                                              errorBuilder:
-                                                  (BuildContext context,
-                                                      Object exception,
-                                                      StackTrace? stackTrace) {
+                                              width: (MediaQuery.of(context).size.width - 60) / 2,
+                                              height: (MediaQuery.of(context).size.width - 60) * 250 / 300 / 2,
+                                              errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                 return const SizedBox();
                                               },
                                             ),
@@ -11171,166 +9194,121 @@ class _ScorePageState extends State<ScorePage> {
                                                   right: 7,
                                                   bottom: 7,
                                                   child: Container(
-                                                      alignment:
-                                                          Alignment.center,
+                                                      alignment: Alignment.center,
                                                       decoration: BoxDecoration(
-                                                        color: Colors.white
-                                                            .withOpacity(0.7),
-                                                        borderRadius:
-                                                            const BorderRadius
-                                                                    .all(
-                                                                Radius.circular(
-                                                                    20)),
+                                                        color: Colors.white.withOpacity(0.7),
+                                                        borderRadius: const BorderRadius.all(Radius.circular(20)),
                                                       ),
                                                       height: 40,
                                                       width: 40,
                                                       child: Text(
-                                                        '+ ' +
-                                                            (count - 1)
-                                                                .toString(),
+                                                        '+ ' + (count - 1).toString(),
                                                       )))
                                               : const SizedBox(),
                                         ])),
                                     const SizedBox(width: 10),
                                     Expanded(
-                                      child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            // const SizedBox(height: 8),
-                                            Text(
-                                              dataRaw['word'],
-                                              style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w600,
-                                                overflow: TextOverflow.ellipsis,
+                                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                        // const SizedBox(height: 8),
+                                        Text(
+                                          dataRaw['word'],
+                                          style: const TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w600,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 5),
+                                        Text(
+                                          dataRaw['pronun'],
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w400,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 5),
+                                        Text(
+                                          mean,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w400,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Row(children: [
+                                          // const SizedBox(width:10),
+                                          CircularPercentIndicator(
+                                            radius: (MediaQuery.of(context).size.width - 100) / 16,
+                                            lineWidth: 2.0,
+                                            animation: true,
+                                            percent: listScore[i].word / 25,
+                                            backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                            center: Text(
+                                              c.scoreWord.string,
+                                              style: TextStyle(
+                                                fontSize: 10.0,
+                                                color: textColor.withOpacity(0.5),
                                               ),
                                             ),
-                                            const SizedBox(height: 5),
-                                            Text(
-                                              dataRaw['pronun'],
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w400,
-                                                overflow: TextOverflow.ellipsis,
+                                            circularStrokeCap: CircularStrokeCap.round,
+                                            progressColor: Colors.purple,
+                                          ),
+                                          const SizedBox(width: 5),
+                                          CircularPercentIndicator(
+                                            radius: (MediaQuery.of(context).size.width - 100) / 16,
+                                            lineWidth: 2.0,
+                                            animation: true,
+                                            percent: listScore[i].pronun / 25,
+                                            backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                            center: Text(
+                                              c.scorePronun.string,
+                                              style: TextStyle(
+                                                fontSize: 10.0,
+                                                color: textColor.withOpacity(0.5),
                                               ),
                                             ),
-                                            const SizedBox(height: 5),
-                                            Text(
-                                              mean,
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w400,
-                                                overflow: TextOverflow.ellipsis,
+                                            circularStrokeCap: CircularStrokeCap.round,
+                                            progressColor: Colors.purple,
+                                          ),
+                                          const SizedBox(width: 5),
+                                          CircularPercentIndicator(
+                                            radius: (MediaQuery.of(context).size.width - 100) / 16,
+                                            lineWidth: 2.0,
+                                            animation: true,
+                                            percent: listScore[i].speak / 25,
+                                            backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                            center: Text(
+                                              c.scoreSpeak.string,
+                                              style: TextStyle(
+                                                fontSize: 10.0,
+                                                color: textColor.withOpacity(0.5),
                                               ),
                                             ),
-                                            const SizedBox(height: 10),
-                                            Row(children: [
-                                              // const SizedBox(width:10),
-                                              CircularPercentIndicator(
-                                                radius: (MediaQuery.of(context)
-                                                            .size
-                                                            .width -
-                                                        100) /
-                                                    16,
-                                                lineWidth: 2.0,
-                                                animation: true,
-                                                percent: listScore[i].word / 25,
-                                                backgroundColor:
-                                                    const Color.fromRGBO(
-                                                        220, 220, 220, 0.3),
-                                                center: Text(
-                                                  c.scoreWord.string,
-                                                  style: TextStyle(
-                                                    fontSize: 10.0,
-                                                    color: textColor
-                                                        .withOpacity(0.5),
-                                                  ),
-                                                ),
-                                                circularStrokeCap:
-                                                    CircularStrokeCap.round,
-                                                progressColor: Colors.purple,
+                                            circularStrokeCap: CircularStrokeCap.round,
+                                            progressColor: Colors.purple,
+                                          ),
+                                          const SizedBox(width: 5),
+                                          CircularPercentIndicator(
+                                            radius: (MediaQuery.of(context).size.width - 100) / 16,
+                                            lineWidth: 2.0,
+                                            animation: true,
+                                            percent: listScore[i].mean / 25,
+                                            backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                            center: Text(
+                                              c.scoreMean.string,
+                                              style: TextStyle(
+                                                fontSize: 10.0,
+                                                color: textColor.withOpacity(0.5),
                                               ),
-                                              const SizedBox(width: 5),
-                                              CircularPercentIndicator(
-                                                radius: (MediaQuery.of(context)
-                                                            .size
-                                                            .width -
-                                                        100) /
-                                                    16,
-                                                lineWidth: 2.0,
-                                                animation: true,
-                                                percent:
-                                                    listScore[i].pronun / 25,
-                                                backgroundColor:
-                                                    const Color.fromRGBO(
-                                                        220, 220, 220, 0.3),
-                                                center: Text(
-                                                  c.scorePronun.string,
-                                                  style: TextStyle(
-                                                    fontSize: 10.0,
-                                                    color: textColor
-                                                        .withOpacity(0.5),
-                                                  ),
-                                                ),
-                                                circularStrokeCap:
-                                                    CircularStrokeCap.round,
-                                                progressColor: Colors.purple,
-                                              ),
-                                              const SizedBox(width: 5),
-                                              CircularPercentIndicator(
-                                                radius: (MediaQuery.of(context)
-                                                            .size
-                                                            .width -
-                                                        100) /
-                                                    16,
-                                                lineWidth: 2.0,
-                                                animation: true,
-                                                percent:
-                                                    listScore[i].speak / 25,
-                                                backgroundColor:
-                                                    const Color.fromRGBO(
-                                                        220, 220, 220, 0.3),
-                                                center: Text(
-                                                  c.scoreSpeak.string,
-                                                  style: TextStyle(
-                                                    fontSize: 10.0,
-                                                    color: textColor
-                                                        .withOpacity(0.5),
-                                                  ),
-                                                ),
-                                                circularStrokeCap:
-                                                    CircularStrokeCap.round,
-                                                progressColor: Colors.purple,
-                                              ),
-                                              const SizedBox(width: 5),
-                                              CircularPercentIndicator(
-                                                radius: (MediaQuery.of(context)
-                                                            .size
-                                                            .width -
-                                                        100) /
-                                                    16,
-                                                lineWidth: 2.0,
-                                                animation: true,
-                                                percent: listScore[i].mean / 25,
-                                                backgroundColor:
-                                                    const Color.fromRGBO(
-                                                        220, 220, 220, 0.3),
-                                                center: Text(
-                                                  c.scoreMean.string,
-                                                  style: TextStyle(
-                                                    fontSize: 10.0,
-                                                    color: textColor
-                                                        .withOpacity(0.5),
-                                                  ),
-                                                ),
-                                                circularStrokeCap:
-                                                    CircularStrokeCap.round,
-                                                progressColor: Colors.purple,
-                                              ),
-                                              // const SizedBox(width:10),
-                                            ]),
-                                          ]),
+                                            ),
+                                            circularStrokeCap: CircularStrokeCap.round,
+                                            progressColor: Colors.purple,
+                                          ),
+                                          // const SizedBox(width:10),
+                                        ]),
+                                      ]),
                                     ),
                                     const SizedBox(width: 8),
                                   ]),
@@ -11338,8 +9316,7 @@ class _ScorePageState extends State<ScorePage> {
                               },
                             )
                           : GridView.count(
-                              crossAxisCount:
-                                  MediaQuery.of(context).size.width ~/ 300,
+                              crossAxisCount: MediaQuery.of(context).size.width ~/ 300,
                               addAutomaticKeepAlives: false,
                               children: List.generate(listShow.length, (i) {
                                 String mean = '';
@@ -11348,11 +9325,8 @@ class _ScorePageState extends State<ScorePage> {
                                 List listMeans = jsonDecode(dataRaw['mean']);
                                 int count = 0;
                                 int firstMean = 0;
-                                for (var j = listMeans.length - 1;
-                                    j >= 0;
-                                    j--) {
-                                  if (checkSubMean(
-                                      listMeans[j].cast<String>())) {
+                                for (var j = listMeans.length - 1; j >= 0; j--) {
+                                  if (checkSubMean(listMeans[j].cast<String>())) {
                                     count++;
                                     firstMean = j;
                                   }
@@ -11368,35 +9342,20 @@ class _ScorePageState extends State<ScorePage> {
                                     meanENElement = listMean[j];
                                   }
                                   meanENAdd.add(meanENElement);
-                                  String meanVNElement =
-                                      jsonDecode(dataRaw['meanVN'])[firstMean]
-                                          [j];
-                                  meanVNElement = meanVNElement.substring(
-                                      0, meanVNElement.length - 2);
-                                  meanVNElement = meanVNElement +
-                                      listMean[j]
-                                          .substring(listMean[j].length - 1);
+                                  String meanVNElement = jsonDecode(dataRaw['meanVN'])[firstMean][j];
+                                  meanVNElement = meanVNElement.substring(0, meanVNElement.length - 2);
+                                  meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length - 1);
                                   meanVNAdd.add(meanVNElement);
                                 }
                                 String meanEN = '';
                                 String meanVN = '';
                                 for (var j = 0; j < meanENAdd.length; j++) {
                                   if (j == 0) {
-                                    meanVN = meanVN +
-                                        meanVNAdd[j].substring(
-                                            0, meanVNAdd[j].length - 1);
-                                    meanEN = meanEN +
-                                        meanENAdd[j].substring(
-                                            0, meanENAdd[j].length - 1);
+                                    meanVN = meanVN + meanVNAdd[j].substring(0, meanVNAdd[j].length - 1);
+                                    meanEN = meanEN + meanENAdd[j].substring(0, meanENAdd[j].length - 1);
                                   } else {
-                                    meanVN = meanVN +
-                                        ' | ' +
-                                        meanVNAdd[j].substring(
-                                            0, meanVNAdd[j].length - 1);
-                                    meanEN = meanEN +
-                                        ' | ' +
-                                        meanENAdd[j].substring(
-                                            0, meanENAdd[j].length - 1);
+                                    meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0, meanVNAdd[j].length - 1);
+                                    meanEN = meanEN + ' | ' + meanENAdd[j].substring(0, meanENAdd[j].length - 1);
                                   }
                                 }
                                 if (c.language.string == 'VN') {
@@ -11404,10 +9363,8 @@ class _ScorePageState extends State<ScorePage> {
                                 } else {
                                   mean = meanEN;
                                 }
-                                if (jsonDecode(dataRaw['imageURL']).length >
-                                    firstMean) {
-                                  image = jsonDecode(
-                                      dataRaw['imageURL'])[firstMean];
+                                if (jsonDecode(dataRaw['imageURL']).length > firstMean) {
+                                  image = jsonDecode(dataRaw['imageURL'])[firstMean];
                                 }
                                 return GestureDetector(
                                   onTap: () {
@@ -11419,273 +9376,191 @@ class _ScorePageState extends State<ScorePage> {
                                       const Expanded(child: SizedBox()),
                                       SizedBox(
                                         width: 300,
-                                        child: Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Row(children: [
-                                                Container(
-                                                    margin:
-                                                        const EdgeInsets.all(
-                                                            10),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.white,
-                                                      borderRadius:
-                                                          const BorderRadius
-                                                                  .all(
-                                                              Radius.circular(
-                                                                  8)),
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                          color: Colors.black
-                                                              .withOpacity(0.6),
-                                                          spreadRadius: 0,
-                                                          blurRadius: 5,
-                                                          offset: const Offset(
-                                                              5,
-                                                              5), // changes position of shadow
-                                                        ),
-                                                      ],
+                                        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                          Row(children: [
+                                            Container(
+                                                margin: const EdgeInsets.all(10),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius: const BorderRadius.all(Radius.circular(8)),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: Colors.black.withOpacity(0.6),
+                                                      spreadRadius: 0,
+                                                      blurRadius: 5,
+                                                      offset: const Offset(5, 5), // changes position of shadow
                                                     ),
-                                                    width: 234,
-                                                    height: 195,
-                                                    child: Stack(children: [
-                                                      ClipRRect(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(8),
-                                                        child: ImageFiltered(
-                                                          imageFilter:
-                                                              ImageFilter.blur(
-                                                                  sigmaX: 6,
-                                                                  sigmaY: 6),
-                                                          child: Opacity(
-                                                            opacity: 0.8,
-                                                            child: Image(
-                                                              image: NetworkImage(
-                                                                  'https://bedict.com/' +
-                                                                      image.replaceAll(
-                                                                          '\\',
-                                                                          '')),
-                                                              fit: BoxFit.cover,
-                                                              width: 234,
-                                                              height: 195,
-                                                              errorBuilder: (BuildContext
-                                                                      context,
-                                                                  Object
-                                                                      exception,
-                                                                  StackTrace?
-                                                                      stackTrace) {
-                                                                return const SizedBox();
-                                                              },
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      ClipRRect(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(8),
+                                                  ],
+                                                ),
+                                                width: 234,
+                                                height: 195,
+                                                child: Stack(children: [
+                                                  ClipRRect(
+                                                    borderRadius: BorderRadius.circular(8),
+                                                    child: ImageFiltered(
+                                                      imageFilter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                                                      child: Opacity(
+                                                        opacity: 0.8,
                                                         child: Image(
-                                                          image: NetworkImage(
-                                                              'https://bedict.com/' +
-                                                                  image
-                                                                      .replaceAll(
-                                                                          '\\',
-                                                                          '')),
-                                                          fit: BoxFit.contain,
+                                                          image: NetworkImage('https://bedict.com/' + image.replaceAll('\\', '')),
+                                                          fit: BoxFit.cover,
                                                           width: 234,
                                                           height: 195,
-                                                          errorBuilder:
-                                                              (BuildContext
-                                                                      context,
-                                                                  Object
-                                                                      exception,
-                                                                  StackTrace?
-                                                                      stackTrace) {
+                                                          errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
                                                             return const SizedBox();
                                                           },
                                                         ),
                                                       ),
-                                                      count > 1
-                                                          ? Positioned(
-                                                              right: 7,
-                                                              bottom: 7,
-                                                              child: Container(
-                                                                  alignment:
-                                                                      Alignment
-                                                                          .center,
-                                                                  decoration:
-                                                                      BoxDecoration(
-                                                                    color: Colors
-                                                                        .white
-                                                                        .withOpacity(
-                                                                            0.7),
-                                                                    borderRadius: const BorderRadius
-                                                                            .all(
-                                                                        Radius.circular(
-                                                                            20)),
-                                                                  ),
-                                                                  height: 40,
-                                                                  width: 40,
-                                                                  child: Text(
-                                                                    '+ ' +
-                                                                        (count -
-                                                                                1)
-                                                                            .toString(),
-                                                                  )))
-                                                          : const SizedBox(),
-                                                    ])),
-                                                Column(children: [
-                                                  // const SizedBox(width:10),
-                                                  CircularPercentIndicator(
-                                                    radius: 20,
-                                                    lineWidth: 2.0,
-                                                    animation: true,
-                                                    percent:
-                                                        listScore[i].word / 25,
-                                                    backgroundColor:
-                                                        const Color.fromRGBO(
-                                                            220, 220, 220, 0.3),
-                                                    center: Text(
-                                                      c.scoreWord.string,
-                                                      style: TextStyle(
-                                                        fontSize: 10.0,
-                                                        color: textColor
-                                                            .withOpacity(0.5),
-                                                      ),
                                                     ),
-                                                    circularStrokeCap:
-                                                        CircularStrokeCap.round,
-                                                    progressColor:
-                                                        Colors.purple,
                                                   ),
-                                                  const SizedBox(height: 5),
-                                                  CircularPercentIndicator(
-                                                    radius: 20,
-                                                    lineWidth: 2.0,
-                                                    animation: true,
-                                                    percent:
-                                                        listScore[i].pronun /
-                                                            25,
-                                                    backgroundColor:
-                                                        const Color.fromRGBO(
-                                                            220, 220, 220, 0.3),
-                                                    center: Text(
-                                                      c.scorePronun.string,
-                                                      style: TextStyle(
-                                                        fontSize: 10.0,
-                                                        color: textColor
-                                                            .withOpacity(0.5),
-                                                      ),
+                                                  ClipRRect(
+                                                    borderRadius: BorderRadius.circular(8),
+                                                    child: Image(
+                                                      image: NetworkImage('https://bedict.com/' + image.replaceAll('\\', '')),
+                                                      fit: BoxFit.contain,
+                                                      width: 234,
+                                                      height: 195,
+                                                      errorBuilder: (BuildContext context, Object exception, StackTrace? stackTrace) {
+                                                        return const SizedBox();
+                                                      },
                                                     ),
-                                                    circularStrokeCap:
-                                                        CircularStrokeCap.round,
-                                                    progressColor:
-                                                        Colors.purple,
                                                   ),
-                                                  const SizedBox(height: 5),
-                                                  CircularPercentIndicator(
-                                                    radius: 20,
-                                                    lineWidth: 2.0,
-                                                    animation: true,
-                                                    percent:
-                                                        listScore[i].speak / 25,
-                                                    backgroundColor:
-                                                        const Color.fromRGBO(
-                                                            220, 220, 220, 0.3),
-                                                    center: Text(
-                                                      c.scoreSpeak.string,
-                                                      style: TextStyle(
-                                                        fontSize: 10.0,
-                                                        color: textColor
-                                                            .withOpacity(0.5),
-                                                      ),
-                                                    ),
-                                                    circularStrokeCap:
-                                                        CircularStrokeCap.round,
-                                                    progressColor:
-                                                        Colors.purple,
-                                                  ),
-                                                  const SizedBox(height: 5),
-                                                  CircularPercentIndicator(
-                                                    radius: 20,
-                                                    lineWidth: 2.0,
-                                                    animation: true,
-                                                    percent:
-                                                        listScore[i].mean / 25,
-                                                    backgroundColor:
-                                                        const Color.fromRGBO(
-                                                            220, 220, 220, 0.3),
-                                                    center: Text(
-                                                      c.scoreMean.string,
-                                                      style: TextStyle(
-                                                        fontSize: 10.0,
-                                                        color: textColor
-                                                            .withOpacity(0.5),
-                                                      ),
-                                                    ),
-                                                    circularStrokeCap:
-                                                        CircularStrokeCap.round,
-                                                    progressColor:
-                                                        Colors.purple,
-                                                  ),
-                                                  // const SizedBox(width:10),
-                                                ]),
-                                              ]),
-                                              const SizedBox(height: 5),
-                                              Row(children: [
-                                                const SizedBox(width: 10),
-                                                Expanded(
-                                                  child: Text(
-                                                    dataRaw['word'],
-                                                    style: const TextStyle(
-                                                      fontSize: 18,
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
+                                                  count > 1
+                                                      ? Positioned(
+                                                          right: 7,
+                                                          bottom: 7,
+                                                          child: Container(
+                                                              alignment: Alignment.center,
+                                                              decoration: BoxDecoration(
+                                                                color: Colors.white.withOpacity(0.7),
+                                                                borderRadius: const BorderRadius.all(Radius.circular(20)),
+                                                              ),
+                                                              height: 40,
+                                                              width: 40,
+                                                              child: Text(
+                                                                '+ ' + (count - 1).toString(),
+                                                              )))
+                                                      : const SizedBox(),
+                                                ])),
+                                            Column(children: [
+                                              // const SizedBox(width:10),
+                                              CircularPercentIndicator(
+                                                radius: 20,
+                                                lineWidth: 2.0,
+                                                animation: true,
+                                                percent: listScore[i].word / 25,
+                                                backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                                center: Text(
+                                                  c.scoreWord.string,
+                                                  style: TextStyle(
+                                                    fontSize: 10.0,
+                                                    color: textColor.withOpacity(0.5),
                                                   ),
                                                 ),
-                                                const SizedBox(width: 10),
-                                              ]),
+                                                circularStrokeCap: CircularStrokeCap.round,
+                                                progressColor: Colors.purple,
+                                              ),
                                               const SizedBox(height: 5),
-                                              Row(children: [
-                                                const SizedBox(width: 10),
-                                                Expanded(
-                                                  child: Text(
-                                                    dataRaw['pronun'],
-                                                    style: const TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.w400,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                    // textAlign: TextAlign.right,
+                                              CircularPercentIndicator(
+                                                radius: 20,
+                                                lineWidth: 2.0,
+                                                animation: true,
+                                                percent: listScore[i].pronun / 25,
+                                                backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                                center: Text(
+                                                  c.scorePronun.string,
+                                                  style: TextStyle(
+                                                    fontSize: 10.0,
+                                                    color: textColor.withOpacity(0.5),
                                                   ),
                                                 ),
-                                                const SizedBox(width: 10),
-                                              ]),
+                                                circularStrokeCap: CircularStrokeCap.round,
+                                                progressColor: Colors.purple,
+                                              ),
                                               const SizedBox(height: 5),
-                                              Row(children: [
-                                                const SizedBox(width: 10),
-                                                Expanded(
-                                                  child: Text(
-                                                    mean,
-                                                    style: const TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.w400,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
+                                              CircularPercentIndicator(
+                                                radius: 20,
+                                                lineWidth: 2.0,
+                                                animation: true,
+                                                percent: listScore[i].speak / 25,
+                                                backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                                center: Text(
+                                                  c.scoreSpeak.string,
+                                                  style: TextStyle(
+                                                    fontSize: 10.0,
+                                                    color: textColor.withOpacity(0.5),
                                                   ),
                                                 ),
-                                                const SizedBox(width: 10),
-                                              ]),
+                                                circularStrokeCap: CircularStrokeCap.round,
+                                                progressColor: Colors.purple,
+                                              ),
+                                              const SizedBox(height: 5),
+                                              CircularPercentIndicator(
+                                                radius: 20,
+                                                lineWidth: 2.0,
+                                                animation: true,
+                                                percent: listScore[i].mean / 25,
+                                                backgroundColor: const Color.fromRGBO(220, 220, 220, 0.3),
+                                                center: Text(
+                                                  c.scoreMean.string,
+                                                  style: TextStyle(
+                                                    fontSize: 10.0,
+                                                    color: textColor.withOpacity(0.5),
+                                                  ),
+                                                ),
+                                                circularStrokeCap: CircularStrokeCap.round,
+                                                progressColor: Colors.purple,
+                                              ),
+                                              // const SizedBox(width:10),
                                             ]),
+                                          ]),
+                                          const SizedBox(height: 5),
+                                          Row(children: [
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              child: Text(
+                                                dataRaw['word'],
+                                                style: const TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.w600,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 10),
+                                          ]),
+                                          const SizedBox(height: 5),
+                                          Row(children: [
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              child: Text(
+                                                dataRaw['pronun'],
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w400,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                                // textAlign: TextAlign.right,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 10),
+                                          ]),
+                                          const SizedBox(height: 5),
+                                          Row(children: [
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              child: Text(
+                                                mean,
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w400,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 10),
+                                          ]),
+                                        ]),
                                       ),
                                       const Expanded(child: SizedBox()),
                                     ],
@@ -11712,11 +9587,11 @@ class MyUpgradePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
         c.currentPage = 3.obs;
         Get.offAll(() => MainScreen());
-        return false;
       },
       child: Scaffold(
         appBar: AppBar(
@@ -11761,8 +9636,7 @@ class MyUpgradePage extends StatelessWidget {
                           color: Colors.black.withOpacity(0.6),
                           spreadRadius: 0,
                           blurRadius: 1,
-                          offset:
-                              const Offset(1, 1), // changes position of shadow
+                          offset: const Offset(1, 1), // changes position of shadow
                         ),
                       ],
                     ),
@@ -11773,9 +9647,7 @@ class MyUpgradePage extends StatelessWidget {
                         const SizedBox(width: 20),
                         GetBuilder<Controller>(
                           builder: (_) => Icon(
-                            c.available.value
-                                ? Icons.check_rounded
-                                : Icons.close_rounded,
+                            c.available.value ? Icons.check_rounded : Icons.close_rounded,
                             size: 25,
                             color: textColor,
                           ),
@@ -11817,27 +9689,20 @@ class MyUpgradePage extends StatelessWidget {
                       opacity: c.isVip.value ? 0.6 : 1,
                       child: ElevatedButton(
                         style: ButtonStyle(
-                          backgroundColor:
-                              MaterialStateProperty.all<Color>(themeColor),
-                          foregroundColor:
-                              MaterialStateProperty.all<Color>(Colors.grey),
-                          padding: MaterialStateProperty.all<EdgeInsets>(
-                              const EdgeInsets.all(0)),
-                          shape: MaterialStateProperty.all<OutlinedBorder?>(
-                              RoundedRectangleBorder(
+                          backgroundColor: WidgetStateProperty.all<Color>(themeColor),
+                          foregroundColor: WidgetStateProperty.all<Color>(Colors.grey),
+                          padding: WidgetStateProperty.all<EdgeInsets>(const EdgeInsets.all(0)),
+                          shape: WidgetStateProperty.all<OutlinedBorder?>(RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8.0),
                           )),
-                          fixedSize: MaterialStateProperty.all<Size>(
-                              const Size.fromHeight(50)),
+                          fixedSize: WidgetStateProperty.all<Size>(const Size.fromHeight(50)),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             const SizedBox(width: 20),
                             Icon(
-                              c.isVip.value
-                                  ? Icons.check_rounded
-                                  : Icons.close_rounded,
+                              c.isVip.value ? Icons.check_rounded : Icons.close_rounded,
                               size: 25,
                               color: textColor,
                             ),
@@ -11849,16 +9714,10 @@ class MyUpgradePage extends StatelessWidget {
                                   c.isVip.value
                                       ? c.language.value == 'VN'
                                           ? 'VIP (hạn đến ' +
-                                              DateFormat('dd-MM-yyyy HH:mm')
-                                                  .format(DateTime
-                                                      .fromMillisecondsSinceEpoch(
-                                                          c.expire.value)) +
+                                              DateFormat('dd-MM-yyyy HH:mm').format(DateTime.fromMillisecondsSinceEpoch(c.expire.value)) +
                                               ')'
                                           : 'VIP (valid until ' +
-                                              DateFormat('dd-MM-yyyy HH:mm')
-                                                  .format(DateTime
-                                                      .fromMillisecondsSinceEpoch(
-                                                          c.expire.value)) +
+                                              DateFormat('dd-MM-yyyy HH:mm').format(DateTime.fromMillisecondsSinceEpoch(c.expire.value)) +
                                               ')'
                                       : c.language.value == 'VN'
                                           ? 'đăng kí 01 năm (119k)'
@@ -11874,33 +9733,7 @@ class MyUpgradePage extends StatelessWidget {
                           ],
                         ),
                         onPressed: () async {
-                          if (!c.isVip.value) {
-                            // final ProductDetails productDetails = c.products[0];
-                            // final PurchaseParam purchaseParam = PurchaseParam(productDetails: productDetails);
-                            // await _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
-                            try {
-                              PurchaserInfo purchaserInfo =
-                                  await Purchases.purchasePackage(c.package);
-                              bool isPro = purchaserInfo
-                                      .entitlements.all["yearly"]?.isActive ??
-                                  false;
-                              c.isVip = RxBool(isPro);
-                              if (isPro) {
-                                c.expire = RxInt(DateTime.parse(purchaserInfo
-                                            .entitlements
-                                            .all["yearly"]
-                                            ?.expirationDate ??
-                                        DateTime.now().toString())
-                                    .millisecondsSinceEpoch);
-                              }
-                              c.update();
-                            } on PlatformException catch (e) {
-                              var errorCode =
-                                  PurchasesErrorHelper.getErrorCode(e);
-                              if (errorCode !=
-                                  PurchasesErrorCode.purchaseCancelledError) {}
-                            }
-                          }
+                          payVip();
                         },
                       ),
                     ),
@@ -11914,18 +9747,13 @@ class MyUpgradePage extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton(
                     style: ButtonStyle(
-                      backgroundColor:
-                          MaterialStateProperty.all<Color>(themeColor),
-                      foregroundColor:
-                          MaterialStateProperty.all<Color>(Colors.grey),
-                      padding: MaterialStateProperty.all<EdgeInsets>(
-                          const EdgeInsets.all(0)),
-                      shape: MaterialStateProperty.all<OutlinedBorder?>(
-                          RoundedRectangleBorder(
+                      backgroundColor: WidgetStateProperty.all<Color>(themeColor),
+                      foregroundColor: WidgetStateProperty.all<Color>(Colors.grey),
+                      padding: WidgetStateProperty.all<EdgeInsets>(const EdgeInsets.all(0)),
+                      shape: WidgetStateProperty.all<OutlinedBorder?>(RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8.0),
                       )),
-                      fixedSize: MaterialStateProperty.all<Size>(
-                          const Size.fromHeight(50)),
+                      fixedSize: WidgetStateProperty.all<Size>(const Size.fromHeight(50)),
                     ),
                     child: Container(
                       alignment: Alignment.center,
@@ -11941,18 +9769,11 @@ class MyUpgradePage extends StatelessWidget {
                     onPressed: () async {
                       if (!c.isVip.value) {
                         try {
-                          PurchaserInfo restoredInfo =
-                              await Purchases.restoreTransactions();
-                          bool isPro = restoredInfo
-                                  .entitlements.all["yearly"]?.isActive ??
-                              false;
+                          CustomerInfo restoredInfo = await Purchases.restorePurchases();
+                          bool isPro = restoredInfo.entitlements.all["yearly"]?.isActive ?? false;
                           c.isVip = RxBool(isPro);
                           if (isPro) {
-                            c.expire = RxInt(DateTime.parse(restoredInfo
-                                        .entitlements
-                                        .all["yearly"]
-                                        ?.expirationDate ??
-                                    DateTime.now().toString())
+                            c.expire = RxInt(DateTime.parse(restoredInfo.entitlements.all["yearly"]?.expirationDate ?? DateTime.now().toString())
                                 .millisecondsSinceEpoch);
                           }
                           c.update();
@@ -11998,11 +9819,7 @@ class MyUpgradePage extends StatelessWidget {
                                     'see our Privacy Policy at https://bedict.com/privacyPolicy.html'
                                     ' and Terms of Use at https://bedict.com/termOfService.html',
                         textStyle: const TextStyle(
-                            fontSize: 16.0,
-                            color: textColor,
-                            fontFamily: 'Tahoma',
-                            fontWeight: FontWeight.w400,
-                            decoration: TextDecoration.none),
+                            fontSize: 16.0, color: textColor, fontFamily: 'Tahoma', fontWeight: FontWeight.w400, decoration: TextDecoration.none),
                         linkStyle: const TextStyle(
                             fontSize: 16.0,
                             color: Colors.blue,
@@ -12012,8 +9829,7 @@ class MyUpgradePage extends StatelessWidget {
                             decorationColor: Colors.blue,
                             decorationStyle: TextDecorationStyle.solid),
                         textAlign: TextAlign.center, onLinkTap: (url) async {
-                      if (!await launchUrl(Uri.parse(url)))
-                        throw 'Could not launch $url';
+                      if (!await launchUrl(Uri.parse(url))) throw 'Could not launch $url';
                     }),
                   ),
                 ),
@@ -12027,17 +9843,13 @@ class MyUpgradePage extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton(
                     style: ButtonStyle(
-                      backgroundColor:
-                          MaterialStateProperty.all<Color>(Colors.transparent),
-                      foregroundColor:
-                          MaterialStateProperty.all<Color>(Colors.grey),
-                      padding: MaterialStateProperty.all<EdgeInsets>(
-                          const EdgeInsets.all(10)),
-                      shape: MaterialStateProperty.all<OutlinedBorder?>(
-                          RoundedRectangleBorder(
+                      backgroundColor: WidgetStateProperty.all<Color>(Colors.transparent),
+                      foregroundColor: WidgetStateProperty.all<Color>(Colors.grey),
+                      padding: WidgetStateProperty.all<EdgeInsets>(const EdgeInsets.all(10)),
+                      shape: WidgetStateProperty.all<OutlinedBorder?>(RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30.0),
                       )),
-                      // fixedSize: MaterialStateProperty.all<Size>(
+                      // fixedSize: WidgetStateProperty.all<Size>(
                       //     const Size.fromHeight(40)
                       // ),
                     ),
@@ -12046,9 +9858,7 @@ class MyUpgradePage extends StatelessWidget {
                     },
                     child: GetBuilder<Controller>(
                       builder: (_) => Text(
-                        c.language.string == 'VN'
-                            ? 'Chính sách và quyền riêng tư'
-                            : 'Privacy Policy',
+                        c.language.string == 'VN' ? 'Chính sách và quyền riêng tư' : 'Privacy Policy',
                         style: const TextStyle(
                           color: textColor,
                           fontSize: 14,
@@ -12062,17 +9872,13 @@ class MyUpgradePage extends StatelessWidget {
                 const SizedBox(width: 15),
                 OutlinedButton(
                   style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateProperty.all<Color>(Colors.transparent),
-                    foregroundColor:
-                        MaterialStateProperty.all<Color>(Colors.grey),
-                    padding: MaterialStateProperty.all<EdgeInsets>(
-                        const EdgeInsets.all(10)),
-                    shape: MaterialStateProperty.all<OutlinedBorder?>(
-                        RoundedRectangleBorder(
+                    backgroundColor: WidgetStateProperty.all<Color>(Colors.transparent),
+                    foregroundColor: WidgetStateProperty.all<Color>(Colors.grey),
+                    padding: WidgetStateProperty.all<EdgeInsets>(const EdgeInsets.all(10)),
+                    shape: WidgetStateProperty.all<OutlinedBorder?>(RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30.0),
                     )),
-                    // fixedSize: MaterialStateProperty.all<Size>(
+                    // fixedSize: WidgetStateProperty.all<Size>(
                     //     const Size.fromHeight(40)
                     // ),
                   ),
@@ -12081,9 +9887,7 @@ class MyUpgradePage extends StatelessWidget {
                   },
                   child: GetBuilder<Controller>(
                     builder: (_) => Text(
-                      c.language.string == 'VN'
-                          ? 'Điều khoản dịch vụ'
-                          : 'Tearms of Use',
+                      c.language.string == 'VN' ? 'Điều khoản dịch vụ' : 'Tearms of Use',
                       style: const TextStyle(
                         color: textColor,
                         fontSize: 14,
@@ -12105,6 +9909,25 @@ class MyUpgradePage extends StatelessWidget {
   }
 }
 
+Future<void> payVip() async {
+  final c = Get.put(Controller());
+  if (!c.isVip.value) {
+    try {
+      CustomerInfo purchaserInfo = await Purchases.purchasePackage(c.package);
+      bool isPro = purchaserInfo.entitlements.all["yearly"]?.isActive ?? false;
+      c.isVip = RxBool(isPro);
+      if (isPro) {
+        c.expire =
+            RxInt(DateTime.parse(purchaserInfo.entitlements.all["yearly"]?.expirationDate ?? DateTime.now().toString()).millisecondsSinceEpoch);
+      }
+      c.update();
+    } on PlatformException catch (e) {
+      var errorCode = PurchasesErrorHelper.getErrorCode(e);
+      if (errorCode != PurchasesErrorCode.purchaseCancelledError) {}
+    }
+  }
+}
+
 class ContactPage extends StatelessWidget {
   const ContactPage({Key? key}) : super(key: key);
 
@@ -12112,11 +9935,11 @@ class ContactPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
         c.currentPage = 3.obs;
         Get.offAll(() => MainScreen());
-        return false;
       },
       child: Scaffold(
         appBar: AppBar(
@@ -12146,12 +9969,11 @@ class ContactPage extends StatelessWidget {
         body: Container(
           alignment: Alignment.center,
           color: Colors.white,
-          child: Column(
+          child: const Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: const [
-                Icon(Icons.account_box_rounded,
-                    size: 35, color: backgroundColor),
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Icon(Icons.account_box_rounded, size: 35, color: backgroundColor),
                 SizedBox(width: 10),
                 Text(
                   'Trần Trung Hiếu',
@@ -12162,8 +9984,8 @@ class ContactPage extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
               ]),
-              const SizedBox(height: 10),
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: const [
+              SizedBox(height: 10),
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Icon(Icons.phone, size: 30, color: backgroundColor),
                 SizedBox(width: 10),
                 Text(
@@ -12175,8 +9997,8 @@ class ContactPage extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
               ]),
-              const SizedBox(height: 10),
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: const [
+              SizedBox(height: 10),
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Icon(Icons.mail, size: 30, color: backgroundColor),
                 SizedBox(width: 10),
                 Text(
@@ -12188,10 +10010,9 @@ class ContactPage extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
               ]),
-              const SizedBox(height: 10),
-              Row(mainAxisAlignment: MainAxisAlignment.center, children: const [
-                FaIcon(FontAwesomeIcons.facebook,
-                    size: 25, color: backgroundColor),
+              SizedBox(height: 10),
+              Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                FaIcon(FontAwesomeIcons.facebook, size: 25, color: backgroundColor),
                 SizedBox(width: 10),
                 Text(
                   'facebook.com/dosel.be',
@@ -12259,7 +10080,7 @@ class PolicyPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'This page is used to inform visitors regarding my policies with the collection, use, and'
@@ -12274,7 +10095,7 @@ class PolicyPage extends StatelessWidget {
               ),
             ]),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'If you choose to use my Service, then you agree'
@@ -12293,7 +10114,7 @@ class PolicyPage extends StatelessWidget {
               ),
             ]),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'The terms used in this Privacy Policy have the same meanings'
@@ -12319,7 +10140,7 @@ class PolicyPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'For a better experience, while using our Service,'
@@ -12337,7 +10158,7 @@ class PolicyPage extends StatelessWidget {
               ),
             ]),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'The app does use third party services that may collect'
@@ -12352,7 +10173,7 @@ class PolicyPage extends StatelessWidget {
               ),
             ]),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'Link to privacy policy of third party service providers'
@@ -12387,7 +10208,7 @@ class PolicyPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'Cookies are files with a small amount of data that are'
@@ -12404,7 +10225,7 @@ class PolicyPage extends StatelessWidget {
               ),
             ]),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'This Service does not use these “cookies” explicitly.'
@@ -12434,7 +10255,7 @@ class PolicyPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'I may employ third-party companies'
@@ -12453,7 +10274,7 @@ class PolicyPage extends StatelessWidget {
               ),
             ]),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'I want to inform users of this'
@@ -12481,7 +10302,7 @@ class PolicyPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'I value your trust in providing us'
@@ -12510,7 +10331,7 @@ class PolicyPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'This Service may contain links to other sites. If you click'
@@ -12541,7 +10362,7 @@ class PolicyPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'These Services do not address anyone under the age of 3.'
@@ -12573,7 +10394,7 @@ class PolicyPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'I may update our Privacy Policy from'
@@ -12611,8 +10432,7 @@ class TermPage extends StatelessWidget {
       appBar: AppBar(
         title: GetBuilder<Controller>(
           builder: (_) => Text(
-            (c.language.string == 'VN' ? 'Điều khoản sử dụng' : 'Terms of Use')
-                .toUpperCase(),
+            (c.language.string == 'VN' ? 'Điều khoản sử dụng' : 'Terms of Use').toUpperCase(),
             style: const TextStyle(
               color: Color.fromRGBO(255, 255, 255, 1),
             ),
@@ -12650,7 +10470,7 @@ class TermPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'These Terms of Service and End User License Agreement (this “Agreement”)'
@@ -12691,7 +10511,7 @@ class TermPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'BeDict shall make the Service available to you pursuant to this Agreement'
@@ -12724,7 +10544,7 @@ class TermPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'The “Term” of the Agreement shall be the duration of the then-current'
@@ -12799,7 +10619,7 @@ class TermPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'BeDict subscription details for iOS: Payment will be charged to iTunes Account'
@@ -12830,7 +10650,7 @@ class TermPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'Subject to the terms and conditions of this Agreement, BeDict grants you'
@@ -12874,7 +10694,7 @@ class TermPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'You must use the Service in compliance with all applicable laws. You must comply'
@@ -12919,7 +10739,7 @@ class TermPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'All intellectual property rights in and to the content, tools, text, logos,'
@@ -12948,7 +10768,7 @@ class TermPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'You shall pay all fees specified in all applicable subscription orders'
@@ -12981,7 +10801,7 @@ class TermPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'You may be able to link from the Service to third-party websites that take'
@@ -13011,7 +10831,7 @@ class TermPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'THE SERVICE AND ALL CONTENT, SOFTWARE, FUNCTIONS, MATERIALS, AND INFORMATION'
@@ -13061,7 +10881,7 @@ class TermPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'Neither Apple nor Google will be responsible for any claims by you or any third'
@@ -13096,7 +10916,7 @@ class TermPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'BeDict WILL NOT BE RESPONSIBLE FOR ANY DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL'
@@ -13134,7 +10954,7 @@ class TermPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 10),
-            Row(children: const [
+            const Row(children: [
               Flexible(
                 child: Text(
                   'Certain Application functions may require data access, and the provider'
@@ -13166,23 +10986,14 @@ class LoadingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
     Future.delayed(Duration.zero, () async {
-      final response =
-          await http.post(Uri.parse('https://bedict.com/readDataFile.php'),
-              // headers: {'Content-Type': 'application/json'},
-              body: {'token': 'xoaithoikham@mehatoac'});
+      final response = await http.post(Uri.parse('https://teli.vn/readDataFile.php'),
+          // headers: {'Content-Type': 'application/json'},
+          body: {'token': 'xoaithoikham@mehatoac'});
       if (response.statusCode == 200) {
         List data = json.decode(utf8.decode(response.bodyBytes));
         for (var i = 0; i < data.length; i++) {
           await box.put(data[i]['word'], data[i]);
-          List score = [
-            data[i]['word'],
-            0,
-            0,
-            0,
-            0,
-            0,
-            DateTime.now().millisecondsSinceEpoch
-          ];
+          List score = [data[i]['word'], 0, 0, 0, 0, 0, DateTime.now().millisecondsSinceEpoch];
           await boxScore.put(data[i]['word'], score);
         }
         await boxSetting.put('isIntroduce', false);
@@ -13215,9 +11026,11 @@ class LoadingPage extends StatelessWidget {
       }
     });
 
-    return WillPopScope(
-      onWillPop: () async {
-        return false;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        c.currentPage = 3.obs;
+        Get.offAll(() => MainScreen());
       },
       child: Scaffold(
         body: Container(
@@ -13263,10 +11076,8 @@ class WelcomePage extends StatelessWidget {
 
     Future.delayed(Duration.zero, () async {});
 
-    return WillPopScope(
-      onWillPop: () async {
-        return false;
-      },
+    return PopScope(
+      canPop: false,
       child: Scaffold(
         body: Container(
           alignment: Alignment.center,
@@ -13275,22 +11086,16 @@ class WelcomePage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Expanded(
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                    Text(
-                      'BeDict',
-                      style: TextStyle(
-                          fontSize: 100,
-                          foreground: Paint()..shader = linearGradient),
-                    ),
-                    Text(
-                      'Pictorial Dictionary',
-                      style: TextStyle(
-                          fontSize: 33.4,
-                          foreground: Paint()..shader = linearGradient),
-                    ),
-                  ])),
+                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Text(
+                  'BeDict',
+                  style: TextStyle(fontSize: 100, foreground: Paint()..shader = linearGradient),
+                ),
+                Text(
+                  'Pictorial Dictionary',
+                  style: TextStyle(fontSize: 33.4, foreground: Paint()..shader = linearGradient),
+                ),
+              ])),
               Row(children: [
                 const SizedBox(width: 40),
                 Expanded(
@@ -13365,104 +11170,93 @@ class WelcomePage extends StatelessWidget {
   }
 }
 
-class BannerAdWidget extends StatefulWidget {
-  // const BannerAdWidget({Key? key}) : super(key: key);
+// class BannerAdWidget extends StatefulWidget {
+//   // const BannerAdWidget({Key? key}) : super(key: key);
 
-  final double adWidth;
-  final double adHeight;
+//   final double adWidth;
+//   final double adHeight;
 
-  const BannerAdWidget(
-      {Key? key, required this.adWidth, required this.adHeight})
-      : super(key: key);
+//   const BannerAdWidget({Key? key, required this.adWidth, required this.adHeight}) : super(key: key);
 
-  @override
-  State<StatefulWidget> createState() => BannerAdState();
-}
+//   @override
+//   State<StatefulWidget> createState() => BannerAdState();
+// }
 
-class BannerAdState extends State<BannerAdWidget> {
-  late BannerAd bannerAd;
-  final Completer<BannerAd> nativeAdCompleter = Completer<BannerAd>();
-  final Controller c = Get.put(Controller());
-  @override
-  void initState() {
-    super.initState();
-    bannerAd = BannerAd(
-      adUnitId: Platform.isAndroid
-          ? 'ca-app-pub-9467993129762242/5194909402'
-          : 'ca-app-pub-9467993129762242/4031685759',
-      request: const AdRequest(),
-      size: AdSize(
-        width: widget.adWidth.ceil(),
-        height: widget.adHeight.ceil(),
-      ),
-      listener: BannerAdListener(
-        onAdLoaded: (Ad ad) {
-          nativeAdCompleter.complete(ad as BannerAd);
-        },
-        onAdFailedToLoad: (Ad ad, LoadAdError err) {
-          ad.dispose();
-        },
-        onAdOpened: (Ad ad) => {},
-        onAdClosed: (Ad ad) => {},
-      ),
-      // customOptions: <String, Object>{},
-    );
-    bannerAd.load();
-  }
+// class BannerAdState extends State<BannerAdWidget> {
+//   late BannerAd bannerAd;
+//   final Completer<BannerAd> nativeAdCompleter = Completer<BannerAd>();
+//   final Controller c = Get.put(Controller());
+//   @override
+//   void initState() {
+//     super.initState();
+//     bannerAd = BannerAd(
+//       adUnitId: Platform.isAndroid ? 'ca-app-pub-9467993129762242/5194909402' : 'ca-app-pub-9467993129762242/4031685759',
+//       request: const AdRequest(),
+//       size: AdSize(
+//         width: widget.adWidth.ceil(),
+//         height: widget.adHeight.ceil(),
+//       ),
+//       listener: BannerAdListener(
+//         onAdLoaded: (Ad ad) {
+//           nativeAdCompleter.complete(ad as BannerAd);
+//         },
+//         onAdFailedToLoad: (Ad ad, LoadAdError err) {
+//           ad.dispose();
+//         },
+//         onAdOpened: (Ad ad) => {},
+//         onAdClosed: (Ad ad) => {},
+//       ),
+//       // customOptions: <String, Object>{},
+//     );
+//     bannerAd.load();
+//   }
 
-  @override
-  void dispose() {
-    super.dispose();
-    bannerAd.dispose();
-  }
+//   @override
+//   void dispose() {
+//     super.dispose();
+//     bannerAd.dispose();
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<BannerAd>(
-      future: nativeAdCompleter.future,
-      builder: (BuildContext context, AsyncSnapshot<BannerAd> snapshot) {
-        Widget child;
+//   @override
+//   Widget build(BuildContext context) {
+//     return FutureBuilder<BannerAd>(
+//       future: nativeAdCompleter.future,
+//       builder: (BuildContext context, AsyncSnapshot<BannerAd> snapshot) {
+//         Widget child;
 
-        switch (snapshot.connectionState) {
-          case ConnectionState.none:
-            child = Container();
-            break;
-          case ConnectionState.waiting:
-            child = Container();
-            break;
-          case ConnectionState.active:
-            child = Container();
-            break;
-          case ConnectionState.done:
-            if (snapshot.hasData) {
-              child = AdWidget(ad: bannerAd);
-            } else {
-              child = const Text('Error loading ad');
-            }
-        }
-        return child;
-      },
-    );
-  }
-}
+//         switch (snapshot.connectionState) {
+//           case ConnectionState.none:
+//             child = Container();
+//             break;
+//           case ConnectionState.waiting:
+//             child = Container();
+//             break;
+//           case ConnectionState.active:
+//             child = Container();
+//             break;
+//           case ConnectionState.done:
+//             if (snapshot.hasData) {
+//               child = AdWidget(ad: bannerAd);
+//             } else {
+//               child = const Text('Error loading ad');
+//             }
+//         }
+//         return child;
+//       },
+//     );
+//   }
+// }
 
 Future<String> getImage(String query, String size) async {
   try {
-    final response = await http.get(
-        Uri.parse(
-            'https://api.pexels.com/v1/search?query=$query&page=1&per_page=1'),
-        headers: {
-          'Authorization':
-              '563492ad6f9170000100000190dcc0f127c64ea4b0caee36c1f58969'
-        });
+    final response = await http.get(Uri.parse('https://api.pexels.com/v1/search?query=$query&page=1&per_page=1'),
+        headers: {'Authorization': '563492ad6f9170000100000190dcc0f127c64ea4b0caee36c1f58969'});
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['photos'].isEmpty) {
         return 'null@';
       } else {
-        return data['photos'][0]['src'][size] +
-            '@' +
-            data['photos'][0]['photographer'];
+        return data['photos'][0]['src'][size] + '@' + data['photos'][0]['photographer'];
       }
     } else {
       return 'null@';
@@ -13476,8 +11270,7 @@ Future<List<String>> getListType(String type) async {
   List<String> findList = <String>[];
   for (var i = 0; i < box.length; i++) {
     var nowWord = await box.getAt(i);
-    if (nowWord['type'].startsWith(type) ||
-        nowWord['type'].contains(' $type')) {
+    if (nowWord['type'].startsWith(type) || nowWord['type'].contains(' $type')) {
       findList.add(nowWord['word']);
     }
   }
@@ -13503,33 +11296,32 @@ Future<List<String>> getListCategory(String category) async {
   return findList;
 }
 
-Future loadAd() async {
-  final Controller c = Get.put(Controller());
-  int isShow = Random().nextInt(showAdFrequency);
-  if (isShow == 0 && !c.isVip.value) {
-    await InterstitialAd.load(
-        adUnitId: Platform.isAndroid ? androidAd : iosAd,
-        request: const AdRequest(),
-        adLoadCallback: InterstitialAdLoadCallback(
-          onAdLoaded: (InterstitialAd ad) {
-            // Keep a reference to the ad so you can show it later.
-            ad.fullScreenContentCallback = FullScreenContentCallback(
-              onAdShowedFullScreenContent: (InterstitialAd ad) {},
-              onAdDismissedFullScreenContent: (InterstitialAd ad) {
-                ad.dispose();
-              },
-              onAdFailedToShowFullScreenContent:
-                  (InterstitialAd ad, AdError error) {
-                ad.dispose();
-              },
-              onAdImpression: (InterstitialAd ad) {},
-            );
-            ad.show();
-          },
-          onAdFailedToLoad: (LoadAdError error) {},
-        ));
-  }
-}
+// Future loadAd() async {
+//   final Controller c = Get.put(Controller());
+//   int isShow = Random().nextInt(showAdFrequency);
+//   if (isShow == 0 && !c.isVip.value) {
+//     await InterstitialAd.load(
+//         adUnitId: Platform.isAndroid ? androidAd : iosAd,
+//         request: const AdRequest(),
+//         adLoadCallback: InterstitialAdLoadCallback(
+//           onAdLoaded: (InterstitialAd ad) {
+//             // Keep a reference to the ad so you can show it later.
+//             ad.fullScreenContentCallback = FullScreenContentCallback(
+//               onAdShowedFullScreenContent: (InterstitialAd ad) {},
+//               onAdDismissedFullScreenContent: (InterstitialAd ad) {
+//                 ad.dispose();
+//               },
+//               onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+//                 ad.dispose();
+//               },
+//               onAdImpression: (InterstitialAd ad) {},
+//             );
+//             ad.show();
+//           },
+//           onAdFailedToLoad: (LoadAdError error) {},
+//         ));
+//   }
+// }
 
 List laytuloai(String kyhieu) {
   var tuloai = [];
@@ -13702,7 +11494,7 @@ List laytuloai(String kyhieu) {
 
 Future getNextLearn() async {
   final Controller c = Get.put(Controller());
-  await loadAd();
+  // await loadAd();
   if (c.currentTab.value < 3) {
     c.currentTab = RxInt(c.currentTab.value + 1);
   } else {
@@ -13713,7 +11505,7 @@ Future getNextLearn() async {
 
 Future getPreviousLearn() async {
   final Controller c = Get.put(Controller());
-  await loadAd();
+  // await loadAd();
   if (c.currentTab.value > 0) {
     c.currentTab = RxInt(c.currentTab.value - 1);
   } else {
@@ -13763,8 +11555,7 @@ bool checkSubMean(List<String> subMean) {
   bool ktCategory = false;
   bool ktType = false;
   for (var j = 0; j < subMean.length; j++) {
-    if (c.category.string != 'all category' &&
-        c.category.string != 'no category') {
+    if (c.category.string != 'all category' && c.category.string != 'no category') {
       if (subMean[j].contains('#')) {
         if (subMean[j].split('#')[0].split(',').contains(c.category.string)) {
           ktCategory = true;
@@ -13800,8 +11591,7 @@ bool checkSubMean(List<String> subMean) {
 
 Future insertHistory(String wordSearch) async {
   if (wordSearch != '') {
-    await boxHistory.put(DateTime.now().toString(),
-        [DateTime.now().millisecondsSinceEpoch, wordSearch]);
+    await boxHistory.put(DateTime.now().toString(), [DateTime.now().millisecondsSinceEpoch, wordSearch]);
   }
 }
 
@@ -13887,14 +11677,8 @@ Future<List<Score>> getListScoreTime(int start, int end) async {
   for (var i = 0; i < boxScore.length; i++) {
     var nowWord = await boxScore.getAt(i);
     if (nowWord[6] > start && nowWord[6] < end && nowWord[5] > 0) {
-      findList.add(Score(
-          wordId: nowWord[0],
-          word: nowWord[1],
-          pronun: nowWord[2],
-          speak: nowWord[3],
-          mean: nowWord[4],
-          total: nowWord[5],
-          time: nowWord[6]));
+      findList.add(
+          Score(wordId: nowWord[0], word: nowWord[1], pronun: nowWord[2], speak: nowWord[3], mean: nowWord[4], total: nowWord[5], time: nowWord[6]));
     }
   }
   findList.sort((a, b) => b.total.compareTo(a.total));
@@ -13902,15 +11686,8 @@ Future<List<Score>> getListScoreTime(int start, int end) async {
 }
 
 Future updateScore(Score dataScore) async {
-  await boxScore.put(dataScore.wordId, [
-    dataScore.wordId,
-    dataScore.word,
-    dataScore.pronun,
-    dataScore.speak,
-    dataScore.mean,
-    dataScore.total,
-    DateTime.now().millisecondsSinceEpoch
-  ]);
+  await boxScore.put(dataScore.wordId,
+      [dataScore.wordId, dataScore.word, dataScore.pronun, dataScore.speak, dataScore.mean, dataScore.total, DateTime.now().millisecondsSinceEpoch]);
 }
 
 class Score {
@@ -13949,6 +11726,18 @@ class Score {
   }
 }
 
+class Message {
+  final String content;
+  final bool isGPT;
+  final DateTime time;
+
+  Message({
+    required this.content,
+    required this.isGPT,
+    required this.time,
+  });
+}
+
 class History {
   final int time;
   final String word;
@@ -13979,8 +11768,7 @@ Future showNotification() async {
       AwesomeNotifications().requestPermissionToSendNotifications();
     }
   });
-  String localTimeZone =
-      await AwesomeNotifications().getLocalTimeZoneIdentifier();
+  String localTimeZone = await AwesomeNotifications().getLocalTimeZoneIdentifier();
   await AwesomeNotifications().createNotification(
       content: NotificationContent(
         id: 0,
@@ -14007,17 +11795,13 @@ Future<List<String>> getScoreNotification() async {
     if (nowWord[5] > 0) findListScore.add(nowWord);
   }
   findListScore.sort((a, b) => a[5].compareTo(b[5]));
-  for (var i = 0;
-      i < (findListScore.length < 10 ? findListScore.length : 10);
-      i++) {
+  for (var i = 0; i < (findListScore.length < 10 ? findListScore.length : 10); i++) {
     if (!findList.contains(findListScore[i][0])) {
       findList.add(findListScore[i][0]);
     }
   }
   findListScore.sort((a, b) => a[6].compareTo(b[6]));
-  for (var i = 0;
-      i < (findListScore.length < 10 ? findListScore.length : 10);
-      i++) {
+  for (var i = 0; i < (findListScore.length < 10 ? findListScore.length : 10); i++) {
     if (!findList.contains(findListScore[i][0])) {
       findList.add(findListScore[i][0]);
     }
@@ -14036,8 +11820,7 @@ Future showNotificationWord() async {
         AwesomeNotifications().requestPermissionToSendNotifications();
       }
     });
-    String localTimeZone =
-        await AwesomeNotifications().getLocalTimeZoneIdentifier();
+    String localTimeZone = await AwesomeNotifications().getLocalTimeZoneIdentifier();
     for (var i = 0; i <= 960; i += c.notificationInterval.value) {
       var dataRaw = await box.get(listWord[Random().nextInt(listWord.length)]);
       var randomMean = Random().nextInt(jsonDecode(dataRaw['mean']).length);
@@ -14054,8 +11837,7 @@ Future showNotificationWord() async {
         meanENAdd.add(meanENElement);
         String meanVNElement = jsonDecode(dataRaw['meanVN'])[randomMean][j];
         meanVNElement = meanVNElement.substring(0, meanVNElement.length - 2);
-        meanVNElement =
-            meanVNElement + listMean[j].substring(listMean[j].length - 1);
+        meanVNElement = meanVNElement + listMean[j].substring(listMean[j].length - 1);
         meanVNAdd.add(meanVNElement);
       }
       String meanEN = '';
@@ -14066,12 +11848,8 @@ Future showNotificationWord() async {
           meanVN = meanVN + meanVNAdd[j].substring(0, meanVNAdd[j].length - 1);
           meanEN = meanEN + meanENAdd[j].substring(0, meanENAdd[j].length - 1);
         } else {
-          meanVN = meanVN +
-              ' | ' +
-              meanVNAdd[j].substring(0, meanVNAdd[j].length - 1);
-          meanEN = meanEN +
-              ' | ' +
-              meanENAdd[j].substring(0, meanENAdd[j].length - 1);
+          meanVN = meanVN + ' | ' + meanVNAdd[j].substring(0, meanVNAdd[j].length - 1);
+          meanEN = meanEN + ' | ' + meanENAdd[j].substring(0, meanENAdd[j].length - 1);
         }
       }
       if (c.language.string == 'VN') {
@@ -14083,8 +11861,7 @@ Future showNotificationWord() async {
       if (randomMean >= jsonDecode(dataRaw['imageURL']).length) {
         image = 'https://bedict.com/bedict.png';
       } else {
-        image =
-            'https://bedict.com/' + jsonDecode(dataRaw['imageURL'])[randomMean];
+        image = 'https://bedict.com/' + jsonDecode(dataRaw['imageURL'])[randomMean];
       }
       await AwesomeNotifications().createNotification(
           content: NotificationContent(
