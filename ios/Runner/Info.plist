@@ -54,9 +54,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>This example listens for speech on the device microphone on your request.</string>
+	<string>This app requires Microphone access to record user speak of sentences or words when learning or to search words.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>This example recognizes words as you speak them and displays them.</string>
+	<string>This app us speech recognition to listen and recognizes words as you speak them and displays them as part of learning.</string>
 	<key>SKAdNetworkItems</key>
 	<array>
 		<dict>
